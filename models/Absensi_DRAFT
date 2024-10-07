@@ -1,0 +1,231 @@
+<?php
+
+namespace app\models;
+
+use Yii;
+
+/**
+ * This is the model class for table "absensi".
+ *
+ * @property int $id
+ * @property string|null $date
+ * @property int|null $store_id
+ * @property int $status
+ * @property string $attendance
+ * @property string $detail_info
+ */
+class Absensi extends \yii\db\ActiveRecord
+{
+    const STATUS_INACTIVE   = 0;
+    const STATUS_ACTIVE     = 1;
+    const STATUS_DRAFT      = 2;
+    const STATUS_COMPLETED  = 3;
+    const STATUS_DELETED    = 4;
+    const STATUS_MAINTENANCE  = 5;
+
+    public $dateTime;
+    public $timestamp;
+    public $worktime_entry;
+    public $worktime_home;
+
+    public function init()
+    {
+        parent::init();
+        $this->dateTime = new \DateTime('now', new \DateTimeZone('UTC'));
+        $this->timestamp = $this->dateTime->format('Y-m-d\TH:i:s\Z');
+    }
+
+    public function getWorkTime($id)
+    {
+        if($id == 1) { // Ruko
+            $this->worktime_entry = "10:00:00";
+            $this->worktime_home = "18:00:00";
+        } elseif ($id == 2) { // Toko
+            $this->worktime_entry = "10:00:00";
+            $this->worktime_home = "18:00:00";
+        } elseif ($id == 3) { // Cabang Serpong
+            $this->worktime_entry = "11:00:00";
+            $this->worktime_home = "20:00:00";
+        }
+    }
+
+    public function getDepartmentName($id)
+    {
+        if($id == 1) {
+            return "Update";
+        } elseif ($id == 2) {
+            return "Branding";
+        } elseif ($id == 3) {
+            return "Gudang";
+        } elseif ($id == 4) {
+            return "Human Resource";
+        } elseif ($id == 5) {
+            return "Teknologi Informasi";
+        } elseif ($id == 6) {
+            return "Kasir ";
+        } elseif ($id == 7) {
+            return "Marketing Offline";
+        } elseif ($id == 8) {
+            return "Marketing Online";
+        } elseif ($id == 9) {
+            return "Return Merchandise Authorization";
+        } elseif ($id == 10) {
+            return "Finance Accounting & Tax";
+        } elseif ($id == 11) {
+            return "Teknisi";
+        } elseif ($id == 12) {
+            return "Marketing Komunikasi & Branding";
+        } elseif ($id == 13) {
+            return "Pick Up";
+        } elseif ($id == 14) {
+            return "Ulasan Id ";
+        } elseif ($id == 15) {
+            return "Packing";
+        } elseif ($id == 16) {
+            return "Keamanan";
+        } elseif ($id == 17) {
+            return "Human Resource";
+        } elseif ($id == 18) {
+            return "Cleaning Service";
+        }
+    }
+
+    public function getStoreName($id)
+    {
+        if($id == 1) {
+            return "Ruko";
+        } elseif ($id == 2) {
+            return "Toko";
+        } elseif ($id == 4) {
+            return "Cabang Serpong";
+        }
+    }
+
+    public function getDeviceName($id)
+    {
+        if($id == 1) {
+            return "Absen Ruko";
+        } elseif ($id == 2) {
+            return "Absen Toko";
+        } elseif ($id == 3) {
+            return "Absen Cabang Serpong";
+        }
+    }
+
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios['create'] = ['date', 'store_id', 'dayoff', 'status', 'attendance','detail_info'];
+        $scenarios['update'] = ['date', 'attendance', 'detail_info'];
+        $scenarios['delete'] = ['detail_info', 'attendance'];
+
+        return $scenarios;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function tableName()
+    {
+        return 'absensi';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function rules()
+    {
+        return [
+            [['attendance', 'detail_info', 'blacklist'], 'safe'],
+            [['store_id', 'status'], 'integer'],
+            [['date'], 'date', 'format' => 'yyyy-MM-dd'],
+            [['dayoff'], 'boolean'],
+            [['status'], 'default', 'value' => 2],
+            ['status', 'in', 'range' => [
+                self::STATUS_INACTIVE, 
+                self::STATUS_ACTIVE, 
+                self::STATUS_DRAFT, 
+                self::STATUS_COMPLETED, 
+                self::STATUS_DELETED, 
+                self::STATUS_MAINTENANCE
+            ]],
+            // Rules
+            // [['attendance'], 'required'],
+            [['dayoff'], 'default', 'value' => false, 'on' => 'insert'],
+            [['store_id', 'status'], 'required'],
+            [['date'], 'required']
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'date' => 'Date',
+            'store_id' => 'Store ID',
+            'dayoff' => 'Dayoff',
+            'status' => 'Status',
+            'attendance' => 'Attendance',
+            'detail_info' => 'Detail Info',
+            'blacklist' => 'Blacklist',
+        ];
+    }
+
+    public function beforeSave($insert)
+    {
+        if ($insert) {
+            $data = Yii::$app->request->post();
+            $this->getWorkTime($data['worktime_id']);
+
+            $this->date     = $data['date'];
+            $this->store_id = $data['store_id'];
+            $this->dayoff   = $data['dayoff'];
+            $this->status   = 2;
+            $this->attendance = [
+                'attendances' => [
+                    '0' => [
+                        'employee' => [
+                            'id'        => $data['employee_id'],
+                            'name'      => $data['employee_name']
+                        ],
+                        'start_time'    => $data['start_time'],
+                        'end_time'      => $data['end_time'],
+                        'info' => [
+                            'in'        => false,
+                            'out'       => false,
+                            'detail'    => []
+                        ],
+                        'device' => [
+                            'id'        => $data['device_id'],
+                            'name'      => $this->getDeviceName($data['device_id'])
+                        ],
+                        'department' => [
+                            'id'        => $data['department_id'],
+                            'name'      => $this->getDepartmentName($data['department_id'])
+                        ],
+                        'worktime' => [
+                            'id'        => $data['worktime_id'],
+                            'entry'     => $this->worktime_entry,
+                            'home'      => $this->worktime_home
+                        ],
+                        'store' => [
+                            'id'        => $data['store_id'],
+                            'name'      => $this->getStoreName($data['store_id'])
+                        ],
+                        'location' => [
+                            'lat'       => null,
+                            'lang'      => null,
+                            'image'     => null
+                        ]
+                    ]
+                ]
+            ];
+
+        }
+
+        return parent::beforeSave($insert);
+    }
+}

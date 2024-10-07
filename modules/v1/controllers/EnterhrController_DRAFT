@@ -1,0 +1,233 @@
+<?php
+
+namespace app\modules\v1\controllers;
+
+use Yii;
+use yii\rest\Controller;
+use yii\web\Response;
+use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
+use yii\db\Command;
+use yii\validators\JsonValidator;
+use yii\web\UploadedFile;
+
+use app\models\GeneralAffairs as ModelsGeneralAffairs;
+use app\models\Absensi as ModelsAbsensi;
+
+class EnterhrController extends \yii\web\Controller
+{
+    public $enableCsrfValidation = false;
+
+    public function behaviors()
+    {
+        return [
+            'contentNegotiator' => [
+                'class' => 'yii\filters\ContentNegotiator',
+                'formats' => [
+                    'application/json' => Response::FORMAT_JSON,
+                ],
+            ],
+            'authenticator' => [
+                'class' => 'app\components\JwtBearerAuth',
+                'except' => [
+                    'ga-index',
+                    'absensi-index',
+                    'category-index',
+                ],
+            ],
+            'access' => [
+                'class' => AccessControl::className(),
+                'except' => ['rintisan-callback'],
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'ips' => ['188.166.205.40', '206.189.81.226', '127.0.0.1', '::1'],
+                    ],
+                ],
+                'denyCallback' => function ($rule, $action) {
+                    Yii::$app->response->format = Response::FORMAT_JSON;
+                    Yii::$app->response->statusCode = 403;
+                    $response = ['code' => 403, 'success' => false, 'error' => 'Forbidden', 'message' => 'Your IP is not allowed to access this resource.'];
+                    Yii::$app->response->data = $response;
+                    Yii::$app->response->send();
+                    Yii::$app->end();
+                },
+            ],
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    // General Affairs
+                    'ga-index'      => ['GET'],
+                    'ga-show'       => ['POST'],
+                    'ga-create'     => ['POST'],
+                    'ga-update'     => ['POST'],
+                    'ga-delete'     => ['POST'],
+                    
+                    // Absensi
+                    'absensi-index'     => ['GET'],
+                    'absensi-show'      => ['POST'],
+                    'absensi-create'    => ['POST'],
+                    'absensi-update'    => ['POST'],
+                    'absensi-delete'    => ['POST'],
+                ]
+            ]
+        ];
+    }
+
+    public function actionGaIndex()
+    {
+        $ga = new ModelsGeneralAffairs();
+        $result = $ga->find()->all();
+
+        if($result != null) {
+            $data = [
+                'code'      => 200,
+                'success'   => true,
+                'message'   => Yii::$app->params['titleService'].' v1',
+                'data'      => $result
+            ];
+
+            return $data;
+        } else {
+            $data = [
+                'code'      => 204,
+                'success'   => true,
+                'message'   => 'No Content',
+            ];
+     
+            return $data;
+        }
+    }
+
+    public function actionGaShow()
+    {
+        $ga = new ModelsGeneralAffairs();
+        $result = $ga->show(Yii::$app->request->post('barcode'));
+
+        if($result != null) {
+            $data = [
+                'code'      => 200,
+                'success'   => true,
+                'message'   => Yii::$app->params['titleService'].' v1',
+                'data'      => $result
+            ];
+
+            return $data;
+        } else {
+            $data = [
+                'code'      => 204,
+                'success'   => true,
+                'message'   => 'No Content',
+            ];
+     
+            return $data;
+        }
+    }
+
+    public function actionGaCreate()
+    {
+        $ga             = new ModelsGeneralAffairs();
+        $ga->scenario   = 'create';
+        $ga->attributes = Yii::$app->request->post();
+        $existing       = $ga->find()->where(['name' => $ga->name])->one();
+
+        if($ga->validate()) {
+            if(!$existing) {
+                if($ga->save()) {
+                    $data = [
+                        'code'      => 200,
+                        'success'   => true,
+                        'message'   => Yii::$app->params['titleService'].' v1',
+                        'data'      => $ga->find()->all(),
+                    ];
+        
+                    return $data;
+                } else {
+                    $data = [
+                        'code'      => 400,
+                        'success'   => true,
+                        'message'   => $ga->errors,
+                    ];
+             
+                    return $data;
+                }
+            } else {
+                if($ga->upsert()) {
+                    $data = [
+                        'code'      => 200,
+                        'success'   => true,
+                        'message'   => Yii::$app->params['titleService'].' v1',
+                        'data'      => $ga->find()->all(),
+                    ];
+        
+                    return $data;
+                } else {
+                    $data = [
+                        'code'      => 409,
+                        'success'   => true,
+                        'message'   => 'Data Conflict',
+                    ];
+             
+                    return $data;
+                }
+            }
+        } else {
+            $data = [
+                'code'      => 400,
+                'success'   => true,
+                'message'   => $ga->errors,
+            ];
+     
+            return $data;
+        }
+    }
+
+    public function actionGaUpdate()
+    {
+        $id = Yii::$app->request->post('id');
+        $barcode = Yii::$app->request->post('barcode');
+        $data = Yii::$app->request->post();
+        $model = new ModelsGeneralAffairs();
+
+        if ($model->updateData()) {
+            return [
+                'code' => 200,
+                'success' => true,
+                'message' => $barcode . ' Update successful',
+                'data'  => $model->show($barcode)
+            ];
+        } else {
+            return [
+                'code' => 204,
+                'success' => false,
+                'message' => 'No Content'
+            ];
+        }
+    }
+
+    public function actionGaDelete()
+    {
+        $ga             = new ModelsGeneralAffairs();
+        $ga->scenario   = 'delete';
+        $model          = $ga->findOne(Yii::$app->request->post('id'));
+
+        if ($model->validate() && $model->softDelete() && $model != null && $model->status != 4) {
+            $data = [
+                'code'      => 200,
+                'success'   => true,
+                'message'   => Yii::$app->request->post('barcode') . ' Deleted',
+                'data'      => $ga->find()->all() 
+            ];
+
+            return $data;
+        } else {
+            $data = [
+                'code'      => 204,
+                'success'   => false,
+                'message'   => 'No Content'
+            ];
+
+            return $data;
+        }      
+    }
+}
