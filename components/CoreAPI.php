@@ -296,12 +296,16 @@ class CoreAPI
 
 	public function exisitingData($model, $params)
 	{
-		$existing = $model::find()->where(['id' => $params['id']])->one();
-
-		if ($existing) {
-			return true;
+		if(isset($params['id'])) {
+			$existing = $model::find()->where(['id' => $params['id']])->one();
+		} elseif(isset($params['date'])) {
+			$existing = $model::find()->where(['date' => $params['date']])->one();			
 		}
 
+		if ($existing) {
+			return $existing;
+		}
+		
 		return false;
 	}
 
@@ -323,5 +327,94 @@ class CoreAPI
 	{
 		$item = $model->item;
 		return (int) array_key_last($item['items']) + 1;
+	}
+
+	public function insertAttendance($attendance, $model)
+	{
+		if (isset($model->attendance)) {
+			$attendance = array_merge([
+				'employee_id' => null,
+				'start_time' => null,
+				'end_time' => null,
+				'info' => [
+					'in' => false,
+					'out' => false,
+					'detail' => []
+				],
+				'device' => [
+					'id' => null,
+					'name' => null
+				],
+				'work_time' => [
+					'id' => null,
+					'start_time' => null,
+					'home_time' => null
+				],
+				'location' => [
+					'lat' => null,
+					'long' => null,
+					'image' => []
+				]
+			], $attendance);
+		}
+	
+		$workTimeData = $model->getWorkTimeData($attendance['work_time']['id']);
+		$attendance['device']['name'] = $model->getDeviceName($attendance['device']['id']);
+		$attendance['employee_id'] = (int) $attendance['employee_id'];
+		$attendance['device']['id'] = (int) $attendance['device']['id'];
+		$attendance['work_time']['id'] = (int) $attendance['work_time']['id'];
+		$attendance['work_time']['entry_time'] = $workTimeData['entry_time'];
+		$attendance['work_time']['home_time'] = $workTimeData['home_time'];
+
+		$attendance = $this->changeInfoField($attendance);
+
+		return [$attendance];
+	}
+
+	public function changeInfoField($attendance)
+	{
+		if (!empty($attendance['start_time'])) {
+			$attendance['info']['in'] = true;
+		}
+
+		if (!empty($attendance['end_time'])) {
+			$attendance['info']['out'] = true;
+		}
+
+		if (!empty($attendance['start_time']) && !empty($attendance['work_time']['entry_time'])) {
+			$startTime = strtotime($attendance['start_time']);
+			$entryTime = strtotime($attendance['work_time']['entry_time']);
+
+			if ($startTime > $entryTime) {
+				$attendance['info']['detail'][] = "Telat Masuk";
+			}
+		}
+
+		if (!empty($attendance['end_time']) && !empty($attendance['work_time']['home_time'])) {
+			$endTime = strtotime($attendance['end_time']);
+			$homeTime = strtotime($attendance['work_time']['home_time']);
+
+			if ($endTime < $homeTime) {
+				$attendance['info']['detail'][] = "Pulang Cepat";
+			}
+		}
+
+		if (empty($attendance['end_time']) && !empty($attendance['start_time']) && date('Y-m-d') != date('Y-m-d', strtotime($attendance['start_time']))) {
+			$attendance['info']['detail'][] = "Tidak Absen Pulang";
+		}
+
+		return $attendance;
+	}
+	
+	public function updateAttendance($attendance, $employee_id, $end_time)
+	{
+		foreach ($attendance as &$item) {
+			if (isset($item['employee_id']) && $item['employee_id'] == $employee_id) {
+				$item['end_time'] = $end_time;
+				$item = $this->changeInfoField($item);
+				break;
+			}
+		}
+		return $attendance;
 	}
 }

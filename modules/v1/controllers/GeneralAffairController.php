@@ -108,7 +108,7 @@ class GeneralAffairController extends CoreController
 			return CoreController::coreSuccess($callBack, 'updateRecordSuccess');
 		}
 		
-        return CoreController::coreBadRequest($model, Yii::t('app', 'notExists'));
+        return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
     }
 
     public function actionDelete()

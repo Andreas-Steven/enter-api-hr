@@ -94,19 +94,11 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function beforeSave($insert)
     {
-        if ($insert) {
-            $this->item = Yii::$app->coreAPI->calculateValue($this->item, $insert);
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-            $this->detail_info = [
-                'change_log' => $this->change_log ?: null,
-            ];
-        } else {
-            $this->item = Yii::$app->coreAPI->calculateValue($this->item, $insert);
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-            $this->detail_info = [
-                'change_log' => $this->change_log ?: null,
-            ];
-        }
+        $this->item = Yii::$app->coreAPI->calculateValue($this->item, $insert);
+        $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+        $this->detail_info = [
+            'change_log' => $this->change_log ?: null,
+        ];
 
         return parent::beforeSave($insert);
     }
