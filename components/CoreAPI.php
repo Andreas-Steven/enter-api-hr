@@ -405,7 +405,25 @@ class CoreAPI
 
 		return $attendance;
 	}
-	
+
+	public function insertBlacklist($existing, $employee_id, $date, $start_time)
+	{
+		$blacklistEntry = [
+			'employee_id' => (int) $employee_id,
+			'date' => $date,
+			'time' => $start_time,
+			'change_log' => [
+				'created_at' => self::timestamp(),
+				'created_by' => Yii::$app->session->get('username')
+			]
+		];
+
+		$blacklist = $existing->blacklist;
+		$blacklist[] = $blacklistEntry;
+
+		return $blacklist;
+	}
+
 	public function updateAttendance($attendance, $employee_id, $end_time)
 	{
 		foreach ($attendance as &$item) {

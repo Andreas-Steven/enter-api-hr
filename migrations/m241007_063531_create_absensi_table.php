@@ -41,10 +41,7 @@ class m241007_063531_create_absensi_table extends Migration
                     'image'     => []
                 ]
             ])),
-            'blacklist' => $this->json()->notNull()->defaultValue(json_encode([
-                'employee_id'   => null,
-                'date_time'     => null
-            ])),
+            'blacklist' => $this->json()->notNull()->defaultValue(json_encode([])),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
                 'change_log' => [
                     'created_at' => null,

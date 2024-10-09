@@ -72,21 +72,29 @@ class Absensi extends \yii\db\ActiveRecord
 
     public function beforeSave($insert)
     {
-        if ($insert) {
-            if (isset($this->attendance)) {
-                $this->attendance = Yii::$app->coreAPI->insertAttendance($this->attendance, $this);
-            } 
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-            $this->detail_info = [
-                'change_log' => $this->change_log ?: null,
-            ];
+        if ($insert && isset($this->attendance)) {
+            $this->attendance = Yii::$app->coreAPI->insertAttendance($this->attendance, $this);
         }
+
+        $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+        $this->detail_info = [
+            'change_log' => $this->change_log ?: null,
+        ];
         
         return parent::beforeSave($insert);
     }
 
     public function upsert($params, $existing)
     {
+        $start_time = $params['attendance']['start_time'];
+        $date = $params['date'];
+        $employee_id = $params['attendance']['employee_id'];
+
+        if (!$this->isValidStartTimeAndDate($start_time, $date)) {
+            $this->addBlacklist($existing, $employee_id, $start_time, $date);
+            return $existing;
+        }
+        
         if (isset($existing)) {
             $existing->refresh();
             $newAttendance = Yii::$app->coreAPI->insertAttendance($params['attendance'], $existing);
@@ -115,6 +123,48 @@ class Absensi extends \yii\db\ActiveRecord
         return $this->save();
     }
 
+    private function isValidStartTimeAndDate($start_time, $date)
+    {
+        $today = date('Y-m-d');
+        
+        if ($date < $today) {
+            return false;
+        }
+    
+        $previousAttendance = $this->getPreviousAttendance($date);
+        
+        if (!$previousAttendance) { 
+            return true;
+        }
+
+        $lastIndex = count($previousAttendance->attendance) - 1;
+        $lastStartTime = $previousAttendance->attendance[$lastIndex]['start_time'];
+        if ($start_time < $lastStartTime || $date < $previousAttendance->date) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function getPreviousAttendance($date)
+    {
+        $previousAttendance = Absensi::find()
+            ->where(['date' => $date])
+            ->one();
+
+        return $previousAttendance;
+    }
+
+    public function addBlacklist($existing, $employee_id, $date, $start_time)
+    {
+        $blacklist = Yii::$app->coreAPI->insertBlacklist($existing, $employee_id, $date, $start_time);
+        $existing->updateAttributes([
+            'blacklist' => $blacklist,
+        ]);
+        
+        return $existing->save();    
+    }
+
     public function getDeviceName($id)
     {
         $device = Device::findOne($id);
@@ -131,3 +181,4 @@ class Absensi extends \yii\db\ActiveRecord
         ] : null;
     }
 }
+ 
