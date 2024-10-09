@@ -70,6 +70,7 @@ class Absensi extends \yii\db\ActiveRecord
         return new \app\models\query\AbsensiQuery(get_called_class());
     }
 
+    // Main Function Section
     public function beforeSave($insert)
     {
         if ($insert && isset($this->attendance)) {
@@ -161,10 +162,11 @@ class Absensi extends \yii\db\ActiveRecord
         $existing->updateAttributes([
             'blacklist' => $blacklist,
         ]);
-        
+
         return $existing->save();    
     }
 
+    // Database Relation Section
     public function getDeviceName($id)
     {
         $device = Device::findOne($id);
