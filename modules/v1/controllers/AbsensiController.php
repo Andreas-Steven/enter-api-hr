@@ -50,7 +50,6 @@ class AbsensiController extends CoreController
 	public function actionData()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
-
 		$searchModel = new AbsensiSearch();
 		$dataProvider = $searchModel->search($params);
 
@@ -58,14 +57,31 @@ class AbsensiController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$data = [
+		$models = $dataProvider->getModels();
+		$result = [];
+	
+		foreach ($models as $model) {
+			unset($model->blacklist);
+
+			if (!empty($params['attendance']['employee_id'])) {
+				$employeeId = $params['attendance']['employee_id'];
+	
+				$filteredAttendance = array_filter($model->attendance, function ($attendance) use ($employeeId) {
+					return $attendance['employee_id'] == $employeeId;
+				});
+	
+				$model->attendance = array_values($filteredAttendance);
+			}
+	
+			$result[] = $model;
+		}
+
+		return [
 			'code' => 200,
 			'success' => true,
-			'message' => Yii::t('app', 'success'), 
-			'data' => $dataProvider,
+			'message' => Yii::t('app', 'success'),
+			'data' => $models,
 		];
-
-		return $data;
 	}
 
 	public function actionCreate()

@@ -76,11 +76,6 @@ class GeneralAffairSearch extends GeneralAffair
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_by}'"), $this->updated_by])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_at}'"), $this->deleted_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_by}'"), $this->deleted_by]);
-            // ->andFilterWhere(['NOT', new \yii\db\Expression("item->'items' @> '[{\"status\": \"4\"}]'")]);
-            // ->andFilterWhere(['NOT', new \yii\db\Expression("EXISTS (SELECT 1 FROM jsonb_array_elements(item->'items') AS elem WHERE elem->>'status' = '4')")]);
-            
-        // $query = $dataProvider->query;
-        // return $query->createCommand()->getRawSql();
             
         return $dataProvider;
     }

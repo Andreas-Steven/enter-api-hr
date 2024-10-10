@@ -26,7 +26,7 @@ class AbsensiSearch extends Absensi
             [['id', 'status'], 'integer'],
             [['attendance', 'blacklist', 'detail_info'], 'safe'],
             [['dayoff'], 'boolean'],
-            [['date'], 'date'],
+            [['date'], 'date', 'format' => 'Y-m-d'],
         ];
     }
 
@@ -57,6 +57,7 @@ class AbsensiSearch extends Absensi
 
         $this->load(['AbsensiSearch' => $params]);
 
+        
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails
             // $query->where('0=1');
@@ -67,10 +68,11 @@ class AbsensiSearch extends Absensi
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
+            'date' => $this->date,
         ]);
 
-        $query->andFilterWhere(['ilike', 'date', $this->date])
-            // ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
+        // $query->andFilterWhere(['ilike', 'date', $this->date])
+        $query->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_at}'"), $this->created_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $this->created_by])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_at}'"), $this->updated_at])
