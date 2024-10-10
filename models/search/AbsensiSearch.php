@@ -69,7 +69,7 @@ class AbsensiSearch extends Absensi
             'status' => $this->status,
         ]);
 
-        $query->andFilterWhere(['ilike', 'name', $this->date])
+        $query->andFilterWhere(['ilike', 'date', $this->date])
             // ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_at}'"), $this->created_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $this->created_by])

@@ -18,35 +18,30 @@ class m241007_063531_create_absensi_table extends Migration
             'dayoff' => $this->boolean()->notNull()->defaultValue(false),
             'status' => $this->smallInteger()->notNull()->defaultValue(2),
             'attendance' => $this->json()->notNull()->defaultValue(json_encode([
-                [
-                    'employee_id'   => null,
-                    'start_time'    => null,
-                    'end_time'      => null,
-                    'info' => [
-                        'in'        => false,
-                        'out'       => false,
-                        'detail'    => []
-                    ],
-                    'device' => [
-                        'id'        => null,
-                        'name'      => null
-                    ],
-                    'work_time' => [
-                        'id'        => null,
-                        'end_time'  => null,
-                        'home_time' => null
-                    ],
-                    'location' => [
-                        'lat'       => null,
-                        'long'      => null,
-                        'image'     => []
-                    ]
+                'employee_id'   => null,
+                'start_time'    => null,
+                'end_time'      => null,
+                'info' => [
+                    'in'        => false,
+                    'out'       => false,
+                    'detail'    => []
+                ],
+                'device' => [
+                    'id'        => null,
+                    'name'      => null
+                ],
+                'work_time' => [
+                    'id'        => null,
+                    'end_time'  => null,
+                    'home_time' => null
+                ],
+                'location' => [
+                    'lat'       => null,
+                    'long'      => null,
+                    'image'     => []
                 ]
             ])),
-            'blacklist' => $this->json()->notNull()->defaultValue(json_encode([
-                'employee_id'   => null,
-                'date_time'     => null
-            ])),
+            'blacklist' => $this->json()->notNull()->defaultValue(json_encode([])),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
                 'change_log' => [
                     'created_at' => null,

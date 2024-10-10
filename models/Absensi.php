@@ -36,11 +36,9 @@ class Absensi extends \yii\db\ActiveRecord
             
             [['status'], 'default', 'value' => 2],
             [['dayoff'], 'default', 'value' => false],
-            [['blacklist'], 'default', 'value' => null],
-            [['detail_info'], 'default', 'value' => null],
 
             [['status'], 'in', 'range' => array_keys(Constants::statusList())],
-            [['status', 'attendance[employee_id]', 'attendance[device][id]', 'attendance[work_time][id]'], 'filter', 'filter' => 'intval'],
+            [['status'], 'filter', 'filter' => 'intval'],
         ];
     }
 
@@ -74,57 +72,97 @@ class Absensi extends \yii\db\ActiveRecord
 
     public function beforeSave($insert)
     {
-        if (parent::beforeSave($insert)) {
-            if (isset($this->attendance)) {
-                $this->attendance = array_merge([
-                    'employee_id' => null,
-                    'start_time' => null,
-                    'end_time' => null,
-                    'info' => [
-                        'in' => false,
-                        'out' => false,
-                        'detail' => []
-                    ],
-                    'device' => [
-                        'id'        => null,
-                        'name'      => null
-                    ],
-                    'work_time' => [
-                        'id'        => null,
-                        'start_time'  => null,
-                        'home_time' => null
-                    ],
-                    'location' => [
-                        'lat'       => null,
-                        'long'      => null,
-                        'image'     => []
-                    ]
-                ], $this->attendance);
-            }
+        if ($insert && isset($this->attendance)) {
+            $this->attendance = Yii::$app->coreAPI->insertAttendance($this->attendance, $this);
+        }
 
-            
-            $attendance = $this->attendance;
-            $workTimeData = $this->getWorkTimeData($attendance['work_time']['id']);
-            $attendance['device']['name'] = $this->getDeviceName($attendance['device']['id']);
+        $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+        $this->detail_info = [
+            'change_log' => $this->change_log ?: null,
+        ];
+        
+        return parent::beforeSave($insert);
+    }
 
-            $attendance['employee_id'] = (int) $attendance['employee_id'];
-            $attendance['device']['id'] = (int) $attendance['device']['id'];
-            $attendance['work_time']['id'] = (int) $attendance['work_time']['id'];
-            $attendance['employee_id'] = (int) $attendance['employee_id'];
-            $attendance['work_time']['entry_time'] = $workTimeData['entry_time'];
-            $attendance['work_time']['home_time'] = $workTimeData['home_time'];
-            $this->attendance = $attendance;
-            
-            $this->date = Yii::$app->coreAPI->htmlPurifier($this->date);
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-            $this->detail_info = [
-                'change_log' => $this->change_log ?: null,
-            ];
+    public function upsert($params, $existing)
+    {
+        $start_time = $params['attendance']['start_time'];
+        $date = $params['date'];
+        $employee_id = $params['attendance']['employee_id'];
 
-            return true;
+        if (!$this->isValidStartTimeAndDate($start_time, $date)) {
+            $this->addBlacklist($existing, $employee_id, $start_time, $date);
+            return $existing;
         }
         
+        if (isset($existing)) {
+            $existing->refresh();
+            $newAttendance = Yii::$app->coreAPI->insertAttendance($params['attendance'], $existing);
+            $newData = array_merge($existing->attendance, $newAttendance);
+
+            $existing->updateAttributes([
+                'attendance' => $newData,
+            ]);
+            $existing->save();
+
+            return $existing;
+        }  
+
         return false;
+    }
+
+    public function updateData($params)
+    {
+        $attendance = $this->attendance;
+        $employee_id = $params['attendance']['employee_id'];
+        $end_time = $params['attendance']['end_time'];
+
+        $attendance = Yii::$app->coreAPI->updateAttendance($attendance, $employee_id, $end_time);
+
+        $this->attendance = $attendance;
+        return $this->save();
+    }
+
+    private function isValidStartTimeAndDate($start_time, $date)
+    {
+        $today = date('Y-m-d');
+        
+        if ($date < $today) {
+            return false;
+        }
+    
+        $previousAttendance = $this->getPreviousAttendance($date);
+        
+        if (!$previousAttendance) { 
+            return true;
+        }
+
+        $lastIndex = count($previousAttendance->attendance) - 1;
+        $lastStartTime = $previousAttendance->attendance[$lastIndex]['start_time'];
+        if ($start_time < $lastStartTime || $date < $previousAttendance->date) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function getPreviousAttendance($date)
+    {
+        $previousAttendance = Absensi::find()
+            ->where(['date' => $date])
+            ->one();
+
+        return $previousAttendance;
+    }
+
+    public function addBlacklist($existing, $employee_id, $date, $start_time)
+    {
+        $blacklist = Yii::$app->coreAPI->insertBlacklist($existing, $employee_id, $date, $start_time);
+        $existing->updateAttributes([
+            'blacklist' => $blacklist,
+        ]);
+        
+        return $existing->save();    
     }
 
     public function getDeviceName($id)
@@ -143,3 +181,4 @@ class Absensi extends \yii\db\ActiveRecord
         ] : null;
     }
 }
+ 
