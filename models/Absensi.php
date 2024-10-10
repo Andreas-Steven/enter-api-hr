@@ -173,10 +173,15 @@ class Absensi extends \yii\db\ActiveRecord
         return $device ? $device->name : null;
     }
 
+    public function getDepartmentName($id)
+    {
+        $department = GeneralAffairDepartment::findOne($id);
+        return $department ? $department->name : null;
+    }
+
     public function getWorkTimeData($id)
     {
         $workTime = WorkTime::findOne($id);
-
         return $workTime ? [
             'entry_time' => $workTime->entry_time,
             'home_time' => $workTime->home_time,

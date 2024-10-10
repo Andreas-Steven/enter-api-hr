@@ -62,25 +62,35 @@ class AbsensiController extends CoreController
 	
 		foreach ($models as $model) {
 			unset($model->blacklist);
-
+	
 			if (!empty($params['attendance']['employee_id'])) {
 				$employeeId = $params['attendance']['employee_id'];
-	
 				$filteredAttendance = array_filter($model->attendance, function ($attendance) use ($employeeId) {
 					return $attendance['employee_id'] == $employeeId;
 				});
-	
-				$model->attendance = array_values($filteredAttendance);
 			}
 	
-			$result[] = $model;
+			if (!empty($params['attendance']['department']['id'])) {
+				$departmentId = $params['attendance']['department']['id'];
+				$filteredAttendance = array_filter($model->attendance, function ($attendance) use ($departmentId) {
+					return isset($attendance['department']) && $attendance['department']['id'] == $departmentId;
+				});
+			}
+
+			if (isset($filteredAttendance)) {
+				$model->attendance = array_values($filteredAttendance);
+			}
+			
+			if (!empty($model->attendance)) {
+				$result[] = $model;
+			}
 		}
 
 		return [
 			'code' => 200,
 			'success' => true,
 			'message' => Yii::t('app', 'success'),
-			'data' => $models,
+			'data' => !empty($result) ? $result : null,
 		];
 	}
 

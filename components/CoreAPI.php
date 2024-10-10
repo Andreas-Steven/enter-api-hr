@@ -309,6 +309,10 @@ class CoreAPI
 					'out' => false,
 					'detail' => []
 				],
+				'department' => [
+					'id' => null,
+					'name' => null
+				],
 				'device' => [
 					'id' => null,
 					'name' => null
@@ -328,9 +332,11 @@ class CoreAPI
 	
 		$workTimeData = $model->getWorkTimeData($attendance['work_time']['id']);
 		$attendance['device']['name'] = $model->getDeviceName($attendance['device']['id']);
+		$attendance['department']['name'] = $model->getDepartmentName($attendance['department']['id']);
 		$attendance['employee_id'] = (int) $attendance['employee_id'];
 		$attendance['device']['id'] = (int) $attendance['device']['id'];
 		$attendance['work_time']['id'] = (int) $attendance['work_time']['id'];
+		$attendance['department']['id'] = (int) $attendance['department']['id'];
 		$attendance['work_time']['entry_time'] = $workTimeData['entry_time'];
 		$attendance['work_time']['home_time'] = $workTimeData['home_time'];
 
