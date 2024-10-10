@@ -65,6 +65,8 @@ class GeneralAffairSearch extends GeneralAffair
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
+            'category_id' => $this->category_id,
+            'location_id' => $this->location_id,
             'status' => $this->status,
         ]);
 
@@ -80,23 +82,3 @@ class GeneralAffairSearch extends GeneralAffair
         return $dataProvider;
     }
 }
-
-/*
-    SELECT jsonb_object_agg(elemen.key, elemen.value) AS filtered_items
-    FROM general_affair
-    CROSS JOIN LATERAL jsonb_each(item->'items') AS elemen
-    WHERE elemen.value->>'status' <> '4'; 
-
-    if (isset($params['code']) != null) {
-        $query
-            ->select('elemen.value AS item')
-            ->from('general_affair')
-            ->join('CROSS JOIN LATERAL', 'jsonb_each(item->\'items\') AS elemen')
-            ->where('elemen.value->>\'code\' = :code', [':code' => $params['code']])
-            ->andWhere('elemen.value->>\'status\' != :status', [':status' => '4'])
-            ->all();
-    } elseif (isset($params['id']) != null) {
-        $query->where(['id' => $params['id']]);
-        $query->andWhere(Constants::STATUS_NOT_DELETED);
-    }
-*/

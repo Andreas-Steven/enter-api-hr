@@ -56,14 +56,42 @@ class GeneralAffairController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$data = [
+		$models = $dataProvider->getModels();
+		$result = [];
+	
+		foreach ($models as $model) {
+			$filteredItems = $model->item['items'];
+	
+			if (!empty($params['item']['items']['code'])) {
+				$code = $params['item']['items']['code'];
+				$filteredItems = array_filter($filteredItems, function ($item) use ($code) {
+					return isset($item['code']) && $item['code'] == $code;
+				});
+			}
+			
+			if (!empty($params['item']['items']['department']['id'])) {
+				$departmentId = $params['item']['items']['department']['id'];
+				$filteredItems = array_filter($filteredItems, function ($item) use ($departmentId) {
+					return isset($item['department']) && $item['department']['id'] == $departmentId;
+				});
+			}	
+
+			if (isset($filteredItems)) {
+				$itemData['items'] = array_values($filteredItems);
+				$model->setAttribute('item', $itemData);
+			}
+	
+			if (!empty($model->item['items'])) {
+				$result[] = $model;
+			}
+		}
+	
+		return [
 			'code' => 200,
 			'success' => true,
-			'message' => Yii::t('app', 'success'), 
-			'data' => $dataProvider,
+			'message' => Yii::t('app', 'success'),
+			'data' => !empty($result) ? $result : null,
 		];
-
-		return $data;
 	}
 
     public function actionCreate()
