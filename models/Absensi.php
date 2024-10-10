@@ -85,7 +85,7 @@ class Absensi extends \yii\db\ActiveRecord
         return parent::beforeSave($insert);
     }
 
-    public function upsert($params, $existing)
+    public function updateInsertAttendance($params, $existing)
     {
         $start_time = $params['attendance']['start_time'];
         $date = $params['date'];
