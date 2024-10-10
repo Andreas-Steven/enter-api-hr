@@ -5,14 +5,14 @@ use yii\db\Migration;
 /**
  * Handles the creation of table `{{%general_affair_department}}`.
  */
-class m241001_054554_create_general_affair_department_table extends Migration
+class m241001_054554_create_department_table extends Migration
 {
     /**
      * {@inheritdoc}
      */
     public function safeUp()
     {
-        $this->createTable('{{%general_affair_department}}', [
+        $this->createTable('{{%department}}', [
             'id'        => $this->primaryKey(),
             'code'      => $this->string(255)->notNull(),
             'name'      => $this->string(255)->notNull(),
@@ -35,6 +35,6 @@ class m241001_054554_create_general_affair_department_table extends Migration
      */
     public function safeDown()
     {
-        $this->dropTable('{{%general_affair_department}}');
+        $this->dropTable('{{%department}}');
     }
 }

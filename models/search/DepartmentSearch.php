@@ -6,12 +6,12 @@ use Yii;
 use yii\base\Model;
 use app\helpers\Constants;
 use yii\data\ActiveDataProvider;
-use app\models\GeneralAffairDepartment;
+use app\models\Department;
 
 /**
  * GeneralAffairDepartmentSearch represents the model behind the search form of `app\models\GeneralAffairDepartment`.
  */
-class GeneralAffairDepartmentSearch extends GeneralAffairDepartment
+class DepartmentSearch extends Department
 {
     public $created_at;
     public $created_by;
@@ -67,7 +67,7 @@ class GeneralAffairDepartmentSearch extends GeneralAffairDepartment
             // 'pagination' => ['pageSize' => 2]
         ]);
 
-        $this->load(['GeneralAffairDepartment' => $params]);
+        $this->load(['Department' => $params]);
 
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails

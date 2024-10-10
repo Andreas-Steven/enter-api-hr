@@ -9,13 +9,13 @@ use yii\filters\VerbFilter;
 use app\helpers\Constants;
 
 use app\controllers\CoreController;
-use app\models\GeneralAffairDepartment;
-use app\models\search\GeneralAffairDepartmentSearch;
+use app\models\Department;
+use app\models\search\DepartmentSearch;
 
 /**
  * GeneralAffairDepartmentController implements the CRUD actions for GeneralAffairDepartment model.
  */
-class GeneralAffairDepartmentController extends CoreController
+class DepartmentController extends CoreController
 {
 	public function behaviors()
 	{
@@ -48,7 +48,7 @@ class GeneralAffairDepartmentController extends CoreController
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		$searchModel = new GeneralAffairDepartmentSearch();
+		$searchModel = new DepartmentSearch();
 		$dataProvider = $searchModel->search($params);
 
 		// if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
@@ -67,7 +67,7 @@ class GeneralAffairDepartmentController extends CoreController
 
     public function actionCreate()
     {
-        $model = new GeneralAffairDepartment();
+        $model = new Department();
         $params = Yii::$app->getRequest()->getBodyParams();
 		$rules = $model->rules();
 
@@ -92,7 +92,7 @@ class GeneralAffairDepartmentController extends CoreController
 			return $coreBadRequestNoParams;
 		}
 
-        $model = Yii::$app->coreAPI->findModel(GeneralAffairDepartment::className(), $params);
+        $model = Yii::$app->coreAPI->findModel(Department::className(), $params);
 		$rules = $model->rules();
 
         if ($model === null) {
@@ -130,7 +130,7 @@ class GeneralAffairDepartmentController extends CoreController
 			return $coreBadRequestNoParams;
 		}
 
-        $model = Yii::$app->coreAPI->findModel(GeneralAffairDepartment::className(), $params);
+        $model = Yii::$app->coreAPI->findModel(Department::className(), $params);
 
         if ($model === null) {
 			return CoreController::coreDataNotFound();

@@ -14,7 +14,7 @@ use app\helpers\Constants;
  * @property int $status
  * @property string $detail_info
  */
-class GeneralAffairDepartment extends \yii\db\ActiveRecord
+class Department extends \yii\db\ActiveRecord
 {
     public $change_log;
 

@@ -7,7 +7,7 @@ namespace app\models\query;
  *
  * @see \app\models\GeneralAffairDepartment
  */
-class GeneralAffairDepartmentQuery extends \yii\db\ActiveQuery
+class DepartmentQuery extends \yii\db\ActiveQuery
 {
     /*public function active()
     {

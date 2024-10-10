@@ -169,9 +169,9 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return $this->hasOne(GeneralAffairDepartment::class, ['id' => 'department_id']);
     }
 
-    public function getDepartmentNameById($id)
+    public function getDepartment($id)
     {
-        $department = GeneralAffairDepartment::findOne($id);
+        $department = Department::findOne($id);
         return $department ? $department->name : null;
     }
 }

@@ -1,0 +1,50 @@
+<?php
+
+use yii\db\Migration;
+
+/**
+ * Handles the creation of table `{{%employee}}`.
+ */
+class m241010_103834_create_employee_table extends Migration
+{
+    /**
+     * {@inheritdoc}
+     */
+    public function safeUp()
+    {
+        $this->createTable('{{%employee}}', [
+            'id'                    => $this->primaryKey(),
+            'name'                  => $this->string(255)->notNull(),
+            'employee_detail' => $this->json()->notNull()->defaultValue(json_encode([
+                'email'             => null,
+                'phone'             => null,
+                'position'          => null,
+                'employee_status'   => null,
+                'date_entry'        => null,
+                'department' => [
+                    'id'            => null,
+                    'name'          => null
+                ]
+            ])),
+            'status'                => $this->smallInteger()->notNull()->defaultValue(2),
+            'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
+                'change_log' => [
+                    'created_at'    => null,
+                    'created_by'    => null,
+                    'deleted_at'    => null,
+                    'deleted_by'    => null,
+                    'updated_at'    => null,
+                    'updated_by'    => null
+                ]
+            ]))
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function safeDown()
+    {
+        $this->dropTable('{{%employee}}');
+    }
+}
