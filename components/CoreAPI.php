@@ -115,105 +115,6 @@ class CoreAPI
 		$model->change_log = $change_log;
 		return $model->change_log;
 	}
-
-	public function itemChangeLog($model, $insert)
-	{
-		$timestamp = self::timestamp();
-		$username = Yii::$app->session->get('username');
-		$item_change_log = [];
-		
-		if ($insert) {
-			$item_change_log = [
-				'created_at' => $timestamp,
-				'created_by' => $username,
-				'updated_at' => null,
-				'updated_by' => null,
-				'deleted_at' => null,
-				'deleted_by' => null,
-			];
-		} else {
-			$item_change_log = $model['items']['item_change_log'];
-
-			if ($model['items']['status'] == Constants::STATUS_DELETED) {
-				$item_change_log['deleted_at'] = $timestamp;
-				$item_change_log['deleted_by'] = $username;
-			} else {
-				$item_change_log['updated_at'] = $timestamp;
-				$item_change_log['updated_by'] = $username;
-			}
-		}
-
-		$model['items']['item_change_log'] = $item_change_log;
-		return $model;
-	}
-
-	public function calculateValue($model, $insert)
-	{
-		if ($insert) {
-			$quantity = $total_price = $index = 0;
-
-			foreach ($model['items'] as $key => $value) {
-				if (is_array($value) && array_key_exists('price', $value) && $value['status'] != Constants::STATUS_DELETED) {
-					$total_price += $value['price'];
-					$quantity++;
-					$index = $key;
-				}
-			}
-			
-			$model['items']['quantity'] = $quantity;
-			$model['items']['total_price'] = $total_price;
-
-			return $model;
-		} else {
-			$quantity = $total_price = $index = 0;
-
-			foreach ($model['items'] as $key => $value) {
-				if (is_array($value) && array_key_exists('price', $value) && $value['status'] != Constants::STATUS_DELETED) {
-					$total_price += $value['price'];
-					$quantity++;
-					$index = $key;
-				}
-			}
-			
-			$model['items']['quantity'] = $quantity;
-			$model['items']['total_price'] = $total_price;
-			
-			return $model;
-		}
-	}
-
-	public function calculateNewData($newData)
-	{
-		$count = [
-			'quantity' => 0,
-			'total_price' => 0,
-		];
-
-		foreach ($newData as $key => $value) {
-			if (is_array($value) && array_key_exists('price', $value)) {
-				if($value['status'] != Constants::SCENARIO_DELETE) {
-					$count['total_price'] += $value['price'];
-					$count['quantity']++;
-				}
-			}
-		}
-
-		return $count;
-	}
-
-	public function findIndex($code, $items)
-	{
-		$index = 0;
-		foreach ($items as $key => $value) {
-			if (is_array($value) && $value['code'] == $code) {
-				return $index;
-			}
-			$index++;
-        }
-
-		return null;
-	}
-
 	public function validateStatusTransition($model, $params)
     {
 		$completedStatus = Constants::STATUS_COMPLETED;
@@ -300,6 +201,8 @@ class CoreAPI
 			$existing = $model::find()->where(['id' => $params['id']])->one();
 		} elseif(isset($params['date'])) {
 			$existing = $model::find()->where(['date' => $params['date']])->one();			
+		} elseif(isset($params['name'])) {
+			$existing = $model::find()->where(['name' => $params['name']])->one();			
 		}
 
 		if ($existing) {
@@ -309,26 +212,91 @@ class CoreAPI
 		return false;
 	}
 
-	public function exisitingCode($model, $params)
+	// General Affair Section
+	public function insertItem($data, $model)
 	{
-		$existing = $model::find()->where(['id' => $params['id']])->one();
+		$item = array_merge([
+			'code' => null,
+			'price' => null,
+			'condition' => null,
+			'buying_date' => null,
+			'tax_date' => null,
+			'inspection_date' => null,
+			'description' => null,
+			'image' => [],
+			'status' => 2,
+			'department' => [
+				'id' => null,
+				'name' => null
+			],
+			'item_change_log' => [
+				'created_at' => self::timestamp(),
+				'created_by' => Yii::$app->session->get('username'),
+				'deleted_by' => null,
+				'deleted_at' => null,
+				'updated_at' => null,
+				'updated_by' => null
+			]
+		], $data);
 
-		foreach ($existing->item as $key => $value) {
-			if (is_array($value) && array_key_exists('code', $value)) {
-				if ($value['code'] == $params['item']['items']['code']) {
-					return false;
-				}
-				return true;
+		$item['condition'] = (int) $item['condition'];
+		$item['department']['id'] = (int) $item['department']['id'];
+		$item['department']['name'] = $model->getDepartmentNameById($item['department']['id']);
+		$item['price'] = floatval($item['price']);
+		
+		return ['items' => [$item]];
+	}
+
+	public function itemChangeLog($items)
+	{
+		$timestamp = self::timestamp();
+		$username = Yii::$app->session->get('username');
+		
+		$item_change_log = $items['item_change_log'];
+		
+		if ($items['status'] == Constants::STATUS_DELETED) {
+			$item_change_log['deleted_at'] = $timestamp;
+			$item_change_log['deleted_by'] = $username;
+		} else {
+			$item_change_log['updated_at'] = $timestamp;
+			$item_change_log['updated_by'] = $username;
+		}
+
+		$items['item_change_log'] = $item_change_log;
+		
+		return $items;
+	}
+
+	public function calculateValue($model)
+	{
+		$quantity = $total_price = $index = 0;
+
+		foreach ($model['items'] as $key => $value) {
+			if (is_array($value) && array_key_exists('price', $value) && $value['status'] != Constants::STATUS_DELETED) {
+				$total_price += $value['price'];
+				$quantity++;
+				$index = $key;
 			}
 		}
+
+		$model['quantity'] = $quantity;
+		$model['total_price'] = $total_price;
+
+		return $model;
 	}
 
-	public function getNewIndex($model)
+	public function findIndex($code, $items)
 	{
-		$item = $model->item;
-		return (int) array_key_last($item['items']) + 1;
+		foreach ($items as $key => $value) {
+			if ($value['code'] == $code) {
+				return $key;
+			}
+		}
+	
+		return null;
 	}
 
+	// Absensi Section
 	public function insertAttendance($attendance, $model)
 	{
 		if (isset($model->attendance)) {
@@ -340,6 +308,10 @@ class CoreAPI
 					'in' => false,
 					'out' => false,
 					'detail' => []
+				],
+				'department' => [
+					'id' => null,
+					'name' => null
 				],
 				'device' => [
 					'id' => null,
@@ -360,9 +332,11 @@ class CoreAPI
 	
 		$workTimeData = $model->getWorkTimeData($attendance['work_time']['id']);
 		$attendance['device']['name'] = $model->getDeviceName($attendance['device']['id']);
+		$attendance['department']['name'] = $model->getDepartmentName($attendance['department']['id']);
 		$attendance['employee_id'] = (int) $attendance['employee_id'];
 		$attendance['device']['id'] = (int) $attendance['device']['id'];
 		$attendance['work_time']['id'] = (int) $attendance['work_time']['id'];
+		$attendance['department']['id'] = (int) $attendance['department']['id'];
 		$attendance['work_time']['entry_time'] = $workTimeData['entry_time'];
 		$attendance['work_time']['home_time'] = $workTimeData['home_time'];
 

@@ -50,7 +50,6 @@ class AbsensiController extends CoreController
 	public function actionData()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
-
 		$searchModel = new AbsensiSearch();
 		$dataProvider = $searchModel->search($params);
 
@@ -58,14 +57,41 @@ class AbsensiController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$data = [
+		$models = $dataProvider->getModels();
+		$result = [];
+	
+		foreach ($models as $model) {
+			unset($model->blacklist);
+	
+			if (!empty($params['attendance']['employee_id'])) {
+				$employeeId = $params['attendance']['employee_id'];
+				$filteredAttendance = array_filter($model->attendance, function ($attendance) use ($employeeId) {
+					return $attendance['employee_id'] == $employeeId;
+				});
+			}
+	
+			if (!empty($params['attendance']['department']['id'])) {
+				$departmentId = $params['attendance']['department']['id'];
+				$filteredAttendance = array_filter($model->attendance, function ($attendance) use ($departmentId) {
+					return isset($attendance['department']) && $attendance['department']['id'] == $departmentId;
+				});
+			}
+
+			if (isset($filteredAttendance)) {
+				$model->attendance = array_values($filteredAttendance);
+			}
+			
+			if (!empty($model->attendance)) {
+				$result[] = $model;
+			}
+		}
+
+		return [
 			'code' => 200,
 			'success' => true,
-			'message' => Yii::t('app', 'success'), 
-			'data' => $dataProvider,
+			'message' => Yii::t('app', 'success'),
+			'data' => !empty($result) ? $result : null,
 		];
-
-		return $data;
 	}
 
 	public function actionCreate()
@@ -79,11 +105,9 @@ class AbsensiController extends CoreController
         }
         
         if ($exisiting = Yii::$app->coreAPI->exisitingData($model, $params)) { 
-            if ($callBack = $model->upsert($params, $exisiting)) {
+            if ($callBack = $model->updateInsertAttendance($params, $exisiting)) {
         		return CoreController::coreSuccess($callBack, 'insertRecordSuccess');
         	}
-            
-        	// return CoreController::coreBadRequest($model, Yii::t('app', 'valueExists'));
 			return CoreController::coreSuccess($callBack, 'insertRecordSuccess');
 		}
                 
@@ -91,7 +115,6 @@ class AbsensiController extends CoreController
 		if ($model->load($params, '') && $model->save()) {
 			return CoreController::coreSuccess($model, 'insertRecordSuccess');
 		}
-
 		return CoreController::coreBadRequest($model, Yii::t('app', 'insertRecordFailed'));
 	}
 
@@ -127,33 +150,35 @@ class AbsensiController extends CoreController
 		return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
 	}
 
-	// public function actionDelete()
-	// {
-	// 	$params = Yii::$app->getRequest()->getBodyParams();
+	/*
+	public function actionDelete()
+	{
+		$params = Yii::$app->getRequest()->getBodyParams();
 
-	// 	if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_DELETE)) {
-	// 		return $coreBadRequestNoParams;
-	// 	}
+		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_DELETE)) {
+			return $coreBadRequestNoParams;
+		}
 
-	// 	$model = Yii::$app->coreAPI->findModel(Brand::className(), $params);
+		$model = Yii::$app->coreAPI->findModel(Brand::className(), $params);
 
-	// 	if ($model === null) {
-	// 		return CoreController::coreDataNotFound();
-	// 	}
+		if ($model === null) {
+			return CoreController::coreDataNotFound();
+		}
 
-	// 	$params['status'] = Constants::STATUS_DELETED;
-	// 	$model->scenario = Constants::SCENARIO_DELETE;
+		$params['status'] = Constants::STATUS_DELETED;
+		$model->scenario = Constants::SCENARIO_DELETE;
 
-	// 	// if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-	// 	// 	return $coreSuperadmin;
-	// 	// }
+		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
+			return $coreSuperadmin;
+		}
 
-	// 	if ($model->load($params, '') && $model->validate()) {
-	// 		if ($model->save()) {
-	// 			return CoreController::coreSuccess($model, 'deleteRecordSuccess');
-	// 		}
-	// 	}
+		if ($model->load($params, '') && $model->validate()) {
+			if ($model->save()) {
+				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
+			}
+		}
 
-	// 	return CoreController::coreBadRequest($model, Yii::t('app', 'deleteRecordFailed'));
-	// }
+		return CoreController::coreBadRequest($model, Yii::t('app', 'deleteRecordFailed'));
+	}
+	*/
 }

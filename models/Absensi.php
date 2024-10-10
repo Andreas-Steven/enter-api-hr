@@ -70,6 +70,7 @@ class Absensi extends \yii\db\ActiveRecord
         return new \app\models\query\AbsensiQuery(get_called_class());
     }
 
+    // Main Function Section
     public function beforeSave($insert)
     {
         if ($insert && isset($this->attendance)) {
@@ -84,7 +85,7 @@ class Absensi extends \yii\db\ActiveRecord
         return parent::beforeSave($insert);
     }
 
-    public function upsert($params, $existing)
+    public function updateInsertAttendance($params, $existing)
     {
         $start_time = $params['attendance']['start_time'];
         $date = $params['date'];
@@ -161,20 +162,26 @@ class Absensi extends \yii\db\ActiveRecord
         $existing->updateAttributes([
             'blacklist' => $blacklist,
         ]);
-        
+
         return $existing->save();    
     }
 
+    // Database Relation Section
     public function getDeviceName($id)
     {
         $device = Device::findOne($id);
         return $device ? $device->name : null;
     }
 
+    public function getDepartmentName($id)
+    {
+        $department = GeneralAffairDepartment::findOne($id);
+        return $department ? $department->name : null;
+    }
+
     public function getWorkTimeData($id)
     {
         $workTime = WorkTime::findOne($id);
-
         return $workTime ? [
             'entry_time' => $workTime->entry_time,
             'home_time' => $workTime->home_time,

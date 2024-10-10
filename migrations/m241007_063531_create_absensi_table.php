@@ -26,6 +26,10 @@ class m241007_063531_create_absensi_table extends Migration
                     'out'       => false,
                     'detail'    => []
                 ],
+                'department' => [
+                    'id'        => null,
+                    'name'      => null
+                ],
                 'device' => [
                     'id'        => null,
                     'name'      => null
