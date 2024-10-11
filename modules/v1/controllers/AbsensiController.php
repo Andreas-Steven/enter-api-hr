@@ -108,7 +108,8 @@ class AbsensiController extends CoreController
             if ($callBack = $model->updateInsertAttendance($params, $exisiting)) {
         		return CoreController::coreSuccess($callBack, 'insertRecordSuccess');
         	}
-			return CoreController::coreSuccess($callBack, 'insertRecordSuccess');
+
+			return CoreController::coreSuccess($callBack, 'insertRecordFailed');
 		}
                 
         $model->scenario = Constants::SCENARIO_CREATE;

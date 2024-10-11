@@ -50,7 +50,7 @@ class DepartmentSearch extends Department
      */
     public function search($params)
     {
-        $query = GeneralAffairDepartment::find();
+        $query = Department::find();
         $query->where(Constants::STATUS_NOT_DELETED);
 
         // add conditions that should always apply here
@@ -67,7 +67,7 @@ class DepartmentSearch extends Department
             // 'pagination' => ['pageSize' => 2]
         ]);
 
-        $this->load(['Department' => $params]);
+        $this->load(['DepartmentSearch' => $params]);
 
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails

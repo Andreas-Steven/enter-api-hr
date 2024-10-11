@@ -45,7 +45,7 @@ class Absensi extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'attendance', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'attendance', 'detail_info', 'dayoff'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['id', 'attendance', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
@@ -73,7 +73,11 @@ class Absensi extends \yii\db\ActiveRecord
     // Main Function Section
     public function beforeSave($insert)
     {
-        if ($insert && isset($this->attendance)) {
+        if ($this->dayoff) {
+            $this->attendance = [];
+        }
+
+        if ($insert && isset($this->attendance) && !$this->dayoff) {
             $this->attendance = Yii::$app->coreAPI->insertAttendance($this->attendance, $this);
         }
 
@@ -87,27 +91,29 @@ class Absensi extends \yii\db\ActiveRecord
 
     public function updateInsertAttendance($params, $existing)
     {
-        $start_time = $params['attendance']['start_time'];
-        $date = $params['date'];
-        $employee_id = $params['attendance']['employee_id'];
-
-        if (!$this->isValidStartTimeAndDate($start_time, $date)) {
-            $this->addBlacklist($existing, $employee_id, $start_time, $date);
-            return $existing;
+        if (!$existing->dayoff) {
+            $start_time = $params['attendance']['start_time'];
+            $date = $params['date'];
+            $employee_id = $params['attendance']['employee_id'];
+    
+            if (!$this->isValidStartTimeAndDate($start_time, $date)) {
+                $this->addBlacklist($existing, $employee_id, $start_time, $date);
+                return $existing;
+            }
+            
+            if (isset($existing)) {
+                $existing->refresh();
+                $newAttendance = Yii::$app->coreAPI->insertAttendance($params['attendance'], $existing);
+                $newData = array_merge($existing->attendance, $newAttendance);
+    
+                $existing->updateAttributes([
+                    'attendance' => $newData,
+                ]);
+                $existing->save();
+    
+                return $existing;
+            }
         }
-        
-        if (isset($existing)) {
-            $existing->refresh();
-            $newAttendance = Yii::$app->coreAPI->insertAttendance($params['attendance'], $existing);
-            $newData = array_merge($existing->attendance, $newAttendance);
-
-            $existing->updateAttributes([
-                'attendance' => $newData,
-            ]);
-            $existing->save();
-
-            return $existing;
-        }  
 
         return false;
     }
@@ -175,7 +181,7 @@ class Absensi extends \yii\db\ActiveRecord
 
     public function getDepartmentName($id)
     {
-        $department = GeneralAffairDepartment::findOne($id);
+        $department = Department::findOne($id);
         return $department ? $department->name : null;
     }
 
@@ -186,6 +192,12 @@ class Absensi extends \yii\db\ActiveRecord
             'entry_time' => $workTime->entry_time,
             'home_time' => $workTime->home_time,
         ] : null;
+    }
+
+    public function getEmployeeName($id)
+    {
+        $employee = Employee::findOne($id);
+        return $employee ? $employee->name : null;
     }
 }
  

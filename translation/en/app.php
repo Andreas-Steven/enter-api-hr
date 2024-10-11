@@ -45,5 +45,6 @@ return [
     'updatePermission' => 'You do not have permission to update the {label} of this {model} because it is referenced in other data.',
     'deletedStatusChange' => 'You do not have permission to change the status from {status} to another status. Admin rights are required.',
     'notExists' => 'Data not exist.',
+    'dayOff' => 'Data cannot be added on day off.',
 ];
 

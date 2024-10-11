@@ -212,6 +212,15 @@ class CoreAPI
 		return false;
 	}
 
+	// Employee Section
+	public function insertEmployeeDetail($data, $model)
+	{
+		$data['department']['id'] = (int) $data['department']['id'];
+		$data['department']['name'] = $model->getDepartmentName($data['department']['id']);
+	
+		return $data;
+	}
+
 	// General Affair Section
 	public function insertItem($data, $model)
 	{
@@ -241,7 +250,7 @@ class CoreAPI
 
 		$item['condition'] = (int) $item['condition'];
 		$item['department']['id'] = (int) $item['department']['id'];
-		$item['department']['name'] = $model->getDepartmentNameById($item['department']['id']);
+		$item['department']['name'] = $model->getDepartmentName($item['department']['id']);
 		$item['price'] = floatval($item['price']);
 		
 		return ['items' => [$item]];

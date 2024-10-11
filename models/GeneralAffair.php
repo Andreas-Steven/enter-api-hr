@@ -18,7 +18,7 @@ use app\helpers\Constants;
  *
  * @property GeneralAffairCategory $category
  * @property GeneralAffairLocation $location
- * @property GeneralAffairDepartment $department
+ * @property Department $department
  */
 class GeneralAffair extends \yii\db\ActiveRecord
 {
@@ -166,10 +166,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function getDepartment()
     {
-        return $this->hasOne(GeneralAffairDepartment::class, ['id' => 'department_id']);
+        return $this->hasOne(Department::class, ['id' => 'department_id']);
     }
 
-    public function getDepartment($id)
+    public function getDepartmentName($id)
     {
         $department = Department::findOne($id);
         return $department ? $department->name : null;

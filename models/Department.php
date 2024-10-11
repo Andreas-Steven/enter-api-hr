@@ -20,7 +20,7 @@ class Department extends \yii\db\ActiveRecord
 
     public static function tableName()
     {
-        return 'general_affair_department';
+        return 'department';
     }
 
     public function rules()
@@ -59,7 +59,7 @@ class Department extends \yii\db\ActiveRecord
 
     public static function find()
     {
-        return new \app\models\query\GeneralAffairDepartmentQuery(get_called_class());
+        return new \app\models\query\DepartmentQuery(get_called_class());
     }
 
     public function beforeSave($insert)

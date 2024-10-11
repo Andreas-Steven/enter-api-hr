@@ -76,8 +76,11 @@ class GeneralAffairController extends CoreController
 				});
 			}	
 
-			if (isset($filteredItems)) {
+			if (isset($filteredItems)) {	
 				$itemData['items'] = array_values($filteredItems);
+				$itemData['quantity'] = $model->item['quantity'];
+				$itemData['total_price'] = $model->item['total_price'];
+	
 				$model->setAttribute('item', $itemData);
 			}
 	
