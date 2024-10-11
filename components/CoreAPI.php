@@ -224,6 +224,18 @@ class CoreAPI
 	// General Affair Section
 	public function insertItem($data, $model)
 	{
+		foreach ($data as $key => $value) {
+			if ($value === "") {
+				$data[$key] = null;
+			}
+		}
+
+		if (isset($data['image']) && is_array($data['image'])) {
+			$data['image'] = array_filter($data['image'], function ($value) {
+				return $value !== "";
+			});
+		}
+
 		$item = array_merge([
 			'code' => null,
 			'price' => null,
@@ -342,6 +354,7 @@ class CoreAPI
 		$workTimeData = $model->getWorkTimeData($attendance['work_time']['id']);
 		$attendance['device']['name'] = $model->getDeviceName($attendance['device']['id']);
 		$attendance['department']['name'] = $model->getDepartmentName($attendance['department']['id']);
+		
 		$attendance['employee_id'] = (int) $attendance['employee_id'];
 		$attendance['device']['id'] = (int) $attendance['device']['id'];
 		$attendance['work_time']['id'] = (int) $attendance['work_time']['id'];
