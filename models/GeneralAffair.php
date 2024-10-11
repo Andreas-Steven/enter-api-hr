@@ -89,6 +89,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return parent::beforeSave($insert);
     }
 
+
     public function updateInsertItems($params, $existing)
     {
         if (isset($existing)) {
@@ -112,12 +113,22 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         $items = $this->item['items'];
         $code = $params['item']['items']['code'];
-        $newItem = Yii::$app->coreAPI->insertItem($params['item']['items'], $this);
+        // $newItem = Yii::$app->coreAPI->insertItem($params['item']['items'], $this);
         $index = Yii::$app->coreAPI->findIndex($code, $items);
         
         if ($index !== null) {
-            $newItem['items'][0] = Yii::$app->coreAPI->itemChangeLog($newItem['items'][0]);
-            $items[$index] = $newItem['items'][0];
+            // $newItem['items'][0] = Yii::$app->coreAPI->itemChangeLog($newItem['items'][0]);
+            // $items[$index] = $newItem['items'][0];
+
+            foreach ($params['item']['items'] as $key => $value) {
+                if ($value === "") {
+                    $params['item']['items'][$key] = null;
+                }
+                $items[$index][$key] = $params['item']['items'][$key];
+            }
+            
+            $items[$index] = Yii::$app->coreAPI->sanitizeItemData($items[$index]);
+            $items[$index] = Yii::$app->coreAPI->itemChangeLog($items[$index]);
 
             $this->updateAttributes([
                 'item' => [

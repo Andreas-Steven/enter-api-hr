@@ -260,10 +260,8 @@ class CoreAPI
 			]
 		], $data);
 
-		$item['condition'] = (int) $item['condition'];
-		$item['department']['id'] = (int) $item['department']['id'];
+		$item = $this->sanitizeItemData($item);
 		$item['department']['name'] = $model->getDepartmentName($item['department']['id']);
-		$item['price'] = floatval($item['price']);
 		
 		return ['items' => [$item]];
 	}
@@ -317,6 +315,21 @@ class CoreAPI
 		return null;
 	}
 
+	public function sanitizeItemData($data)
+	{
+		if (isset($data['price'])) {
+			$data['price'] = floatval($data['price']);
+		}
+		if (isset($data['condition'])) {
+			$data['condition'] = intval($data['condition']);
+		}
+		if (isset($data['department']['id'])) {
+			$data['department']['id'] = intval($data['department']['id']);
+		}
+
+		return $data;
+	}
+
 	// Absensi Section
 	public function insertAttendance($attendance, $model)
 	{
@@ -352,16 +365,12 @@ class CoreAPI
 		}
 	
 		$workTimeData = $model->getWorkTimeData($attendance['work_time']['id']);
+		$attendance['work_time']['entry_time'] = $workTimeData['entry_time'];
+		$attendance['work_time']['home_time'] = $workTimeData['home_time'];
 		$attendance['device']['name'] = $model->getDeviceName($attendance['device']['id']);
 		$attendance['department']['name'] = $model->getDepartmentName($attendance['department']['id']);
 		
-		$attendance['employee_id'] = (int) $attendance['employee_id'];
-		$attendance['device']['id'] = (int) $attendance['device']['id'];
-		$attendance['work_time']['id'] = (int) $attendance['work_time']['id'];
-		$attendance['department']['id'] = (int) $attendance['department']['id'];
-		$attendance['work_time']['entry_time'] = $workTimeData['entry_time'];
-		$attendance['work_time']['home_time'] = $workTimeData['home_time'];
-
+		$attendance = $this->sanitizeAttendanceData($attendance);
 		$attendance = $this->changeInfoField($attendance);
 
 		return [$attendance];
@@ -430,5 +439,23 @@ class CoreAPI
 			}
 		}
 		return $attendance;
+	}
+
+	public function sanitizeAttendanceData($data)
+	{
+		if (isset($data['employee_id'])) {
+			$data['employee_id'] = (int) $data['employee_id'];
+		}
+		if (isset($data['device']['id'])) {
+			$data['device']['id'] = (int) $data['device']['id'];
+		}
+		if (isset($data['work_time']['id'])) {
+			$data['work_time']['id'] = (int) $data['work_time']['id'];
+		}
+		if (isset($data['department']['id'])) {
+			$data['department']['id'] = (int) $data['department']['id'];
+		}
+	
+		return $data;
 	}
 }

@@ -92,12 +92,13 @@ class Absensi extends \yii\db\ActiveRecord
     public function updateInsertAttendance($params, $existing)
     {
         if (!$existing->dayoff) {
+            $employee_id = $params['attendance']['employee_id'];
             $start_time = $params['attendance']['start_time'];
             $date = $params['date'];
-            $employee_id = $params['attendance']['employee_id'];
     
             if (!$this->isValidStartTimeAndDate($start_time, $date)) {
                 $this->addBlacklist($existing, $employee_id, $start_time, $date);
+
                 return $existing;
             }
             
@@ -105,6 +106,10 @@ class Absensi extends \yii\db\ActiveRecord
                 $existing->refresh();
                 $newAttendance = Yii::$app->coreAPI->insertAttendance($params['attendance'], $existing);
                 $newData = array_merge($existing->attendance, $newAttendance);
+
+                foreach ($params['attendance'] as $key => $value) {
+                    $newData[$key] = $value === "" ? null : $value;
+                }
     
                 $existing->updateAttributes([
                     'attendance' => $newData,
