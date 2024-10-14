@@ -106,18 +106,26 @@ class GeneralAffairController extends CoreController
 		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
 			return CoreController::coreValidateParams($unavailableParams);
         }
-		
-		if ($exisiting = Yii::$app->coreAPI->exisitingData($model, $params)) { 
-			if ($callBack = $model->updateInsertItems($params, $exisiting)) {
-				return CoreController::coreSuccess($callBack, 'insertRecordSuccess');
-        	}
-            
-			return CoreController::coreBadRequest($callBack, Yii::t('app', 'valueExists'));
+
+		if ($model === null) {
+            return CoreController::coreDataNotFound();
 		}
-		
+
 		$model->scenario = Constants::SCENARIO_CREATE;
-		if ($model->load($params, '') && $model->save()) {
-			return CoreController::coreSuccess($model, 'insertRecordSuccess');
+
+		if ($model->load($params, '') && $model->validate()) {
+			if ($exisiting = Yii::$app->coreAPI->exisitingData($model, $params)) { 
+				if ($callBack = $model->updateInsertItems($params, $exisiting)) {
+					return CoreController::coreSuccess($callBack, 'insertRecordSuccess');
+				}
+				
+				return CoreController::coreBadRequest($callBack, Yii::t('app', 'valueExists'));
+			}
+			
+			$model->scenario = Constants::SCENARIO_CREATE;
+			if ($model->load($params, '') && $model->save()) {
+				return CoreController::coreSuccess($model, 'insertRecordSuccess');
+			}
 		}
 		
         return CoreController::coreBadRequest($model, Yii::t('app', 'insertRecordFailed'));

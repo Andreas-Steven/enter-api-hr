@@ -363,12 +363,14 @@ class CoreAPI
 				]
 			], $attendance);
 		}
-	
-		$workTimeData = $model->getWorkTimeData($attendance['work_time']['id']);
-		$attendance['work_time']['entry_time'] = $workTimeData['entry_time'];
-		$attendance['work_time']['home_time'] = $workTimeData['home_time'];
-		$attendance['device']['name'] = $model->getDeviceName($attendance['device']['id']);
-		$attendance['department']['name'] = $model->getDepartmentName($attendance['department']['id']);
+
+		if (!empty($attendance['work_time']['id']) && !empty($attendance['device']['id'])) {
+			$workTimeData = $model->getWorkTimeData($attendance['work_time']['id']);
+			$attendance['work_time']['entry_time'] = $workTimeData['entry_time'] ?? null;
+			$attendance['work_time']['home_time'] = $workTimeData['home_time'] ?? null;
+
+			$attendance['department']['name'] = $model->getDepartmentName($attendance['department']['id']) ?? null;
+		}
 		
 		$attendance = $this->sanitizeAttendanceData($attendance);
 		$attendance = $this->changeInfoField($attendance);
@@ -391,7 +393,9 @@ class CoreAPI
 			$entryTime = strtotime($attendance['work_time']['entry_time']);
 
 			if ($startTime > $entryTime) {
-				$attendance['info']['detail'][] = "Telat Masuk";
+				if (!in_array("Telat Masuk", $attendance['info']['detail'])) {
+					$attendance['info']['detail'][] = "Telat Masuk";
+				}
 			}
 		}
 
@@ -400,12 +404,16 @@ class CoreAPI
 			$homeTime = strtotime($attendance['work_time']['home_time']);
 
 			if ($endTime < $homeTime) {
-				$attendance['info']['detail'][] = "Pulang Cepat";
+				if (!in_array("Pulang Cepat", $attendance['info']['detail'])) {
+					$attendance['info']['detail'][] = "Pulang Cepat";
+				}
 			}
 		}
 
 		if (empty($attendance['end_time']) && !empty($attendance['start_time']) && date('Y-m-d') != date('Y-m-d', strtotime($attendance['start_time']))) {
-			$attendance['info']['detail'][] = "Tidak Absen Pulang";
+			if (!in_array("Tidak Absen Pulang", $attendance['info']['detail'])) {
+				$attendance['info']['detail'][] = "Tidak Absen Pulang";
+			}
 		}
 
 		return $attendance;

@@ -33,7 +33,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         return [
             [['category_id', 'location_id', 'status'], 'integer'],
-            [['name', 'category_id', 'location_id'], 'required'],
+            [['name', 'category_id', 'location_id', 'item'], 'required'],
             [['detail_info', 'item'], 'safe'],
             [['name'], 'string', 'max' => 255],
             
@@ -89,7 +89,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return parent::beforeSave($insert);
     }
 
-
     public function updateInsertItems($params, $existing)
     {
         if (isset($existing)) {
@@ -113,12 +112,9 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         $items = $this->item['items'];
         $code = $params['item']['items']['code'];
-        // $newItem = Yii::$app->coreAPI->insertItem($params['item']['items'], $this);
         $index = Yii::$app->coreAPI->findIndex($code, $items);
         
         if ($index !== null) {
-            // $newItem['items'][0] = Yii::$app->coreAPI->itemChangeLog($newItem['items'][0]);
-            // $items[$index] = $newItem['items'][0];
 
             foreach ($params['item']['items'] as $key => $value) {
                 if ($value === "") {
@@ -165,6 +161,13 @@ class GeneralAffair extends \yii\db\ActiveRecord
     }
 
     // Database Relation Section
+    public function getDepartmentName($id)
+    {
+        $department = Department::findOne($id);
+        return $department ? $department->name : null;
+    }
+
+    // Database Relation Section
     public function getCategory()
     {
         return $this->hasOne(GeneralAffairCategory::class, ['id' => 'category_id']);
@@ -178,11 +181,5 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function getDepartment()
     {
         return $this->hasOne(Department::class, ['id' => 'department_id']);
-    }
-
-    public function getDepartmentName($id)
-    {
-        $department = Department::findOne($id);
-        return $department ? $department->name : null;
     }
 }
