@@ -333,6 +333,25 @@ class CoreAPI
 		return $items;
 	}
 
+	public function filterItems($items, $params)
+	{
+		if (!empty($params['item']['items']['code'])) {
+			$code = $params['item']['items']['code'];
+			return array_filter($items, function ($item) use ($code) {
+				return isset($item['code']) && $item['code'] == $code;
+			});
+		}
+
+		if (!empty($params['item']['items']['department']['id'])) {
+			$departmentId = $params['item']['items']['department']['id'];
+			return array_filter($items, function ($item) use ($departmentId) {
+				return isset($item['department']) && $item['department']['id'] == $departmentId;
+			});
+		}
+
+		return $items;
+	}
+
 	public function calculateValue($model)
 	{
 		$quantity = $total_price = $index = 0;

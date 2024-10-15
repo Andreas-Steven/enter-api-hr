@@ -58,37 +58,24 @@ class GeneralAffairController extends CoreController
 
 		$models = $dataProvider->getModels();
 		$result = [];
-	
-		foreach ($models as $model) {
-			$filteredItems = $model->item['items'];
-	
-			if (!empty($params['item']['items']['code'])) {
-				$code = $params['item']['items']['code'];
-				$filteredItems = array_filter($filteredItems, function ($item) use ($code) {
-					return isset($item['code']) && $item['code'] == $code;
-				});
-			}
-			
-			if (!empty($params['item']['items']['department']['id'])) {
-				$departmentId = $params['item']['items']['department']['id'];
-				$filteredItems = array_filter($filteredItems, function ($item) use ($departmentId) {
-					return isset($item['department']) && $item['department']['id'] == $departmentId;
-				});
-			}	
 
-			if (isset($filteredItems)) {	
-				$itemData['items'] = array_values($filteredItems);
-				$itemData['quantity'] = $model->item['quantity'];
-				$itemData['total_price'] = $model->item['total_price'];
+		foreach ($models as $model) {
+			$filteredItems = Yii::$app->coreAPI->filterItems($model->item['items'], $params);
+			$tempModel = ['items' => array_values($filteredItems)];
+			$calculatedData = Yii::$app->coreAPI->calculateValue($tempModel);
 	
-				$model->setAttribute('item', $itemData);
-			}
+			$item = [
+				'items' 		=> $calculatedData['items'],
+				'quantity' 		=> $calculatedData['quantity'],
+				'total_price' 	=> $calculatedData['total_price']
+			];
 	
-			if (!empty($model->item['items'])) {
+			if (!empty($item['items'])) {
+				$model->setAttribute('item', $item);
 				$result[] = $model;
 			}
 		}
-	
+
 		return [
 			'code' => 200,
 			'success' => true,
