@@ -32,7 +32,7 @@ class Absensi extends \yii\db\ActiveRecord
             [['dayoff'], 'boolean'],
             [['status'], 'integer'],
             [['date'], 'date', 'format' => 'Y-m-d'],
-            [['attendance', 'blacklist', 'detail_info'], 'safe'],
+            [['attendance', 'blacklist', 'detail_info'], 'safe', 'skipOnEmpty' => true],
             
             [['status'], 'default', 'value' => 2],
             [['dayoff'], 'default', 'value' => false],
@@ -170,7 +170,7 @@ class Absensi extends \yii\db\ActiveRecord
 
     private function getPreviousAttendance($date)
     {
-        $previousAttendance = Absensi::find()
+        $previousAttendance = self::find()
             ->where(['date' => $date])
             ->one();
 

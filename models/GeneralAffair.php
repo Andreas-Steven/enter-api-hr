@@ -34,7 +34,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return [
             [['category_id', 'location_id', 'status'], 'integer'],
             [['name', 'category_id', 'location_id', 'item'], 'required'],
-            [['detail_info', 'item'], 'safe'],
+            [['detail_info', 'item'], 'safe', 'skipOnEmpty' => true],
             [['name'], 'string', 'max' => 255],
             
             [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => GeneralAffairCategory::class, 'targetAttribute' => ['category_id' => 'id']],

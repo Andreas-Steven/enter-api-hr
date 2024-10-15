@@ -212,7 +212,6 @@ class CoreAPI
 		return false;
 	}
 
-	// Employee Section
 	public function insertEmployeeDetail($data, $model)
 	{
 		$data['department']['id'] = (int) $data['department']['id'];
@@ -221,22 +220,71 @@ class CoreAPI
 		return $data;
 	}
 
-	// General Affair Section
-	public function insertItem($data, $model)
+	private function sanitizeEmptyFields($data)
 	{
 		foreach ($data as $key => $value) {
-			if ($value === "") {
-				$data[$key] = null;
+			if (is_array($value)) {
+				$data[$key] = array_filter($value, function ($val) {
+					return $val !== "";
+				});
+			} else {
+				if ($value === "") {
+					$data[$key] = null;
+				}
 			}
 		}
+	
+		return $data;
+	}
 
-		if (isset($data['image']) && is_array($data['image'])) {
-			$data['image'] = array_filter($data['image'], function ($value) {
-				return $value !== "";
-			});
+	public function sanitizeData($data, $type)
+	{
+		$mappings = [
+			'item' => [
+				'price' => 'floatval',
+				'condition' => 'intval',
+				'department.id' => 'intval',
+			],
+			'attendance' => [
+				'employee_id' => 'intval',
+				'device.id' => 'intval',
+				'work_time.id' => 'intval',
+				'department.id' => 'intval',
+			],
+		];
+	
+		if (isset($mappings[$type])) {
+			foreach ($mappings[$type] as $key => $function) {
+				$keys = explode('.', $key);
+				$temp = &$data;
+				foreach ($keys as $k) {
+					if (isset($temp[$k])) {
+						$temp = &$temp[$k];
+					} else {
+						continue 2;
+					}
+				}
+				$temp = $function($temp);
+			}
 		}
+	
+		return $data;
+	}
 
-		$item = array_merge([
+	/** General Affair Section */
+	public function insertItem($data, $model)
+	{
+		$data = $this->sanitizeEmptyFields($data);
+		$data = $this->populateDefaultValues($data);
+		$data = $this->sanitizeData($data, 'item');
+		$data['department']['name'] = $model->getDepartmentName($data['department']['id']);
+
+		return ['items' => [$data]];
+	}
+
+	private function populateDefaultValues($data)
+	{
+		$defaultValues = [
 			'code' => null,
 			'price' => null,
 			'condition' => null,
@@ -258,12 +306,11 @@ class CoreAPI
 				'updated_at' => null,
 				'updated_by' => null
 			]
-		], $data);
+		];
 
-		$item = $this->sanitizeItemData($item);
-		$item['department']['name'] = $model->getDepartmentName($item['department']['id']);
-		
-		return ['items' => [$item]];
+		$data = array_merge($defaultValues, $data);
+
+		return $data;
 	}
 
 	public function itemChangeLog($items)
@@ -315,26 +362,22 @@ class CoreAPI
 		return null;
 	}
 
-	public function sanitizeItemData($data)
-	{
-		if (isset($data['price'])) {
-			$data['price'] = floatval($data['price']);
-		}
-		if (isset($data['condition'])) {
-			$data['condition'] = intval($data['condition']);
-		}
-		if (isset($data['department']['id'])) {
-			$data['department']['id'] = intval($data['department']['id']);
-		}
-
-		return $data;
-	}
-
-	// Absensi Section
+	/** Absensi Section */
 	public function insertAttendance($attendance, $model)
 	{
+		$attendance = $this->mergeDefaultAttendance($attendance, $model);
+		$attendance = $this->populateWorkTimeAndDepartment($attendance, $model);
+		$attendance = $this->sanitizeEmptyFields($attendance);
+		$attendance = $this->sanitizeData($attendance, 'attendance');
+		$attendance = $this->changeInfoField($attendance);
+
+		return [$attendance];
+	}
+
+	private function mergeDefaultAttendance($attendance, $model)
+	{
 		if (isset($model->attendance)) {
-			$attendance = array_merge([
+			$defaultAttendance = [
 				'employee_id' => null,
 				'start_time' => null,
 				'end_time' => null,
@@ -361,9 +404,15 @@ class CoreAPI
 					'long' => null,
 					'image' => []
 				]
-			], $attendance);
+			];
+			$attendance = array_merge($defaultAttendance, $attendance);
 		}
 
+		return $attendance;
+	}
+
+	private function populateWorkTimeAndDepartment($attendance, $model)
+	{
 		if (!empty($attendance['work_time']['id']) && !empty($attendance['device']['id'])) {
 			$workTimeData = $model->getWorkTimeData($attendance['work_time']['id']);
 			$attendance['work_time']['entry_time'] = $workTimeData['entry_time'] ?? null;
@@ -371,11 +420,8 @@ class CoreAPI
 
 			$attendance['department']['name'] = $model->getDepartmentName($attendance['department']['id']) ?? null;
 		}
-		
-		$attendance = $this->sanitizeAttendanceData($attendance);
-		$attendance = $this->changeInfoField($attendance);
 
-		return [$attendance];
+		return $attendance;
 	}
 
 	public function changeInfoField($attendance)
@@ -447,23 +493,5 @@ class CoreAPI
 			}
 		}
 		return $attendance;
-	}
-
-	public function sanitizeAttendanceData($data)
-	{
-		if (isset($data['employee_id'])) {
-			$data['employee_id'] = (int) $data['employee_id'];
-		}
-		if (isset($data['device']['id'])) {
-			$data['device']['id'] = (int) $data['device']['id'];
-		}
-		if (isset($data['work_time']['id'])) {
-			$data['work_time']['id'] = (int) $data['work_time']['id'];
-		}
-		if (isset($data['department']['id'])) {
-			$data['department']['id'] = (int) $data['department']['id'];
-		}
-	
-		return $data;
 	}
 }

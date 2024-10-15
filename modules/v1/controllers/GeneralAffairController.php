@@ -119,10 +119,9 @@ class GeneralAffairController extends CoreController
 					return CoreController::coreSuccess($callBack, 'insertRecordSuccess');
 				}
 				
-				return CoreController::coreBadRequest($callBack, Yii::t('app', 'valueExists'));
+				return CoreController::coreUniqueData($callBack, Yii::t('app', 'valueExists'));
 			}
 			
-			$model->scenario = Constants::SCENARIO_CREATE;
 			if ($model->load($params, '') && $model->save()) {
 				return CoreController::coreSuccess($model, 'insertRecordSuccess');
 			}
