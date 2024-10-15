@@ -63,13 +63,13 @@ class GeneralAffairController extends CoreController
 			$filteredItems = Yii::$app->coreAPI->filterItems($model->item['items'], $params);
 			$tempModel = ['items' => array_values($filteredItems)];
 			$calculatedData = Yii::$app->coreAPI->calculateValue($tempModel);
-	
+
 			$item = [
-				'items' 		=> $calculatedData['items'],
-				'quantity' 		=> $calculatedData['quantity'],
-				'total_price' 	=> $calculatedData['total_price']
+				'items'	=> $calculatedData['items'],
+				'quantity' => $calculatedData['quantity'],
+				'total_price' => $calculatedData['total_price']
 			];
-	
+
 			if (!empty($item['items'])) {
 				$model->setAttribute('item', $item);
 				$result[] = $model;

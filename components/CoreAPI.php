@@ -335,6 +335,10 @@ class CoreAPI
 
 	public function filterItems($items, $params)
 	{
+		$items = array_filter($items, function ($item) {
+			return isset($item['status']) && $item['status'] != Constants::STATUS_DELETED;
+		});
+
 		if (!empty($params['item']['items']['code'])) {
 			$code = $params['item']['items']['code'];
 			return array_filter($items, function ($item) use ($code) {
