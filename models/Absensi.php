@@ -46,7 +46,7 @@ class Absensi extends \yii\db\ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios[Constants::SCENARIO_CREATE] = ['date', 'attendance', 'detail_info', 'dayoff'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['id', 'attendance', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['date', 'attendance', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;

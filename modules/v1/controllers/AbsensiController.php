@@ -61,9 +61,10 @@ class AbsensiController extends CoreController
 		$result = [];
 	
 		foreach ($models as $model) {
-			unset($model->blacklist);
+			
 	
 			if (!empty($params['attendance']['employee_id'])) {
+				unset($model->blacklist);
 				$employeeId = $params['attendance']['employee_id'];
 				$filteredAttendance = array_filter($model->attendance, function ($attendance) use ($employeeId) {
 					return $attendance['employee_id'] == $employeeId;
@@ -71,6 +72,7 @@ class AbsensiController extends CoreController
 			}
 	
 			if (!empty($params['attendance']['department']['id'])) {
+				unset($model->blacklist);
 				$departmentId = $params['attendance']['department']['id'];
 				$filteredAttendance = array_filter($model->attendance, function ($attendance) use ($departmentId) {
 					return isset($attendance['department']) && $attendance['department']['id'] == $departmentId;
@@ -131,6 +133,13 @@ class AbsensiController extends CoreController
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
+		// Search for ID
+		$searchModel = new AbsensiSearch();
+		$dataProvider = $searchModel->search($params);
+		$model = $dataProvider->getModels();
+		$absensiModel = $model[0];
+		$params['id'] = $absensiModel->id;
+		
 		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_UPDATE)) {
 			return $coreBadRequestNoParams;
 		}
@@ -138,15 +147,15 @@ class AbsensiController extends CoreController
 		$model = Yii::$app->coreAPI->findModel(Absensi::className(), $params);
 		
 		if ($model === null) {
-            return CoreController::coreDataNotFound();
+			return CoreController::coreDataNotFound();
 		}
-        
-        $rules = $model->rules();
-        $model->scenario = Constants::SCENARIO_UPDATE;
 
+		$rules = $model->rules();
+		$model->scenario = Constants::SCENARIO_UPDATE;
+		
 		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
 			return CoreController::coreValidateParams($unavailableParams);
-        }
+		}
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
 			return $coreSuperadmin;

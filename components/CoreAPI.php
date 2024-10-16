@@ -19,7 +19,7 @@ class CoreAPI
 				return $dataset;
 			}
 		}
-		
+	
 		return null;
 	}
 
@@ -449,11 +449,11 @@ class CoreAPI
 
 	public function changeInfoField($attendance)
 	{
-		if (!empty($attendance['start_time'])) {
+		if (!empty($attendance['start_time']) && $attendance['start_time'] != '00:00:00') {
 			$attendance['info']['in'] = true;
 		}
 
-		if (!empty($attendance['end_time'])) {
+		if (!empty($attendance['end_time']) && $attendance['end_time'] != '00:00:00') {
 			$attendance['info']['out'] = true;
 		}
 
@@ -468,7 +468,7 @@ class CoreAPI
 			}
 		}
 
-		if (!empty($attendance['end_time']) && !empty($attendance['work_time']['home_time'])) {
+		if (!empty($attendance['end_time']) && !empty($attendance['work_time']['home_time']) && $attendance['end_time'] != '00:00:00') {
 			$endTime = strtotime($attendance['end_time']);
 			$homeTime = strtotime($attendance['work_time']['home_time']);
 
@@ -479,7 +479,7 @@ class CoreAPI
 			}
 		}
 
-		if (empty($attendance['end_time']) && !empty($attendance['start_time']) && date('Y-m-d') != date('Y-m-d', strtotime($attendance['start_time']))) {
+		if (($attendance['end_time'] == '00:00:00' || empty($attendance['end_time'])) && !empty($attendance['start_time']) && date('Y-m-d') != date('Y-m-d', strtotime($attendance['start_time']))) {
 			if (!in_array("Tidak Absen Pulang", $attendance['info']['detail'])) {
 				$attendance['info']['detail'][] = "Tidak Absen Pulang";
 			}
