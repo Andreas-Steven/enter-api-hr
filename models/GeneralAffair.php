@@ -103,7 +103,15 @@ class GeneralAffair extends \yii\db\ActiveRecord
             ]);
             $existing->save();
         
-            return $existing;
+            return $result = [
+                'id' => $existing->id,
+                'name' => $existing->name,
+                'category_id' => $existing->category_id,
+                'location_id' => $existing->location_id,
+                'status' => $existing->status,
+                'detail_info' => $existing->detail_info,
+                'item' => $newItems,
+            ];
         }
 
     }
@@ -123,7 +131,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $items[$index][$key] = $params['item']['items'][$key];
             }
             
-            $items[$index] = Yii::$app->coreAPI->sanitizeItemData($items[$index]);
+            $items[$index] = Yii::$app->coreAPI->sanitizeData($items[$index], 'item');
             $items[$index] = Yii::$app->coreAPI->itemChangeLog($items[$index]);
 
             $this->updateAttributes([
@@ -131,8 +139,17 @@ class GeneralAffair extends \yii\db\ActiveRecord
                     'items' => $items,
                 ],
             ]);
-        
-            return $this->save();
+            $this->save();
+
+            return $result = [
+                'id' => $this->id,
+                'name' => $this->name,
+                'category_id' => $this->category_id,
+                'location_id' => $this->location_id,
+                'status' => $this->status,
+                'detail_info' => $this->detail_info,
+                'item' => $items[$index],
+            ];
         }
 
         return false;
@@ -153,8 +170,17 @@ class GeneralAffair extends \yii\db\ActiveRecord
                     'items' => $items,
                 ],
             ]);
+            $this->save();
     
-            return $this->save();
+            return $result = [
+                'id' => $this->id,
+                'name' => $this->name,
+                'category_id' => $this->category_id,
+                'location_id' => $this->location_id,
+                'status' => $this->status,
+                'detail_info' => $this->detail_info,
+                'item' => $items[$index],
+            ];
         }   
         
         return false;

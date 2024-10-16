@@ -14,7 +14,7 @@ use app\models\GeneralAffair;
 use app\models\search\GeneralAffairSearch;
 
 
-/**
+/**         
  * GeneralAffairController implements the CRUD actions for GeneralAffair model.
  */
 class GeneralAffairController extends CoreController
@@ -109,7 +109,7 @@ class GeneralAffairController extends CoreController
 				return CoreController::coreUniqueData($callBack, Yii::t('app', 'valueExists'));
 			}
 			
-			if ($model->load($params, '') && $model->save()) {
+			if ($model->save()) {
 				return CoreController::coreSuccess($model, 'insertRecordSuccess');
 			}
 		}
@@ -134,8 +134,8 @@ class GeneralAffairController extends CoreController
 		$model->scenario = Constants::SCENARIO_UPDATE;
 		$rules = $model->rules();
 
-		if ($callBack = $model->updateItems($params) && $model->save()) {
-			return CoreController::coreSuccess($model, 'updateRecordSuccess');
+		if ($callBack = $model->updateItems($params)) {
+			return CoreController::coreSuccess($callBack, 'updateRecordSuccess');
 		}
 		
         return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
@@ -157,8 +157,8 @@ class GeneralAffairController extends CoreController
 		
 		$model->scenario = Constants::SCENARIO_DELETE;
 
-        if ($model->deleteItems($params)) {
-			return CoreController::coreSuccess($model, 'deleteRecordSuccess');
+        if ($callBack = $model->deleteItems($params)) {
+			return CoreController::coreSuccess($callBack, 'deleteRecordSuccess');
 		}
 
         return CoreController::coreBadRequest($model, Yii::t('app', 'deleteRecordFailed'));
