@@ -19,7 +19,7 @@ class Constants
     const CODE_EXCEPTION = 'Z';
     const CODE_MAX_LENGTH = 4;
     const CSRF_VALIDATION = false;
-    const AUTH_EXCEPTION = '*';
+    const AUTH_EXCEPTION = '';
     const STATUS_NOT_DELETED = [
         '<>', 'status', self::STATUS_DELETED
     ];

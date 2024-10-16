@@ -116,7 +116,14 @@ class Absensi extends \yii\db\ActiveRecord
                 ]);
                 $existing->save();
     
-                return $existing;
+                return $result = [
+                    'id' => $existing->id,
+                    'date' => $existing->date,
+                    'dayoff' => $existing->dayoff,
+                    'status' => $existing->status,
+                    'attendance' => $newAttendance,
+                    'detail_info' => $existing->detail_info,
+                ];
             }
         }
 
@@ -130,9 +137,26 @@ class Absensi extends \yii\db\ActiveRecord
         $end_time = $params['attendance']['end_time'];
 
         $attendance = Yii::$app->coreAPI->updateAttendance($attendance, $employee_id, $end_time);
-
         $this->attendance = $attendance;
-        return $this->save();
+
+        if ($this->save()) {
+            $this->refresh();
+
+            $filteredAttendance = array_filter($this->attendance, function ($attendance) use ($employee_id) {
+                return $attendance['employee_id'] == $employee_id;
+            });
+
+            return $result = [
+                'id' => $this->id,
+                'date' => $this->date,
+                'dayoff' => $this->dayoff,
+                'status' => $this->status,
+                'attendance' => array_values($filteredAttendance),
+                'detail_info' => $this->detail_info,
+            ];
+        }
+    
+        return false;
     }
 
     private function isValidStartTimeAndDate($start_time, $date)
@@ -189,12 +213,6 @@ class Absensi extends \yii\db\ActiveRecord
     }
 
     // Database Relation Section
-    public function getDeviceName($id)
-    {
-        $device = Device::findOne($id);
-        return $device ? $device->name : null;
-    }
-
     public function getDepartmentName($id)
     {
         $department = Department::findOne($id);
@@ -208,12 +226,6 @@ class Absensi extends \yii\db\ActiveRecord
             'entry_time' => $workTime->entry_time,
             'home_time' => $workTime->home_time,
         ] : null;
-    }
-
-    public function getEmployeeName($id)
-    {
-        $employee = Employee::findOne($id);
-        return $employee ? $employee->name : null;
     }
 }
  

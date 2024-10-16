@@ -413,10 +413,7 @@ class CoreAPI
 					'id' => null,
 					'name' => null
 				],
-				'device' => [
-					'id' => null,
-					'name' => null
-				],
+				'device' => null,
 				'work_time' => [
 					'id' => null,
 					'start_time' => null,
@@ -515,6 +512,7 @@ class CoreAPI
 				break;
 			}
 		}
+
 		return $attendance;
 	}
 }

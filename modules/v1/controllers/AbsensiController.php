@@ -62,7 +62,6 @@ class AbsensiController extends CoreController
 	
 		foreach ($models as $model) {
 			
-	
 			if (!empty($params['attendance']['employee_id'])) {
 				unset($model->blacklist);
 				$employeeId = $params['attendance']['employee_id'];
@@ -128,7 +127,7 @@ class AbsensiController extends CoreController
 
 		return CoreController::coreBadRequest($model, Yii::t('app', 'insertRecordFailed'));
 	}
-
+	
 	public function actionUpdate()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
@@ -137,10 +136,15 @@ class AbsensiController extends CoreController
 		$searchModel = new AbsensiSearch();
 		$dataProvider = $searchModel->search($params);
 		$model = $dataProvider->getModels();
+		
+		if (empty($model)) {
+			return CoreController::coreDataNotFound();
+		}
+
 		$absensiModel = $model[0];
 		$params['id'] = $absensiModel->id;
 		
-		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_UPDATE)) {
+		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_UPDATE)) {		
 			return $coreBadRequestNoParams;
 		}
 		
@@ -161,8 +165,8 @@ class AbsensiController extends CoreController
 			return $coreSuperadmin;
 		}
 
-		if ($model->updateData($params) && $model->save()) {
-			return CoreController::coreSuccess($model, 'updateRecordSuccess');
+		if ($callback = $model->updateData($params)) {
+			return CoreController::coreSuccess($callback, 'updateRecordSuccess');
 		}
 
 		return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
