@@ -80,6 +80,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         if ($insert && isset($this->item)) {
             $this->item = Yii::$app->coreAPI->insertItem($this->item['items'], $this);
         }
+        
         $this->item = Yii::$app->coreAPI->calculateValue($this->item, $insert);
         $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
         $this->detail_info = [
@@ -102,16 +103,8 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 ],
             ]);
             $existing->save();
-        
-            return $result = [
-                'id' => $existing->id,
-                'name' => $existing->name,
-                'category_id' => $existing->category_id,
-                'location_id' => $existing->location_id,
-                'status' => $existing->status,
-                'detail_info' => $existing->detail_info,
-                'item' => $newItems,
-            ];
+
+            return Yii::$app->coreAPI->resultFormatter($existing, $newItems, 'item');
         }
 
     }
@@ -123,36 +116,25 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $index = Yii::$app->coreAPI->findIndex($code, $items);
         
         if ($index !== null) {
-
-            foreach ($params['item']['items'] as $key => $value) {
-                if ($value === "") {
-                    $params['item']['items'][$key] = null;
-                }
-                $items[$index][$key] = $params['item']['items'][$key];
-            }
-            
-            $items[$index] = Yii::$app->coreAPI->sanitizeData($items[$index], 'item');
-            $items[$index] = Yii::$app->coreAPI->itemChangeLog($items[$index]);
-
-            $this->updateAttributes([
-                'item' => [
-                    'items' => $items,
-                ],
-            ]);
-            $this->save();
-
-            return $result = [
-                'id' => $this->id,
-                'name' => $this->name,
-                'category_id' => $this->category_id,
-                'location_id' => $this->location_id,
-                'status' => $this->status,
-                'detail_info' => $this->detail_info,
-                'item' => $items[$index],
-            ];
+            return false;
         }
 
-        return false;
+        $params['item']['items'] = Yii::$app->coreAPI->sanitizeEmptyFields($params['item']['items']);
+        foreach ($params['item']['items'] as $key => $value) {
+            $items[$index][$key] = $value;
+        }
+        
+        $items[$index] = Yii::$app->coreAPI->sanitizeData($items[$index], 'item');
+        $items[$index] = Yii::$app->coreAPI->itemChangeLog($items[$index]);
+
+        $this->updateAttributes([
+            'item' => [
+                'items' => $items,
+            ],
+        ]);
+        $this->save();
+
+        return Yii::$app->coreAPI->resultFormatter($this, $items[$index], 'item');
     }
 
     public function deleteItems($params)
@@ -171,16 +153,8 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 ],
             ]);
             $this->save();
-    
-            return $result = [
-                'id' => $this->id,
-                'name' => $this->name,
-                'category_id' => $this->category_id,
-                'location_id' => $this->location_id,
-                'status' => $this->status,
-                'detail_info' => $this->detail_info,
-                'item' => $items[$index],
-            ];
+
+            return Yii::$app->coreAPI->resultFormatter($this, $items[$index], 'item');
         }   
         
         return false;
@@ -191,21 +165,5 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         $department = Department::findOne($id);
         return $department ? $department->name : null;
-    }
-
-    // Database Relation Section
-    public function getCategory()
-    {
-        return $this->hasOne(GeneralAffairCategory::class, ['id' => 'category_id']);
-    }
-
-    public function getLocation()
-    {
-        return $this->hasOne(GeneralAffairLocation::class, ['id' => 'location_id']);
-    }
-
-    public function getDepartment()
-    {
-        return $this->hasOne(Department::class, ['id' => 'department_id']);
     }
 }

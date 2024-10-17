@@ -211,7 +211,7 @@ class CoreAPI
 		
 		return false;
 	}	
-	
+
 	public function insertEmployeeDetail($data, $model)
 	{
 		$department = $model->getDepartment($data['department']['id']);
@@ -226,22 +226,22 @@ class CoreAPI
 		return $data;
 	}
 
-	private function sanitizeEmptyFields($data)
-	{
-		foreach ($data as $key => $value) {
-			if (is_array($value)) {
-				$data[$key] = array_filter($value, function ($val) {
-					return $val !== "";
-				});
-			} else {
-				if ($value === "") {
-					$data[$key] = null;
-				}
-			}
-		}
-	
-		return $data;
-	}
+	public function sanitizeEmptyFields($data)
+    {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = array_filter($value, function ($val) {
+                    return $val !== "";
+                });
+            } else {
+                if ($value === "") {
+                    $data[$key] = null;
+                }
+            }
+        }
+
+        return $data;
+    }
 
 	public function sanitizeData($data, $type)
 	{
@@ -263,6 +263,7 @@ class CoreAPI
 			foreach ($mappings[$type] as $key => $function) {
 				$keys = explode('.', $key);
 				$temp = &$data;
+
 				foreach ($keys as $k) {
 					if (isset($temp[$k])) {
 						$temp = &$temp[$k];
@@ -270,23 +271,37 @@ class CoreAPI
 						continue 2;
 					}
 				}
-				$temp = $function($temp);
-			}
-		}
 
-		foreach ($data as $key => $value) {
-			if (is_array($value)) {
-				$data[$key] = array_filter($value, function ($val) {
-					return $val !== "";
-				});
-			} else {
-				if ($value === "") {
-					$data[$key] = null;
-				}
+				$temp = $function($temp);
 			}
 		}
 	
 		return $data;
+	}
+
+	public function resultFormatter($model, $data, $type)
+	{
+		if ($type == 'attendance') {
+			return $result = [
+				'id' => $model->id,
+				'date' => $model->date,
+				'dayoff' => $model->dayoff,
+				'status' => $model->status,
+				'attendance' => $data,
+				'detail_info' => $model->detail_info,
+			];
+		} elseif ($type == 'item') {
+            return $result = [
+                'id' => $model->id,
+                'name' => $model->name,
+                'category_id' => $model->category_id,
+                'location_id' => $model->location_id,
+                'status' => $model->status,
+                'detail_info' => $model->detail_info,
+                'item' => $data,
+            ];
+		}
+
 	}
 
 	/** General Affair Section */
@@ -351,29 +366,6 @@ class CoreAPI
 		return $items;
 	}
 
-	public function filterItems($items, $params)
-	{
-		$items = array_filter($items, function ($item) {
-			return isset($item['status']) && $item['status'] != Constants::STATUS_DELETED;
-		});
-
-		if (!empty($params['item']['items']['code'])) {
-			$code = $params['item']['items']['code'];
-			return array_filter($items, function ($item) use ($code) {
-				return isset($item['code']) && $item['code'] == $code;
-			});
-		}
-
-		if (!empty($params['item']['items']['department']['id'])) {
-			$departmentId = $params['item']['items']['department']['id'];
-			return array_filter($items, function ($item) use ($departmentId) {
-				return isset($item['department']) && $item['department']['id'] == $departmentId;
-			});
-		}
-
-		return $items;
-	}
-
 	public function calculateValue($model)
 	{
 		$quantity = $total_price = $index = 0;
@@ -401,6 +393,29 @@ class CoreAPI
 		}
 	
 		return null;
+	}
+
+	public function filterItems($items, $params)
+	{
+		$items = array_filter($items, function ($item) {
+			return isset($item['status']) && $item['status'] != Constants::STATUS_DELETED;
+		});
+
+		if (!empty($params['item']['items']['code'])) {
+			$code = $params['item']['items']['code'];
+			return array_filter($items, function ($item) use ($code) {
+				return isset($item['code']) && $item['code'] == $code;
+			});
+		}
+
+		if (!empty($params['item']['items']['department']['id'])) {
+			$departmentId = $params['item']['items']['department']['id'];
+			return array_filter($items, function ($item) use ($departmentId) {
+				return isset($item['department']) && $item['department']['id'] == $departmentId;
+			});
+		}
+
+		return $items;
 	}
 
 	/** Absensi Section */
@@ -544,5 +559,36 @@ class CoreAPI
 		}
 
 		return $attendance;
+	}
+
+	public function filterAttendances($data, $filters)
+	{
+		return array_filter($data, function ($item) use ($filters) {
+			foreach ($filters as $key => $value) {
+				if ($key === 'has_start_time') {
+					if ($value && !isset($item['start_time'])) {
+						return false;
+					}
+					
+					continue;
+				}
+	
+				$keys = explode('.', $key);
+				$temp = $item;
+	
+				foreach ($keys as $k) {
+					if (isset($temp[$k])) {
+						$temp = $temp[$k];
+					} else {
+						return false;
+					}
+				}
+	
+				if ($temp != $value) {
+					return false;
+				}
+			}
+			return true;
+		});
 	}
 }

@@ -60,19 +60,21 @@ class GeneralAffairController extends CoreController
 		$result = [];
 
 		foreach ($models as $model) {
-			$filteredItems = Yii::$app->coreAPI->filterItems($model->item['items'], $params);
-			$tempModel = ['items' => array_values($filteredItems)];
-			$calculatedData = Yii::$app->coreAPI->calculateValue($tempModel);
-
-			$item = [
-				'items'	=> $calculatedData['items'],
-				'quantity' => $calculatedData['quantity'],
-				'total_price' => $calculatedData['total_price']
-			];
-
-			if (!empty($item['items'])) {
-				$model->setAttribute('item', $item);
-				$result[] = $model;
+			if (isset($model->item['items'])) {
+				$filteredItems = Yii::$app->coreAPI->filterItems($model->item['items'], $params, 'items');
+				$tempModel = ['items' => array_values($filteredItems)];
+				$calculatedData = Yii::$app->coreAPI->calculateValue($tempModel);
+	
+				$item = [
+					'items' => $calculatedData['items'],
+					'quantity' => $calculatedData['quantity'],
+					'total_price' => $calculatedData['total_price']
+				];
+	
+				if (!empty($item['items'])) {
+					$model->setAttribute('item', $item);
+					$result[] = $model;
+				}
 			}
 		}
 
@@ -158,6 +160,7 @@ class GeneralAffairController extends CoreController
 		$model->scenario = Constants::SCENARIO_DELETE;
 
         if ($callBack = $model->deleteItems($params)) {
+			dd($callBack);
 			return CoreController::coreSuccess($callBack, 'deleteRecordSuccess');
 		}
 

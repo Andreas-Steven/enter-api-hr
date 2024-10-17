@@ -61,30 +61,19 @@ class AbsensiController extends CoreController
 		$result = [];
 	
 		foreach ($models as $model) {
-			
-			if (!empty($params['attendance']['employee_id'])) {
-				unset($model->blacklist);
-				$employeeId = $params['attendance']['employee_id'];
-				$filteredAttendance = array_filter($model->attendance, function ($attendance) use ($employeeId) {
-					return $attendance['employee_id'] == $employeeId;
-				});
-			}
-	
-			if (!empty($params['attendance']['department']['id'])) {
-				unset($model->blacklist);
-				$departmentId = $params['attendance']['department']['id'];
-				$filteredAttendance = array_filter($model->attendance, function ($attendance) use ($departmentId) {
-					return isset($attendance['department']) && $attendance['department']['id'] == $departmentId;
-				});
-			}
+			$filters = [];
+            if (!empty($params['attendance']['employee_id'])) {
+                $filters['employee_id'] = $params['attendance']['employee_id'];
+            }
+            if (!empty($params['attendance']['department']['id'])) {
+                $filters['department.id'] = $params['attendance']['department']['id'];
+            }
+            $filteredAttendance = Yii::$app->coreAPI->filterAttendances($model->attendance, $filters);
 
-			if (isset($filteredAttendance)) {
-				$model->attendance = array_values($filteredAttendance);
-			}
-			
-			if (!empty($model->attendance)) {
-				$result[] = $model;
-			}
+            if (!empty($filteredAttendance)) {
+                $model->attendance = array_values($filteredAttendance);
+                $result[] = $model;
+            }
 		}
 
 		return [
