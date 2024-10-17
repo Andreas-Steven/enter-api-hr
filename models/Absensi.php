@@ -37,8 +37,8 @@ class Absensi extends \yii\db\ActiveRecord
             [['status'], 'default', 'value' => 2],
             [['dayoff'], 'default', 'value' => false],
 
-            [['status'], 'in', 'range' => array_keys(Constants::statusList())],
             [['status'], 'filter', 'filter' => 'intval'],
+            [['status'], 'in', 'range' => array_keys(Constants::statusList())],
         ];
     }
 
@@ -70,7 +70,6 @@ class Absensi extends \yii\db\ActiveRecord
         return new \app\models\query\AbsensiQuery(get_called_class());
     }
 
-    // Main Function Section
     public function beforeSave($insert)
     {
         if ($this->dayoff) {
@@ -213,19 +212,16 @@ class Absensi extends \yii\db\ActiveRecord
     }
 
     // Database Relation Section
-    public function getDepartmentName($id)
+    public function getEmployee($id)
     {
-        $department = Department::findOne($id);
-        return $department ? $department->name : null;
+        $employee = Employee::findOne($id);
+        return $employee;
     }
 
-    public function getWorkTimeData($id)
+    public function getDevice($device_code)
     {
-        $workTime = WorkTime::findOne($id);
-        return $workTime ? [
-            'entry_time' => $workTime->entry_time,
-            'home_time' => $workTime->home_time,
-        ] : null;
+        $device = Device::find()->where(['device_code' => $device_code])->one();
+        return $device;
     }
 }
  

@@ -14,10 +14,11 @@ class m241007_045814_create_device_table extends Migration
     {
         $this->createTable('{{%device}}', [
             'id' => $this->primaryKey(),
-            'name' => $this->string(255)->notNull(),
-            'address' => $this->string(255)->notNull(),
-            'device_ip' => $this->string(255)->notNull(),
-            'location' => $this->json()->notNull()->defaultValue(json_encode([
+            'device_code' => $this->string(5)->notNull(),
+            'device_name' => $this->string(255)->notNull(),
+            'device_address' => $this->string(255)->notNull(),
+            'device_ip' => $this->string(15)->notNull(),
+            'device_location' => $this->json()->notNull()->defaultValue(json_encode([
                 'lat' => null,
                 'long' => null
             ])),

@@ -194,7 +194,7 @@ class CoreAPI
 
 		return $cleanText;
 	}
-
+	
 	public function exisitingData($model, $params)
 	{
 		if(isset($params['id'])) {
@@ -210,12 +210,18 @@ class CoreAPI
 		}
 		
 		return false;
-	}
-
+	}	
+	
 	public function insertEmployeeDetail($data, $model)
 	{
-		$data['department']['id'] = (int) $data['department']['id'];
-		$data['department']['name'] = $model->getDepartmentName($data['department']['id']);
+		$department = $model->getDepartment($data['department']['id']);
+		$data['department']['id'] = $department['department']['id'];
+		$data['department']['name'] = $department['department']['name'];
+		
+		$workTime = $model->getWorkTime($data['work_time']['id']);
+		$data['work_time']['id'] = $workTime['work_time']['id'];
+		$data['work_time']['entry_time'] = $workTime['work_time']['entry_time'];
+		$data['work_time']['home_time'] = $workTime['work_time']['home_time'];
 	
 		return $data;
 	}
@@ -265,6 +271,18 @@ class CoreAPI
 					}
 				}
 				$temp = $function($temp);
+			}
+		}
+
+		foreach ($data as $key => $value) {
+			if (is_array($value)) {
+				$data[$key] = array_filter($value, function ($val) {
+					return $val !== "";
+				});
+			} else {
+				if ($value === "") {
+					$data[$key] = null;
+				}
 			}
 		}
 	
@@ -389,7 +407,7 @@ class CoreAPI
 	public function insertAttendance($attendance, $model)
 	{
 		$attendance = $this->mergeDefaultAttendance($attendance, $model);
-		$attendance = $this->populateWorkTimeAndDepartment($attendance, $model);
+		$attendance = $this->populateFields($attendance, $model);
 		$attendance = $this->sanitizeEmptyFields($attendance);
 		$attendance = $this->sanitizeData($attendance, 'attendance');
 		$attendance = $this->changeInfoField($attendance);
@@ -413,10 +431,14 @@ class CoreAPI
 					'id' => null,
 					'name' => null
 				],
-				'device' => null,
+				'device' => [
+					'id' => null,
+					'device_code' => null,
+					'device_name' => null,
+				],
 				'work_time' => [
 					'id' => null,
-					'start_time' => null,
+					'entry_time' => null,
 					'home_time' => null
 				],
 				'location' => [
@@ -431,16 +453,24 @@ class CoreAPI
 		return $attendance;
 	}
 
-	private function populateWorkTimeAndDepartment($attendance, $model)
+	public function populateFields($attendance, $model)
 	{
-		if (!empty($attendance['work_time']['id']) && !empty($attendance['device']['id'])) {
-			$workTimeData = $model->getWorkTimeData($attendance['work_time']['id']);
-			$attendance['work_time']['entry_time'] = $workTimeData['entry_time'] ?? null;
-			$attendance['work_time']['home_time'] = $workTimeData['home_time'] ?? null;
+		$employee = $model->getEmployee($attendance['employee_id']);
+		$employee_detail = $employee->employee_detail;
 
-			$attendance['department']['name'] = $model->getDepartmentName($attendance['department']['id']) ?? null;
-		}
+		$attendance['employee_name'] = $employee->name;
+		$attendance['department']['id'] = $employee_detail['department']['id'];
+		$attendance['department']['name'] = $employee_detail['department']['name'];
 
+		$attendance['work_time']['id'] = $employee_detail['work_time']['id'];
+		$attendance['work_time']['entry_time'] = $employee_detail['work_time']['entry_time'];
+		$attendance['work_time']['home_time'] = $employee_detail['work_time']['home_time'];
+
+		$device = $model->getDevice($attendance['device']['device_code']);
+		$attendance['device']['id'] = $device->id;
+		$attendance['device']['device_code'] = $device->device_code;
+		$attendance['device']['device_name'] = $device->device_name;
+	
 		return $attendance;
 	}
 
