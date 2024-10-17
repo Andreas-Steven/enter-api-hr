@@ -107,10 +107,14 @@ class GeneralAffairController extends CoreController
 				if ($callBack = $model->updateInsertItems($params, $exisiting)) {
 					return CoreController::coreSuccess($callBack, 'insertRecordSuccess');
 				}
-				
-				return CoreController::coreUniqueData($callBack, Yii::t('app', 'valueExists'));
+	
+				return CoreController::coreUniqueData($model, Yii::t('app', 'valueExists'), $params);
 			}
 			
+			if (Yii::$app->coreAPI->shouldCreateEmptyItems($params)) {
+				$model->item = ['items' => []];
+			}
+	
 			if ($model->save()) {
 				return CoreController::coreSuccess($model, 'insertRecordSuccess');
 			}

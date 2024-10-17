@@ -309,37 +309,56 @@ class CoreAPI
 	{
 		$data = $this->sanitizeEmptyFields($data);
 		$data = $this->populateDefaultValues($data);
-		$data = $this->sanitizeData($data, 'item');
-		$data['department']['name'] = $model->getDepartmentName($data['department']['id']);
+		
+		if (!empty($data)) {
+			$data = $this->sanitizeData($data, 'item');
+			$data['department']['name'] = $model->getDepartmentName($data['department']['id']);
+		}
 
 		return ['items' => [$data]];
 	}
 
+	public function shouldCreateEmptyItems($params)
+	{
+		$requiredFields = ['name', 'location_id', 'category_id'];
+		foreach ($requiredFields as $field) {
+			if (empty($params[$field])) {
+				return false;
+			}
+		}
+		
+		return count($params) === count($requiredFields);
+	}
+
 	private function populateDefaultValues($data)
 	{
-		$defaultValues = [
-			'code' => null,
-			'price' => null,
-			'condition' => null,
-			'buying_date' => null,
-			'tax_date' => null,
-			'inspection_date' => null,
-			'description' => null,
-			'image' => [],
-			'status' => 2,
-			'department' => [
-				'id' => null,
-				'name' => null
-			],
-			'item_change_log' => [
-				'created_at' => self::timestamp(),
-				'created_by' => Yii::$app->session->get('username'),
-				'deleted_by' => null,
-				'deleted_at' => null,
-				'updated_at' => null,
-				'updated_by' => null
-			]
-		];
+		if (empty($data['price'])) {
+			$defaultValues = [];
+		} else {
+			$defaultValues = [
+				'code' => null,
+				'price' => null,
+				'condition' => null,
+				'buying_date' => null,
+				'tax_date' => null,
+				'inspection_date' => null,
+				'description' => null,
+				'image' => [],
+				'status' => 2,
+				'department' => [
+					'id' => null,
+					'name' => null
+				],
+				'item_change_log' => [
+					'created_at' => self::timestamp(),
+					'created_by' => Yii::$app->session->get('username'),
+					'deleted_by' => null,
+					'deleted_at' => null,
+					'updated_at' => null,
+					'updated_by' => null
+				]
+			];
+		}
 
 		$data = array_merge($defaultValues, $data);
 

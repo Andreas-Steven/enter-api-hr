@@ -50,7 +50,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'category_id', 'location_id', 'item', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'category_id', 'location_id', 'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['id', 'item', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
@@ -74,11 +74,18 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return new \app\models\query\GeneralAffairQuery(get_called_class());
     }
 
-    // Main Function Section
     public function beforeSave($insert)
     {
-        if ($insert && isset($this->item)) {
-            $this->item = Yii::$app->coreAPI->insertItem($this->item['items'], $this);
+        // if ($insert && isset($this->item)) {
+        //     $this->item = Yii::$app->coreAPI->insertItem($this->item['items'], $this);
+        // }
+
+        if ($insert) {
+            if (Yii::$app->coreAPI->shouldCreateEmptyItems($this->attributes)) {
+                $this->item = ['items' => []];
+            } elseif (isset($this->item)) {
+                $this->item = Yii::$app->coreAPI->insertItem($this->item['items'], $this);
+            }
         }
         
         $this->item = Yii::$app->coreAPI->calculateValue($this->item, $insert);
@@ -93,20 +100,22 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function updateInsertItems($params, $existing)
     {
         if (isset($existing)) {
-            $existing->refresh();
-            $newItems = Yii::$app->coreAPI->insertItem($params['item']['items'], $existing);
-            $newData = array_merge($existing->item['items'], $newItems['items']);
-
-            $existing->updateAttributes([
-                'item' => [
-                    'items' => $newData,
-                ],
-            ]);
-            $existing->save();
-
-            return Yii::$app->coreAPI->resultFormatter($existing, $newItems, 'item');
+            if (isset($params['item']['items'])) {
+                $newItems = Yii::$app->coreAPI->insertItem($params['item']['items'], $existing);
+                $newData = array_merge($existing->item['items'], $newItems['items']);
+    
+                $existing->updateAttributes([
+                    'item' => [
+                        'items' => $newData,
+                    ],
+                ]);
+                $existing->save();
+    
+                return Yii::$app->coreAPI->resultFormatter($existing, $newItems, 'item');
+            }
         }
 
+        return false;
     }
 
     public function updateItems($params)
