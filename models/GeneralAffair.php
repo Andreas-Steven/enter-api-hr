@@ -85,7 +85,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
             }
         }
     }
-
+    
     public function getDepartmentName($id)
     {
         $department = Department::findOne($id);
@@ -108,7 +108,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
         return parent::beforeSave($insert);
     }
-
+    
     public function updateInsertItems($params, $existing)
     {
         if (isset($existing)) {
@@ -121,13 +121,8 @@ class GeneralAffair extends \yii\db\ActiveRecord
                     $newData = $newItems['items'];
                 }
     
-                $existing->updateAttributes([
-                    'item' => [
-                        'items' => $newData,
-                    ],
-                ]);
+                $existing->updateAttributes(['item' => ['items' => $newData]]);
                 $existing->save();
-    
                 return Yii::$app->coreAPI->resultFormatter($existing, $newItems, 'item');
             }
         }
@@ -136,31 +131,23 @@ class GeneralAffair extends \yii\db\ActiveRecord
     }
 
     public function updateItems($params)
-    {
-        if (!isset($params['item']['items']['code'])) {
-            return false;
-        }
-        
+    {        
         $items = $this->item;
         $code = $params['item']['items']['code'];
         $index = Yii::$app->coreAPI->findIndex($code, $items);
 
         if ($index === null) {
-            return false;
+            return null;
         }
         
         $params['item']['items'] = Yii::$app->coreAPI->sanitizeEmptyFields($params['item']['items']);
-        
         foreach ($params['item']['items'] as $key => $value) {
             $items['items'][$index][$key] = $value;
         }
-        
         $items['items'][$index] = Yii::$app->coreAPI->sanitizeData($items['items'][$index], 'item');
         $items['items'][$index] = Yii::$app->coreAPI->itemChangeLog($items['items'][$index]);
         
-        $this->updateAttributes([
-            'item' => $items,
-        ]);
+        $this->updateAttributes(['item' => $items]);
         $this->save();
 
         return Yii::$app->coreAPI->resultFormatter($this, $items['items'][$index], 'item');
@@ -168,7 +155,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function deleteItems($params)
     {
-        
         $items = $this->item['items'];
         $code = $params['item']['items']['code'];
         $index = Yii::$app->coreAPI->findIndex($code, $items);
@@ -176,14 +162,9 @@ class GeneralAffair extends \yii\db\ActiveRecord
         if ($index !== null) {
             $items[$index]['status'] = Constants::STATUS_DELETED;
             $items[$index] = Yii::$app->coreAPI->itemChangeLog($items[$index]);
-
-            $this->updateAttributes([
-                'item' => [
-                    'items' => $items,
-                ],
-            ]);
+            
+            $this->updateAttributes(['item' => ['items' => $items]]);
             $this->save();
-
             return Yii::$app->coreAPI->resultFormatter($this, $items[$index], 'item');
         }   
         

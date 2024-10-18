@@ -78,7 +78,6 @@ class GeneralAffairController extends CoreController
 			'code' => 200,
 			'success' => true,
 			'message' => Yii::t('app', 'success'),
-			// 'data' => !empty($result) ? $result : null,
 			'data' => $models
 		];
 	}
@@ -132,12 +131,13 @@ class GeneralAffairController extends CoreController
 		
 		$model->scenario = Constants::SCENARIO_UPDATE;
 		$rules = $model->rules();
-		unset($params['id']); // Let it not be a string
+		unset($params['id']);
 
-		if ($callBack = $model->updateItems($params)) {
-			return CoreController::coreSuccess($callBack, 'updateRecordSuccess');
-		} else {
-			return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
+		if (isset($params['item']['items'])) {
+			if ($callBack = $model->updateItems($params)) {
+				return CoreController::coreSuccess($callBack, 'updateRecordSuccess');
+			}
+			return CoreController::coreDataNotFound();
 		}
 
 		if ($model->load($params, '') && $model->validate()) {
@@ -146,7 +146,7 @@ class GeneralAffairController extends CoreController
 			}
 		}
 
-        return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
+		return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
     }
 
     public function actionDelete()

@@ -391,36 +391,18 @@ class CoreAPI
 		return $model;
 	}
 
-	/*
-	public function findIndex($code, $items)
-	{
-		foreach ($items as $key => $value) {
-			if (isset($value['code']) && $value['code'] == $code) {
-				return $key;
-			}
-		}
-
-		return null;
-	}
-	*/
 
 	public function findIndex($code, $items)
 	{
-		// Pastikan items['items'] ada dan merupakan array
 		if (isset($items['items']) && is_array($items['items'])) {
-			// Ambil kolom 'code' dari setiap elemen dalam items['items']
 			$codes = array_column($items['items'], 'code');
-	
-			// Cari indeks dari nilai $code dalam kolom 'code'
 			$index = array_search($code, $codes);
 	
-			// Jika indeks ditemukan, kembalikan indeksnya
 			if ($index !== false) {
 				return $index;
 			}
 		}
 	
-		// Jika tidak ditemukan, kembalikan null
 		return null;
 	}
 
