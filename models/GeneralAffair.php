@@ -33,24 +33,23 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         return [
             [['category_id', 'location_id', 'status'], 'integer'],
-            [['name', 'category_id', 'location_id', 'item'], 'required'],
+            [['name', 'category_id', 'location_id'], 'required'],
             [['detail_info', 'item'], 'safe', 'skipOnEmpty' => true],
             [['name'], 'string', 'max' => 255],
-            
+
             [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => GeneralAffairCategory::class, 'targetAttribute' => ['category_id' => 'id']],
             [['location_id'], 'exist', 'skipOnError' => true, 'targetClass' => GeneralAffairLocation::class, 'targetAttribute' => ['location_id' => 'id']],
             
             [['status'], 'default', 'value' => 2],
             [['status'], 'in', 'range' => array_keys(Constants::statusList())],
             [['category_id', 'location_id', 'status'], 'filter', 'filter' => 'intval'],
-            
         ];
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'category_id', 'location_id', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'category_id', 'location_id', 'item', 'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['id', 'item', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
@@ -74,21 +73,21 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return new \app\models\query\GeneralAffairQuery(get_called_class());
     }
 
+    public function getDepartmentName($id)
+    {
+        $department = Department::findOne($id);
+        return $department ? $department->name : null;
+    }
+
     public function beforeSave($insert)
     {
-        // if ($insert && isset($this->item)) {
-        //     $this->item = Yii::$app->coreAPI->insertItem($this->item['items'], $this);
-        // }
-
-        if ($insert) {
-            if (Yii::$app->coreAPI->shouldCreateEmptyItems($this->attributes)) {
-                $this->item = ['items' => []];
-            } elseif (isset($this->item)) {
-                $this->item = Yii::$app->coreAPI->insertItem($this->item['items'], $this);
-            }
+        if ($insert && isset($this->item)) {
+            $this->item = Yii::$app->coreAPI->insertItem($this->item['items'], $this);
+            $this->item = Yii::$app->coreAPI->calculateValue($this->item, $insert);
+        } elseif ($insert) {
+            $this->item = [];
         }
         
-        $this->item = Yii::$app->coreAPI->calculateValue($this->item, $insert);
         $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
         $this->detail_info = [
             'change_log' => $this->change_log ?: null,
@@ -102,7 +101,12 @@ class GeneralAffair extends \yii\db\ActiveRecord
         if (isset($existing)) {
             if (isset($params['item']['items'])) {
                 $newItems = Yii::$app->coreAPI->insertItem($params['item']['items'], $existing);
-                $newData = array_merge($existing->item['items'], $newItems['items']);
+
+                if (!empty($existing->item)) {
+                    $newData = array_merge($existing->item['items'], $newItems['items']);
+                } else {
+                    $newData = $newItems['items'];
+                }
     
                 $existing->updateAttributes([
                     'item' => [
@@ -148,6 +152,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function deleteItems($params)
     {
+        
         $items = $this->item['items'];
         $code = $params['item']['items']['code'];
         $index = Yii::$app->coreAPI->findIndex($code, $items);
@@ -167,12 +172,5 @@ class GeneralAffair extends \yii\db\ActiveRecord
         }   
         
         return false;
-    }
-
-    // Database Relation Section
-    public function getDepartmentName($id)
-    {
-        $department = Department::findOne($id);
-        return $department ? $department->name : null;
     }
 }

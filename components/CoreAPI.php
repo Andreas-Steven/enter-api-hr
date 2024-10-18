@@ -197,6 +197,8 @@ class CoreAPI
 	
 	public function exisitingData($model, $params)
 	{
+		$existing = null;
+
 		if(isset($params['id'])) {
 			$existing = $model::find()->where(['id' => $params['id']])->one();
 		} elseif(isset($params['date'])) {
@@ -204,11 +206,11 @@ class CoreAPI
 		} elseif(isset($params['name'])) {
 			$existing = $model::find()->where(['name' => $params['name']])->one();			
 		}
-
-		if ($existing) {
+		
+		if ($existing != null) {
 			return $existing;
 		}
-		
+
 		return false;
 	}	
 
@@ -309,7 +311,7 @@ class CoreAPI
 	{
 		$data = $this->sanitizeEmptyFields($data);
 		$data = $this->populateDefaultValues($data);
-		
+
 		if (!empty($data)) {
 			$data = $this->sanitizeData($data, 'item');
 			$data['department']['name'] = $model->getDepartmentName($data['department']['id']);
@@ -318,21 +320,9 @@ class CoreAPI
 		return ['items' => [$data]];
 	}
 
-	public function shouldCreateEmptyItems($params)
-	{
-		$requiredFields = ['name', 'location_id', 'category_id'];
-		foreach ($requiredFields as $field) {
-			if (empty($params[$field])) {
-				return false;
-			}
-		}
-		
-		return count($params) === count($requiredFields);
-	}
-
 	private function populateDefaultValues($data)
 	{
-		if (empty($data['price'])) {
+		if (empty($data)) {
 			$defaultValues = [];
 		} else {
 			$defaultValues = [
@@ -360,9 +350,7 @@ class CoreAPI
 			];
 		}
 
-		$data = array_merge($defaultValues, $data);
-
-		return $data;
+		return $data = array_merge($defaultValues, $data);
 	}
 
 	public function itemChangeLog($items)
@@ -388,7 +376,7 @@ class CoreAPI
 	public function calculateValue($model)
 	{
 		$quantity = $total_price = $index = 0;
-
+		
 		foreach ($model['items'] as $key => $value) {
 			if (is_array($value) && array_key_exists('price', $value) && $value['status'] != Constants::STATUS_DELETED) {
 				$total_price += $value['price'];
