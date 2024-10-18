@@ -14,7 +14,6 @@ class m241007_032424_create_work_time_table extends Migration
     {
         $this->createTable('{{%work_time}}', [
             'id' => $this->primaryKey(),
-            'name' => $this->string(255)->notNull(),
             'entry_time' => $this->time()->notNull(),
             'home_time' => $this->time()->notNull(),
             'status' => $this->smallInteger()->notNull()->defaultValue(2),

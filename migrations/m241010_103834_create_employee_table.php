@@ -19,11 +19,16 @@ class m241010_103834_create_employee_table extends Migration
                 'email'             => null,
                 'phone'             => null,
                 'position'          => null,
-                'employee_status'   => null,
                 'date_entry'        => null,
+                'employee_status'   => null,
                 'department' => [
                     'id'            => null,
                     'name'          => null
+                ],
+                'work_time' => [
+                    'id'            => null,
+                    'entry_time'    => null,
+                    'home_time'     => null
                 ]
             ])),
             'status'                => $this->smallInteger()->notNull()->defaultValue(2),

@@ -41,7 +41,7 @@ class Employee extends \yii\db\ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios[Constants::SCENARIO_CREATE] = ['name', 'employee_detail', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'status', 'employee_detail', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'employee_detail', 'detail_info', 'status'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -81,9 +81,26 @@ class Employee extends \yii\db\ActiveRecord
     }
 
     // Database Raelation Section
-    public function getDepartmentName($id)
+    public function getDepartment($id)
     {
         $department = Department::findOne($id);
-        return $department ? $department->name : null;
+        return [
+            'department' => [
+                'id' => $department->id,
+                'name' => $department->name,
+            ]
+        ];
+    }
+
+    public function getWorkTime($id)
+    {
+        $workTime = WorkTime::findOne(['id' => $id]);
+        return [
+            'work_time' => [
+                'id' => $workTime->id,
+                'entry_time' => $workTime->entry_time,
+                'home_time' => $workTime->home_time,
+            ]
+        ];
     }
 }

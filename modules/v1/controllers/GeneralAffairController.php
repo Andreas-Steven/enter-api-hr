@@ -57,22 +57,20 @@ class GeneralAffairController extends CoreController
 		}
 
 		$models = $dataProvider->getModels();
-		$result = [];
 
 		foreach ($models as $model) {
-			$filteredItems = Yii::$app->coreAPI->filterItems($model->item['items'], $params);
-			$tempModel = ['items' => array_values($filteredItems)];
-			$calculatedData = Yii::$app->coreAPI->calculateValue($tempModel);
+			if (isset($model->item['items'])) {
+				$filteredItems = Yii::$app->coreAPI->filterItems($model->item['items'], $params, 'items');
+				$tempModel = ['items' => array_values($filteredItems)];
+				$calculatedData = Yii::$app->coreAPI->calculateValue($tempModel);
 
-			$item = [
-				'items'	=> $calculatedData['items'],
-				'quantity' => $calculatedData['quantity'],
-				'total_price' => $calculatedData['total_price']
-			];
+				$item = [
+					'items' => $calculatedData['items'],
+					'quantity' => $calculatedData['quantity'],
+					'total_price' => $calculatedData['total_price']
+				];
 
-			if (!empty($item['items'])) {
 				$model->setAttribute('item', $item);
-				$result[] = $model;
 			}
 		}
 
@@ -80,7 +78,8 @@ class GeneralAffairController extends CoreController
 			'code' => 200,
 			'success' => true,
 			'message' => Yii::t('app', 'success'),
-			'data' => !empty($result) ? $result : null,
+			// 'data' => !empty($result) ? $result : null,
+			'data' => $models
 		];
 	}
 
@@ -93,22 +92,28 @@ class GeneralAffairController extends CoreController
 		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
 			return CoreController::coreValidateParams($unavailableParams);
         }
-
+		
 		if ($model === null) {
-            return CoreController::coreDataNotFound();
+			return CoreController::coreDataNotFound();
 		}
-
+		
 		$model->scenario = Constants::SCENARIO_CREATE;
 
-		if ($model->load($params, '') && $model->validate()) {
-			if ($exisiting = Yii::$app->coreAPI->exisitingData($model, $params)) { 
+		if ($exisiting = Yii::$app->coreAPI->exisitingData($model, $params)) {
+			if ($exisiting->location_id == (int) $params['location_id']) {
+				if ($exisiting->status == Constants::STATUS_DELETED) {
+					return CoreController::coreBadRequest($model, Yii::t('app', 'valueAlreadyDeleted'));
+				}
+				
 				if ($callBack = $model->updateInsertItems($params, $exisiting)) {
 					return CoreController::coreSuccess($callBack, 'insertRecordSuccess');
 				}
-				
-				return CoreController::coreUniqueData($callBack, Yii::t('app', 'valueExists'));
-			}
-			
+	
+				return CoreController::coreBadRequest($model, Yii::t('app', 'valueExists'));
+			} 
+		}
+		
+		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
 				return CoreController::coreSuccess($model, 'insertRecordSuccess');
 			}
@@ -156,9 +161,19 @@ class GeneralAffairController extends CoreController
 		}
 		
 		$model->scenario = Constants::SCENARIO_DELETE;
+		
+		if (isset($params['item']) && $model->status != Constants::STATUS_DELETED) {
+			if ($callBack = $model->deleteItems($params)) {
+				return CoreController::coreSuccess($callBack, 'deleteRecordSuccess');
+			}
+		}
 
-        if ($callBack = $model->deleteItems($params)) {
-			return CoreController::coreSuccess($callBack, 'deleteRecordSuccess');
+		$params['status'] = Constants::STATUS_DELETED;
+		
+		if ($model->load($params, '') && $model->validate()) {
+			if ($model->save()) {
+				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
+			}
 		}
 
         return CoreController::coreBadRequest($model, Yii::t('app', 'deleteRecordFailed'));

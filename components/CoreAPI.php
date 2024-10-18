@@ -194,9 +194,11 @@ class CoreAPI
 
 		return $cleanText;
 	}
-
+	
 	public function exisitingData($model, $params)
 	{
+		$existing = null;
+
 		if(isset($params['id'])) {
 			$existing = $model::find()->where(['id' => $params['id']])->one();
 		} elseif(isset($params['date'])) {
@@ -204,38 +206,44 @@ class CoreAPI
 		} elseif(isset($params['name'])) {
 			$existing = $model::find()->where(['name' => $params['name']])->one();			
 		}
-
-		if ($existing) {
+		
+		if ($existing != null) {
 			return $existing;
 		}
-		
+
 		return false;
-	}
+	}	
 
 	public function insertEmployeeDetail($data, $model)
 	{
-		$data['department']['id'] = (int) $data['department']['id'];
-		$data['department']['name'] = $model->getDepartmentName($data['department']['id']);
+		$department = $model->getDepartment($data['department']['id']);
+		$data['department']['id'] = $department['department']['id'];
+		$data['department']['name'] = $department['department']['name'];
+		
+		$workTime = $model->getWorkTime($data['work_time']['id']);
+		$data['work_time']['id'] = $workTime['work_time']['id'];
+		$data['work_time']['entry_time'] = $workTime['work_time']['entry_time'];
+		$data['work_time']['home_time'] = $workTime['work_time']['home_time'];
 	
 		return $data;
 	}
 
-	private function sanitizeEmptyFields($data)
-	{
-		foreach ($data as $key => $value) {
-			if (is_array($value)) {
-				$data[$key] = array_filter($value, function ($val) {
-					return $val !== "";
-				});
-			} else {
-				if ($value === "") {
-					$data[$key] = null;
-				}
-			}
-		}
-	
-		return $data;
-	}
+	public function sanitizeEmptyFields($data)
+    {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = array_filter($value, function ($val) {
+                    return $val !== "";
+                });
+            } else {
+                if ($value === "") {
+                    $data[$key] = null;
+                }
+            }
+        }
+
+        return $data;
+    }
 
 	public function sanitizeData($data, $type)
 	{
@@ -257,6 +265,7 @@ class CoreAPI
 			foreach ($mappings[$type] as $key => $function) {
 				$keys = explode('.', $key);
 				$temp = &$data;
+
 				foreach ($keys as $k) {
 					if (isset($temp[$k])) {
 						$temp = &$temp[$k];
@@ -264,6 +273,7 @@ class CoreAPI
 						continue 2;
 					}
 				}
+
 				$temp = $function($temp);
 			}
 		}
@@ -271,46 +281,76 @@ class CoreAPI
 		return $data;
 	}
 
+	public function resultFormatter($model, $data, $type)
+	{
+		if ($type == 'attendance') {
+			return $result = [
+				'id' => $model->id,
+				'date' => $model->date,
+				'dayoff' => $model->dayoff,
+				'status' => $model->status,
+				'attendance' => $data,
+				'detail_info' => $model->detail_info,
+			];
+		} elseif ($type == 'item') {
+            return $result = [
+                'id' => $model->id,
+                'name' => $model->name,
+                'category_id' => $model->category_id,
+                'location_id' => $model->location_id,
+                'status' => $model->status,
+                'detail_info' => $model->detail_info,
+                'item' => $data,
+            ];
+		}
+
+	}
+
 	/** General Affair Section */
 	public function insertItem($data, $model)
 	{
 		$data = $this->sanitizeEmptyFields($data);
 		$data = $this->populateDefaultValues($data);
-		$data = $this->sanitizeData($data, 'item');
-		$data['department']['name'] = $model->getDepartmentName($data['department']['id']);
+
+		if (!empty($data)) {
+			$data = $this->sanitizeData($data, 'item');
+			$data['department']['name'] = $model->getDepartmentName($data['department']['id']);
+		}
 
 		return ['items' => [$data]];
 	}
 
 	private function populateDefaultValues($data)
 	{
-		$defaultValues = [
-			'code' => null,
-			'price' => null,
-			'condition' => null,
-			'buying_date' => null,
-			'tax_date' => null,
-			'inspection_date' => null,
-			'description' => null,
-			'image' => [],
-			'status' => 2,
-			'department' => [
-				'id' => null,
-				'name' => null
-			],
-			'item_change_log' => [
-				'created_at' => self::timestamp(),
-				'created_by' => Yii::$app->session->get('username'),
-				'deleted_by' => null,
-				'deleted_at' => null,
-				'updated_at' => null,
-				'updated_by' => null
-			]
-		];
+		if (empty($data)) {
+			$defaultValues = [];
+		} else {
+			$defaultValues = [
+				'code' => null,
+				'price' => null,
+				'condition' => null,
+				'buying_date' => null,
+				'tax_date' => null,
+				'inspection_date' => null,
+				'description' => null,
+				'image' => [],
+				'status' => 2,
+				'department' => [
+					'id' => null,
+					'name' => null
+				],
+				'item_change_log' => [
+					'created_at' => self::timestamp(),
+					'created_by' => Yii::$app->session->get('username'),
+					'deleted_by' => null,
+					'deleted_at' => null,
+					'updated_at' => null,
+					'updated_by' => null
+				]
+			];
+		}
 
-		$data = array_merge($defaultValues, $data);
-
-		return $data;
+		return $data = array_merge($defaultValues, $data);
 	}
 
 	public function itemChangeLog($items)
@@ -333,33 +373,10 @@ class CoreAPI
 		return $items;
 	}
 
-	public function filterItems($items, $params)
-	{
-		$items = array_filter($items, function ($item) {
-			return isset($item['status']) && $item['status'] != Constants::STATUS_DELETED;
-		});
-
-		if (!empty($params['item']['items']['code'])) {
-			$code = $params['item']['items']['code'];
-			return array_filter($items, function ($item) use ($code) {
-				return isset($item['code']) && $item['code'] == $code;
-			});
-		}
-
-		if (!empty($params['item']['items']['department']['id'])) {
-			$departmentId = $params['item']['items']['department']['id'];
-			return array_filter($items, function ($item) use ($departmentId) {
-				return isset($item['department']) && $item['department']['id'] == $departmentId;
-			});
-		}
-
-		return $items;
-	}
-
 	public function calculateValue($model)
 	{
 		$quantity = $total_price = $index = 0;
-
+		
 		foreach ($model['items'] as $key => $value) {
 			if (is_array($value) && array_key_exists('price', $value) && $value['status'] != Constants::STATUS_DELETED) {
 				$total_price += $value['price'];
@@ -385,11 +402,34 @@ class CoreAPI
 		return null;
 	}
 
+	public function filterItems($items, $params)
+	{
+		$items = array_filter($items, function ($item) {
+			return isset($item['status']) && $item['status'] != Constants::STATUS_DELETED;
+		});
+
+		if (!empty($params['item']['items']['code'])) {
+			$code = $params['item']['items']['code'];
+			return array_filter($items, function ($item) use ($code) {
+				return isset($item['code']) && $item['code'] == $code;
+			});
+		}
+
+		if (!empty($params['item']['items']['department']['id'])) {
+			$departmentId = $params['item']['items']['department']['id'];
+			return array_filter($items, function ($item) use ($departmentId) {
+				return isset($item['department']) && $item['department']['id'] == $departmentId;
+			});
+		}
+
+		return $items;
+	}
+
 	/** Absensi Section */
 	public function insertAttendance($attendance, $model)
 	{
 		$attendance = $this->mergeDefaultAttendance($attendance, $model);
-		$attendance = $this->populateWorkTimeAndDepartment($attendance, $model);
+		$attendance = $this->populateFields($attendance, $model);
 		$attendance = $this->sanitizeEmptyFields($attendance);
 		$attendance = $this->sanitizeData($attendance, 'attendance');
 		$attendance = $this->changeInfoField($attendance);
@@ -413,10 +453,14 @@ class CoreAPI
 					'id' => null,
 					'name' => null
 				],
-				'device' => null,
+				'device' => [
+					'id' => null,
+					'device_code' => null,
+					'device_name' => null,
+				],
 				'work_time' => [
 					'id' => null,
-					'start_time' => null,
+					'entry_time' => null,
 					'home_time' => null
 				],
 				'location' => [
@@ -431,16 +475,24 @@ class CoreAPI
 		return $attendance;
 	}
 
-	private function populateWorkTimeAndDepartment($attendance, $model)
+	public function populateFields($attendance, $model)
 	{
-		if (!empty($attendance['work_time']['id']) && !empty($attendance['device']['id'])) {
-			$workTimeData = $model->getWorkTimeData($attendance['work_time']['id']);
-			$attendance['work_time']['entry_time'] = $workTimeData['entry_time'] ?? null;
-			$attendance['work_time']['home_time'] = $workTimeData['home_time'] ?? null;
+		$employee = $model->getEmployee($attendance['employee_id']);
+		$employee_detail = $employee->employee_detail;
 
-			$attendance['department']['name'] = $model->getDepartmentName($attendance['department']['id']) ?? null;
-		}
+		$attendance['employee_name'] = $employee->name;
+		$attendance['department']['id'] = $employee_detail['department']['id'];
+		$attendance['department']['name'] = $employee_detail['department']['name'];
 
+		$attendance['work_time']['id'] = $employee_detail['work_time']['id'];
+		$attendance['work_time']['entry_time'] = $employee_detail['work_time']['entry_time'];
+		$attendance['work_time']['home_time'] = $employee_detail['work_time']['home_time'];
+
+		$device = $model->getDevice($attendance['device']['device_code']);
+		$attendance['device']['id'] = $device->id;
+		$attendance['device']['device_code'] = $device->device_code;
+		$attendance['device']['device_name'] = $device->device_name;
+	
 		return $attendance;
 	}
 
@@ -514,5 +566,36 @@ class CoreAPI
 		}
 
 		return $attendance;
+	}
+
+	public function filterAttendances($data, $filters)
+	{
+		return array_filter($data, function ($item) use ($filters) {
+			foreach ($filters as $key => $value) {
+				if ($key === 'has_start_time') {
+					if ($value && !isset($item['start_time'])) {
+						return false;
+					}
+					
+					continue;
+				}
+	
+				$keys = explode('.', $key);
+				$temp = $item;
+	
+				foreach ($keys as $k) {
+					if (isset($temp[$k])) {
+						$temp = $temp[$k];
+					} else {
+						return false;
+					}
+				}
+	
+				if ($temp != $value) {
+					return false;
+				}
+			}
+			return true;
+		});
 	}
 }

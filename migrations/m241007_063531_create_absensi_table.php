@@ -16,11 +16,16 @@ class m241007_063531_create_absensi_table extends Migration
             'id' => $this->primaryKey(),
             'date' => $this->date()->notNull(),
             'dayoff' => $this->boolean()->notNull()->defaultValue(false),
-            'status' => $this->smallInteger()->notNull()->defaultValue(2),
             'attendance' => $this->json()->notNull()->defaultValue(json_encode([
                 'employee_id'   => null,
+                'employee_name' => null,
                 'start_time'    => null,
                 'end_time'      => null,
+                'device' => [
+                    'id'            => null,
+                    'device_code'   => null,
+                    'device_name'   => null
+                ],
                 'info' => [
                     'in'        => false,
                     'out'       => false,
@@ -30,7 +35,6 @@ class m241007_063531_create_absensi_table extends Migration
                     'id'        => null,
                     'name'      => null
                 ],
-                'device_code'   => null,
                 'work_time' => [
                     'id'        => null,
                     'end_time'  => null,
@@ -43,6 +47,7 @@ class m241007_063531_create_absensi_table extends Migration
                 ]
             ])),
             'blacklist' => $this->json()->notNull()->defaultValue(json_encode([])),
+            'status' => $this->smallInteger()->notNull()->defaultValue(2),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
                 'change_log' => [
                     'created_at' => null,

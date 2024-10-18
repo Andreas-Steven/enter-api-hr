@@ -28,11 +28,11 @@ class Device extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'address', 'location', 'device_ip'], 'required'],
-            [['name', 'address', 'device_ip'], 'string', 'max' => 255],
-            [['detail_info', 'location'], 'safe'],
+            [['device_code', 'device_name', 'device_address', 'device_ip'], 'required'],
+            [['device_code', 'device_name', 'device_address', 'device_ip'], 'string', 'max' => 255],
+            [['detail_info', 'device_location'], 'safe'],
+            
             [['status'], 'integer'],
-
             [['status'], 'default', 'value' => 2],
             [['status'], 'filter', 'filter' => 'intval'],
             [['status'], 'in', 'range' => array_keys(Constants::statusList())],
@@ -42,8 +42,8 @@ class Device extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'address', 'location', 'device_ip'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'address', 'location', 'device_ip', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'location', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'location', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -53,10 +53,11 @@ class Device extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
-            'address' => 'Address',
-            'location' => 'Location',
-            'device_ip' => 'Device Ip',
+            'device_code' => 'Device Code',
+            'device_name' => 'Device Name',
+            'device_address' => 'Device Address',
+            'device_ip' => 'Device IP',
+            'device_location' => 'Device Location',
             'status' => 'Status',
             'detail_info' => 'Detail Info',
         ];
@@ -70,7 +71,7 @@ class Device extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
+            $this->device_name = Yii::$app->coreAPI->htmlPurifier($this->device_name);
             $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
 
             $this->detail_info = [

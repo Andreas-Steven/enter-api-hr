@@ -35,6 +35,7 @@ return [
     'updateRecordFailed' => 'Failed to update data.',
     'deleteRecordSuccess' => 'Data has been deleted successfully.',
     'deleteRecordFailed' => 'Failed to delete data.',
+    'valueAlreadyDeleted' => 'Value already deleted.',
     'codeContainZ' => 'Code cannot contain the letter "Z".',
     'codeOnlyAlphaAtoY' => 'Only alphabet characters A-Y are allowed.',
     'valueExists' => 'Value already exist. Please use another value.',
@@ -46,5 +47,6 @@ return [
     'deletedStatusChange' => 'You do not have permission to change the status from {status} to another status. Admin rights are required.',
     'notExists' => 'Data not exist.',
     'dayOff' => 'Data cannot be added on day off.',
+    'emptyItem' => 'Item cannot be blank.',
 ];
 
