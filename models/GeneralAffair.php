@@ -42,6 +42,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
             
             [['status'], 'default', 'value' => 2],
             [['status'], 'in', 'range' => array_keys(Constants::statusList())],
+            [['status'], 'validateStatusChange', 'on' => Constants::scenarioUpdate()],
             [['category_id', 'location_id', 'status'], 'filter', 'filter' => 'intval'],
         ];
     }
@@ -50,7 +51,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios[Constants::SCENARIO_CREATE] = ['name', 'category_id', 'location_id', 'item', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['id', 'item', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['id', 'status', 'item', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -71,6 +72,18 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public static function find()
     {
         return new \app\models\query\GeneralAffairQuery(get_called_class());
+    }
+
+    public function validateStatusChange($attribute, $params, $validator)
+    {
+        if (!$this->isNewRecord && $this->isAttributeChanged($attribute)) {
+            $oldStatus = $this->getOldAttribute($attribute);
+            $newStatus = $this->$attribute;
+
+            if ($oldStatus == Constants::STATUS_DELETED && $newStatus != Constants::STATUS_DELETED && !Yii::$app->coreAPI->superAdmin()) {
+                $this->addError($attribute, Yii::t('app', 'deletedStatusChange', ['status' => Constants::statusList()[Constants::STATUS_DELETED]]));
+            }
+        }
     }
 
     public function getDepartmentName($id)
@@ -124,30 +137,33 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function updateItems($params)
     {
-        $items = $this->item['items'];
-        $code = $params['item']['items']['code'];
-        $index = Yii::$app->coreAPI->findIndex($code, $items);
-        
-        if ($index !== null) {
+        if (!isset($params['item']['items']['code'])) {
             return false;
         }
+        
+        $items = $this->item;
+        $code = $params['item']['items']['code'];
+        $index = Yii::$app->coreAPI->findIndex($code, $items);
 
-        $params['item']['items'] = Yii::$app->coreAPI->sanitizeEmptyFields($params['item']['items']);
-        foreach ($params['item']['items'] as $key => $value) {
-            $items[$index][$key] = $value;
+        if ($index === null) {
+            return false;
         }
         
-        $items[$index] = Yii::$app->coreAPI->sanitizeData($items[$index], 'item');
-        $items[$index] = Yii::$app->coreAPI->itemChangeLog($items[$index]);
-
+        $params['item']['items'] = Yii::$app->coreAPI->sanitizeEmptyFields($params['item']['items']);
+        
+        foreach ($params['item']['items'] as $key => $value) {
+            $items['items'][$index][$key] = $value;
+        }
+        
+        $items['items'][$index] = Yii::$app->coreAPI->sanitizeData($items['items'][$index], 'item');
+        $items['items'][$index] = Yii::$app->coreAPI->itemChangeLog($items['items'][$index]);
+        
         $this->updateAttributes([
-            'item' => [
-                'items' => $items,
-            ],
+            'item' => $items,
         ]);
         $this->save();
 
-        return Yii::$app->coreAPI->resultFormatter($this, $items[$index], 'item');
+        return Yii::$app->coreAPI->resultFormatter($this, $items['items'][$index], 'item');
     }
 
     public function deleteItems($params)

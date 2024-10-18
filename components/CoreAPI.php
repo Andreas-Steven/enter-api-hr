@@ -203,8 +203,8 @@ class CoreAPI
 			$existing = $model::find()->where(['id' => $params['id']])->one();
 		} elseif(isset($params['date'])) {
 			$existing = $model::find()->where(['date' => $params['date']])->one();			
-		} elseif(isset($params['name'])) {
-			$existing = $model::find()->where(['name' => $params['name']])->one();			
+		} elseif(isset($params['name']) && isset($params['location_id'])) {
+			$existing = $model::find()->where(['name' => $params['name']])->andWhere(['location_id' => $params['location_id']])->one();			
 		}
 		
 		if ($existing != null) {
@@ -391,14 +391,36 @@ class CoreAPI
 		return $model;
 	}
 
+	/*
 	public function findIndex($code, $items)
 	{
 		foreach ($items as $key => $value) {
-			if ($value['code'] == $code) {
+			if (isset($value['code']) && $value['code'] == $code) {
 				return $key;
 			}
 		}
+
+		return null;
+	}
+	*/
+
+	public function findIndex($code, $items)
+	{
+		// Pastikan items['items'] ada dan merupakan array
+		if (isset($items['items']) && is_array($items['items'])) {
+			// Ambil kolom 'code' dari setiap elemen dalam items['items']
+			$codes = array_column($items['items'], 'code');
 	
+			// Cari indeks dari nilai $code dalam kolom 'code'
+			$index = array_search($code, $codes);
+	
+			// Jika indeks ditemukan, kembalikan indeksnya
+			if ($index !== false) {
+				return $index;
+			}
+		}
+	
+		// Jika tidak ditemukan, kembalikan null
 		return null;
 	}
 
