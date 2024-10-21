@@ -16,8 +16,8 @@ class AbsensiCoreAPI
 	{
 		$attendance = $this->mergeDefaultAttendance($attendance, $model);
 		$attendance = $this->populateFields($attendance, $model);
-		$attendance = $this->sanitizeEmptyFields($attendance);
-		$attendance = $this->sanitizeData($attendance, 'attendance');
+		$attendance = Yii::$app->coreAPI->sanitizeEmptyFields($attendance);
+		$attendance = Yii::$app->coreAPI->sanitizeData($attendance, 'attendance');
 		$attendance = $this->changeInfoField($attendance);
 
 		return [$attendance];
@@ -162,6 +162,7 @@ class AbsensiCoreAPI
 					if ($value && !isset($item['start_time'])) {
 						return false;
 					}
+					
 					continue;
 				}
 	
@@ -182,5 +183,17 @@ class AbsensiCoreAPI
 			}
 			return true;
 		});
+	}
+
+	public function resultFormatter($model, $data)
+	{
+		return $result = [
+			'id' => $model->id,
+			'date' => $model->date,
+			'dayoff' => $model->dayoff,
+			'status' => $model->status,
+			'attendance' => $data,
+			'detail_info' => $model->detail_info,
+		];
 	}
 }

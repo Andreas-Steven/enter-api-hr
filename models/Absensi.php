@@ -77,7 +77,7 @@ class Absensi extends \yii\db\ActiveRecord
         }
 
         if ($insert && isset($this->attendance) && !$this->dayoff) {
-            $this->attendance = Yii::$app->coreAPI->insertAttendance($this->attendance, $this);
+            $this->attendance = Yii::$app->AbsensiCoreAPI->insertAttendance($this->attendance, $this);
         }
 
         $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
@@ -107,7 +107,7 @@ class Absensi extends \yii\db\ActiveRecord
             $existing->refresh();
 
             $params['attendance'] = Yii::$app->coreAPI->sanitizeEmptyFields($params['attendance']);
-            $newAttendance = Yii::$app->coreAPI->insertAttendance($params['attendance'], $existing);
+            $newAttendance = Yii::$app->AbsensiCoreAPI->insertAttendance($params['attendance'], $existing);
             $newData = array_merge($existing->attendance, $newAttendance);
 
             $existing->updateAttributes([
@@ -115,7 +115,7 @@ class Absensi extends \yii\db\ActiveRecord
             ]);
             $existing->save();
 
-            return Yii::$app->coreAPI->resultFormatter($existing, $newAttendance, 'attendance');
+            return Yii::$app->AbsensiCoreAPI->resultFormatter($existing, $newAttendance);
         }
     }
 
@@ -125,14 +125,14 @@ class Absensi extends \yii\db\ActiveRecord
         $employee_id = $params['attendance']['employee_id'];
         $end_time = $params['attendance']['end_time'];
 
-        $attendance = Yii::$app->coreAPI->updateAttendance($attendance, $employee_id, $end_time);
+        $attendance = Yii::$app->AbsensiCoreAPI->updateAttendance($attendance, $employee_id, $end_time);
         $this->attendance = $attendance;
 
         if ($this->save()) {
             $this->refresh();
-            $filteredAttendance = Yii::$app->coreAPI->filterAttendances($this->attendance, ['employee_id' => $employee_id]);
+            $filteredAttendance = Yii::$app->AbsensiCoreAPI->filterAttendances($this->attendance, ['employee_id' => $employee_id]);
         
-            return Yii::$app->coreAPI->resultFormatter($this, array_values($filteredAttendance), 'attendance');
+            return Yii::$app->AbsensiCoreAPI->resultFormatter($this, array_values($filteredAttendance));
         }
     
         return false;
@@ -150,7 +150,7 @@ class Absensi extends \yii\db\ActiveRecord
             return true;
         }
 
-        $filteredAttendance = Yii::$app->coreAPI->filterAttendances($previousAttendance->attendance, ['has_start_time' => true]);
+        $filteredAttendance = Yii::$app->AbsensiCoreAPI->filterAttendances($previousAttendance->attendance, ['has_start_time' => true]);
         if (empty($filteredAttendance)) {
             return true;
         }
@@ -171,7 +171,7 @@ class Absensi extends \yii\db\ActiveRecord
 
     public function addBlacklist($existing, $employee_id, $date, $start_time)
     {
-        $blacklist = Yii::$app->coreAPI->insertBlacklist($existing, $employee_id, $date, $start_time);
+        $blacklist = Yii::$app->AbsensiCoreAPI->insertBlacklist($existing, $employee_id, $date, $start_time);
         $existing->updateAttributes([
             'blacklist' => $blacklist,
         ]);

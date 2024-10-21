@@ -18,6 +18,12 @@ $config = [
         'coreAPI' => [
             'class' => 'app\components\CoreAPI',
         ],
+        'AbsensiCoreAPI' => [
+            'class' => 'app\components\AbsensiCoreAPI',
+        ],
+        'GeneralAffairCoreAPI' => [
+            'class' => 'app\components\GeneralAffairCoreAPI',
+        ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             // 'cookieValidationKey' => 'rHaRkLSi4OMU-_Gi8LBn0Fh8IcqrYJP7'.$params['extraCookies'],

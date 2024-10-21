@@ -94,7 +94,7 @@ class GeneralAffairController extends CoreController
 		
 		$model->scenario = Constants::SCENARIO_CREATE;
 
-		if ($exisiting = Yii::$app->coreAPI->exisitingData($model, $params)) {
+		if ($exisiting = Yii::$app->coreAPI->findExisiting($model, $params)) {
 			if ($exisiting->status == Constants::STATUS_DELETED) {
 				return CoreController::coreBadRequest($model, Yii::t('app', 'valueAlreadyDeleted'));
 			}

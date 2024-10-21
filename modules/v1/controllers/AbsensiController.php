@@ -68,7 +68,7 @@ class AbsensiController extends CoreController
             if (!empty($params['attendance']['department']['id'])) {
                 $filters['department.id'] = $params['attendance']['department']['id'];
             }
-            $filteredAttendance = Yii::$app->coreAPI->filterAttendances($model->attendance, $filters);
+            $filteredAttendance = Yii::$app->AbsensiCoreAPI->filterAttendances($model->attendance, $filters);
 
             if (!empty($filteredAttendance)) {
                 $model->attendance = array_values($filteredAttendance);
@@ -101,7 +101,7 @@ class AbsensiController extends CoreController
 		$model->scenario = Constants::SCENARIO_CREATE;
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($exisiting = Yii::$app->coreAPI->exisitingData($model, $params)) {
+			if ($exisiting = Yii::$app->coreAPI->findExisiting($model, $params)) {
 				if ($callBack = $model->updateInsertAttendance($params, $exisiting)) {
 					return CoreController::coreSuccess($callBack, 'insertRecordSuccess');
 				}

@@ -95,8 +95,8 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if ($insert && isset($this->item)) {
-            $this->item = Yii::$app->coreAPI->insertItem($this->item['items'], $this);
-            $this->item = Yii::$app->coreAPI->calculateValue($this->item, $insert);
+            $this->item = Yii::$app->GeneralAffairCoreAPI->insertItem($this->item['items'], $this);
+            $this->item = Yii::$app->GeneralAffairCoreAPI->calculateValue($this->item, $insert);
         } elseif ($insert) {
             $this->item = [];
         }
@@ -113,7 +113,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         if (isset($existing)) {
             if (isset($params['item']['items'])) {
-                $newItems = Yii::$app->coreAPI->insertItem($params['item']['items'], $existing);
+                $newItems = Yii::$app->GeneralAffairCoreAPI->insertItem($params['item']['items'], $existing);
 
                 if (!empty($existing->item)) {
                     $newData = array_merge($existing->item['items'], $newItems['items']);
@@ -123,7 +123,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     
                 $existing->updateAttributes(['item' => ['items' => $newData]]);
                 $existing->save();
-                return Yii::$app->coreAPI->resultFormatter($existing, $newItems, 'item');
+                return Yii::$app->GeneralAffairCoreAPI->resultFormatter($existing, $newItems);
             }
         }
 
@@ -134,7 +134,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {        
         $items = $this->item;
         $code = $params['item']['items']['code'];
-        $index = Yii::$app->coreAPI->findIndex($code, $items);
+        $index = Yii::$app->GeneralAffairCoreAPI->findIndex($code, $items);
 
         if ($index === null) {
             return null;
@@ -145,12 +145,12 @@ class GeneralAffair extends \yii\db\ActiveRecord
             $items['items'][$index][$key] = $value;
         }
         $items['items'][$index] = Yii::$app->coreAPI->sanitizeData($items['items'][$index], 'item');
-        $items['items'][$index] = Yii::$app->coreAPI->itemChangeLog($items['items'][$index]);
+        $items['items'][$index] = Yii::$app->GeneralAffairCoreAPI->itemChangeLog($items['items'][$index]);
         
         $this->updateAttributes(['item' => $items]);
         $this->save();
 
-        return Yii::$app->coreAPI->resultFormatter($this, $items['items'][$index], 'item');
+        return Yii::$app->GeneralAffairCoreAPI->resultFormatter($this, $items['items'][$index]);
     }
 
     public function deleteItems($params)
@@ -161,11 +161,11 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
         if ($index !== null) {
             $items[$index]['status'] = Constants::STATUS_DELETED;
-            $items[$index] = Yii::$app->coreAPI->itemChangeLog($items[$index]);
+            $items[$index] = Yii::$app->GeneralAffairCoreAPI->itemChangeLog($items[$index]);
             
             $this->updateAttributes(['item' => ['items' => $items]]);
             $this->save();
-            return Yii::$app->coreAPI->resultFormatter($this, $items[$index], 'item');
+            return Yii::$app->GeneralAffairCoreAPI->resultFormatter($this, $items[$index]);
         }   
         
         return false;

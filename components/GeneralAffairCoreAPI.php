@@ -14,32 +14,20 @@ class GeneralAffairCoreAPI
 {
 	public function insertItem($data, $model)
 	{
-		$data = $this->sanitizeEmptyFields($data);
+		$data = Yii::$app->coreAPI->sanitizeEmptyFields($data);
 		$data = $this->populateDefaultValues($data);
 
 		if (!empty($data)) {
-			$data = $this->sanitizeData($data, 'item');
+			$data = Yii::$app->coreAPI->sanitizeData($data, 'item');
 			$data['department']['name'] = $model->getDepartmentName($data['department']['id']);
 		}
 
 		return ['items' => [$data]];
 	}
 
-	// public function shouldCreateEmptyItems($params)
-	// {
-	// 	$requiredFields = ['name', 'location_id', 'category_id'];
-	// 	foreach ($requiredFields as $field) {
-	// 		if (empty($params[$field])) {
-	// 			return false;
-	// 		}
-	// 	}
-		
-	// 	return count($params) === count($requiredFields);
-	// }
-
-	private function populateDefaultValues($data)
+	private function populateDefaultValues($data)  
 	{
-		if (empty($data['price'])) {
+		if (empty($data)) {
 			$defaultValues = [];
 		} else {
 			$defaultValues = [
@@ -57,7 +45,7 @@ class GeneralAffairCoreAPI
 					'name' => null
 				],
 				'item_change_log' => [
-					'created_at' => self::timestamp(),
+					'created_at' => Yii::$app->coreAPI->timestamp(),
 					'created_by' => Yii::$app->session->get('username'),
 					'deleted_by' => null,
 					'deleted_at' => null,
@@ -67,14 +55,12 @@ class GeneralAffairCoreAPI
 			];
 		}
 
-		$data = array_merge($defaultValues, $data);
-
-		return $data;
+		return $data = array_merge($defaultValues, $data);
 	}
 
 	public function itemChangeLog($items)
 	{
-		$timestamp = self::timestamp();
+		$timestamp = Yii::$app->coreAPI->timestamp();
 		$username = Yii::$app->session->get('username');
 		
 		$item_change_log = $items['item_change_log'];
@@ -112,9 +98,12 @@ class GeneralAffairCoreAPI
 
 	public function findIndex($code, $items)
 	{
-		foreach ($items as $key => $value) {
-			if ($value['code'] == $code) {
-				return $key;
+		if (isset($items['items']) && is_array($items['items'])) {
+			$codes = array_column($items['items'], 'code');
+			$index = array_search($code, $codes);
+	
+			if ($index !== false) {
+				return $index;
 			}
 		}
 	
@@ -142,5 +131,19 @@ class GeneralAffairCoreAPI
 		}
 
 		return $items;
+	}
+
+	public function resultFormatter($model, $data)
+	{
+		return $result = [
+			'id' => $model->id,
+			'name' => $model->name,
+			'category_id' => $model->category_id,
+			'location_id' => $model->location_id,
+			'status' => $model->status,
+			'detail_info' => $model->detail_info,
+			'item' => $data,
+		];
+
 	}
 }
