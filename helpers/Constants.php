@@ -19,7 +19,7 @@ class Constants
     const CODE_EXCEPTION = 'Z';
     const CODE_MAX_LENGTH = 4;
     const CSRF_VALIDATION = false;
-    const AUTH_EXCEPTION = '*';
+    const AUTH_EXCEPTION = '';
     const STATUS_NOT_DELETED = [
         '<>', 'status', self::STATUS_DELETED
     ];
@@ -28,12 +28,12 @@ class Constants
     const FLAG_TYPE_IN = 1;
     const FLAG_TYPE_OUT = 2;
 
-    const NEW = 1;
-    const GOOD = 2;
-    const POOR = 3;
-    const USED_GOOD = 4;
-    const USED_POOR = 5;
-    const DAMAGED = 6;
+    // const NEW = 1;
+    // const GOOD = 2;
+    // const POOR = 3;
+    // const USED_GOOD = 4;
+    // const USED_POOR = 5;
+    // const DAMAGED = 6;
 
     // CONDITION:
     // 1 = new

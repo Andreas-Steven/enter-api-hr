@@ -42,6 +42,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
             
             [['status'], 'default', 'value' => 2],
             [['status'], 'in', 'range' => array_keys(Constants::statusList())],
+            [['status'], 'validateStatusChange', 'on' => Constants::scenarioUpdate()],
             [['category_id', 'location_id', 'status'], 'filter', 'filter' => 'intval'],
         ];
     }
@@ -50,7 +51,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios[Constants::SCENARIO_CREATE] = ['name', 'category_id', 'location_id', 'item', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['id', 'item', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['id', 'status', 'item', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -73,6 +74,18 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return new \app\models\query\GeneralAffairQuery(get_called_class());
     }
 
+    public function validateStatusChange($attribute, $params, $validator)
+    {
+        if (!$this->isNewRecord && $this->isAttributeChanged($attribute)) {
+            $oldStatus = $this->getOldAttribute($attribute);
+            $newStatus = $this->$attribute;
+
+            if ($oldStatus == Constants::STATUS_DELETED && $newStatus != Constants::STATUS_DELETED && !Yii::$app->coreAPI->superAdmin()) {
+                $this->addError($attribute, Yii::t('app', 'deletedStatusChange', ['status' => Constants::statusList()[Constants::STATUS_DELETED]]));
+            }
+        }
+    }
+    
     public function getDepartmentName($id)
     {
         $department = Department::findOne($id);
@@ -82,8 +95,8 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if ($insert && isset($this->item)) {
-            $this->item = Yii::$app->coreAPI->insertItem($this->item['items'], $this);
-            $this->item = Yii::$app->coreAPI->calculateValue($this->item, $insert);
+            $this->item = Yii::$app->GeneralAffairCoreAPI->insertItem($this->item['items'], $this);
+            $this->item = Yii::$app->GeneralAffairCoreAPI->calculateValue($this->item, $insert);
         } elseif ($insert) {
             $this->item = [];
         }
@@ -95,12 +108,12 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
         return parent::beforeSave($insert);
     }
-
+    
     public function updateInsertItems($params, $existing)
     {
         if (isset($existing)) {
             if (isset($params['item']['items'])) {
-                $newItems = Yii::$app->coreAPI->insertItem($params['item']['items'], $existing);
+                $newItems = Yii::$app->GeneralAffairCoreAPI->insertItem($params['item']['items'], $existing);
 
                 if (!empty($existing->item)) {
                     $newData = array_merge($existing->item['items'], $newItems['items']);
@@ -108,14 +121,9 @@ class GeneralAffair extends \yii\db\ActiveRecord
                     $newData = $newItems['items'];
                 }
     
-                $existing->updateAttributes([
-                    'item' => [
-                        'items' => $newData,
-                    ],
-                ]);
+                $existing->updateAttributes(['item' => ['items' => $newData]]);
                 $existing->save();
-    
-                return Yii::$app->coreAPI->resultFormatter($existing, $newItems, 'item');
+                return Yii::$app->GeneralAffairCoreAPI->resultFormatter($existing, $newItems);
             }
         }
 
@@ -123,52 +131,41 @@ class GeneralAffair extends \yii\db\ActiveRecord
     }
 
     public function updateItems($params)
-    {
-        $items = $this->item['items'];
+    {        
+        $items = $this->item;
         $code = $params['item']['items']['code'];
-        $index = Yii::$app->coreAPI->findIndex($code, $items);
-        
-        if ($index !== null) {
-            return false;
-        }
+        $index = Yii::$app->GeneralAffairCoreAPI->findIndex($code, $items);
 
+        if ($index === null) {
+            return null;
+        }
+        
         $params['item']['items'] = Yii::$app->coreAPI->sanitizeEmptyFields($params['item']['items']);
         foreach ($params['item']['items'] as $key => $value) {
-            $items[$index][$key] = $value;
+            $items['items'][$index][$key] = $value;
         }
+        $items['items'][$index] = Yii::$app->coreAPI->sanitizeData($items['items'][$index], 'item');
+        $items['items'][$index] = Yii::$app->GeneralAffairCoreAPI->itemChangeLog($items['items'][$index]);
         
-        $items[$index] = Yii::$app->coreAPI->sanitizeData($items[$index], 'item');
-        $items[$index] = Yii::$app->coreAPI->itemChangeLog($items[$index]);
-
-        $this->updateAttributes([
-            'item' => [
-                'items' => $items,
-            ],
-        ]);
+        $this->updateAttributes(['item' => $items]);
         $this->save();
 
-        return Yii::$app->coreAPI->resultFormatter($this, $items[$index], 'item');
+        return Yii::$app->GeneralAffairCoreAPI->resultFormatter($this, $items['items'][$index]);
     }
 
     public function deleteItems($params)
     {
-        
         $items = $this->item['items'];
         $code = $params['item']['items']['code'];
         $index = Yii::$app->coreAPI->findIndex($code, $items);
 
         if ($index !== null) {
             $items[$index]['status'] = Constants::STATUS_DELETED;
-            $items[$index] = Yii::$app->coreAPI->itemChangeLog($items[$index]);
-
-            $this->updateAttributes([
-                'item' => [
-                    'items' => $items,
-                ],
-            ]);
+            $items[$index] = Yii::$app->GeneralAffairCoreAPI->itemChangeLog($items[$index]);
+            
+            $this->updateAttributes(['item' => ['items' => $items]]);
             $this->save();
-
-            return Yii::$app->coreAPI->resultFormatter($this, $items[$index], 'item');
+            return Yii::$app->GeneralAffairCoreAPI->resultFormatter($this, $items[$index]);
         }   
         
         return false;
