@@ -60,9 +60,9 @@ class GeneralAffairController extends CoreController
 
 		foreach ($models as $model) {
 			if (isset($model->item['items'])) {
-				$filteredItems = Yii::$app->coreAPI->filterItems($model->item['items'], $params, 'items');
+				$filteredItems = Yii::$app->GeneralAffairCoreAPI->filterItems($model->item['items'], $params, 'items');
 				$tempModel = ['items' => array_values($filteredItems)];
-				$calculatedData = Yii::$app->coreAPI->calculateValue($tempModel);
+				$calculatedData = Yii::$app->GeneralAffairCoreAPI->calculateValue($tempModel);
 
 				$item = [
 					'items' => $calculatedData['items'],
