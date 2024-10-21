@@ -152,19 +152,16 @@ class GeneralAffairController extends CoreController
     public function actionDelete()
     {
         $params = Yii::$app->getRequest()->getBodyParams();
-
 		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_DELETE)) {
 			return $coreBadRequestNoParams;
 		}
 
         $model = Yii::$app->coreAPI->findModel(GeneralAffair::className(), $params);
-		
         if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
-		
+
 		$model->scenario = Constants::SCENARIO_DELETE;
-		
 		if (isset($params['item']) && $model->status != Constants::STATUS_DELETED) {
 			if ($callBack = $model->deleteItems($params)) {
 				return CoreController::coreSuccess($callBack, 'deleteRecordSuccess');
@@ -172,7 +169,6 @@ class GeneralAffairController extends CoreController
 		}
 
 		$params['status'] = Constants::STATUS_DELETED;
-		
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
 				return CoreController::coreSuccess($model, 'deleteRecordSuccess');

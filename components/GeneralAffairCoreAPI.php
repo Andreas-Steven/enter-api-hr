@@ -98,10 +98,11 @@ class GeneralAffairCoreAPI
 
 	public function findIndex($code, $items)
 	{
-		if (isset($items['items']) && is_array($items['items'])) {
-			$codes = array_column($items['items'], 'code');
+		if (isset($items) && is_array($items)) {
+			$codes = array_column($items, 'code');
 			$index = array_search($code, $codes);
-	
+			// dd($codes, $index);
+			
 			if ($index !== false) {
 				return $index;
 			}

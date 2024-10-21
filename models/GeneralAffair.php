@@ -134,7 +134,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {        
         $items = $this->item;
         $code = $params['item']['items']['code'];
-        $index = Yii::$app->GeneralAffairCoreAPI->findIndex($code, $items);
+        $index = Yii::$app->GeneralAffairCoreAPI->findIndex($code, $items['items']);
 
         if ($index === null) {
             return null;
@@ -157,7 +157,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         $items = $this->item['items'];
         $code = $params['item']['items']['code'];
-        $index = Yii::$app->coreAPI->findIndex($code, $items);
+        $index = Yii::$app->GeneralAffairCoreAPI->findIndex($code, $items);
 
         if ($index !== null) {
             $items[$index]['status'] = Constants::STATUS_DELETED;
