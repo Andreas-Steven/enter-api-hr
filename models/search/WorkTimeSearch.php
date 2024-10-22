@@ -21,7 +21,6 @@ class WorkTimeSearch extends WorkTime
     {
         return [
             [['id', 'status'], 'integer'],
-            [['name'], 'integer'],
             [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
             [['detail_info'], 'safe'],
         ];
@@ -65,7 +64,8 @@ class WorkTimeSearch extends WorkTime
             'status' => $this->status,
         ]);
 
-        $query->andFilterWhere(['ilike', 'name', $this->name])
+        $query
+            //->andFilterWhere(['ilike', 'name', $this->name])
             // ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_at}'"), $this->created_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $this->created_by])

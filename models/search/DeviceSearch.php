@@ -24,8 +24,8 @@ class DeviceSearch extends Device
     {
         return [
             [['id', 'status'], 'integer'],
-            [['name', 'address', 'detail_info'], 'string'],
-            [['location', 'device_ip'], 'safe'],
+            [['device_code', 'device_name', 'device_address', 'device_ip'], 'string', 'max' => 255],
+            [['detail_info', 'device_location'], 'safe'],
         ];
     }
 
@@ -68,8 +68,8 @@ class DeviceSearch extends Device
             'status' => $this->status,
         ]);
 
-        $query->andFilterWhere(['ilike', 'name', $this->name])
-            // ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
+        $query->andFilterWhere(['ilike', 'device_code', $this->device_code])
+            ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_at}'"), $this->created_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $this->created_by])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_at}'"), $this->updated_at])
