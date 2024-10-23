@@ -24,4 +24,15 @@ return [
     'adminEmail' => 'admin@example.com',
     'senderEmail' => 'noreply@example.com',
     'senderName' => 'Example.com mailer',
+
+    'attendance' => [
+        "info" => null,
+        "device" => null,
+        "end_time" => null,
+        "work_time" => null,
+        "department" => null,
+        "start_time" => null,
+        "employee_id" => null,
+        "employee_name" => null
+    ]
 ];

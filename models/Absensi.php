@@ -4,6 +4,10 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\models\Employee;
+use app\models\Department;
+use app\models\WorkTime;
+use app\models\Device;
 
 /**
  * This is the model class for table "absensi".
@@ -19,6 +23,14 @@ use app\helpers\Constants;
 class Absensi extends \yii\db\ActiveRecord
 {
     public $change_log;
+    public $employee_id;
+    public $start_time;
+    public $end_time;
+    public $employee_name;
+    public $department;
+    public $work_time;
+    public $device;
+    public $device_code;
 
     public static function tableName()
     {
@@ -28,24 +40,28 @@ class Absensi extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['date', 'attendance'], 'required'],
+            [['date'], 'required'],
             [['dayoff'], 'boolean'],
             [['status'], 'integer'],
-            [['date'], 'date', 'format' => 'Y-m-d'],
             [['attendance', 'blacklist', 'detail_info'], 'safe', 'skipOnEmpty' => true],
             
             [['status'], 'default', 'value' => 2],
             [['dayoff'], 'default', 'value' => false],
 
-            [['status'], 'filter', 'filter' => 'intval'],
+            [['date'], 'date', 'format' => 'php:Y-m-d'],
             [['status'], 'in', 'range' => array_keys(Constants::statusList())],
+
+            [['attendance'], 'safe'],
+            [['attendance'], 'validateAttendance'],
+            [['status', 'employee_id'], 'filter', 'filter' => 'intval'],
+
         ];
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'attendance', 'detail_info', 'dayoff'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'attendance', 'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['date', 'attendance', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
@@ -70,135 +86,183 @@ class Absensi extends \yii\db\ActiveRecord
         return new \app\models\query\AbsensiQuery(get_called_class());
     }
 
+    public function validateAttendance($attribute, $params)
+    {
+        if (!is_array($this->$attribute)) {
+            $this->addError($attribute, 'Attendance must be an array');
+            return;
+        }
+
+        $employeeAttendance = [];
+        $attendanceData = $this->$attribute;
+        $oldAttendance = $this->getOldAttribute($attribute);
+        $employeeIds = $oldAttendance ? array_column($oldAttendance, 'employee_id') : [];
+        $defaultAttendance = Yii::$app->params['attendance'];
+
+        foreach ($attendanceData as $key => $value) {
+            $employeeAttendance = $defaultAttendance;
+
+            if (isset($value['start_time'])) {
+                if (!empty($value['start_time']) && strtotime($value['start_time']) === false) {
+                    $this->addError($attribute, 'Attendance start time value not valid');
+                    return;
+                }
+                
+                if (empty($value['start_time'])) {
+                    $value['start_time'] = null;
+                }
+            }
+
+            if (isset($value['end_time'])) {
+                if (!empty($value['end_time']) && strtotime($value['end_time']) === false) {
+                    $this->addError($attribute, 'Attendance end time value not valid');
+                    return;
+                }
+
+                if (empty($value['end_time'])) {
+                    $value['end_time'] = null;
+                }
+            }
+
+            if (isset($value['employee_id'])) {
+                $value['employee_id'] = intval($value['employee_id']);
+                if (!is_integer($value['employee_id']) || $value['employee_id'] < 1) {
+                    $this->addError($attribute, 'Attendance employee id value must be an integer greater than 0');
+                    return;
+                }
+
+                $employee = Employee::find()->where(['id' => $value['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
+                if ($employee === null) {
+                    $this->addError($attribute.'['.$key.'].employee_id', 'Employee not found');
+                    return;
+                }
+
+                $department_id = $employee->employee_detail['department']['id'];
+                $work_time_id = $employee->employee_detail['work_time']['id']; 
+
+                $department = Department::find()->where([
+                    'id' => $department_id, 
+                    'status' => Constants::STATUS_ACTIVE
+                ])->one();
+
+                if ($department === null) {
+                    $this->addError($attribute.'['.$key.'].employee_id', 'Department not found');
+                    return;
+                }
+
+                $workTime = WorkTime::find()->where([
+                    'id' => $work_time_id, 
+                    'status' => Constants::STATUS_ACTIVE
+                ])->one();
+
+                if ($workTime === null) {
+                    $this->addError($attribute.'['.$key.'].employee_id', 'Work Time not found');
+                    return;
+                }
+
+                $employeeAttendance['department'] = ['id' => $department->id, 'name' => $department->name];
+                $employeeAttendance['work_time'] = ['id' => $workTime->id, 'entry_time' => $workTime->entry_time, 'home_time' => $workTime->home_time];
+                $employeeAttendance['employee_name'] = $employee->name;
+            }
+
+            if (isset($value['device_code'])) {
+                $device = Device::find()->where([
+                    'device_code' => $value['device_code'], 
+                    'status' => Constants::STATUS_ACTIVE
+                ])->one();
+    
+                if ($device === null) {
+                    $this->addError($attribute.'['.$key.'].device_code', 'Device not found');
+                    return;
+                }
+
+                $employeeAttendance['device'] = ['id' => $device->id, 'device_code' => $device->device_code, 'device_name' => $device->device_name];
+            }
+
+            $employeeAttendance['employee_id'] = $value['employee_id'] ?? null;
+            $employeeAttendance['start_time'] = $value['start_time'] ?? null;
+            $employeeAttendance['end_time'] = $value['end_time'] ?? null;
+            $employeeAttendance = $this->insertInfoField($employeeAttendance);
+
+            if (isset($this->id)) {
+                if (is_array($oldAttendance)) {
+                    $employeeIndex = array_search($employeeAttendance['employee_id'], $employeeIds);
+
+                    if ($employeeIndex !== false) {
+                        $oldAttendance[$employeeIndex] = $employeeAttendance;
+                    } else {
+                        array_push($oldAttendance, $employeeAttendance);
+                    }
+                }
+            } else {
+                $oldAttendance[] = $employeeAttendance;
+            }
+        }
+
+        $this->$attribute = $oldAttendance;
+    }
+
+    public function insertInfoField($attendance)
+	{
+        // Set boolean info masuk
+        if (!empty($attendance['start_time']) && $attendance['start_time'] != '00:00:00') {
+            $attendance['info']['in'] = true;
+		} else {
+            $attendance['info']['in'] = null;
+        }
+        
+        // Set boolean info pulang
+		if (!empty($attendance['end_time']) && $attendance['end_time'] != '00:00:00') {
+            $attendance['info']['out'] = true;
+		} else {
+            $attendance['info']['out'] = null;
+        }
+        
+        // Set detail info telat masuk
+		if (!empty($attendance['start_time']) && !empty($attendance['work_time']['entry_time'])) {
+            $startTime = strtotime($attendance['start_time']);
+			$entryTime = strtotime($attendance['work_time']['entry_time']);
+            
+			if ($startTime > $entryTime) {
+                if (!isset($attendance['info']['detail'])) {
+                    $attendance['info']['detail'][] = "Telat Masuk";
+				}
+			}
+		}
+
+        // Detail info pulang cepat
+		if (!empty($attendance['end_time']) && !empty($attendance['work_time']['home_time']) && $attendance['end_time'] != '00:00:00') {
+			$endTime = strtotime($attendance['end_time']);
+			$homeTime = strtotime($attendance['work_time']['home_time']);
+
+			if ($endTime < $homeTime) {
+				$attendance['info']['detail'][] = "Pulang Cepat";
+			}
+		}
+
+        // Set detail info default null
+        if(!isset($attendance['info']['detail'])) {
+            $attendance['info']['detail'] = null;
+        }
+
+        // Tidak absen pulang
+		if (($attendance['end_time'] == '00:00:00' || empty($attendance['end_time'])) && !empty($attendance['start_time']) && date('Y-m-d') != date('Y-m-d', strtotime($attendance['start_time']))) {
+			if (!in_array("Tidak Absen Pulang", $attendance['info']['detail'])) {
+				$attendance['info']['detail'][] = "Tidak Absen Pulang";
+			}
+		}
+
+		return $attendance;
+	}
+
     public function beforeSave($insert)
     {
-        if ($this->dayoff) {
-            $this->attendance = [];
-        }
-
-        if ($insert && isset($this->attendance) && !$this->dayoff) {
-            $this->attendance = Yii::$app->AbsensiCoreAPI->insertAttendance($this->attendance, $this);
-        }
-
         $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
         $this->detail_info = [
             'change_log' => $this->change_log ?: null,
         ];
         
         return parent::beforeSave($insert);
-    }
-
-    public function updateInsertAttendance($params, $existing)
-    {
-        if ($existing->dayoff) {
-            return false;
-        }
-
-        $employee_id = $params['attendance']['employee_id'];
-        $start_time = $params['attendance']['start_time'];
-        $date = $params['date'];
-
-        if (!$this->isValidStartTimeAndDate($start_time, $date)) {
-            $this->addBlacklist($existing, $employee_id, $start_time, $date);
-            $params['attendance']['start_time'] = date('H:i:s');
-        }
-        
-        if (isset($existing)) {
-            $existing->refresh();
-
-            $params['attendance'] = Yii::$app->coreAPI->sanitizeEmptyFields($params['attendance']);
-            $newAttendance = Yii::$app->AbsensiCoreAPI->insertAttendance($params['attendance'], $existing);
-            $newData = array_merge($existing->attendance, $newAttendance);
-
-            $existing->updateAttributes([
-                'attendance' => $newData,
-            ]);
-            $existing->save();
-
-            return Yii::$app->AbsensiCoreAPI->resultFormatter($existing, $newAttendance);
-        }
-    }
-
-    public function updateData($params)
-    {
-        $attendance = $this->attendance;
-        $employee_id = $params['attendance']['employee_id'];
-        $end_time = $params['attendance']['end_time'];
-
-        $attendance = Yii::$app->AbsensiCoreAPI->updateAttendance($attendance, $employee_id, $end_time);
-        $this->attendance = $attendance;
-
-        if ($this->save()) {
-            $this->refresh();
-            $filteredAttendance = Yii::$app->AbsensiCoreAPI->filterAttendances($this->attendance, ['employee_id' => $employee_id]);
-        
-            return Yii::$app->AbsensiCoreAPI->resultFormatter($this, array_values($filteredAttendance));
-        }
-    
-        return false;
-    }
-
-    private function isValidStartTimeAndDate($start_time, $date)
-    {
-        $today = date('Y-m-d');
-        if ($date < $today) {
-            return false;
-        }
-    
-        $previousAttendance = $this->getPreviousAttendance($date);
-        if (!$previousAttendance) { 
-            return true;
-        }
-
-        $filteredAttendance = Yii::$app->AbsensiCoreAPI->filterAttendances($previousAttendance->attendance, ['has_start_time' => true]);
-        if (empty($filteredAttendance)) {
-            return true;
-        }
-
-        $lastAttendance = end($filteredAttendance);
-        if (!isset($lastAttendance['start_time'])) {
-            return true;
-        }
-
-        $lastStartTime = $lastAttendance['start_time'];
-        if ($start_time < $lastStartTime || $date < $previousAttendance->date) {
-            return false;
-        }
-
-        return true;
-    }
-
-
-    public function addBlacklist($existing, $employee_id, $date, $start_time)
-    {
-        $blacklist = Yii::$app->AbsensiCoreAPI->insertBlacklist($existing, $employee_id, $date, $start_time);
-        $existing->updateAttributes([
-            'blacklist' => $blacklist,
-        ]);
-
-        return $existing->save();    
-    }
-
-    // Database Relation Section
-    public function getPreviousAttendance($date)
-    {
-        $previousAttendance = self::find()
-            ->where(['date' => $date])
-            ->one();
-
-        return $previousAttendance;
-    }
-    
-    public function getEmployee($id)
-    {
-        $employee = Employee::findOne($id);
-        return $employee;
-    }
-
-    public function getDevice($device_code)
-    {   
-        $device = Device::findOne(['device_code' => $device_code]);
-        return $device;
     }
 }
  

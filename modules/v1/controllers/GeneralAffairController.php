@@ -56,30 +56,14 @@ class GeneralAffairController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$models = $dataProvider->getModels();
-
-		foreach ($models as $model) {
-			if (isset($model->item['items'])) {
-				$filteredItems = Yii::$app->GeneralAffairCoreAPI->filterItems($model->item['items'], $params, 'items');
-				$tempModel = ['items' => array_values($filteredItems)];
-				$calculatedData = Yii::$app->GeneralAffairCoreAPI->calculateValue($tempModel);
-
-				$item = [
-					'items' => $calculatedData['items'],
-					'quantity' => $calculatedData['quantity'],
-					'total_price' => $calculatedData['total_price']
-				];
-
-				$model->setAttribute('item', $item);
-			}
-		}
-
-		return [
+		$data = [
 			'code' => 200,
 			'success' => true,
-			'message' => Yii::t('app', 'success'),
-			'data' => $models
+			'message' => Yii::t('app', 'success'), 
+			'data' => $dataProvider,
 		];
+
+		return $data;
 	}
 
     public function actionCreate()

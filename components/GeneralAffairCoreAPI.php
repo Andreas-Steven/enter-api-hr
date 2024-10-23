@@ -55,7 +55,7 @@ class GeneralAffairCoreAPI
 			];
 		}
 
-		return $data = array_merge($defaultValues, $data);
+		return array_merge($defaultValues, $data);
 	}
 
 	public function itemChangeLog($items)

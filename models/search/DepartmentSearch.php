@@ -64,7 +64,7 @@ class DepartmentSearch extends Department
             'sort'=> [
                 'defaultOrder' => ['id' => SORT_ASC]
             ],
-            // 'pagination' => ['pageSize' => 2]
+            'pagination' => ['pageSize' => 2]
         ]);
 
         $this->load(['DepartmentSearch' => $params]);

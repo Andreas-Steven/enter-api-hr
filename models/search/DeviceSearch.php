@@ -66,10 +66,10 @@ class DeviceSearch extends Device
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
+            'device_code' => $this->device_code,
         ]);
 
-        $query->andFilterWhere(['ilike', 'device_code', $this->device_code])
-            ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
+        $query->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_at}'"), $this->created_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $this->created_by])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_at}'"), $this->updated_at])
