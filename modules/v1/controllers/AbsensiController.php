@@ -50,16 +50,21 @@ class AbsensiController extends CoreController
 
 		$searchModel = new AbsensiSearch();
 		$dataProvider = $searchModel->search($params);
-
+		
 		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
 			return $coreValidateParams;
 		}
-
+		
 		$data = [
 			'code' => 200,
 			'success' => true,
 			'message' => Yii::t('app', 'success'), 
-			'data' => $dataProvider,
+			'pagination' => [
+				'page' => intval(isset($params['page']) ? $params['page'] : 1),
+				'total' => $dataProvider->getTotalCount(),
+				'display' => $dataProvider->getCount(),
+			],
+			'data' => $dataProvider->getModels(),
 		];
 
 		return $data;
@@ -73,6 +78,10 @@ class AbsensiController extends CoreController
         if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
             return CoreController::coreValidateParams($unavailableParams);
         }
+
+		if (!isset($params['date']) || $params['date'] === "") {
+			return CoreController::coreBadRequest($model, Yii::t('app', 'dateEmpty'));
+		}
 
 		$model = Absensi::find()->where([
 			'date' => $params['date']
@@ -93,74 +102,4 @@ class AbsensiController extends CoreController
 
 		return CoreController::coreBadRequest($model, Yii::t('app', 'insertRecordFailed'));
 	}
-	
-	/*
-	public function actionUpdate()
-	{
-		$params = Yii::$app->getRequest()->getBodyParams();
-
-		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_UPDATE)) {
-			return $coreBadRequestNoParams;
-		}
-		
-		$model = Yii::$app->coreAPI->findModel(Brand::className(), $params);
-		$rules = $model->rules();
-		
-		if ($model === null) {
-			return CoreController::coreDataNotFound();
-		}
-
-		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
-			return CoreController::coreValidateParams($unavailableParams);
-        }
-
-		if (isset($params['name'])) {
-			$params['brand_id'] = $model->id;
-		}
-
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
-
-		$model->scenario = Constants::SCENARIO_UPDATE;
-
-		if ($model->load($params, '') && $model->validate()) {
-			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'updateRecordSuccess');
-			}
-		}
-
-		return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
-	}
-
-	public function actionDelete()
-	{
-		$params = Yii::$app->getRequest()->getBodyParams();
-
-		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_DELETE)) {
-			return $coreBadRequestNoParams;
-		}
-
-		$model = Yii::$app->coreAPI->findModel(Brand::className(), $params);
-
-		if ($model === null) {
-			return CoreController::coreDataNotFound();
-		}
-
-		$params['status'] = Constants::STATUS_DELETED;
-		$model->scenario = Constants::SCENARIO_DELETE;
-
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
-
-		if ($model->load($params, '') && $model->validate()) {
-			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
-			}
-		}
-
-		return CoreController::coreBadRequest($model, Yii::t('app', 'deleteRecordFailed'));
-	}
-	*/
 }

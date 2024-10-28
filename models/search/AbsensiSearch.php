@@ -20,13 +20,17 @@ class AbsensiSearch extends Absensi
     public $updated_by;
     public $deleted_at;
     public $deleted_by;
+    public $sort;
+    public $sort_by;
+    public $page;
+    public $page_size;
 
     public function rules()
     {
         return [
-            [['id', 'status'], 'integer'],
-            [['attendance', 'blacklist', 'detail_info'], 'safe'],
-            [['dayoff'], 'boolean'],
+            [['id', 'status', 'page_size', 'page'], 'integer'],
+            [['attendance', 'detail_info'], 'safe'],
+            [['sort', 'sort_by'], 'string'],
             [['date'], 'date', 'format' => 'Y-m-d'],
             [['employee_id'], 'integer'],
         ];
@@ -40,20 +44,13 @@ class AbsensiSearch extends Absensi
 
     public function search($params)
     {
-        $query = Absensi::find();
+        $this->sort = isset($params['sort']) ? $params['sort'] : 'id';
+        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "SORT_ASC" : "SORT_DESC";
+        $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
+        $this->page = isset($params['page']) ? $params['page'] : 0 ;
 
-            // ->select([
-            //     'absensi.id',
-            //     'absensi.date',
-            //     'absensi.dayoff',
-            //     new \yii\db\Expression("attendance_record ->> 'employee_id' AS employee_id"),
-            //     new \yii\db\Expression("attendance_record ->> 'employee_name' AS employee_name"),
-            //     new \yii\db\Expression("attendance_record ->> 'start_time' AS start_time"),
-            //     new \yii\db\Expression("attendance_record -> 'department' ->> 'name' AS department_name"),
-            //     'absensi.status',
-            //     'absensi.detail_info',
-            // ])
-            // ->crossJoin(['attendance_record' => new \yii\db\Expression('jsonb_array_elements(attendance)')]);
+        $query = Absensi::find();
+        $query->where(Constants::STATUS_NOT_DELETED);
 
         // add conditions that should always apply here
         $rules = $this->rules();
@@ -64,10 +61,15 @@ class AbsensiSearch extends Absensi
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'sort'=> [
-                'defaultOrder' => ['id' => SORT_ASC]
+                'defaultOrder' => [$this->sort => $this->sort_by],
             ],
-            'pagination' => ['pageSize' => 2]
+            'pagination' => [
+                'pageSize' => $this->page_size,
+            ],
         ]);
+
+        $this->page = isset($params['page']) ? intval($params['page']) : 1;
+        $dataProvider->pagination->page = $this->page - 1;
 
         $this->load(['AbsensiSearch' => $params]);
 
@@ -86,17 +88,14 @@ class AbsensiSearch extends Absensi
         ]);
 
         if (isset($this->employee_id)) {
-            $query->andFilterWhere([
-                'date' => $this->date,
-            ]);
-
-            $query->andFilterWhere(new \yii\db\Expression(
-                "EXISTS (SELECT 1 FROM jsonb_array_elements(attendance) AS attendance_record WHERE attendance_record ->> 'employee_id' = :employee_id)", [':employee_id' => $this->employee_id]
-            ));
+            $query->where(
+                'EXISTS (SELECT 1 FROM absensi, LATERAL jsonb_array_elements(attendance) AS attendance_record 
+                 WHERE attendance_record ->> \'employee_id\' = :employee_id)', 
+                 [':employee_id' => $this->employee_id]
+            );
         }
 
         $query
-            // ->andFilterWhere(['ilike', 'date', $this->date])
             ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_at}'"), $this->created_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $this->created_by])
@@ -104,7 +103,7 @@ class AbsensiSearch extends Absensi
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_by}'"), $this->updated_by])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_at}'"), $this->deleted_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_by}'"), $this->deleted_by]);
-
+        
         return $dataProvider;
     }
 }

@@ -54,7 +54,6 @@ class Absensi extends \yii\db\ActiveRecord
             [['attendance'], 'safe'],
             [['attendance'], 'validateAttendance'],
             [['status', 'employee_id'], 'filter', 'filter' => 'intval'],
-
         ];
     }
 
@@ -97,6 +96,8 @@ class Absensi extends \yii\db\ActiveRecord
         $attendanceData = $this->$attribute;
         $oldAttendance = $this->getOldAttribute($attribute);
         $employeeIds = $oldAttendance ? array_column($oldAttendance, 'employee_id') : [];
+        $lastStartTime = $oldAttendance ? array_column($oldAttendance, 'start_time') : [];
+        $last_start_time = empty($lastStartTime) ? null : end($lastStartTime);
         $defaultAttendance = Yii::$app->params['attendance'];
 
         foreach ($attendanceData as $key => $value) {
@@ -107,10 +108,12 @@ class Absensi extends \yii\db\ActiveRecord
                     $this->addError($attribute, 'Attendance start time value not valid');
                     return;
                 }
-                
+
                 if (empty($value['start_time'])) {
                     $value['start_time'] = null;
-                }
+                } 
+            } elseif (isset($oldAttendance[$key]['start_time'])) {
+                $value['start_time'] = $oldAttendance[$key]['start_time'];
             }
 
             if (isset($value['end_time'])) {
@@ -160,46 +163,52 @@ class Absensi extends \yii\db\ActiveRecord
                     return;
                 }
 
+                if (isset($value['device']['device_code'])) {
+                    $device = Device::find()->where([
+                        'device_code' => $value['device']['device_code'], 
+                        'status' => Constants::STATUS_ACTIVE
+                    ])->one();
+        
+                    if ($device === null) {
+                        $this->addError($attribute.'['.$key.'].device_code', 'Device not found');
+                        return;
+                    }
+                }
+                
+                $employeeAttendance['employee_name'] = $employee->name;
                 $employeeAttendance['department'] = ['id' => $department->id, 'name' => $department->name];
                 $employeeAttendance['work_time'] = ['id' => $workTime->id, 'entry_time' => $workTime->entry_time, 'home_time' => $workTime->home_time];
-                $employeeAttendance['employee_name'] = $employee->name;
-            }
-
-            if (isset($value['device_code'])) {
-                $device = Device::find()->where([
-                    'device_code' => $value['device_code'], 
-                    'status' => Constants::STATUS_ACTIVE
-                ])->one();
-    
-                if ($device === null) {
-                    $this->addError($attribute.'['.$key.'].device_code', 'Device not found');
-                    return;
-                }
-
                 $employeeAttendance['device'] = ['id' => $device->id, 'device_code' => $device->device_code, 'device_name' => $device->device_name];
+            
             }
 
             $employeeAttendance['employee_id'] = $value['employee_id'] ?? null;
             $employeeAttendance['start_time'] = $value['start_time'] ?? null;
             $employeeAttendance['end_time'] = $value['end_time'] ?? null;
             $employeeAttendance = $this->insertInfoField($employeeAttendance);
+            
+            if (!empty($last_start_time)) {
+                if (strtotime($employeeAttendance['start_time']) < strtotime($last_start_time)) {
+                    $this->addBlacklist($employeeAttendance['employee_id'], $employeeAttendance['start_time'], $this->date);
+                    $employeeAttendance['start_time'] = date('H:i:s');
+                }
+            }
 
             if (isset($this->id)) {
                 if (is_array($oldAttendance)) {
                     $employeeIndex = array_search($employeeAttendance['employee_id'], $employeeIds);
-
                     if ($employeeIndex !== false) {
-                        $oldAttendance[$employeeIndex] = $employeeAttendance;
+                        $oldAttendance[$value['employee_id']] = $employeeAttendance;
                     } else {
                         array_push($oldAttendance, $employeeAttendance);
                     }
                 }
             } else {
-                $oldAttendance[] = $employeeAttendance;
+                $oldAttendance[$value['employee_id']] = $employeeAttendance;
             }
-        }
+        } 
 
-        $this->$attribute = $oldAttendance;
+        $this->$attribute = $oldAttendance; 
     }
 
     public function insertInfoField($attendance)
@@ -254,14 +263,39 @@ class Absensi extends \yii\db\ActiveRecord
 
 		return $attendance;
 	}
+    
+    public function addBlacklist($employee_id, $start_time, $date)
+    {
+        $blacklist = [
+            'employee_id' => $employee_id,
+            'start_time' => $start_time,
+            'date' => $date
+        ];
+        $exsistingBlacklist = $this->detail_info['blacklist'];
+        
+        if (!empty($exsistingBlacklist)) {
+            array_push($exsistingBlacklist, $blacklist);
+        } else {
+            $exsistingBlacklist[] = $blacklist;
+        }
+
+        $this->setAttribute('detail_info', array_merge($this->detail_info, ['blacklist' => $exsistingBlacklist]));
+    }
 
     public function beforeSave($insert)
     {
-        $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-        $this->detail_info = [
-            'change_log' => $this->change_log ?: null,
-        ];
-        
+        if ($insert) {
+            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+            $this->detail_info = [
+                'change_log' => $this->change_log ?: null,
+            ];
+            $this->detail_info = Yii::$app->coreAPI->detailInfoAddition($this, $insert);
+        } else {
+            $detailInfo = $this->detail_info;
+            $detailInfo['change_log'] = Yii::$app->coreAPI->changeLog($this, $insert) ?: null;
+            $this->detail_info = $detailInfo;
+        }
+
         return parent::beforeSave($insert);
     }
 }

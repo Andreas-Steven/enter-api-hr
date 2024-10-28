@@ -25,14 +25,27 @@ return [
     'senderEmail' => 'noreply@example.com',
     'senderName' => 'Example.com mailer',
 
+    "items" => [
+        "code" => null,
+        "price" => null,
+        "condition" => null,
+        "description" => null,
+        "buying_date" => null,
+        "tax_date" => null,
+        "inspection_date" => null,
+        "department" => null,
+        "image" => null,
+        "items_change_log" => null
+    ],
+
     'attendance' => [
+        "employee_id" => null,
+        "employee_name" => null,
+        "start_time" => null,
+        "end_time" => null,
         "info" => null,
         "device" => null,
-        "end_time" => null,
-        "work_time" => null,
         "department" => null,
-        "start_time" => null,
-        "employee_id" => null,
-        "employee_name" => null
+        "work_time" => null,
     ]
 ];

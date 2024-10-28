@@ -139,7 +139,10 @@ class BrandController extends CoreController
 			return CoreController::coreDataNotFound();
 		}
 
-		$params['status'] = Constants::STATUS_DELETED;
+		if (!isset($params['code']) || empty($params['code'])) {
+			$params['status'] = Constants::STATUS_DELETED;
+		}
+
 		$model->scenario = Constants::SCENARIO_DELETE;
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
