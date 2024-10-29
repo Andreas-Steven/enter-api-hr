@@ -62,12 +62,12 @@ class GeneralAffairSearch extends GeneralAffair
                 SELECT jsonb_object_agg(key, value)
                 FROM jsonb_each(general_affair.item->'items') AS items_record(key, value)
                 WHERE value->'items_change_log'->>'deleted_at' IS NULL
-            ) AS items")
+            ) AS item")
         ]);
 
         if ($this->code != null) {
             $query
-            ->select(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info', new \yii\db\Expression("jsonb_build_object(key, value) AS items")])
+            ->select(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info', new \yii\db\Expression("jsonb_build_object(key, value) AS item")])
             ->from(['general_affair', new \yii\db\Expression("jsonb_each(item->'items') AS items_record(key, value)")])
             ->andWhere(['key' => $this->code])
             ->andWhere(new \yii\db\Expression("value->'items_change_log'->>'deleted_at' IS NULL"));
@@ -178,48 +178,5 @@ class GeneralAffairSearch extends GeneralAffair
         return $dataProvider;
     }
 
-    public function resultFormatter($dataProvider)
-    {
-        $formattedData = [];
 
-        foreach ($dataProvider->getModels() as $model) {
-            $quantity = 0;
-            $total_price = 0;
-
-            if (isset($model->item) && is_array($model->item)) {
-                foreach ($model->item as $items) {
-                    if (isset($items['price']) && $items['items_change_log']['deleted_at'] === null) {
-                        $quantity++;
-                        $total_price += $items['price'];
-                    }
-                }
-            }
-
-            $formattedData = [
-                "id" => $model->id,
-                "name" => $model->name,
-                "category_id" => $model->category_id,
-                "location_id" => $model->location_id,
-                "status" => $model->status,
-                "detail_info" => [
-                    "change_log" => [
-                        "created_at" => $model->detail_info['change_log']['created_at'] ?? null,
-                        "created_by" => $model->detail_info['change_log']['created_by'] ?? null,
-                        "deleted_at" => $model->detail_info['change_log']['deleted_at'] ?? null,
-                        "deleted_by" => $model->detail_info['change_log']['deleted_by'] ?? null,
-                        "updated_at" => $model->detail_info['change_log']['updated_at'] ?? null,
-                        "updated_by" => $model->detail_info['change_log']['updated_by'] ?? null,
-                    ],
-                ],
-                "item" => [
-                    "items" => $model->item,
-                    "quantity" => $quantity,
-                    "total_price" => $total_price,
-                ],
-            ];
-        }
-
-
-        return $formattedData;
-    }
 }

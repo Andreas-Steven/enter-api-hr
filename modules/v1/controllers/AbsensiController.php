@@ -49,7 +49,11 @@ class AbsensiController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 
 		$searchModel = new AbsensiSearch();
-		$dataProvider = $searchModel->search($params);
+		$result = $searchModel->search($params);
+
+		$dataProvider = $result['dataProvider'];
+		$totalAttendanceCount = $result['totalAttendanceCount'];
+		$displayAttendanceCount = $result['displayAttendanceCount'];
 		
 		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
 			return $coreValidateParams;
@@ -61,10 +65,10 @@ class AbsensiController extends CoreController
 			'message' => Yii::t('app', 'success'), 
 			'pagination' => [
 				'page' => intval(isset($params['page']) ? $params['page'] : 1),
-				'total' => $dataProvider->getTotalCount(),
-				'display' => $dataProvider->getCount(),
+				'total' => $totalAttendanceCount,
+				'display' => $displayAttendanceCount,
 			],
-			'data' => $dataProvider->getModels(),
+			'data' => $dataProvider,
 		];
 
 		return $data;

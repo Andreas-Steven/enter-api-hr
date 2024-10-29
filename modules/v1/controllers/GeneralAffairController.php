@@ -64,7 +64,6 @@ class GeneralAffairController extends CoreController
 				'total' => $dataProvider->getTotalCount(),
 				'display' => $dataProvider->getCount(),
 			],
-			// 'data' => $searchModel->resultFormatter($dataProvider)
 			'data' => $dataProvider
 		];
 
