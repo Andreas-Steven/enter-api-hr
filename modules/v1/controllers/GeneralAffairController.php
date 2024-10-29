@@ -54,8 +54,6 @@ class GeneralAffairController extends CoreController
 		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
 			return $coreValidateParams;
 		}
-		
-		// var_dump($dataProvider->getModels()); exit;
 
 		$data = [
 			'code' => 200,
@@ -66,7 +64,8 @@ class GeneralAffairController extends CoreController
 				'total' => $dataProvider->getTotalCount(),
 				'display' => $dataProvider->getCount(),
 			],
-			'data' => $dataProvider,
+			// 'data' => $searchModel->resultFormatter($dataProvider)
+			'data' => $dataProvider
 		];
 
 		return $data;
