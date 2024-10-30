@@ -24,6 +24,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
 {
     public $change_log;
     public $code;
+    public $data;  
 
     public static function tableName()
     {
@@ -36,7 +37,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
             [['name'], 'string', 'max' => 255],
             [['category_id', 'location_id', 'status'], 'integer'],
             [['name', 'category_id', 'location_id'], 'required'],
-            [['detail_info', 'item'], 'safe', 'skipOnEmpty' => true],
+            [['detail_info', 'item', 'data'], 'safe', 'skipOnEmpty' => true],
             
             [['status'], 'default', 'value' => 2],
             [['status'], 'in', 'range' => array_keys(Constants::statusList())],

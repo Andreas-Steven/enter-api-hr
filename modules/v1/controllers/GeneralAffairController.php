@@ -50,9 +50,28 @@ class GeneralAffairController extends CoreController
 
 		$searchModel = new GeneralAffairSearch();
 		$dataProvider = $searchModel->search($params);
-
+		
 		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
 			return $coreValidateParams;
+		}
+
+		$models = $dataProvider->getModels();
+		$formattedData = [];
+
+		foreach ($models as $model) {
+			$formattedData[] = [
+				'id' => $model->id,
+				'name' => $model->name,
+				'category_id' => $model->category_id,
+				'location_id' => $model->location_id,
+				'status' => $model->status,
+				'detail_info' => $model->detail_info,
+				'item' => [
+					'items' => json_decode($model->data),
+					'quantity' => $model->item['quantity'],
+					'total_price' => $model->item['total_price'],
+				], 
+			];
 		}
 
 		$data = [
@@ -64,7 +83,7 @@ class GeneralAffairController extends CoreController
 				'total' => $dataProvider->getTotalCount(),
 				'display' => $dataProvider->getCount(),
 			],
-			'data' => $dataProvider
+			'data' => $formattedData,
 		];
 
 		return $data;

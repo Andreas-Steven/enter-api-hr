@@ -28,13 +28,15 @@ class GeneralAffairSearch extends GeneralAffair
     public $max_price;
     public $date_min;
     public $date_max;
+    public $data;  
+    public $name;
 
     public function rules()
     {
         return [
             [['id', 'category_id', 'location_id', 'status', 'page', 'page_size'], 'integer'],
-            [['detail_info', 'item'], 'safe'],
-            [['code', 'sort', 'sort_by'], 'string'],
+            [['detail_info', 'item', 'test'], 'safe'],
+            [['code', 'sort', 'sort_by', 'name'], 'string'],
             [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             [['min_price', 'max_price'], 'filter', 'filter' => 'floatval'],
             [['date_min', 'date_max'], 'date', 'format' => 'php:Y-m-d'],
@@ -58,11 +60,11 @@ class GeneralAffairSearch extends GeneralAffair
         $query->where(Constants::STATUS_NOT_DELETED);
         $query->addSelect([
             '*',
-            new \yii\db\Expression("(
-                SELECT jsonb_object_agg(key, value)
+            'data' => new \yii\db\Expression("(
+                SELECT jsonb_agg(value)
                 FROM jsonb_each(general_affair.item->'items') AS items_record(key, value)
                 WHERE value->'items_change_log'->>'deleted_at' IS NULL
-            ) AS item")
+            )")
         ]);
 
         if ($this->code != null) {
@@ -88,7 +90,7 @@ class GeneralAffairSearch extends GeneralAffair
                 'pageSize' => $this->page_size,
             ],
         ]);
-        
+
         $this->load(['GeneralAffairSearch' => $params]);
         
         if (!$this->validate()) {
@@ -100,6 +102,7 @@ class GeneralAffairSearch extends GeneralAffair
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
+            'name' => $this->name,
             'category_id' => $this->category_id,
             'location_id' => $this->location_id,
             'status' => $this->status,
@@ -174,6 +177,8 @@ class GeneralAffairSearch extends GeneralAffair
                 ':date_max' => $this->date_max
             ]));
         }
+
+        // print_r($dataProvider->getModels());
         
         return $dataProvider;
     }
