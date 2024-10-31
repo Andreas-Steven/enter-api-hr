@@ -52,9 +52,11 @@ class GeneralAffairSearch extends GeneralAffair
     public function search($params)
     {
         $this->sort = isset($params['sort']) ? $params['sort'] : 'id';
-        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "SORT_ASC" : "SORT_DESC";
+        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? SORT_ASC : SORT_DESC;
         $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
         $this->code = isset($params['code']) ? $params['code'] : null;
+
+        // var_dump($this->sort, $this->sort_by); exit;
 
         $query = GeneralAffair::find();
         $query->where(Constants::STATUS_NOT_DELETED);
@@ -67,9 +69,11 @@ class GeneralAffairSearch extends GeneralAffair
             )")
         ]);
 
+        // SELECT jsonb_object_agg(key, value)
+
         if ($this->code != null) {
             $query
-            ->select(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info', new \yii\db\Expression("jsonb_build_object(key, value) AS item")])
+            ->select(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info', new \yii\db\Expression("jsonb_build_object(key, value) AS data")])
             ->from(['general_affair', new \yii\db\Expression("jsonb_each(item->'items') AS items_record(key, value)")])
             ->andWhere(['key' => $this->code])
             ->andWhere(new \yii\db\Expression("value->'items_change_log'->>'deleted_at' IS NULL"));

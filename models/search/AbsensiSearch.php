@@ -126,15 +126,15 @@ class AbsensiSearch extends Absensi
         $attendanceQuery = new \yii\db\Expression(
             "(
                 WITH attendance_elements AS (
-                    SELECT value
+                    SELECT key, value
                     FROM jsonb_each(attendance)
                 ),
                 sorted_attendance AS (
-                    SELECT value, row_number() OVER () AS rn
+                    SELECT key, value, row_number() OVER () AS rn
                     FROM attendance_elements
-                    ORDER BY (value->>:sort_field)::text {$this->sort_by}
+                    ORDER BY (value->>:sort_field)::time {$this->sort_by}
                 )
-                SELECT jsonb_agg(value)
+                SELECT jsonb_object_agg(key, value)
                 FROM sorted_attendance
                 WHERE rn > :offset AND rn <= :offset + :page_size
             )",
@@ -156,7 +156,7 @@ class AbsensiSearch extends Absensi
                     sorted_attendance AS (
                         SELECT key, value, row_number() OVER () AS rn
                         FROM attendance_elements
-                        ORDER BY (value->>:sort_field)::text {$this->sort_by}
+                        ORDER BY (value->>:sort_field)::time {$this->sort_by}
                     )
                     SELECT jsonb_object_agg(key, value)
                     FROM sorted_attendance

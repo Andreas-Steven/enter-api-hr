@@ -102,33 +102,11 @@ class Absensi extends \yii\db\ActiveRecord
 
         foreach ($attendanceData as $key => $value) {
             $employeeAttendance = $defaultAttendance;
-            
-            if (!empty($value['start_time']) && strtotime($value['start_time']) === false) {
-                $this->addError($attribute, 'Attendance start time value not valid');
-                return;
-            }
-            
-            if (empty($value['start_time'])) {
-                $value['start_time'] = null;
-            } 
-            // elseif (isset($oldAttendance[$key]['start_time']) && empty($value['start_time'])) {
-                //     $value['start_time'] = $oldAttendance[$key]['start_time'];
-                // }
-            } 
-            
-            if (isset($value['end_time'])) {
-                if (!empty($value['end_time']) && strtotime($value['end_time']) === false) {
-                    $this->addError($attribute, 'Attendance end time value not valid');
-                    return;
-                }
-                
-                if (empty($value['end_time'])) {
-                    $value['end_time'] = null;
-                }
-            }
 
             if (isset($value['employee_id'])) {
                 $value['employee_id'] = intval($value['employee_id']);
+                $employeeIndex = array_search($value['employee_id'], $employeeIds);
+                
                 if (!is_integer($value['employee_id']) || $value['employee_id'] < 1) {
                     $this->addError($attribute, 'Attendance employee id value must be an integer greater than 0');
                     return;
@@ -174,42 +152,77 @@ class Absensi extends \yii\db\ActiveRecord
                         return;
                     }
                 }
-                      
-                if (isset($value['start_time'])) {
-                    $employeeAttendance['employee_name'] = $employee->name;
-                    $employeeAttendance['department'] = ['id' => $department->id, 'name' => $department->name];
-                    $employeeAttendance['work_time'] = ['id' => $workTime->id, 'entry_time' => $workTime->entry_time, 'home_time' => $workTime->home_time];
-                    $employeeAttendance['device'] = ['id' => $device->id, 'device_code' => $device->device_code, 'device_name' => $device->device_name];
-                
-                }
-                
-                $employeeAttendance['employee_id'] = $value['employee_id'] ?? null;
-                $employeeAttendance['start_time'] = $value['start_time'] ?? null;
+
+                $employeeAttendance['employee_name'] = $employee->name;
+                $employeeAttendance['department'] = ['id' => $department->id, 'name' => $department->name];
+                $employeeAttendance['work_time'] = ['id' => $workTime->id, 'entry_time' => $workTime->entry_time, 'home_time' => $workTime->home_time];
+                $employeeAttendance['employee_id'] = $value['employee_id'] ?? null;   
                 $employeeAttendance['end_time'] = $value['end_time'] ?? null;
                 $employeeAttendance = $this->insertInfoField($employeeAttendance);
-               
-                if (!empty($last_start_time)) {
-                    if (strtotime($employeeAttendance['start_time']) < strtotime($last_start_time)) {
-                        $this->addBlacklist($employeeAttendance['employee_id'], $employeeAttendance['start_time'], $this->date);
-                        $employeeAttendance['start_time'] = date('H:i:s');
-                    }
-                }
+            }
 
-                if (isset($this->id)) {
-                    if (is_array($oldAttendance)) {
-                        $employeeIndex = array_search($employeeAttendance['employee_id'], $employeeIds);
-                        if ($employeeIndex !== false) {
-                            $oldAttendance[$value['employee_id']] = $employeeAttendance;
-                        } else {
-                            array_push($oldAttendance, $employeeAttendance);
-                        }
+            if (!empty($value['start_time']) && strtotime($value['start_time']) === false) {
+                $this->addError($attribute, 'Attendance start time value not valid');
+                return;
+            }
+            
+            if (!empty($last_start_time)) {
+                if (isset($value['start_time']) && !empty($value['start_time'])) {
+                    if (strtotime($value['start_time']) < strtotime($last_start_time)) {
+                        $this->addBlacklist($employeeAttendance['employee_id'], $employeeAttendance['start_time'], $this->date);
+                        $value['start_time'] = date('H:i:s');
                     }
-                } else {
-                    $oldAttendance[$value['employee_id']] = $employeeAttendance;
+                } elseif ($oldAttendance[$employeeIndex]['start_time'] !== null) {
+                    $value['start_time'] = $oldAttendance[$employeeIndex]['start_time'];
                 }
-            } 
-        unset($employeeAttendance['start_time'], $value['employee_id']);
-        $this->$attribute = $oldAttendance; 
+            }
+
+            $employeeAttendance['start_time'] = $value['start_time'] ?? null;
+            
+            if ($employeeIndex !== false) {
+                if (isset($oldAttendance[$employeeIndex]['start_time']) && !empty($oldAttendance[$key]['start_time'])) {
+                    $value['start_time'] = $oldAttendance[$employeeIndex]['start_time'];
+                }
+            } elseif (isset($value['start_time']) && empty($value['start_time'])) {
+                $value['start_time'] = null;
+            }
+
+            if (isset($value['end_time'])) {
+                if (!empty($value['end_time']) && strtotime($value['end_time']) === false) {
+                    $this->addError($attribute, 'Attendance end time value not valid');
+                    return;
+                }
+                
+                if (empty($value['end_time'])) {
+                    $value['end_time'] = null;
+                }
+            }
+
+            // if (isset($this->id)) {
+            //     if (is_array($oldAttendance)) {
+            //         if ($employeeIndex !== false) {
+            //             $oldAttendance[$employeeIndex] = $employeeAttendance;
+            //         } else {
+            //             array_push($oldAttendance, $employeeAttendance);
+            //         }
+            //     }
+            // } else {
+            //     $oldAttendance = [$employeeAttendance];
+            // }
+        }
+        
+        if (isset($this->id)) {
+            if ($employeeIndex !== false) {
+                $oldAttendance[$employeeIndex] = $employeeAttendance;
+            } else {
+                array_push($oldAttendance, $employeeAttendance);
+            }
+        } else {
+            $oldAttendance = [$employeeAttendance];
+        }
+
+        $this->$attribute = $oldAttendance;
+        // var_dump($this->$attribute); exit;
     }
 
     public function insertInfoField($attendance)
@@ -301,3 +314,97 @@ class Absensi extends \yii\db\ActiveRecord
     }
 }
  
+
+        // foreach ($attendanceData as $key => $value) {
+        //     $employeeAttendance = $defaultAttendance;
+            
+        //     if (!empty($value['start_time']) && strtotime($value['start_time']) === false) {
+        //         $this->addError($attribute, 'Attendance start time value not valid');
+        //         return;
+        //     }
+            
+        //     if (isset($oldAttendance[$key]['start_time']) && empty($value['start_time'])) {
+        //         if (isset($oldAttendance[$key]['start_time']) && !empty($oldAttendance[$key]['start_time'])) {
+        //             $value['start_time'] = $oldAttendance[$key]['start_time'];
+        //             $update = true;
+        //         }
+        //         } else {
+        //             $value['start_time'] = null;
+        //         }
+        //     }
+            
+        //     if (isset($value['end_time'])) {
+        //         if (!empty($value['end_time']) && strtotime($value['end_time']) === false) {
+        //             $this->addError($attribute, 'Attendance end time value not valid');
+        //             return;
+        //         }
+                
+        //         if (empty($value['end_time'])) {
+        //             $value['end_time'] = null;
+        //         }
+        //     }
+
+        //     if (isset($value['employee_id'])) {
+        //         $value['employee_id'] = intval($value['employee_id']);
+        //         if (!is_integer($value['employee_id']) || $value['employee_id'] < 1) {
+        //             $this->addError($attribute, 'Attendance employee id value must be an integer greater than 0');
+        //             return;
+        //         }
+                
+        //         $employee = Employee::find()->where(['id' => $value['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
+        //         if ($employee === null) {
+        //             $this->addError($attribute.'['.$key.'].employee_id', 'Employee not found');
+        //             return;
+        //         }
+                
+        //         $department_id = $employee->employee_detail['department']['id'];
+        //         $work_time_id = $employee->employee_detail['work_time']['id']; 
+                
+        //         $department = Department::find()->where([
+        //             'id' => $department_id, 
+        //             'status' => Constants::STATUS_ACTIVE
+        //         ])->one();
+                
+        //         if ($department === null) {
+        //             $this->addError($attribute.'['.$key.'].employee_id', 'Department not found');
+        //             return;
+        //         }
+                    
+        //         $workTime = WorkTime::find()->where([
+        //             'id' => $work_time_id, 
+        //             'status' => Constants::STATUS_ACTIVE
+        //         ])->one();
+
+        //         if ($workTime === null) {
+        //             $this->addError($attribute.'['.$key.'].employee_id', 'Work Time not found');
+        //             return;
+        //         }
+                    
+        //         if (isset($value['device']['device_code'])) {
+        //             $device = Device::find()->where([
+        //                 'device_code' => $value['device']['device_code'], 
+        //                 'status' => Constants::STATUS_ACTIVE
+        //             ])->one();
+                    
+        //             if ($device === null) {
+        //                 $this->addError($attribute.'['.$key.'].device_code', 'Device not found');
+        //                 return;
+        //             }
+        //         }
+        //     }
+
+        //     $employeeAttendance['employee_name'] = $employee->name;
+        //     $employeeAttendance['department'] = ['id' => $department->id, 'name' => $department->name];
+        //     $employeeAttendance['work_time'] = ['id' => $workTime->id, 'entry_time' => $workTime->entry_time, 'home_time' => $workTime->home_time];
+        //     $employeeAttendance['employee_id'] = $value['employee_id'] ?? null;
+        //     $employeeAttendance['start_time'] = $value['start_time'] ?? null;
+        //     $employeeAttendance['end_time'] = $value['end_time'] ?? null;
+        //     $employeeAttendance = $this->insertInfoField($employeeAttendance);
+           
+        //     if (!empty($last_start_time)) {
+        //         if (strtotime($employeeAttendance['start_time']) < strtotime($last_start_time)) {
+        //             $this->addBlacklist($employeeAttendance['employee_id'], $employeeAttendance['start_time'], $this->date);
+        //             $employeeAttendance['start_time'] = date('H:i:s');
+        //         }
+        //     }
+        // }

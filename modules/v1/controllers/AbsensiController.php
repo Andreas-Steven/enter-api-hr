@@ -52,8 +52,8 @@ class AbsensiController extends CoreController
 		$result = $searchModel->search($params);
 
 		$dataProvider = $result['dataProvider'];
-		$totalAttendanceCount = $result['totalAttendanceCount'];
-		$displayAttendanceCount = $result['displayAttendanceCount'];
+		$totalAttendanceCount = $result['totalAttendanceCount'] ?? 0;
+		$displayAttendanceCount = $result['displayAttendanceCount'] ?? 0;
 		
 		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
 			return $coreValidateParams;

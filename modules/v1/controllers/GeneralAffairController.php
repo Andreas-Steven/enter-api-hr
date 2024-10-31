@@ -68,8 +68,8 @@ class GeneralAffairController extends CoreController
 				'detail_info' => $model->detail_info,
 				'item' => [
 					'items' => json_decode($model->data),
-					'quantity' => $model->item['quantity'],
-					'total_price' => $model->item['total_price'],
+					'quantity' => $model->item['quantity'] ?? null,
+					'total_price' => $model->item['total_price'] ?? null,
 				], 
 			];
 		}
