@@ -64,7 +64,7 @@ class AbsensiSearch extends Absensi
                 // 'defaultOrder' => [$this->sort => $this->sort_by],
             ],
             'pagination' => [
-                'pageSize' => $this->page_size,
+                // 'pageSize' => $this->page_size,
             ],
         ]);
 
