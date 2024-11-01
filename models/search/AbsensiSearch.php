@@ -19,7 +19,6 @@ class AbsensiSearch extends Absensi
     public $updated_by;
     public $deleted_at;
     public $deleted_by;
-    public $employee_id;
     public $employee_name;
     public $sort;
     public $sort_by;
@@ -33,7 +32,6 @@ class AbsensiSearch extends Absensi
             [['attendance', 'detail_info'], 'safe'],
             [['sort', 'sort_by', 'employee_name'], 'string'],
             [['date'], 'date', 'format' => 'Y-m-d'],
-            [['employee_id'], 'integer'],
         ];
     }
 
