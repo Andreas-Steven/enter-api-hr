@@ -193,23 +193,20 @@ class Absensi extends \yii\db\ActiveRecord
 
             $employeeAttendance['start_time'] = $value['start_time'] ?? null;
            
-            if (isset($value['end_time'])) {
-                if (!empty($value['end_time']) && strtotime($value['end_time']) === false) {
-                    $this->addError($attribute, 'Attendance end time value not valid');
-                    return;
-                } elseif (empty($value['end_time'])) {
-                    $value['end_time'] = null;
-                }
+            if (isset($value['end_time']) && !empty($value['end_time']) && strtotime($value['end_time']) === false) {
+                $this->addError($attribute, 'Attendance end time value not valid');
+                return;
+            } elseif (empty($value['end_time'])) {
+                $value['end_time'] = null;
             }
 
             $employeeAttendance['end_time'] = $value['end_time'] ?? null;
             $employeeAttendance = $this->insertInfoField($employeeAttendance);
-        }
+        } 
         
         if (isset($this->id)) {
             if ($employeeIndex !== false) {
                 $oldAttendance[$employeeIndex + 1] = $employeeAttendance;
-                // var_dump($oldAttendance[$employeeIndex + 1]); exit;
             } else {
                 array_push($oldAttendance, $employeeAttendance);
             }
@@ -217,7 +214,6 @@ class Absensi extends \yii\db\ActiveRecord
             $oldAttendance[1] = $employeeAttendance;
         }
 
-        
         $this->$attribute = $oldAttendance;
     }
 
