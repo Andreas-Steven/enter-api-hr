@@ -19,6 +19,10 @@ class GeneralAffairCategorySearch extends GeneralAffairCategory
     public $updated_by;
     public $deleted_at;
     public $deleted_by;
+    public $sort;
+    public $sort_by;
+    public $page;
+    public $page_size;
 
     /**
      * {@inheritdoc}
@@ -50,6 +54,11 @@ class GeneralAffairCategorySearch extends GeneralAffairCategory
      */
     public function search($params)
     {
+        $this->sort = isset($params['sort']) ? $params['sort'] : 'id';
+        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "SORT_ASC" : "SORT_DESC";
+        $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
+        $this->page = isset($params['page']) ? $params['page'] : 0 ;
+
         $query = GeneralAffairCategory::find();
         $query->where(Constants::STATUS_NOT_DELETED);
 
@@ -62,9 +71,9 @@ class GeneralAffairCategorySearch extends GeneralAffairCategory
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'sort'=> [
-                'defaultOrder' => ['id' => SORT_ASC]
+                'defaultOrder' => [$this->sort => $this->sort_by],
             ],
-            // 'pagination' => ['pageSize' => 2]
+            'pagination' => ['pageSize' => $this->page_size],
         ]);
 
         $this->load(['GeneralAffairCategorySearch' => $params]);
@@ -81,14 +90,14 @@ class GeneralAffairCategorySearch extends GeneralAffairCategory
             'status' => $this->status,
         ]);
 
-        // $query->andFilterWhere(['ilike', 'name', $this->name])
-        //     // ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
-        //     ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_at}'"), $this->created_at])
-        //     ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $this->created_by])
-        //     ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_at}'"), $this->updated_at])
-        //     ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_by}'"), $this->updated_by])
-        //     ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_at}'"), $this->deleted_at])
-        //     ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_by}'"), $this->deleted_by]);
+        $query->andFilterWhere(['ilike', 'name', $this->name])
+            // ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
+            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_at}'"), $this->created_at])
+            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $this->created_by])
+            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_at}'"), $this->updated_at])
+            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_by}'"), $this->updated_by])
+            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_at}'"), $this->deleted_at])
+            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_by}'"), $this->deleted_by]);
 
         return $dataProvider;
     }

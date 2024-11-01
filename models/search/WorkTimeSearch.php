@@ -16,6 +16,10 @@ class WorkTimeSearch extends WorkTime
     public $updated_by;
     public $deleted_at;
     public $deleted_by;
+    public $sort;
+    public $sort_by;
+    public $page;
+    public $page_size;
 
     public function rules()
     {
@@ -34,6 +38,11 @@ class WorkTimeSearch extends WorkTime
 
     public function search($params)
     {
+        $this->sort = isset($params['sort']) ? $params['sort'] : 'id';
+        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "SORT_ASC" : "SORT_DESC";
+        $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
+        $this->page = isset($params['page']) ? $params['page'] : 0 ;
+        
         $query = WorkTime::find();
         $query->where(Constants::STATUS_NOT_DELETED);
 
