@@ -13,13 +13,14 @@ use yii\data\ActiveDataProvider;
  */
 class AbsensiSearch extends Absensi
 {
-    public $employee_id;
     public $created_at;
     public $created_by;
     public $updated_at;
     public $updated_by;
     public $deleted_at;
     public $deleted_by;
+    public $employee_id;
+    public $employee_name;
     public $sort;
     public $sort_by;
     public $page;
@@ -30,7 +31,7 @@ class AbsensiSearch extends Absensi
         return [
             [['id', 'status', 'page_size', 'page'], 'integer'],
             [['attendance', 'detail_info'], 'safe'],
-            [['sort', 'sort_by'], 'string'],
+            [['sort', 'sort_by', 'employee_name'], 'string'],
             [['date'], 'date', 'format' => 'Y-m-d'],
             [['employee_id'], 'integer'],
         ];
@@ -72,7 +73,6 @@ class AbsensiSearch extends Absensi
         // $dataProvider->pagination->page = $this->page - 1;
 
         $this->load(['AbsensiSearch' => $params]);
-
         
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails
@@ -86,17 +86,6 @@ class AbsensiSearch extends Absensi
             'status' => $this->status,
             'date' => $this->date,
         ]);
-
-        if (isset($this->employee_id)) {
-            $query->andWhere(
-                'EXISTS (
-                    SELECT 1 
-                    FROM jsonb_each(attendance) AS attendance_record 
-                    WHERE (attendance_record.value->>\'employee_id\')::int = :employee_id
-                )',
-                [':employee_id' => $this->employee_id]
-            );
-        }
 
         $query
             ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
@@ -145,13 +134,13 @@ class AbsensiSearch extends Absensi
             ]
         );
 
-        if (isset($this->employee_id)) {
+        if (isset($this->employee_name)) {
             $attendanceQuery = new \yii\db\Expression(
                 "(
                     WITH attendance_elements AS (
                         SELECT key, value
                         FROM jsonb_each(attendance)
-                        WHERE (value->>'employee_id')::int = :employee_id
+                        WHERE value->>'employee_name' ILIKE :employee_name
                     ),
                     sorted_attendance AS (
                         SELECT key, value, row_number() OVER () AS rn
@@ -166,7 +155,7 @@ class AbsensiSearch extends Absensi
                     ':sort_field' => empty($this->sort) ? 'start_time' : $this->sort,
                     ':offset' => ($this->page - 1) * $this->page_size,
                     ':page_size' => $this->page_size,
-                    ':employee_id' => $this->employee_id
+                    ':employee_name' => '%' . $this->employee_name . '%'
                 ]
             );
         }

@@ -183,7 +183,7 @@ class Absensi extends \yii\db\ActiveRecord
             } elseif (!empty($last_start_time)) {
                 if (isset($value['start_time']) && !empty($value['start_time'])) {
                     if (strtotime($value['start_time']) < strtotime($last_start_time)) {
-                        $this->addBlacklist($employeeAttendance['employee_id'], $employeeAttendance['start_time'], $this->date);
+                        $this->addBlacklist($value['employee_id'], $value['start_time'], $employee->name, $this->date);
                         $value['start_time'] = date('H:i:s');
                     }
                 } else {
@@ -192,28 +192,30 @@ class Absensi extends \yii\db\ActiveRecord
             }
 
             $employeeAttendance['start_time'] = $value['start_time'] ?? null;
-           
-            if (isset($value['end_time']) && !empty($value['end_time']) && strtotime($value['end_time']) === false) {
-                $this->addError($attribute, 'Attendance end time value not valid');
-                return;
+            
+            if (isset($value['end_time']) && !empty($value['end_time'])) {
+                if (strtotime($value['end_time']) === false) {
+                    $this->addError($attribute, 'Attendance end time value not valid');
+                    return;
+                }
             } elseif (empty($value['end_time'])) {
                 $value['end_time'] = null;
             }
 
             $employeeAttendance['end_time'] = $value['end_time'] ?? null;
             $employeeAttendance = $this->insertInfoField($employeeAttendance);
+
+            if (isset($this->id)) {
+                if ($employeeIndex !== false) {
+                    $oldAttendance[$employeeIndex + 1] = $employeeAttendance;
+                } else {
+                    array_push($oldAttendance, $employeeAttendance);
+                }
+            } else {
+                $oldAttendance[1] = $employeeAttendance;
+            }
         } 
         
-        if (isset($this->id)) {
-            if ($employeeIndex !== false) {
-                $oldAttendance[$employeeIndex + 1] = $employeeAttendance;
-            } else {
-                array_push($oldAttendance, $employeeAttendance);
-            }
-        } else {
-            $oldAttendance[1] = $employeeAttendance;
-        }
-
         $this->$attribute = $oldAttendance;
     }
 
@@ -270,12 +272,14 @@ class Absensi extends \yii\db\ActiveRecord
 		return $attendance;
 	}
     
-    public function addBlacklist($employee_id, $start_time, $date)
+    public function addBlacklist($employee_id, $start_time, $name, $date)
     {
         $blacklist = [
             'employee_id' => $employee_id,
+            'employee_name' => $name,
             'start_time' => $start_time,
-            'date' => $date
+            'date' => $date,
+            'time' => date('H:i:s')
         ];
         $exsistingBlacklist = $this->detail_info['blacklist'];
         
@@ -301,7 +305,7 @@ class Absensi extends \yii\db\ActiveRecord
             $detailInfo['change_log'] = Yii::$app->coreAPI->changeLog($this, $insert) ?: null;
             $this->detail_info = $detailInfo;
         }
-
+        
         return parent::beforeSave($insert);
     }
 }
