@@ -28,6 +28,7 @@ class m241007_032424_create_work_time_table extends Migration
                 ]
             ]))
         ]);
+        his->addCommentOnColumn('{{%general_affair}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
 
     /**
@@ -36,5 +37,6 @@ class m241007_032424_create_work_time_table extends Migration
     public function safeDown()
     {
         $this->dropTable('{{%work_time}}');
+        $this->dropCommentFromColumn('{{%general_affair}}', 'status');
     }
 }

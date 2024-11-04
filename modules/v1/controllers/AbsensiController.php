@@ -138,4 +138,37 @@ class AbsensiController extends CoreController
 
 		return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
 	}
+
+	public function actionDelete()
+	{
+		$params = Yii::$app->getRequest()->getBodyParams();
+
+		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_DELETE)) {
+			return $coreBadRequestNoParams;
+		}
+
+		$model = Yii::$app->coreAPI->findModel(Absensi::className(), $params);
+
+		if ($model === null) {
+			return CoreController::coreDataNotFound();
+		}
+
+		if (!isset($params['code']) || empty($params['code'])) {
+			$params['status'] = Constants::STATUS_DELETED;
+		}
+
+		$model->scenario = Constants::SCENARIO_DELETE;
+
+		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
+			return $coreSuperadmin;
+		}
+
+		if ($model->load($params, '') && $model->validate()) {
+			if ($model->save()) {
+				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
+			}
+		}
+
+		return CoreController::coreBadRequest($model, Yii::t('app', 'deleteRecordFailed'));
+	}
 }

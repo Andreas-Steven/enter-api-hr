@@ -79,17 +79,6 @@ class Constants
         ];
     }
 
-    public static function conditionStatus() {
-        return [
-            self::NEW       => 'New',
-            self::GOOD      => 'Good',
-            self::POOR      => 'Poor',
-            self::USED_GOOD => 'Used_Good',
-            self::USED_POOR => 'Used_Poor',
-            self::DAMAGED   => 'Demaged',
-        ];
-    }
-
     public static function productIsReady() {
         return [
             self::IS_READY_ON => self::IS_READY_ON,
