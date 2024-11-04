@@ -179,7 +179,9 @@ class Absensi extends \yii\db\ActiveRecord
             }
             
             if ($employeeIndex !== false && $value['employee_id'] == $oldAttendance[$employeeIndex + 1]['employee_id']) {
-                $value['start_time'] = $oldAttendance[$employeeIndex + 1]['start_time'];
+                if ($oldAttendance[$employeeIndex + 1]['start_time'] != null) {
+                    $value['start_time'] = $oldAttendance[$employeeIndex + 1]['start_time'];
+                }
             } elseif (!empty($last_start_time)) {
                 if (isset($value['start_time']) && !empty($value['start_time'])) {
                     if (strtotime($value['start_time']) < strtotime($last_start_time)) {
