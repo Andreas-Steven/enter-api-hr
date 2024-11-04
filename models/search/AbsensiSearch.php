@@ -43,10 +43,9 @@ class AbsensiSearch extends Absensi
 
     public function search($params)
     {
-        $this->sort = isset($params['sort']) ? $params['sort'] : 'id';
-        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "SORT_ASC" : "SORT_DESC";
+        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "ASC" : "DESC";
         $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
-        $this->page = isset($params['page']) ? $params['page'] : 0 ;
+        $this->page = isset($params['page']) ? $params['page'] : 0;
 
         $query = Absensi::find();
         $query->where(Constants::STATUS_NOT_DELETED);
@@ -94,69 +93,41 @@ class AbsensiSearch extends Absensi
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_at}'"), $this->deleted_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_by}'"), $this->deleted_by]);
 
-        if (isset($params['sort_by']) && !empty($params['sort_by'])) {
-            if ($params['sort_by'] == 'asc') {
-                $this->sort_by = 'ASC';
-            } else {
-                $this->sort_by = 'DESC';
-            }
-        } else {
-            $this->sort_by = 'DESC';
-        }
-
-        if (isset($params['sort']) && !empty($params['sort'])) {
-            $this->sort = $params['sort'];
-        } else {
-            $this->sort = 'start_time';
-        }
-
-        $attendanceQuery = new \yii\db\Expression(
-            "(
-                WITH attendance_elements AS (
-                    SELECT value
-                    FROM jsonb_each(attendance)
-                ),
-                sorted_attendance AS (
-                    SELECT value, row_number() OVER () AS rn
-                    FROM attendance_elements
-                    ORDER BY (value->>:sort_field)::time {$this->sort_by}
-                )
-                SELECT jsonb_agg(value)
+        $attendanceQuerySql = "(
+            WITH attendance_elements AS (
+                SELECT value
+                FROM jsonb_each(attendance)
+                " . (isset($this->employee_name) ? "WHERE value->>'employee_name' ILIKE :employee_name" : "") . "
+                " . (isset($this->department) ? "AND value->'department'->>'name' ILIKE :department" : "") . "
+            ),
+            sorted_attendance AS (
+                SELECT value, row_number() OVER (ORDER BY value->>:sort_field {$this->sort_by}) AS rn
+                FROM attendance_elements
+            ),
+            paginated_attendance AS (
+                SELECT value
                 FROM sorted_attendance
                 WHERE rn > :offset AND rn <= :offset + :page_size
-            )",
-            [
-                ':sort_field' => empty($this->sort) ? 'start_time' : $this->sort,
-                ':offset' => ($this->page - 1) * $this->page_size,
-                ':page_size' => $this->page_size
-            ]
-        );
+            )
+            SELECT jsonb_agg (value)
+            FROM paginated_attendance
+        )";
 
+        $attendanceQueryParams = [
+            ':sort_field' => isset($this->sort) ? $this->sort : 'start_time',
+            ':offset' => ($this->page - 1) * $this->page_size,
+            ':page_size' => $this->page_size
+        ];
+        
         if (isset($this->employee_name)) {
-            $attendanceQuery = new \yii\db\Expression(
-                "(
-                    WITH attendance_elements AS (
-                        SELECT key, value
-                        FROM jsonb_each(attendance)
-                        WHERE value->>'employee_name' ILIKE :employee_name
-                    ),
-                    sorted_attendance AS (
-                        SELECT key, value, row_number() OVER () AS rn
-                        FROM attendance_elements
-                        ORDER BY (value->>:sort_field)::time {$this->sort_by}
-                    )
-                    SELECT jsonb_object_agg(key, value)
-                    FROM sorted_attendance
-                    WHERE rn > :offset AND rn <= :offset + :page_size
-                )",
-                [
-                    ':sort_field' => empty($this->sort) ? 'start_time' : $this->sort,
-                    ':offset' => ($this->page - 1) * $this->page_size,
-                    ':page_size' => $this->page_size,
-                    ':employee_name' => '%' . $this->employee_name . '%'
-                ]
-            );
+            $attendanceQueryParams[':employee_name'] = '%' . $this->employee_name . '%';
         }
+
+        if (isset($this->department)) {
+            $attendanceQueryParams[':department'] = '%' . $this->department . '%';
+        }
+
+        $attendanceQuery = new \yii\db\Expression($attendanceQuerySql, $attendanceQueryParams);
 
         $query->addSelect([
             '*',
@@ -164,28 +135,21 @@ class AbsensiSearch extends Absensi
         ]);
         
         $totalAttendanceCount = (new \yii\db\Query())
-            ->select(new \yii\db\Expression("
-                COUNT(*)
-            "))
-            ->from(['a' => 'absensi'])
-            ->leftJoin(['ae' => new \yii\db\Expression('jsonb_each(a.attendance)')], 'true')
-            ->where(Constants::STATUS_NOT_DELETED)->scalar();
-        
+            ->from('absensi')
+            ->leftJoin(['ae' => new \yii\db\Expression('jsonb_each(absensi.attendance)')], 'true')
+            ->where(Constants::STATUS_NOT_DELETED)
+            ->count();
+
         $displayAttendanceCount = (new \yii\db\Query())
-            ->select(new \yii\db\Expression("count(*)"))
             ->from(['attendance_elements' => (new \yii\db\Query())
-                ->select(new \yii\db\Expression("
-                    value, row_number() OVER () AS rn
-                "))
-                ->from(['a' => 'absensi'])
-                ->leftJoin(['ae' => new \yii\db\Expression('jsonb_each(a.attendance)')], 'true')
+                ->select(['value', new \yii\db\Expression('row_number() OVER () AS rn')])
+                ->from('absensi')
+                ->leftJoin(['ae' => new \yii\db\Expression('jsonb_each(absensi.attendance)')], 'true')
                 ->where(Constants::STATUS_NOT_DELETED)
                 ->orderBy(new \yii\db\Expression("ae.value->>'start_time' DESC"))
             ])
-            ->where(new \yii\db\Expression("rn > :offset AND rn <= :limit", [
-                ':offset' => ($this->page - 1) * $this->page_size,
-                ':limit' => $this->page * $this->page_size
-            ]))->scalar();
+            ->where(['between', 'rn', ($this->page - 1) * $this->page_size + 1, $this->page * $this->page_size])
+            ->count();
 
         return [
             'dataProvider' => $dataProvider,
@@ -194,3 +158,73 @@ class AbsensiSearch extends Absensi
         ];
     }
 }
+
+/*
+$attendanceQuery = new \yii\db\Expression(
+    "(
+        WITH attendance_elements AS (
+            SELECT value
+            FROM jsonb_each(attendance)
+        ),
+        sorted_attendance AS (
+            SELECT value, row_number() OVER () AS rn
+            FROM attendance_elements
+            ORDER BY value->>:sort_field {$this->sort_by}
+        )
+        SELECT jsonb_agg(value)
+        FROM sorted_attendance
+        WHERE rn > :offset AND rn <= :offset + :page_size
+    )",
+    [
+        ':sort_field' => empty($this->sort) ? 'start_time' : $this->sort,
+        ':offset' => ($this->page - 1) * $this->page_size,
+        ':page_size' => $this->page_size
+    ]
+);
+
+if (isset($this->employee_name)) {
+    $attendanceQuery = new \yii\db\Expression(
+        "(
+            WITH attendance_elements AS (
+                SELECT key, value
+                FROM jsonb_each(attendance)
+                WHERE value->>'employee_name' ILIKE :employee_name
+            )
+            SELECT jsonb_object_agg(key, value)
+            FROM attendance_elements
+        )",
+        [
+            ':employee_name' => '%' . $this->employee_name . '%'
+        ]
+    );
+}
+
+$query->addSelect([
+    '*',
+    'attendance' => $attendanceQuery,
+]);
+
+$totalAttendanceCount = (new \yii\db\Query())
+    ->select(new \yii\db\Expression("
+        COUNT(*)
+    "))
+    ->from(['a' => 'absensi'])
+    ->leftJoin(['ae' => new \yii\db\Expression('jsonb_each(a.attendance)')], 'true')
+    ->where(Constants::STATUS_NOT_DELETED)->scalar();
+
+$displayAttendanceCount = (new \yii\db\Query())
+    ->select(new \yii\db\Expression("count(*)"))
+    ->from(['attendance_elements' => (new \yii\db\Query())
+        ->select(new \yii\db\Expression("
+            value, row_number() OVER () AS rn
+        "))
+        ->from(['a' => 'absensi'])
+        ->leftJoin(['ae' => new \yii\db\Expression('jsonb_each(a.attendance)')], 'true')
+        ->where(Constants::STATUS_NOT_DELETED)
+        ->orderBy(new \yii\db\Expression("ae.value->>'start_time' DESC"))
+    ])
+    ->where(new \yii\db\Expression("rn > :offset AND rn <= :limit", [
+        ':offset' => ($this->page - 1) * $this->page_size,
+        ':limit' => $this->page * $this->page_size
+    ]))->scalar();
+*/
