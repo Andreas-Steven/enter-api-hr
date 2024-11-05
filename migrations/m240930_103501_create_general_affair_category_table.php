@@ -27,6 +27,7 @@ class m240930_103501_create_general_affair_category_table extends Migration
                 ]
             ]))
         ]);
+        $this->addCommentOnColumn('{{%general_affair_category}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
 
     /**
@@ -34,6 +35,7 @@ class m240930_103501_create_general_affair_category_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropCommentFromColumn('{{%general_affair_category}}', 'status');
         $this->dropTable('{{%general_affair_category}}');
     }
 }

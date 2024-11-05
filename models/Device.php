@@ -42,8 +42,8 @@ class Device extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'location', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'location', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'device_location', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'device_location', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -73,7 +73,6 @@ class Device extends \yii\db\ActiveRecord
         if (parent::beforeSave($insert)) {
             $this->device_name = Yii::$app->coreAPI->htmlPurifier($this->device_name);
             $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-
             $this->detail_info = [
                 'change_log' => $this->change_log ?: null,
             ];

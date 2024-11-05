@@ -140,12 +140,13 @@ class Brand extends \yii\db\ActiveRecord
         if (parent::beforeSave($insert)) {
             $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
             $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-
             $this->detail_info = [
                 'change_log' => $this->change_log ?: null,
             ];
+
             return true;
         }
+
         return false;
     }
 }

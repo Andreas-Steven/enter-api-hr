@@ -43,6 +43,7 @@ class m241010_103834_create_employee_table extends Migration
                 ]
             ]))
         ]);
+        $this->addCommentOnColumn('{{%employee}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
 
     /**
@@ -50,6 +51,7 @@ class m241010_103834_create_employee_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropCommentFromColumn('{{%employee}}', 'status');
         $this->dropTable('{{%employee}}');
     }
 }

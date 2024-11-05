@@ -48,5 +48,6 @@ return [
     'notExists' => 'Data not exist.',
     'dayOff' => 'Data cannot be added on day off.',
     'emptyItem' => 'Item cannot be blank.',
+    'dateEmpty' => 'Date cannot be blank.',
 ];
 

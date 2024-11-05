@@ -34,6 +34,7 @@ class m241007_045814_create_device_table extends Migration
                 ]
             ]))
         ]);
+        $this->addCommentOnColumn('{{%device}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
 
     /**
@@ -41,6 +42,7 @@ class m241007_045814_create_device_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropCommentFromColumn('{{%device}}', 'status');
         $this->dropTable('{{%device}}');
     }
 }

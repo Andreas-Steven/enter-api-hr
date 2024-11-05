@@ -12,6 +12,37 @@ use app\components\CustomException;
 
 class CoreAPI 
 {
+	public function timestamp()
+	{
+		return gmdate("Y-m-d\TH:i:s\Z");
+	}
+
+	public function username() 
+	{
+		if ($username = Yii::$app->session->get('username')) {
+			return $username;
+		}
+		return 'admin';
+	}
+
+	public function superAdmin() 
+    {
+		$roles = Yii::$app->session->get('roles', []);
+
+		if (!in_array('superadmin', $roles)) {
+			return false;
+		}
+
+		return true;
+    }
+
+	function htmlPurifier($value){
+		$dirtyHtml = HtmlPurifier::process($value);
+		$cleanText = strip_tags($dirtyHtml);
+
+		return $cleanText;
+	}
+
 	public function findModel($model, $params, $where=[])
 	{
 		if (isset($params['id'])) {
@@ -53,68 +84,6 @@ class CoreAPI
 		}
 	}
 
-	public static function detailInfoAddition($model, $change_log, $timestamp=null, $username=null) {
-		$tableName = $model->tableName();
-
-		switch ($tableName) {
-			case 'delivery_order':
-				$change_log['received_at'] = $timestamp;
-				$change_log['received_by'] = $username;
-			break;
-			case 'purchase':
-				$change_log['approved_at'] = $timestamp;
-				$change_log['approved_by'] = $username;
-			break;
-			
-			default:
-				
-			break;
-		}
-
-		return $change_log;
-	}
-
-	public function timestamp(){
-		return gmdate("Y-m-d\TH:i:s\Z");
-	}
-
-	public function username() {
-		if ($username = Yii::$app->session->get('username')) {
-			return $username;
-		}
-		return 'admin';
-	}
-
-	public function changeLog($model, $insert)
-	{
-		$timestamp = self::timestamp();
-		$username = Yii::$app->session->get('username');
-		$change_log = [];
-		
-		if ($insert) {
-			$change_log = [
-				'created_at' => $timestamp,
-				'created_by' => $username,
-				'updated_at' => null,
-				'updated_by' => null,
-				'deleted_at' => null,
-				'deleted_by' => null,
-			];
-		} else {
-			$change_log = $model['detail_info']['change_log'];
-
-			if ($model->status == Constants::STATUS_DELETED) {
-				$change_log['deleted_at'] = $timestamp;
-				$change_log['deleted_by'] = $username;
-			} else {
-				$change_log['updated_at'] = $timestamp;
-				$change_log['updated_by'] = $username;
-			}
-		}
-
-		$model->change_log = $change_log;
-		return $model->change_log;
-	}
 	public function validateStatusTransition($model, $params)
     {
 		$completedStatus = Constants::STATUS_COMPLETED;
@@ -166,17 +135,6 @@ class CoreAPI
 		}
 	}
 
-	public function superAdmin() 
-    {
-		$roles = Yii::$app->session->get('roles', []);
-
-		if (!in_array('superadmin', $roles)) {
-			return false;
-		}
-
-		return true;
-    }
-
 	public static function restrictStatusUpdate($status) 
     {
 		if (isset($status)) {
@@ -188,96 +146,44 @@ class CoreAPI
 		return false;
     }
 
-	function htmlPurifier($value){
-		$dirtyHtml = HtmlPurifier::process($value);
-		$cleanText = strip_tags($dirtyHtml);
-
-		return $cleanText;
-	}
-	
-	public function findExisiting($model, $params)
+	public function changeLog($model, $insert)
 	{
-		$existing = null;
-
-		if(isset($params['id'])) {
-			$existing = $model::find()->where(['id' => $params['id']])->one();
-		} elseif(isset($params['date'])) {
-			$existing = $model::find()->where(['date' => $params['date']])->one();			
-		} elseif(isset($params['name']) && isset($params['location_id'])) {
-			$existing = $model::find()->where(['name' => $params['name']])->andWhere(['location_id' => $params['location_id']])->one();			
-		}
+		$timestamp = self::timestamp();
+		$username = Yii::$app->session->get('username');
+		$change_log = [];
 		
-		if ($existing != null) {
-			return $existing;
-		}
+		if ($insert) {
+			$change_log = [
+				'created_at' => $timestamp,
+				'created_by' => (is_null($username) ? 'System' : $username), 
+				'updated_at' => null,
+				'updated_by' => null,
+				'deleted_at' => null,
+				'deleted_by' => null,
+			];
+		} else {
+			$change_log = $model['detail_info']['change_log'];
 
-		return false;
-	}	
-
-	public function sanitizeEmptyFields($data)
-    {
-        foreach ($data as $key => $value) {
-            if (is_array($value)) {
-                $data[$key] = array_filter($value, function ($val) {
-                    return $val !== "";
-                });
-            } else {
-                if ($value === "") {
-                    $data[$key] = null;
-                }
-            }
-        }
-
-        return $data;
-    }
-
-	public function sanitizeData($data, $type)
-	{
-		$mappings = [
-			'item' => [
-				'price' => 'floatval',
-				'condition' => 'intval',
-				'department.id' => 'intval',
-			],
-			'attendance' => [
-				'employee_id' => 'intval',
-				'device.id' => 'intval',
-				'work_time.id' => 'intval',
-				'department.id' => 'intval',
-			],
-		];
-	
-		if (isset($mappings[$type])) {
-			foreach ($mappings[$type] as $key => $function) {
-				$keys = explode('.', $key);
-				$temp = &$data;
-
-				foreach ($keys as $k) {
-					if (isset($temp[$k])) {
-						$temp = &$temp[$k];
-					} else {
-						continue 2;
-					}
-				}
-
-				$temp = $function($temp);
+			if ($model->status == Constants::STATUS_DELETED) {
+				$change_log['deleted_at'] = $timestamp;
+				$change_log['deleted_by'] = (is_null($username) ? 'System' : $username);
+			} else {
+				$change_log['updated_at'] = $timestamp;
+				$change_log['updated_by'] = (is_null($username) ? 'System' : $username);
 			}
 		}
-	
-		return $data;
+		
+		$model->change_log = $change_log;
+		return $model->change_log;
 	}
 
-	public function insertEmployeeDetail($data, $model)
+	public function detailInfoAddition($model, $insert) 
 	{
-		$department = $model->getDepartment($data['department']['id']);
-		$data['department']['id'] = $department['department']['id'];
-		$data['department']['name'] = $department['department']['name'];
-		
-		$workTime = $model->getWorkTime($data['work_time']['id']);
-		$data['work_time']['id'] = $workTime['work_time']['id'];
-		$data['work_time']['entry_time'] = $workTime['work_time']['entry_time'];
-		$data['work_time']['home_time'] = $workTime['work_time']['home_time'];
-	
-		return $data;
+			$detail_info = $model->detail_info;
+			$detail_info['dayoff'] = false;
+			$detail_info['blacklist'] = [];
+			$model->detail_info = $detail_info;
+
+			return $detail_info;
 	}
 }

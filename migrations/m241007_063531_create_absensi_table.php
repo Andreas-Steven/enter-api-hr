@@ -15,50 +15,11 @@ class m241007_063531_create_absensi_table extends Migration
         $this->createTable('{{%absensi}}', [
             'id' => $this->primaryKey(),
             'date' => $this->date()->notNull(),
-            'dayoff' => $this->boolean()->notNull()->defaultValue(false),
-            'attendance' => $this->json()->notNull()->defaultValue(json_encode([
-                'employee_id'   => null,
-                'employee_name' => null,
-                'start_time'    => null,
-                'end_time'      => null,
-                'device' => [
-                    'id'            => null,
-                    'device_code'   => null,
-                    'device_name'   => null
-                ],
-                'info' => [
-                    'in'        => false,
-                    'out'       => false,
-                    'detail'    => []
-                ],
-                'department' => [
-                    'id'        => null,
-                    'name'      => null
-                ],
-                'work_time' => [
-                    'id'        => null,
-                    'end_time'  => null,
-                    'home_time' => null
-                ],
-                'location' => [
-                    'lat'       => null,
-                    'long'      => null,
-                    'image'     => []
-                ]
-            ])),
-            'blacklist' => $this->json()->notNull()->defaultValue(json_encode([])),
+            'attendance' => $this->json()->notNull()->defaultValue(json_encode([])),
             'status' => $this->smallInteger()->notNull()->defaultValue(2),
-            'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
-                'change_log' => [
-                    'created_at' => null,
-                    'created_by' => null,
-                    'deleted_by' => null,
-                    'deleted_at' => null,
-                    'updated_at' => null,
-                    'updated_by' => null
-                ]
-            ]))
+            'detail_info' => $this->json()->notNull()->defaultValue(json_encode([]))
         ]);
+        $this->addCommentOnColumn('{{%absensi}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
 
     /**
@@ -66,6 +27,7 @@ class m241007_063531_create_absensi_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropCommentFromColumn('{{%absensi}}', 'status');
         $this->dropTable('{{%absensi}}');
     }
 }

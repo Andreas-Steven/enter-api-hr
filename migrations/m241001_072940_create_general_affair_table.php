@@ -13,49 +13,15 @@ class m241001_072940_create_general_affair_table extends Migration
     public function safeUp()
     {
         $this->createTable('{{%general_affair}}', [
-            'id'            => $this->primaryKey(),
-            'name'          => $this->string(255)->notNull(),
-            'category_id'   => $this->integer()->notNull(),
-            'location_id'   => $this->integer()->notNull(),
-            'status'        => $this->smallInteger()->notNull()->defaultValue(2),
-            'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
-                'change_log' => [
-                    'created_at' => null,
-                    'created_by' => null,
-                    'deleted_by' => null,
-                    'deleted_at' => null,
-                    'updated_at' => null,
-                    'updated_by' => null
-                ]
-            ])),
-            'item' => $this->json()->notNull()->defaultValue(json_encode([
-                'quantity'      => null,
-                'total_price'   => null,
-                'items' => [
-                    'code'              => null,
-                    'price'             => null,
-                    'condition'         => null,
-                    'buying_date'       => null,
-                    'tax_date'          => null,
-                    'inspection_date'   => null,
-                    'description'       => null,
-                    'image'             => [],
-                    'status'            => null,
-                    'department' => [
-                        'id'            => null,
-                        'name'          => null
-                    ],
-                    'item_change_log' => [
-                        'created_at'    => null,
-                        'created_by'    => null,
-                        'deleted_by'    => null,
-                        'deleted_at'    => null,
-                        'updated_at'    => null,
-                        'updated_by'    => null
-                    ]
-                ]
-            ])),
+            'id' => $this->primaryKey(),
+            'name' => $this->string(255)->notNull(),
+            'category_id' => $this->integer()->notNull(),
+            'location_id' => $this->integer()->notNull(),
+            'status' => $this->smallInteger()->notNull()->defaultValue(2),
+            'detail_info' => $this->json()->notNull()->defaultValue(json_encode([])),
+            'item' => $this->json()->notNull()->defaultValue(json_encode([])),
         ]);
+
         $this->addForeignKey(
             '{{%general_affair_category_id_fk}}',
             '{{%general_affair}}',
@@ -64,7 +30,6 @@ class m241001_072940_create_general_affair_table extends Migration
             'id',
             'CASCADE'
         );
-
         $this->addForeignKey(
             '{{%general_affair_location_id_fk}}',
             '{{%general_affair}}',
@@ -73,6 +38,7 @@ class m241001_072940_create_general_affair_table extends Migration
             'id',
             'CASCADE'
         );
+        $this->addCommentOnColumn('{{%general_affair}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
 
     /**
@@ -80,6 +46,7 @@ class m241001_072940_create_general_affair_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropCommentFromColumn('{{%general_affair}}', 'status');
         $this->dropTable('{{%general_affair}}');
     }
 }

@@ -76,13 +76,11 @@ class DeviceController extends CoreController
 			return CoreController::coreValidateParams($unavailableParams);
         }
 
-		$params['status'] = Constants::STATUS_DRAFT;
-		$model->scenario = Constants::SCENARIO_CREATE;
-
-        if (isset($params['location'])) {
-            $params['location'] = json_encode($params['location']);
+        if (isset($params['device_location'])) {
+			$params['device_location'] = json_encode($params['device_location']);
         }
-
+		
+		$model->scenario = Constants::SCENARIO_CREATE;
 		if ($model->load($params, '') && $model->save()) {
 			return CoreController::coreSuccess($model, 'insertRecordSuccess');
 		}

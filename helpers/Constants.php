@@ -19,7 +19,7 @@ class Constants
     const CODE_EXCEPTION = 'Z';
     const CODE_MAX_LENGTH = 4;
     const CSRF_VALIDATION = false;
-    const AUTH_EXCEPTION = '';
+    const AUTH_EXCEPTION = '*';
     const STATUS_NOT_DELETED = [
         '<>', 'status', self::STATUS_DELETED
     ];
@@ -76,17 +76,6 @@ class Constants
             self::STATUS_ACTIVE         => 'Active',
             self::STATUS_DRAFT          => 'Draft',
             self::STATUS_MAINTENANCE    => 'Maintenance',
-        ];
-    }
-
-    public static function conditionStatus() {
-        return [
-            self::NEW       => 'New',
-            self::GOOD      => 'Good',
-            self::POOR      => 'Poor',
-            self::USED_GOOD => 'Used_Good',
-            self::USED_POOR => 'Used_Poor',
-            self::DAMAGED   => 'Demaged',
         ];
     }
 

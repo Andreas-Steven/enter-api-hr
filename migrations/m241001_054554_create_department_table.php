@@ -28,6 +28,7 @@ class m241001_054554_create_department_table extends Migration
                 ]
             ]))
         ]);
+        $this->addCommentOnColumn('{{%department}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
 
     /**
@@ -35,6 +36,7 @@ class m241001_054554_create_department_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropCommentFromColumn('{{%department}}', 'status');
         $this->dropTable('{{%department}}');
     }
 }

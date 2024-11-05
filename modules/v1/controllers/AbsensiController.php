@@ -13,9 +13,6 @@ use app\helpers\Constants;
 use app\controllers\CoreController;
 use app\models\search\AbsensiSearch;
 
-/**
- * AbsensiController implements the CRUD actions for Absensi model.
- */
 class AbsensiController extends CoreController
 {
 	public $enableCsrfValidation = false;
@@ -50,65 +47,56 @@ class AbsensiController extends CoreController
 	public function actionData()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
+
 		$searchModel = new AbsensiSearch();
 		$dataProvider = $searchModel->search($params);
-
+		$totalAttendanceCount = $dataProvider['totalAttendanceCount'] ?? 0;
+		$displayAttendanceCount = $dataProvider['displayAttendanceCount'] ?? 0;
+		
 		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
 			return $coreValidateParams;
 		}
-
-		$models = $dataProvider->getModels();
-		$result = [];
-	
-		foreach ($models as $model) {
-			$filters = [];
-            if (!empty($params['attendance']['employee_id'])) {
-                $filters['employee_id'] = $params['attendance']['employee_id'];
-            }
-            if (!empty($params['attendance']['department']['id'])) {
-                $filters['department.id'] = $params['attendance']['department']['id'];
-            }
-            $filteredAttendance = Yii::$app->AbsensiCoreAPI->filterAttendances($model->attendance, $filters);
-
-            if (!empty($filteredAttendance)) {
-                $model->attendance = array_values($filteredAttendance);
-                $result[] = $model;
-            }
-		}
-
-		return [
+		
+		$data = [
 			'code' => 200,
 			'success' => true,
-			'message' => Yii::t('app', 'success'),
-			'data' => !empty($result) ? $result : null,
+			'message' => Yii::t('app', 'success'), 
+			'pagination' => [
+				'page' => intval(isset($params['page']) ? $params['page'] : 1),
+				'total' => $totalAttendanceCount,
+				'display' => $displayAttendanceCount,
+			],
+			'data' => $dataProvider['dataProvider'],
 		];
+
+		return $data;
 	}
 
 	public function actionCreate()
 	{
 		$model = new Absensi();
 		$params = Yii::$app->getRequest()->getBodyParams();
-		$rules = $model->rules();
         
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
             return CoreController::coreValidateParams($unavailableParams);
         }
 
-		if ($model === null) {
-            return CoreController::coreDataNotFound();
+		if (!isset($params['date']) || $params['date'] === "") {
+			return CoreController::coreBadRequest($model, Yii::t('app', 'dateEmpty'));
 		}
 
+		$model = Absensi::find()->where([
+			'date' => $params['date']
+		])->one();
+
+		if ($model === null) {
+			$model = new Absensi();
+		}
+
+		$params['status'] = Constants::STATUS_DRAFT;
 		$model->scenario = Constants::SCENARIO_CREATE;
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($exisiting = Yii::$app->coreAPI->findExisiting($model, $params)) {
-				if ($callBack = $model->updateInsertAttendance($params, $exisiting)) {
-					return CoreController::coreSuccess($callBack, 'insertRecordSuccess');
-				}
-	
-				return CoreController::coreSuccess($callBack, 'insertRecordFailed');
-			}
-	
 			if ($model->save()) {
 				return CoreController::coreSuccess($model, 'insertRecordSuccess');
 			}
@@ -116,52 +104,41 @@ class AbsensiController extends CoreController
 
 		return CoreController::coreBadRequest($model, Yii::t('app', 'insertRecordFailed'));
 	}
-	
+
 	public function actionUpdate()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		// Search for ID
-		$searchModel = new AbsensiSearch();
-		$dataProvider = $searchModel->search($params);
-		$model = $dataProvider->getModels();
-		
-		if (empty($model)) {
-			return CoreController::coreDataNotFound();
-		}
-
-		$absensiModel = $model[0];
-		$params['id'] = $absensiModel->id;
-		
-		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_UPDATE)) {		
+		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_UPDATE)) {
 			return $coreBadRequestNoParams;
 		}
 		
 		$model = Yii::$app->coreAPI->findModel(Absensi::className(), $params);
+		$rules = $model->rules();
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
 
-		$rules = $model->rules();
-		$model->scenario = Constants::SCENARIO_UPDATE;
-		
 		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
 			return CoreController::coreValidateParams($unavailableParams);
-		}
+        }
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
 			return $coreSuperadmin;
 		}
 
-		if ($callback = $model->updateData($params)) {
-			return CoreController::coreSuccess($callback, 'updateRecordSuccess');
+		$model->scenario = Constants::SCENARIO_UPDATE;
+
+		if ($model->load($params, '') && $model->validate()) {
+			if ($model->save()) {
+				return CoreController::coreSuccess($model, 'updateRecordSuccess');
+			}
 		}
 
 		return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
 	}
 
-	/*
 	public function actionDelete()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
@@ -170,13 +147,16 @@ class AbsensiController extends CoreController
 			return $coreBadRequestNoParams;
 		}
 
-		$model = Yii::$app->coreAPI->findModel(Brand::className(), $params);
+		$model = Yii::$app->coreAPI->findModel(Absensi::className(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
 
-		$params['status'] = Constants::STATUS_DELETED;
+		if (!isset($params['code']) || empty($params['code'])) {
+			$params['status'] = Constants::STATUS_DELETED;
+		}
+
 		$model->scenario = Constants::SCENARIO_DELETE;
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
@@ -191,5 +171,4 @@ class AbsensiController extends CoreController
 
 		return CoreController::coreBadRequest($model, Yii::t('app', 'deleteRecordFailed'));
 	}
-	*/
 }
