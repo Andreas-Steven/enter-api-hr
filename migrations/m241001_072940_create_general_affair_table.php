@@ -38,7 +38,6 @@ class m241001_072940_create_general_affair_table extends Migration
             'id',
             'CASCADE'
         );
-
         $this->addCommentOnColumn('{{%general_affair}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
 
@@ -47,7 +46,7 @@ class m241001_072940_create_general_affair_table extends Migration
      */
     public function safeDown()
     {
-        $this->dropTable('{{%general_affair}}');
         $this->dropCommentFromColumn('{{%general_affair}}', 'status');
+        $this->dropTable('{{%general_affair}}');
     }
 }

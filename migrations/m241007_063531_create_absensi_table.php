@@ -19,7 +19,6 @@ class m241007_063531_create_absensi_table extends Migration
             'status' => $this->smallInteger()->notNull()->defaultValue(2),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([]))
         ]);
-
         $this->addCommentOnColumn('{{%absensi}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
 
@@ -28,7 +27,7 @@ class m241007_063531_create_absensi_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropCommentFromColumn('{{%absensi}}', 'status');
         $this->dropTable('{{%absensi}}');
-        $this->dropCommentFromColumn('{{%purchase}}', 'status');
     }
 }

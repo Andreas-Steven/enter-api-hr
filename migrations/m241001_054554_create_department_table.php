@@ -28,7 +28,7 @@ class m241001_054554_create_department_table extends Migration
                 ]
             ]))
         ]);
-        his->addCommentOnColumn('{{%general_affair}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
+        $this->addCommentOnColumn('{{%department}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
 
     /**
@@ -36,7 +36,7 @@ class m241001_054554_create_department_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropCommentFromColumn('{{%department}}', 'status');
         $this->dropTable('{{%department}}');
-        $this->dropCommentFromColumn('{{%general_affair}}', 'status');
     }
 }

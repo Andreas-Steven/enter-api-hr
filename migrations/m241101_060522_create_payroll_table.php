@@ -14,8 +14,10 @@ class m241101_060522_create_payroll_table extends Migration
     {
         $this->createTable('{{%payroll}}', [
             'id' => $this->primaryKey(),
+            'status' => $this->smallInteger()->notNull()->defaultValue(2),
+            'detail_info' => $this->json()->notNull()->defaultValue(json_encode([]))
         ]);
-        his->addCommentOnColumn('{{%general_affair}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
+        $this->addCommentOnColumn('{{%payroll}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
 
     /**
@@ -23,7 +25,7 @@ class m241101_060522_create_payroll_table extends Migration
      */
     public function safeDown()
     {
+        $this->dropCommentFromColumn('{{%payroll}}', 'status');
         $this->dropTable('{{%payroll}}');
-        $this->dropCommentFromColumn('{{%general_affair}}', 'status');
     }
 }

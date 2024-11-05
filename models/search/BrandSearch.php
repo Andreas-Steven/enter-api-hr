@@ -4,9 +4,9 @@ namespace app\models\search;
 
 use Yii;
 use yii\base\Model;
-use yii\data\ActiveDataProvider;
-use app\helpers\Constants;
 use app\models\Brand;
+use app\helpers\Constants;
+use yii\data\ActiveDataProvider;
 
 /**
  * BrandSearch represents the model behind the search form of `app\models\Brand`.
