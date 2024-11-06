@@ -97,9 +97,9 @@ class EmployeeSearch extends Employee
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_at}'"), $this->deleted_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_by}'"), $this->deleted_by]);
 
-            if (!empty($this->contact)) {
-                $query->andWhere(new \yii\db\Expression("EXISTS (SELECT 1 FROM jsonb_array_elements_text(contact::jsonb) AS elem WHERE elem ILIKE :contact)"), [':contact' => '%' . $this->contact . '%']);
-            }
+        if (!empty($this->contact)) {
+            $query->andWhere(new \yii\db\Expression("EXISTS (SELECT 1 FROM jsonb_array_elements_text(contact::jsonb) AS elem WHERE elem ILIKE :contact)"), [':contact' => '%' . $this->contact . '%']);
+        }
 
         return $dataProvider;
     }
