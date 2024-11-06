@@ -30,6 +30,10 @@ class DeviceSearch extends Device
             [['id', 'status'], 'integer'],
             [['device_code', 'device_name', 'device_address', 'device_ip'], 'string', 'max' => 255],
             [['detail_info', 'device_location'], 'safe'],
+
+            // Pagination and Sorting Section
+            [['sort', 'sort_by'], 'string'],
+            [['page', 'page_size'], 'integer'],
         ];
     }
 
@@ -40,12 +44,7 @@ class DeviceSearch extends Device
     }
 
     public function search($params)
-    {
-        $this->sort = isset($params['sort']) ? $params['sort'] : 'id';
-        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "SORT_ASC" : "SORT_DESC";
-        $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
-        $this->page = isset($params['page']) ? $params['page'] : 0 ;
-        
+    {        
         $query = Device::find();
         $query->where(Constants::STATUS_NOT_DELETED);
 
@@ -57,10 +56,15 @@ class DeviceSearch extends Device
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'sort'=> [
-                'defaultOrder' => [$this->sort => $this->sort_by],
+            'sort' => [
+                'defaultOrder' => [
+                    isset($params['sort']) ? $params['sort'] : 'id' => isset($params['sort_by']) && $params['sort_by'] == 'asc' ? SORT_ASC : SORT_DESC
+                ],
             ],
-            'pagination' => ['pageSize' => $this->page_size],
+            'pagination' => [
+                'pageSize' => isset($params['page_size']) ? $params['page_size'] : 10,
+                'page' => isset($params['page']) ? $params['page'] : 1,
+            ],
         ]);
 
         $this->load(['DeviceSearch' => $params]);

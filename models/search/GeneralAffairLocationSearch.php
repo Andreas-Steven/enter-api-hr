@@ -24,41 +24,27 @@ class GeneralAffairLocationSearch extends GeneralAffairLocation
     public $page;
     public $page_size;
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return [
             [['id', 'status'], 'integer'],
             [['name', 'detail_info'], 'safe'],
             [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+            
+            // Pagination and Sorting Section
+            [['sort', 'sort_by'], 'string'],
+            [['page', 'page_size'], 'integer'],
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function scenarios()
     {
         // bypass scenarios() implementation in the parent class
         return Model::scenarios();
     }
 
-    /**
-     * Creates data provider instance with search query applied
-     *
-     * @param array $params
-     *
-     * @return ActiveDataProvider
-     */
     public function search($params)
     {
-        $this->sort = isset($params['sort']) ? $params['sort'] : 'id';
-        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "SORT_ASC" : "SORT_DESC";
-        $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
-        $this->page = isset($params['page']) ? $params['page'] : 0 ;
-
         $query = GeneralAffairLocation::find();
         $query->where(Constants::STATUS_NOT_DELETED);
 
@@ -70,10 +56,15 @@ class GeneralAffairLocationSearch extends GeneralAffairLocation
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'sort'=> [
-                'defaultOrder' => [$this->sort => $this->sort_by],
+            'sort' => [
+                'defaultOrder' => [
+                    isset($params['sort']) ? $params['sort'] : 'id' => isset($params['sort_by']) && $params['sort_by'] == 'asc' ? SORT_ASC : SORT_DESC
+                ],
             ],
-            'pagination' => ['pageSize' => $this->page_size],
+            'pagination' => [
+                'pageSize' => isset($params['page_size']) ? $params['page_size'] : 10,
+                'page' => isset($params['page']) ? $params['page'] : 1,
+            ],
         ]);
 
         $this->load(['GeneralAffairLocationSearch' => $params]);

@@ -27,6 +27,10 @@ class DivisionSearch extends Division
             [['id', 'status'], 'integer'],
             [['code', 'name', 'detail_info'], 'safe'],
             [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+            
+            // Pagination and Sorting Section
+            [['sort', 'sort_by'], 'string'],
+            [['page', 'page_size'], 'integer'],
         ];
     }
 
@@ -54,10 +58,15 @@ class DivisionSearch extends Division
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'sort'=> [
-                'defaultOrder' => [$this->sort => $this->sort_by],
+            'sort' => [
+                'defaultOrder' => [
+                    isset($params['sort']) ? $params['sort'] : 'id' => isset($params['sort_by']) && $params['sort_by'] == 'asc' ? SORT_ASC : SORT_DESC
+                ],
             ],
-            'pagination' => ['pageSize' => $this->page_size],
+            'pagination' => [
+                'pageSize' => isset($params['page_size']) ? $params['page_size'] : 10,
+                'page' => isset($params['page']) ? $params['page'] : 1,
+            ],
         ]);
 
         $this->load(['DivisionSearch' => $params]);

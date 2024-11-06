@@ -8,9 +8,6 @@ use app\models\Absensi;
 use app\helpers\Constants;
 use yii\data\ActiveDataProvider;
 
-/**
- * AbsensiSearch represents the model behind the search form of `app\models\Absensi`.
- */
 class AbsensiSearch extends Absensi
 {
     public $created_at;
