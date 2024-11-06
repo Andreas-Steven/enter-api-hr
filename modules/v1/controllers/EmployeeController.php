@@ -8,17 +8,14 @@ use yii\rest\Controller;
 use app\helpers\Constants;
 use yii\filters\VerbFilter;
 use app\components\CustomException;
+use app\controllers\CoreController;
 
 use app\models\Employee;
-use app\controllers\CoreController;
 use app\models\search\EmployeeSearch;
 
-/**
- * EmployeeController implements the CRUD actions for Employee model.
- */
 class EmployeeController extends CoreController
 {
-	public $enableCsrfValidation = false;
+    public $enableCsrfValidation = false;
 
 	public function behaviors()
 	{
@@ -47,7 +44,7 @@ class EmployeeController extends CoreController
 		return $data;
 	}
 
-	public function actionData()
+    public function actionData()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
@@ -62,6 +59,11 @@ class EmployeeController extends CoreController
 			'code' => 200,
 			'success' => true,
 			'message' => Yii::t('app', 'success'), 
+			'pagination' => [
+				'page' => intval(isset($params['page']) ? $params['page'] : 1),
+				'total' => $dataProvider->getTotalCount(),
+				'display' => $dataProvider->getCount(),
+			],
 			'data' => $dataProvider,
 		];
 
@@ -77,7 +79,8 @@ class EmployeeController extends CoreController
         if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
 			return CoreController::coreValidateParams($unavailableParams);
         }
-        
+
+		$params['status'] = Constants::STATUS_DRAFT;
 		$model->scenario = Constants::SCENARIO_CREATE;
 
 		if ($model->load($params, '') && $model->save()) {
@@ -134,13 +137,13 @@ class EmployeeController extends CoreController
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
-
+		
 		$params['status'] = Constants::STATUS_DELETED;
 		$model->scenario = Constants::SCENARIO_DELETE;
 
-		// if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-		// 	return $coreSuperadmin;
-		// }
+		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
+			return $coreSuperadmin;
+		}
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {

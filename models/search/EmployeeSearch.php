@@ -8,9 +8,6 @@ use app\models\Employee;
 use app\helpers\Constants;
 use yii\data\ActiveDataProvider;
 
-/**
- * EmployeeSearch represents the model behind the search form of `app\models\Employee`.
- */
 class EmployeeSearch extends Employee
 {
     public $created_at;
@@ -19,13 +16,18 @@ class EmployeeSearch extends Employee
     public $updated_by;
     public $deleted_at;
     public $deleted_by;
+    public $sort;
+    public $sort_by;
+    public $page;
+    public $page_size;
 
     public function rules()
     {
         return [
-            [['id', 'status'], 'integer'],
-            [['name'], 'string'],
-            [['employee_detail', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+            [['name', 'nik'], 'string'],
+            [['id', 'sso_id', 'division_id', 'status'], 'integer'],
+            [['birth_date', 'date_start', 'date_resign'], 'date'],
+            [['contact', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
         ];
     }
 
@@ -37,6 +39,11 @@ class EmployeeSearch extends Employee
 
     public function search($params)
     {
+        $this->sort = isset($params['sort']) ? $params['sort'] : 'id';
+        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "SORT_ASC" : "SORT_DESC";
+        $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
+        $this->page = isset($params['page']) ? $params['page'] : 0 ;
+
         $query = Employee::find();
         $query->where(Constants::STATUS_NOT_DELETED);
 
@@ -49,9 +56,9 @@ class EmployeeSearch extends Employee
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'sort'=> [
-                'defaultOrder' => ['id' => SORT_ASC]
+                'defaultOrder' => [$this->sort => $this->sort_by],
             ],
-            // 'pagination' => ['pageSize' => 2]
+            'pagination' => ['pageSize' => $this->page_size],
         ]);
 
         $this->load(['EmployeeSearch' => $params]);
@@ -66,16 +73,26 @@ class EmployeeSearch extends Employee
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
+            'sso_id' => $this->sso_id,
+            'division_id' => $this->division_id,
         ]);
-
-        $query->andFilterWhere(['ilike', 'name', $this->name])
-            // ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
+        
+        $query
+            ->andFilterWhere(['ilike', 'nik', $this->nik])
+            ->andFilterWhere(['ilike', 'name', $this->name])
+            ->andFilterWhere(['ilike', 'birth_date', $this->birth_date])
+            ->andFilterWhere(['ilike', 'date_start', $this->date_start])
+            ->andFilterWhere(['ilike', 'date_resign', $this->date_resign])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_at}'"), $this->created_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $this->created_by])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_at}'"), $this->updated_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_by}'"), $this->updated_by])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_at}'"), $this->deleted_at])
             ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_by}'"), $this->deleted_by]);
+
+            if (!empty($this->contact_search)) {
+                $query->andWhere(new \yii\db\Expression("EXISTS (SELECT 1 FROM jsonb_array_elements_text(contact::jsonb) AS elem WHERE elem ILIKE :contact_search)"), [':contact_search' => '%' . $this->contact . '%']);
+            }
 
         return $dataProvider;
     }

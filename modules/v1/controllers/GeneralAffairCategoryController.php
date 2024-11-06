@@ -51,14 +51,19 @@ class GeneralAffairCategoryController extends CoreController
 		$searchModel = new GeneralAffairCategorySearch();
 		$dataProvider = $searchModel->search($params);
 
-		// if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
-		// 	return $coreValidateParams;
-		// }
+		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
+			return $coreValidateParams;
+		}
 
 		$data = [
 			'code' => 200,
 			'success' => true,
 			'message' => Yii::t('app', 'success'), 
+			'pagination' => [
+				'page' => intval(isset($params['page']) ? $params['page'] : 1),
+				'total' => $dataProvider->getTotalCount(),
+				'display' => $dataProvider->getCount(),
+			],
 			'data' => $dataProvider,
 		];
 

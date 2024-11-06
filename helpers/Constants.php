@@ -28,21 +28,6 @@ class Constants
     const FLAG_TYPE_IN = 1;
     const FLAG_TYPE_OUT = 2;
 
-    // const NEW = 1;
-    // const GOOD = 2;
-    // const POOR = 3;
-    // const USED_GOOD = 4;
-    // const USED_POOR = 5;
-    // const DAMAGED = 6;
-
-    // CONDITION:
-    // 1 = new
-    // 2 = good
-    // 3 = poor
-    // 4 = used/good
-    // 5 = used/poor
-    // 6 = damaged
-
     public static function verbsAction() {
         return [
             'index'     => ['post'],

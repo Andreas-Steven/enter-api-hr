@@ -4,14 +4,11 @@ namespace app\models\search;
 
 use Yii;
 use yii\base\Model;
+use app\models\Division;
 use app\helpers\Constants;
-use app\models\EmployeeStatus;
 use yii\data\ActiveDataProvider;
 
-/**
- * EmployeeStatusSearch represents the model behind the search form of `app\models\EmployeeStatus`.
- */
-class EmployeeStatusSearch extends EmployeeStatus
+class DivisionSearch extends Division
 {
     public $created_at;
     public $created_by;
@@ -19,35 +16,34 @@ class EmployeeStatusSearch extends EmployeeStatus
     public $updated_by;
     public $deleted_at;
     public $deleted_by;
-    
+    public $sort;
+    public $sort_by;
+    public $page;
+    public $page_size;
+
     public function rules()
     {
         return [
             [['id', 'status'], 'integer'],
-            [['name'], 'string'],
+            [['code', 'name', 'detail_info'], 'safe'],
             [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function scenarios()
     {
         // bypass scenarios() implementation in the parent class
         return Model::scenarios();
     }
 
-    /**
-     * Creates data provider instance with search query applied
-     *
-     * @param array $params
-     *
-     * @return ActiveDataProvider
-     */
     public function search($params)
     {
-        $query = EmployeeStatus::find();
+        $this->sort = isset($params['sort']) ? $params['sort'] : 'id';
+        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "SORT_ASC" : "SORT_DESC";
+        $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
+        $this->page = isset($params['page']) ? $params['page'] : 0 ;
+
+        $query = Division::find();
         $query->where(Constants::STATUS_NOT_DELETED);
 
         // add conditions that should always apply here
@@ -59,12 +55,12 @@ class EmployeeStatusSearch extends EmployeeStatus
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'sort'=> [
-                'defaultOrder' => ['id' => SORT_ASC]
+                'defaultOrder' => [$this->sort => $this->sort_by],
             ],
-            // 'pagination' => ['pageSize' => 2]
+            'pagination' => ['pageSize' => $this->page_size],
         ]);
 
-        $this->load(['EmployeeStatusSearch' => $params]);
+        $this->load(['DivisionSearch' => $params]);
 
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails

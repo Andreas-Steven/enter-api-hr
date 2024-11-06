@@ -10,14 +10,20 @@ use app\helpers\Constants;
  *
  * @property int $id
  * @property string $name
- * @property string $employee_detail
- * @property int $status
+ * @property string $nik
+ * @property string $contact
+ * @property string|null $birth_date
+ * @property string|null $date_start
+ * @property string|null $date_resign
+ * @property int $sso_id
+ * @property int $division_id
+ * @property int $status 0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance
  * @property string $detail_info
  */
 class Employee extends \yii\db\ActiveRecord
 {
     public $change_log;
-
+    
     public static function tableName()
     {
         return 'employee';
@@ -26,24 +32,32 @@ class Employee extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name'], 'required'],
-            [['name'], 'string', 'max' => 255],
-            [['employee_detail', 'detail_info'], 'safe'],
-            
-            [['status'], 'integer'],
+            [['contact', 'detail_info'], 'safe'],
+            [['name', 'nik'], 'string', 'max' => 255],
+            [['sso_id', 'division_id', 'status'], 'integer'],
+
             [['status'], 'default', 'value' => 2],
-            [['status'], 'filter', 'filter' => 'intval'],
             [['status'], 'in', 'range' => array_keys(Constants::statusList())],
+            [['status', 'sso_id', 'division_id'], 'filter', 'filter' => 'intval'],
+            [['status'], 'validateStatusChange', 'on' => Constants::scenarioUpdate()],
+
+            [['nik', 'sso_id'], 'unique'],
+            [['nik', 'name', 'sso_id', 'division_id'], 'required'],
+            [['contact'], 'validateContact', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE]],
+
+            [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
+                return $value === "" ? null : $value; }],
+            [['birth_date', 'date_start', 'date_resign'], 'date', 'format' => 'php:Y-m-d', 'when' => function($model, $attribute) { 
+                return $model->$attribute !== null && isset($model->$attribute); }],
         ];
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'employee_detail', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'employee_detail', 'detail_info', 'status'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['nik', 'name', 'sso_id', 'division_id', 'birth_date', 'status', 'contact', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'sso_id', 'division_id', 'birth_date', 'date_start', 'date_resign', 'status', 'contact', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
-
         return $scenarios;
     }
 
@@ -52,7 +66,13 @@ class Employee extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'name' => 'Name',
-            'employee_detail' => 'Employee Detail',
+            'nik' => 'Nik',
+            'contact' => 'Contact',
+            'birth_date' => 'Birth Date',
+            'date_start' => 'Date Start',
+            'date_resign' => 'Date Resign',
+            'sso_id' => 'Sso ID',
+            'division_id' => 'Division ID',
             'status' => 'Status',
             'detail_info' => 'Detail Info',
         ];
@@ -63,44 +83,52 @@ class Employee extends \yii\db\ActiveRecord
         return new \app\models\query\EmployeeQuery(get_called_class());
     }
 
+    public function validateStatusChange($attribute, $params, $validator)
+    {
+        if (!$this->isNewRecord && $this->isAttributeChanged($attribute)) {
+            $oldStatus = $this->getOldAttribute($attribute);
+            $newStatus = $this->$attribute;
+
+            if ($oldStatus == Constants::STATUS_DELETED && $newStatus != Constants::STATUS_DELETED && !Yii::$app->coreAPI->superAdmin()) {
+                $this->addError($attribute, Yii::t('app', 'deletedStatusChange', ['status' => Constants::statusList()[Constants::STATUS_DELETED]]));
+            }
+        }
+    }
+
+    public function validateContact($attribute, $params, $validator)
+    {
+        $oldContact = $this->getOldAttribute($attribute);
+
+        if ($this->$attribute !== null && is_array($this->$attribute)) {
+            if (is_array($oldContact)) {
+                foreach ($this->$attribute as $index => $newContact) {
+                    if (array_key_exists($index, $oldContact)) {
+                        if ($newContact != $oldContact[$index]) {
+                            $oldContact[$index] = $newContact;
+                        }
+                    } else {
+                        $oldContact[] = $newContact;
+                    }
+                }
+                $this->$attribute = $oldContact;
+            } else {
+                $this->$attribute = array_values(array_unique($this->$attribute));
+            }
+        }
+    }
 
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->employee_detail = Yii::$app->coreAPI->insertEmployeeDetail($this->employee_detail, $this);
             $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
             $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
             $this->detail_info = [
                 'change_log' => $this->change_log ?: null,
             ];
-            
+
             return true;
         }
 
         return false;
-    }
-
-    // Database Raelation Section
-    public function getDepartment($id)
-    {
-        $department = Department::findOne($id);
-        return [
-            'department' => [
-                'id' => $department->id,
-                'name' => $department->name,
-            ]
-        ];
-    }
-
-    public function getWorkTime($id)
-    {
-        $workTime = WorkTime::findOne(['id' => $id]);
-        return [
-            'work_time' => [
-                'id' => $workTime->id,
-                'entry_time' => $workTime->entry_time,
-                'home_time' => $workTime->home_time,
-            ]
-        ];
     }
 }

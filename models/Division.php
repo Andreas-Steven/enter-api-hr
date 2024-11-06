@@ -6,7 +6,7 @@ use Yii;
 use app\helpers\Constants;
 
 /**
- * This is the model class for table "general_affair_department".
+ * This is the model class for table "division".
  *
  * @property int $id
  * @property string $code
@@ -14,25 +14,28 @@ use app\helpers\Constants;
  * @property int $status
  * @property string $detail_info
  */
-class Department extends \yii\db\ActiveRecord
+class Division extends \yii\db\ActiveRecord
 {
     public $change_log;
 
     public static function tableName()
     {
-        return 'department';
+        return 'division';
     }
 
     public function rules()
     {
         return [
-            [['code', 'name'], 'required'],
-            [['detail_info'], 'safe'],
-            [['status'], 'default', 'value' => 2],
             [['status'], 'integer'],
+            [['detail_info'], 'safe'],
             [['code', 'name'], 'string', 'max' => 255],
+            
+            [['status'], 'default', 'value' => 2],
+            [['code', 'name'], 'required', 'on' => Constants::SCENARIO_CREATE],
+            
+            [['status'], 'filter', 'filter' => 'intval'],
             [['status'], 'in', 'range' => array_keys(Constants::statusList())],
-            [['status'], 'filter', 'filter' => 'intval']
+            [['status'], 'validateStatusChange', 'on' => Constants::scenarioUpdate()],
         ];
     }
 
@@ -59,8 +62,21 @@ class Department extends \yii\db\ActiveRecord
 
     public static function find()
     {
-        return new \app\models\query\DepartmentQuery(get_called_class());
+        return new \app\models\query\DivisionQuery(get_called_class());
     }
+
+    public function validateStatusChange($attribute, $params, $validator)
+    {
+        if (!$this->isNewRecord && $this->isAttributeChanged($attribute)) {
+            $oldStatus = $this->getOldAttribute($attribute);
+            $newStatus = $this->$attribute;
+
+            if ($oldStatus == Constants::STATUS_DELETED && $newStatus != Constants::STATUS_DELETED && !Yii::$app->coreAPI->superAdmin()) {
+                $this->addError($attribute, Yii::t('app', 'deletedStatusChange', ['status' => Constants::statusList()[Constants::STATUS_DELETED]]));
+            }
+        }
+    }
+
 
     public function beforeSave($insert)
     {

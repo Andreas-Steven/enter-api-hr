@@ -8,14 +8,14 @@ use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
 
+use app\models\Division;
 use app\controllers\CoreController;
-use app\models\Department;
-use app\models\search\DepartmentSearch;
+use app\models\search\DivisionSearch;
 
 /**
  * GeneralAffairDepartmentController implements the CRUD actions for GeneralAffairDepartment model.
  */
-class DepartmentController extends CoreController
+class DivisionController extends CoreController
 {
 	public function behaviors()
 	{
@@ -48,17 +48,22 @@ class DepartmentController extends CoreController
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		$searchModel = new DepartmentSearch();
+		$searchModel = new DivisionSearch();
 		$dataProvider = $searchModel->search($params);
 
-		// if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
-		// 	return $coreValidateParams;
-		// }
+		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
+			return $coreValidateParams;
+		}
 
 		$data = [
 			'code' => 200,
 			'success' => true,
 			'message' => Yii::t('app', 'success'), 
+			'pagination' => [
+				'page' => intval(isset($params['page']) ? $params['page'] : 1),
+				'total' => $dataProvider->getTotalCount(),
+				'display' => $dataProvider->getCount(),
+			],
 			'data' => $dataProvider,
 		];
 
@@ -67,7 +72,7 @@ class DepartmentController extends CoreController
 
     public function actionCreate()
     {
-        $model = new Department();
+        $model = new Division();
         $params = Yii::$app->getRequest()->getBodyParams();
 		$rules = $model->rules();
 
@@ -92,7 +97,7 @@ class DepartmentController extends CoreController
 			return $coreBadRequestNoParams;
 		}
 
-        $model = Yii::$app->coreAPI->findModel(Department::className(), $params);
+        $model = Yii::$app->coreAPI->findModel(Division::className(), $params);
 		$rules = $model->rules();
 
         if ($model === null) {
@@ -107,9 +112,9 @@ class DepartmentController extends CoreController
             $params['location_id'] = $model->id;
         }
 
-        // if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-		// 	return $coreSuperadmin;
-		// }
+        if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
+			return $coreSuperadmin;
+		}
 
         $model->scenario = Constants::SCENARIO_UPDATE;
 
@@ -130,7 +135,7 @@ class DepartmentController extends CoreController
 			return $coreBadRequestNoParams;
 		}
 
-        $model = Yii::$app->coreAPI->findModel(Department::className(), $params);
+        $model = Yii::$app->coreAPI->findModel(Division::className(), $params);
 
         if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -139,9 +144,9 @@ class DepartmentController extends CoreController
         $params['status'] = Constants::STATUS_DELETED;
 		$model->scenario = Constants::SCENARIO_DELETE;
         
-        // if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-		// 	return $coreSuperadmin;
-		// }
+        if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
+			return $coreSuperadmin;
+		}
 
         
         if ($model->load($params, '') && $model->validate()) {
