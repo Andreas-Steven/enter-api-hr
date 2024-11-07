@@ -155,7 +155,7 @@ class CoreAPI
 		if ($insert) {
 			$change_log = [
 				'created_at' => $timestamp,
-				'created_by' => (is_null($username) ? 'System' : $username), 
+				'created_by' => (is_null($username) ? 'admin' : $username), 
 				'updated_at' => null,
 				'updated_by' => null,
 				'deleted_at' => null,
@@ -166,10 +166,10 @@ class CoreAPI
 
 			if ($model->status == Constants::STATUS_DELETED) {
 				$change_log['deleted_at'] = $timestamp;
-				$change_log['deleted_by'] = (is_null($username) ? 'System' : $username);
+				$change_log['deleted_by'] = (is_null($username) ? 'admin' : $username);
 			} else {
 				$change_log['updated_at'] = $timestamp;
-				$change_log['updated_by'] = (is_null($username) ? 'System' : $username);
+				$change_log['updated_by'] = (is_null($username) ? 'admin' : $username);
 			}
 		}
 		
