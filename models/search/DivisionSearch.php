@@ -65,7 +65,7 @@ class DivisionSearch extends Division
             ],
             'pagination' => [
                 'pageSize' => isset($params['page_size']) ? $params['page_size'] : 10,
-                'page' => isset($params['page']) ? $params['page'] : 1,
+                'page' => isset($params['page']) ? $params['page'] : 0,
             ],
         ]);
 
