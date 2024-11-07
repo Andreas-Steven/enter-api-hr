@@ -51,13 +51,6 @@ class GeneralAffairSearch extends GeneralAffair
 
     public function search($params)
     {
-        $this->sort = isset($params['sort']) ? $params['sort'] : 'id';
-        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? SORT_ASC : SORT_DESC;
-        $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
-        $this->code = isset($params['code']) ? $params['code'] : null;
-
-        // var_dump($this->sort, $this->sort_by); exit;
-
         $query = GeneralAffair::find();
         $query->where(Constants::STATUS_NOT_DELETED);
         $query->addSelect([
@@ -87,11 +80,14 @@ class GeneralAffairSearch extends GeneralAffair
         
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'sort'=> [
-                'defaultOrder' => [$this->sort => $this->sort_by],
+            'sort' => [
+                'defaultOrder' => [
+                    isset($params['sort']) ? $params['sort'] : 'id' => isset($params['sort_by']) && $params['sort_by'] == 'asc' ? SORT_ASC : SORT_DESC
+                ],
             ],
             'pagination' => [
-                'pageSize' => $this->page_size,
+                'pageSize' => isset($params['page_size']) ? $params['page_size'] : 10,
+                'page' => isset($params['page']) ? $params['page'] - 1 : 0,
             ],
         ]);
 
@@ -181,8 +177,6 @@ class GeneralAffairSearch extends GeneralAffair
                 ':date_max' => $this->date_max
             ]));
         }
-
-        // print_r($dataProvider->getModels());
         
         return $dataProvider;
     }

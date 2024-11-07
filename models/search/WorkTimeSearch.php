@@ -27,6 +27,10 @@ class WorkTimeSearch extends WorkTime
             [['id', 'status'], 'integer'],
             [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
             [['detail_info'], 'safe'],
+            
+            // Pagination and Sorting Section
+            [['sort', 'sort_by'], 'string'],
+            [['page', 'page_size'], 'integer'],
         ];
     }
 
@@ -38,11 +42,6 @@ class WorkTimeSearch extends WorkTime
 
     public function search($params)
     {
-        $this->sort = isset($params['sort']) ? $params['sort'] : 'id';
-        $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "SORT_ASC" : "SORT_DESC";
-        $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
-        $this->page = isset($params['page']) ? $params['page'] : 0 ;
-        
         $query = WorkTime::find();
         $query->where(Constants::STATUS_NOT_DELETED);
 
@@ -54,10 +53,15 @@ class WorkTimeSearch extends WorkTime
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'sort'=> [
-                'defaultOrder' => ['id' => SORT_ASC]
+            'sort' => [
+                'defaultOrder' => [
+                    isset($params['sort']) ? $params['sort'] : 'id' => isset($params['sort_by']) && $params['sort_by'] == 'asc' ? SORT_ASC : SORT_DESC
+                ],
             ],
-            // 'pagination' => ['pageSize' => 2]
+            'pagination' => [
+                'pageSize' => isset($params['page_size']) ? $params['page_size'] : 10,
+                'page' => isset($params['page']) ? $params['page'] - 1 : 0,
+            ],
         ]);
         $this->load(['WorkTimeSearch' => $params]);
 

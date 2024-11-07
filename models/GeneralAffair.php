@@ -18,7 +18,7 @@ use app\helpers\Constants;
  *
  * @property GeneralAffairCategory $category
  * @property GeneralAffairLocation $location
- * @property Department $department
+ * @property Division $divison
  */
 class GeneralAffair extends \yii\db\ActiveRecord
 {
@@ -114,26 +114,26 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
             $value['condition'] = intval($value['condition']);
 
-            if (isset($value['department']['id'])) {
-                $value['department']['id'] = intval($value['department']['id']);
-                if (!is_integer($value['department']['id']) || $value['department']['id'] < 1 || empty($value['condition']) ) {
-                    $this->addError($attribute, 'Items department id value must be an integer greater than 0');
+            if (isset($value['divison']['id'])) {
+                $value['divison']['id'] = intval($value['divison']['id']);
+                if (!is_integer($value['divison']['id']) || $value['divison']['id'] < 1 || empty($value['condition']) ) {
+                    $this->addError($attribute, 'Items divison id value must be an integer greater than 0');
                     return;
                 }
                 
-                $department = Department::find()->where([
-                    'id' => $value['department']['id'],
+                $divison = Division::find()->where([
+                    'id' => $value['divison']['id'],
                     'status' => Constants::STATUS_ACTIVE
                 ])->one();
                     
-                if ($department === null) {
-                    $this->addError($attribute, 'Department not found');
+                if ($divison === null) {
+                    $this->addError($attribute, 'Divison not found');
                     return;
                 }
                 
-                $generalAffairItems['department'] = ['id' => $department->id, 'name' => $department->name];
-            } elseif (!isset($value['department']['id'])) {
-                $this->addError($attribute, 'Items department cannot be empty');
+                $generalAffairItems['divison'] = ['id' => $divison->id, 'name' => $divison->name];
+            } elseif (!isset($value['divison']['id'])) {
+                $this->addError($attribute, 'Items divison cannot be empty');
                 return;
             }
 
@@ -240,7 +240,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
             $generalAffairItems['items_change_log']['updated_at'] = $timestamp;
             $generalAffairItems['items_change_log']['updated_by'] = (is_null($username) ? 'System' : $username);
         } elseif ($type == 'delete') {
-            // var_dump($generalAffairItems['items_change_l     og']); exit;
             $generalAffairItems['items_change_log']['deleted_at'] = $timestamp;
             $generalAffairItems['items_change_log']['deleted_by'] = (is_null($username) ? 'System' : $username);
         }

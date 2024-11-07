@@ -33,7 +33,7 @@ return [
         "buying_date" => null,
         "tax_date" => null,
         "inspection_date" => null,
-        "department" => null,
+        "divison" => null,
         "image" => null,
         "items_change_log" => null
     ],
@@ -45,7 +45,7 @@ return [
         "end_time" => null,
         "info" => null,
         "device" => null,
-        "department" => null,
+        "divison" => null,
         "work_time" => null,
     ]
 ];

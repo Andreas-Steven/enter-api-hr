@@ -4,14 +4,11 @@ namespace app\models\search;
 
 use Yii;
 use yii\base\Model;
-use app\models\Absensi;
+use app\models\Attendance;
 use app\helpers\Constants;
 use yii\data\ActiveDataProvider;
 
-/**
- * AbsensiSearch represents the model behind the search form of `app\models\Absensi`.
- */
-class AbsensiSearch extends Absensi
+class AttendanceSearch extends attendance
 {
     public $created_at;
     public $created_by;
@@ -45,9 +42,9 @@ class AbsensiSearch extends Absensi
     {
         $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "ASC" : "DESC";
         $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
-        $this->page = isset($params['page']) ? $params['page'] : 0;
+        $this->page = isset($params['page']) ? $params['page'] - 1 : 0;
 
-        $query = Absensi::find();
+        $query = Attendance::find();
         $query->where(Constants::STATUS_NOT_DELETED);
 
         // add conditions that should always apply here
@@ -63,13 +60,11 @@ class AbsensiSearch extends Absensi
             ],
             'pagination' => [
                 // 'pageSize' => $this->page_size,
+                'page' => $this->page
             ],
         ]);
 
-        $this->page = isset($params['page']) ? intval($params['page']) : 1;
-        // $dataProvider->pagination->page = $this->page - 1;
-
-        $this->load(['AbsensiSearch' => $params]);
+        $this->load(['AttendanceSearch' => $params]);
         
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails
@@ -98,7 +93,7 @@ class AbsensiSearch extends Absensi
                 SELECT value
                 FROM jsonb_each(attendance)
                 " . (isset($this->employee_name) ? "WHERE value->>'employee_name' ILIKE :employee_name" : "") . "
-                " . (isset($this->department) ? "AND value->'department'->>'name' ILIKE :department" : "") . "
+                " . (isset($this->division) ? "AND value->'division'->>'name' ILIKE :division" : "") . "
             ),
             sorted_attendance AS (
                 SELECT value, row_number() OVER (ORDER BY value->>:sort_field {$this->sort_by}) AS rn
@@ -123,32 +118,30 @@ class AbsensiSearch extends Absensi
             $attendanceQueryParams[':employee_name'] = '%' . $this->employee_name . '%';
         }
 
-        if (isset($this->department)) {
-            $attendanceQueryParams[':department'] = '%' . $this->department . '%';
+        if (isset($this->division)) {
+            $attendanceQueryParams[':division'] = '%' . $this->division . '%';
         }
 
         $attendanceQuery = new \yii\db\Expression($attendanceQuerySql, $attendanceQueryParams);
 
         $query->addSelect([
             '*',
-            'attendance' => $attendanceQuery,
+            'absensi' => $attendanceQuery,
         ]);
         
         $totalAttendanceCount = (new \yii\db\Query())
-            ->from('absensi')
-            ->leftJoin(['ae' => new \yii\db\Expression('jsonb_each(absensi.attendance)')], 'true')
+            ->from('attendance')
+            ->leftJoin(['ae' => new \yii\db\Expression('jsonb_each(attendance.attendance)')], 'true')
             ->where(Constants::STATUS_NOT_DELETED)
             ->count();
 
         $displayAttendanceCount = (new \yii\db\Query())
-            ->from(['attendance_elements' => (new \yii\db\Query())
+            ->from(['attendance' => (new \yii\db\Query())
                 ->select(['value', new \yii\db\Expression('row_number() OVER () AS rn')])
-                ->from('absensi')
-                ->leftJoin(['ae' => new \yii\db\Expression('jsonb_each(absensi.attendance)')], 'true')
-                ->where(Constants::STATUS_NOT_DELETED)
-                ->orderBy(new \yii\db\Expression("ae.value->>'start_time' DESC"))
+                ->from('attendance')
+                ->leftJoin(['ae' => new \yii\db\Expression('jsonb_each(attendance.attendance)')], 'true')
             ])
-            ->where(['between', 'rn', ($this->page - 1) * $this->page_size + 1, $this->page * $this->page_size])
+            ->where(['between', 'rn', ($this->page - 1) * $this->page_size, $this->page_size])
             ->count();
 
         return [

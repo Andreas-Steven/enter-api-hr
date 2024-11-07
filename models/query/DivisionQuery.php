@@ -2,12 +2,7 @@
 
 namespace app\models\query;
 
-/**
- * This is the ActiveQuery class for [[\app\models\Absensi]].
- *
- * @see \app\models\Absensi
- */
-class AbsensiQuery extends \yii\db\ActiveQuery
+class DivisionQuery extends \yii\db\ActiveQuery
 {
     /*
     public function active()
@@ -15,6 +10,7 @@ class AbsensiQuery extends \yii\db\ActiveQuery
         return $this->andWhere('[[status]]=1');
     }
     */
+
 
     public function all($db = null)
     {

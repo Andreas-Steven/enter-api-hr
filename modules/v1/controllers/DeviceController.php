@@ -60,6 +60,11 @@ class DeviceController extends CoreController
 			'code' => 200,
 			'success' => true,
 			'message' => Yii::t('app', 'success'), 
+			'pagination' => [
+				'page' => intval(isset($params['page']) ? $params['page'] : 1),
+				'total' => $dataProvider->getTotalCount(),
+				'display' => $dataProvider->getCount(),
+			],
 			'data' => $dataProvider,
 		];
 
