@@ -4,11 +4,11 @@ namespace app\models\search;
 
 use Yii;
 use yii\base\Model;
-use app\models\Absensi;
+use app\models\Attendance;
 use app\helpers\Constants;
 use yii\data\ActiveDataProvider;
 
-class AbsensiSearch extends Absensi
+class AttendanceSearch extends attendance
 {
     public $created_at;
     public $created_by;
@@ -66,7 +66,7 @@ class AbsensiSearch extends Absensi
         $this->page = isset($params['page']) ? intval($params['page']) : 1;
         // $dataProvider->pagination->page = $this->page - 1;
 
-        $this->load(['AbsensiSearch' => $params]);
+        $this->load(['AttendanceSearch' => $params]);
         
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails

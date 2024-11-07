@@ -5,7 +5,7 @@ namespace app\models;
 use Yii;
 use app\helpers\Constants;
 use app\models\Employee;
-use app\models\Department;
+use app\models\Division;
 use app\models\WorkTime;
 use app\models\Device;
 
@@ -20,14 +20,14 @@ use app\models\Device;
  * @property string $blacklist
  * @property string $detail_info
  */
-class Absensi extends \yii\db\ActiveRecord
+class Attendance extends \yii\db\ActiveRecord
 {
     public $change_log;
     public $employee_id;
     public $start_time;
     public $end_time;
     public $employee_name;
-    public $department;
+    public $division;
     public $work_time;
     public $device;
     public $device_code;
@@ -83,7 +83,7 @@ class Absensi extends \yii\db\ActiveRecord
 
     public static function find()
     {
-        return new \app\models\query\AbsensiQuery(get_called_class());
+        return new \app\models\query\AttendanceQuery(get_called_class());
     }
 
     public function validateStatusChange($attribute, $params, $validator)
@@ -131,16 +131,16 @@ class Absensi extends \yii\db\ActiveRecord
                     return;
                 }
                 
-                $department_id = $employee->employee_detail['department']['id'];
+                $division_id = $employee->employee_detail['division']['id'];
                 $work_time_id = $employee->employee_detail['work_time']['id']; 
                 
-                $department = Department::find()->where([
+                $division = Division::find()->where([
                     'id' => $department_id, 
                     'status' => Constants::STATUS_ACTIVE
                 ])->one();
                 
-                if ($department === null) {
-                    $this->addError($attribute.'['.$key.'].employee_id', 'Department not found');
+                if ($division === null) {
+                    $this->addError($attribute.'['.$key.'].employee_id', 'Division not found');
                     return;
                 }
                     
@@ -168,7 +168,7 @@ class Absensi extends \yii\db\ActiveRecord
 
                 $employeeAttendance['employee_id'] = $value['employee_id'] ?? null;   
                 $employeeAttendance['employee_name'] = $employee->name;
-                $employeeAttendance['department'] = ['id' => $department->id, 'name' => $department->name];
+                $employeeAttendance['division'] = ['id' => $division->id, 'name' => $division->name];
                 $employeeAttendance['work_time'] = ['id' => $workTime->id, 'entry_time' => $workTime->entry_time, 'home_time' => $workTime->home_time];
                 $employeeAttendance['device'] = ['id' => $device->id, 'device_code' => $device->device_code, 'device_name' => $device->device_name];
             }

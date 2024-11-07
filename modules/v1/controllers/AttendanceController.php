@@ -8,12 +8,12 @@ use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\components\CustomException;
 
-use app\models\Absensi;
+use app\models\Attendance;
 use app\helpers\Constants;
 use app\controllers\CoreController;
-use app\models\search\AbsensiSearch;
+use app\models\search\AttendanceSearch;
 
-class AbsensiController extends CoreController
+class AttendanceController extends CoreController
 {
 	public $enableCsrfValidation = false;
 
@@ -48,7 +48,7 @@ class AbsensiController extends CoreController
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		$searchModel = new AbsensiSearch();
+		$searchModel = new AttendanceSearch();
 		$dataProvider = $searchModel->search($params);
 		$totalAttendanceCount = $dataProvider['totalAttendanceCount'] ?? 0;
 		$displayAttendanceCount = $dataProvider['displayAttendanceCount'] ?? 0;
@@ -74,7 +74,7 @@ class AbsensiController extends CoreController
 
 	public function actionCreate()
 	{
-		$model = new Absensi();
+		$model = new Attendance();
 		$params = Yii::$app->getRequest()->getBodyParams();
         
         if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
@@ -85,12 +85,12 @@ class AbsensiController extends CoreController
 			return CoreController::coreBadRequest($model, Yii::t('app', 'dateEmpty'));
 		}
 
-		$model = Absensi::find()->where([
+		$model = Attendance::find()->where([
 			'date' => $params['date']
 		])->one();
 
 		if ($model === null) {
-			$model = new Absensi();
+			$model = new Attendance();
 		}
 
 		$params['status'] = Constants::STATUS_DRAFT;
@@ -113,7 +113,7 @@ class AbsensiController extends CoreController
 			return $coreBadRequestNoParams;
 		}
 		
-		$model = Yii::$app->coreAPI->findModel(Absensi::className(), $params);
+		$model = Yii::$app->coreAPI->findModel(Attendance::className(), $params);
 		$rules = $model->rules();
 		
 		if ($model === null) {
@@ -147,7 +147,7 @@ class AbsensiController extends CoreController
 			return $coreBadRequestNoParams;
 		}
 
-		$model = Yii::$app->coreAPI->findModel(Absensi::className(), $params);
+		$model = Yii::$app->coreAPI->findModel(Attendance::className(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
