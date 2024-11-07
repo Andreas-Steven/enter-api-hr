@@ -19,15 +19,6 @@ class m241010_103834_create_employee_table extends Migration
             'status' => $this->smallInteger()->notNull()->defaultValue(2),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([])),
         ]);
-
-        // $this->addForeignKey(
-        //     'fk_employee_division', // Simplified foreign key name
-        //     '{{%employee}}',
-        //     'division_id',
-        //     '{{%division}}',
-        //     'id',
-        //     'CASCADE'
-        // );
         
         $this->addCommentOnColumn('{{%employee}}', 'status', '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance');
     }
