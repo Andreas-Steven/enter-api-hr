@@ -141,9 +141,9 @@ class EmployeeController extends CoreController
 		$params['status'] = Constants::STATUS_DELETED;
 		$model->scenario = Constants::SCENARIO_DELETE;
 
-		// if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-		// 	return $coreSuperadmin;
-		// }
+		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
+			return $coreSuperadmin;
+		}
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
