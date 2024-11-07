@@ -60,7 +60,7 @@ class EmployeeSearch extends Employee
                 ],
             ],
             'pagination' => [
-                'pageSize' => isset($params['page_size']) ? $params['page_size'] : 0,
+                'pageSize' => isset($params['page_size']) ? $params['page_size'] : 10,
                 'page' => isset($params['page']) ? $params['page'] : 1,
             ],
         ]);
@@ -73,8 +73,6 @@ class EmployeeSearch extends Employee
             // $query->where('0=1');
             return $dataProvider;
         }
-
-        $dataProvider->pagination->page = isset($params['page']) ? intval($params['page']) - 1 : 0;
 
         // grid filtering conditions
         $query->andFilterWhere([

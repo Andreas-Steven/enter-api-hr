@@ -42,7 +42,7 @@ class AttendanceSearch extends attendance
     {
         $this->sort_by = isset($params['sort_by']) && $params['sort_by'] == 'asc' ? "ASC" : "DESC";
         $this->page_size = isset($params['page_size']) ? $params['page_size'] : 10;
-        $this->page = isset($params['page']) ? $params['page'] : 0;
+        $this->page = isset($params['page']) ? $params['page'] : 1;
 
         $query = Absensi::find();
         $query->where(Constants::STATUS_NOT_DELETED);
@@ -60,11 +60,9 @@ class AttendanceSearch extends attendance
             ],
             'pagination' => [
                 // 'pageSize' => $this->page_size,
+                'page' => $this->page
             ],
         ]);
-
-        $this->page = isset($params['page']) ? intval($params['page']) : 1;
-        // $dataProvider->pagination->page = $this->page - 1;
 
         $this->load(['AttendanceSearch' => $params]);
         
