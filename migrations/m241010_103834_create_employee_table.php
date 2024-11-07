@@ -15,8 +15,7 @@ class m241010_103834_create_employee_table extends Migration
             'date_start' => $this->date(),
             'date_resign' => $this->date(),
             'sso_id' => $this->integer()->notNull(),
-            // 'division_id' => $this->integer()->notNull(),
-            'division_id' => $this->integer(),
+            'division_id' => $this->integer()->notNull(),
             'status' => $this->smallInteger()->notNull()->defaultValue(2),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([])),
         ]);
