@@ -3,7 +3,7 @@
 use yii\db\Migration;
 
 /**
- * Handles the creation of table `{{%absensi}}`.
+ * Handles the creation of table `{{%attendance}}`.
  */
 class m241007_063531_create_attendance_table extends Migration
 {

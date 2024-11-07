@@ -34,7 +34,7 @@ class Attendance extends \yii\db\ActiveRecord
 
     public static function tableName()
     {
-        return 'absensi';
+        return 'attendance';
     }
 
     public function rules()
@@ -131,11 +131,12 @@ class Attendance extends \yii\db\ActiveRecord
                     return;
                 }
                 
-                $division_id = $employee->employee_detail['division']['id'];
-                $work_time_id = $employee->employee_detail['work_time']['id']; 
+                $division_id = $employee->division_id;
+                // $work_time_id = $employee->employee_detail['work_time']['id']; 
+                $work_time_id = 1; 
                 
                 $division = Division::find()->where([
-                    'id' => $department_id, 
+                    'id' => $division_id, 
                     'status' => Constants::STATUS_ACTIVE
                 ])->one();
                 

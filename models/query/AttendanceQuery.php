@@ -7,7 +7,7 @@ namespace app\models\query;
  *
  * @see \app\models\Absensi
  */
-class AbsensiQuery extends \yii\db\ActiveQuery
+class AttendanceQuery extends \yii\db\ActiveQuery
 {
     /*
     public function active()
