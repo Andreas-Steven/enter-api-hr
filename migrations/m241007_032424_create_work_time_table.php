@@ -15,6 +15,7 @@ class m241007_032424_create_work_time_table extends Migration
             'entry_time' => $this->time()->notNull(),
             'home_time' => $this->time()->notNull(),
             'working_days' => $this->json()->notNull(),
+            'flexible' => $this->boolean()->defaultValue(false),
             'status' => $this->smallInteger()->notNull()->defaultValue(2),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([]))
         ]);
