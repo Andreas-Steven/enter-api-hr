@@ -31,7 +31,7 @@ class WorkTime extends \yii\db\ActiveRecord
             [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
 
             [['status'], 'integer'],
-            [['detail_info'], 'safe'],
+            [['working_days', 'detail_info'], 'safe'],
 
             [['status'], 'default', 'value' => 2],
             [['status'], 'filter', 'filter' => 'intval'],
@@ -42,8 +42,8 @@ class WorkTime extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['entry_time', 'home_time'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['entry_time', 'home_time'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['entry_time', 'home_time', 'working_days'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['entry_time', 'home_time', 'working_days'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -55,6 +55,7 @@ class WorkTime extends \yii\db\ActiveRecord
             'id' => 'ID',
             'entry_time' => 'Entry Time',
             'home_time' => 'Home Time',
+            'working_days' => 'Working Days',
             'status' => 'Status',
             'detail_info' => 'Detail Info',
         ];
