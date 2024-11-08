@@ -133,8 +133,8 @@ class Attendance extends \yii\db\ActiveRecord
                 
                 $division_id = $employee->division_id;
                 // $work_time_id = $employee->employee_detail['work_time']['id']; 
-                $work_time_id = 1; 
-                
+                $work_time_id = rand(1,3); 
+
                 $division = Division::find()->where([
                     'id' => $division_id, 
                     'status' => Constants::STATUS_ACTIVE
