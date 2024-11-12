@@ -11,8 +11,12 @@ use app\helpers\Constants;
 
 class CoreController extends Controller
 {
+	public $enableCsrfValidation;
+
     public function behaviors()
     {
+		$this->enableCsrfValidation = Constants::ENABLE_CSRF_VALIDATION;
+        
         return [
             'contentNegotiator' => [
                 'class' => 'yii\filters\ContentNegotiator',
@@ -33,25 +37,172 @@ class CoreController extends Controller
         ];
     }
 
+    public function coreActionIndex()
+	{
+		$data = [
+			'code' => Yii::$app->response->statusCode = 200,
+			'success' => true,
+			'message' => Yii::$app->params['titleService'].' '.Yii::$app->params['serviceVersion'],
+		];
 
-    public function coreValidateParams($dataProvider) 
+		return $data;
+	}
+
+    public function coreValidateParams($dataProvider, $searchModel=null) 
     {
         if (isset($dataProvider->error)){
-            Yii::$app->response->statusCode = 422;
-            
             $data = [
-                'code' => 422,
+                'code' => Yii::$app->response->statusCode = 422,
                 'success' => false,
-                'message' => Yii::t('app', 'fieldValidationFailed'),
+                'message' => Yii::t('rule', 'fieldValidationFailed'),
                 'errors' => $dataProvider->params,
             ];
     
             return $data;
         }
 
+        if (isset($searchModel)){
+            if (!$searchModel->validate()) {
+                $data = [
+                    'code' => Yii::$app->response->statusCode = 422,
+                    'success' => false,
+                    'message' => Yii::t('rule', 'badRequest'),
+                    'errors' => $searchModel->errors,
+                ];
+        
+                return $data;
+            }
+        }
+
         return false;
     }
 
+    public function coreValidationFailed($model, $mesage) 
+    {
+        $data = [
+            'code' => Yii::$app->response->statusCode = 422,
+            'success' => false,
+            'message' => Yii::t('rule', $mesage),
+            'errors' => $model,
+        ];
+
+        return $data;
+    }
+
+    public function coreSuccess($model, $message) 
+    {
+        $data = [
+            'code' => Yii::$app->response->statusCode = 200,
+            'success' => true,
+            'message' => Yii::t('rule', $message),
+            'data' => $model,
+        ];
+
+        return $data;
+    }
+
+    public function coreData($dataProvider) 
+    {
+        $total = $dataProvider->count > 0 ? $dataProvider->totalCount : 0;
+
+        $data = [
+			'code' => Yii::$app->response->statusCode = 200,
+			'success' => true,
+			'message' => Yii::t('app', 'success'),
+			'pagination' => [
+				'page' => $dataProvider->pagination->page + 1,
+				'totalCount' => $dataProvider->totalCount,
+				'total' => $total,
+				'display' => $dataProvider->count,
+			],
+			'data' => $dataProvider,
+		];
+
+        return $data;
+    }
+
+    public function coreList($mongodb) 
+    {
+        $data = [
+			'code' => Yii::$app->response->statusCode = 200,
+			'success' => true,
+			'message' => Yii::t('app', 'success'),
+			'pagination' => [
+				// 'page' => $mongodb->pagination->page + 1,
+				// 'total' => $mongodb->totalCount,
+				// 'display' => $mongodb->count,
+			],
+			'data' => $mongodb,
+		];
+
+        return $data;
+    }
+
+    public function coreSuperadmin($params) 
+    {
+        if (isset($params['status'])) {
+            $roles = Yii::$app->session->get('roles', []);
+            $status = (int) $params['status'];
+            $restrictStatus = Constants::restrictStatus();
+
+            if (!Yii::$app->coreAPI->superAdmin() && in_array($status, $restrictStatus)) {
+                $data = [
+                    'code' => Yii::$app->response->statusCode = 403,
+                    'success' => false,
+                    'message' => Yii::t('app', 'superadminOnly'),
+                    'errors' => [],
+                ];
+
+                return $data;
+            }
+        }
+
+        return false;
+    }
+
+    public function coreBadRequest__($params, $scenario) 
+    {
+        $error = [];
+
+        if (isset($params['id'])) {
+            $id = $params['id'];
+            unset($params['id']);
+
+            if ($scenario == Constants::SCENARIO_UPDATE && empty($params)) {
+                $error = [
+                    'message' => Yii::t('rule', 'badRequest'),
+                    'error' => Yii::t('rule', 'paramsEmpty'),
+                ];
+            }
+
+            if (!is_numeric($id) || intval($id) != $id) {
+                $error = [
+                    'message' => Yii::t('rule', 'badRequest'),
+                    'error' => Yii::t('rule', 'idMustInteger'),
+                ];
+            } 
+        } else {
+            $error = [
+                'message' => Yii::t('rule', 'badRequest'),
+                'error' => Yii::t('rule', 'idCannotBlank'),
+            ];
+        }
+
+        var_dump($error, $params, $scenario); exit;
+
+        if (!empty($error)) {
+            return [
+                'code' => Yii::$app->response->statusCode = 400,
+                'success' => false,
+                'message' => $error['message'],
+                'errors' => [['field' => 'id', 'message' => $error['error']]],
+            ];
+        }
+
+        return $error;
+    }
+
+    
     public function coreBadRequest($model, $mesage) 
     {
         Yii::$app->response->statusCode = 400;
@@ -66,105 +217,20 @@ class CoreController extends Controller
         return $data;
     }
 
-    public function coreSuccess($model, $message) 
+    public function coreDataNotFound()
     {
-        Yii::$app->response->statusCode = 200;
-        $data = [
-            'code' => 200,
-            'success' => true,
-            'message' => Yii::t('app', $message),
-            'data' => $model,
-        ];
-
-        return $data;
-    }
-
-    public function coreSuperadmin($params) 
-    {
-        if (isset($params['status'])) {
-            $roles = Yii::$app->session->get('roles', []);
-            $status = (int) $params['status'];
-            $restrictStatus = Constants::restrictStatus();
-
-            if (!Yii::$app->coreAPI->superAdmin() && in_array($status, $restrictStatus)) {
-                Yii::$app->response->statusCode = 403;
-                
-                $data = [
-                    'code' => 403,
-                    'success' => false,
-                    'message' => Yii::t('app', 'superadminOnly'),
-                    'errors' => [],
-                ];
-
-                return $data;
-            }
-        }
-
-        return false;
-    }
-
-    public function coreBadRequestNoParams($params, $scenario) 
-    {
-        if (isset($params['id'])) {
-            $id = $params['id'];
-            unset($params['id']);
-
-            if (!is_numeric($id) || intval($id) != $id) {
-                return [
-                    'code' => 400,
-                    'success' => false,
-                    'message' => Yii::t('app', 'badRequest'),
-                    'errors' => [['field' => 'id', 'message' => 'id must be an integer.']],
-                ];
-			}
-            
-            if ($scenario == Constants::SCENARIO_UPDATE && sizeof($params) == 0) {
-                Yii::$app->response->statusCode = 400;
-            
-                return [
-                    'code' => 400,
-                    'success' => false,
-                    'message' => Yii::t('app', 'paramsEmpty'),
-                    'errors' => [],
-                ];
-            }
-        } else {
-            return [
-                'code' => 400,
+        try {
+            throw new CustomException(Yii::t('rule', 'dataNotFound'));
+        } catch (CustomException $e) {
+            $data = [
+                'code' => Yii::$app->response->statusCode = 400,
                 'success' => false,
-                'message' => Yii::t('app', 'badRequest'),
-                'errors' => [['field' => 'id', 'message' => 'id cannot be blank.']],
+                'message' => $e->getMessage(),
+                'errors' => [],
             ];
         }
 
-        return false;
-    }
-
-    public function coreDataNotFound()
-    {
-        Yii::$app->response->statusCode = 400;
-
-        $data = [
-            'code' => 400,
-            'success' => false,
-            'message' => 'Data Not Found',
-            'errors' => [],
-        ];
-
         return $data;
-
-        // try {
-        //     throw new CustomException(Yii::t('app', 'dataNotFound'));
-        // } catch (CustomException $e) {
-        //     $data = [
-        //         'code' => 400,
-        //         'success' => false,
-        //         'message' => $e->getMessage(),
-        //         'errors' => [],
-        //     ];
-        // }
-
-        // return $data;
     }
 
     public function coreUniqueData($model, $field, $params) 
@@ -174,15 +240,14 @@ class CoreController extends Controller
 		    $existingCode = $model::findOne(['code' => $paddedCode]);
 
             if ($existingCode !== null) {
-                Yii::$app->response->statusCode = 400;
                 $modelInstance = new $model();
                 $label = $modelInstance->attributeLabels()[$field];
                 
                 $data = [
-                    'code' => 400,
+                    'code' => Yii::$app->response->statusCode = 400,
                     'success' => false,
-                    'message' => Yii::t('app', 'valueExists'),
-                    'errors' => [['field' => $label, 'message' => Yii::t('app', 'valueAlreadyExists', ['field' => $label])]],
+                    'message' => Yii::t('rule', 'valueExists'),
+                    'errors' => [['field' => $label, 'message' => Yii::t('rule', 'valueAlreadyExists', ['field' => $label])]],
                 ];
     
                 return $data;

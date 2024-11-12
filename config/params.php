@@ -43,9 +43,23 @@ return [
         "employee_name" => null,
         "start_time" => null,
         "end_time" => null,
-        "info" => null,
         "device" => null,
-        "divison" => null,
+        "division" => null,
         "work_time" => null,
+        "location" => [
+            "entry" => [
+                "lat" => null,
+                "lng" => null,
+            ],
+            "exit" => [
+                "lat" => null,
+                "lng" => null,
+            ],
+        ],
+        "info" => [
+            'in' => null,
+            'out' => null,
+            'detail' => [],
+        ],
     ]
 ];

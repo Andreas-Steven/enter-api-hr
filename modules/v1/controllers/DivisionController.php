@@ -25,6 +25,7 @@ class DivisionController extends CoreController
 				'except' => [
 					Constants::AUTH_EXCEPTION,
 				],
+				'role' => Yii::$app->params['codeApp'],
 			],
 			'verbs' => [
 				'class' => VerbFilter::className(),
@@ -35,13 +36,7 @@ class DivisionController extends CoreController
 
 	public function actionIndex()
 	{
-		$data = [
-			'code' => 200,
-			'success' => true,
-			'message' => Yii::$app->params['titleService'].' '.Yii::$app->params['serviceVersion'],  
-		];
-
-		return $data;
+		return CoreController::coreActionIndex();
 	}
 
     public function actionData()
@@ -55,38 +50,28 @@ class DivisionController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$data = [
-			'code' => 200,
-			'success' => true,
-			'message' => Yii::t('app', 'success'), 
-			'pagination' => [
-				'page' => intval(isset($params['page']) ? $params['page'] : 1),
-				'total' => $dataProvider->getTotalCount(),
-				'display' => $dataProvider->getCount(),
-			],
-			'data' => $dataProvider,
-		];
-
-		return $data;
+		return CoreController::coreData($dataProvider);
 	}
 
     public function actionCreate()
     {
         $model = new Division();
-        $params = Yii::$app->getRequest()->getBodyParams();
-		$rules = $model->rules();
+		$params = Yii::$app->getRequest()->getBodyParams();
 
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
 			return CoreController::coreValidateParams($unavailableParams);
         }
 
-        $model->scenario = Constants::SCENARIO_CREATE;
+		$params['status'] = Constants::STATUS_DRAFT;
+		$model->scenario = Constants::SCENARIO_CREATE;
 
-        if ($model->load($params, '') && $model->save()) {
-			return CoreController::coreSuccess($model, 'insertRecordSuccess');
+		if ($model->load($params, '') && $model->validate()) {
+			if ($model->save()) {
+				return CoreController::coreSuccess($model, 'insertRecordSuccess');
+			}
 		}
 
-        return CoreController::coreBadRequest($model, Yii::t('app', 'insertRecordFailed'));
+		return CoreController::coreValidationFailed($model, 'insertRecordFailed');
     }
 
     public function actionUpdate()
@@ -127,34 +112,33 @@ class DivisionController extends CoreController
         return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
     }
 
-    public function actionDelete()
-    {
-        $params = Yii::$app->getRequest()->getBodyParams();
+	public function actionDelete()
+	{
+		$params = Yii::$app->getRequest()->getBodyParams();
 
-        if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_DELETE)) {
-			return $coreBadRequestNoParams;
+		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_DELETE)) {
+			return $coreBadRequest;
 		}
 
-        $model = Yii::$app->coreAPI->findModel(Division::className(), $params);
+		$model = Yii::$app->coreAPI->findModel(new Division(), $params);
 
-        if ($model === null) {
+		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
 
-        $params['status'] = Constants::STATUS_DELETED;
+		$params['status'] = Constants::STATUS_DELETED;
 		$model->scenario = Constants::SCENARIO_DELETE;
-        
-        if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
+
+		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
 			return $coreSuperadmin;
 		}
 
-        
-        if ($model->load($params, '') && $model->validate()) {
+		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
 				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
 			}
 		}
 
-        return CoreController::coreBadRequest($model, Yii::t('app', 'deleteRecordFailed'));
-    }
+		return CoreController::coreValidationFailed($model, 'deleteRecordFailed');
+	}
 }

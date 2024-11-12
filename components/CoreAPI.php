@@ -8,40 +8,36 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
 use yii\helpers\HtmlPurifier;
+use yii\helpers\StringHelper;
 use app\components\CustomException;
 
 class CoreAPI 
 {
-	public function timestamp()
-	{
-		return gmdate("Y-m-d\TH:i:s\Z");
+	function modelClassName($model) {
+		return StringHelper::basename(get_class($model));
 	}
 
-	public function username() 
-	{
-		if ($username = Yii::$app->session->get('username')) {
-			return $username;
-		}
-		return 'admin';
+	function nullSafe($value=null) {
+		return (is_string($value) && strtolower($value) === 'null') || $value === '' ? null : $value;
 	}
 
-	public function superAdmin() 
+	function nullString($value) {
+		return (is_null($value) || (is_string($value) && strtolower($value) === 'null')) ? true : false;
+	}
+
+	public function searchGetErrors($errors)
     {
-		$roles = Yii::$app->session->get('roles', []);
-
-		if (!in_array('superadmin', $roles)) {
-			return false;
-		}
-
-		return true;
+        $result = [];
+        foreach ($errors as $attribute => $errorMessages) {
+            foreach ($errorMessages as $errorMessage) {
+                $result[] = [
+                    'field' => $attribute,
+                    'message' => $errorMessage,
+                ];
+            }
+        }
+        return $result;
     }
-
-	function htmlPurifier($value){
-		$dirtyHtml = HtmlPurifier::process($value);
-		$cleanText = strip_tags($dirtyHtml);
-
-		return $cleanText;
-	}
 
 	public function findModel($model, $params, $where=[])
 	{
@@ -49,11 +45,24 @@ class CoreAPI
 			if (($dataset = $model::find()->where(array_merge(['id' => $params['id']], $where))->one()) !== null) {
 				return $dataset;
 			}
+		} else {
+			if (($dataset = $model::find()->where($where)->one()) !== null) {
+				return $dataset;
+			}
 		}
-	
+		
 		return null;
 	}
 
+	public function mongodbSyncFailed($model)
+	{
+		if (isset($model->id)) {
+			if ($model->load(['sync' => 1], '')) {
+				$model->save();
+			}
+		}
+	}
+	
 	public function unavailableParams($rules, $params) 
 	{
 		$fields = [];
@@ -65,13 +74,12 @@ class CoreAPI
 		}
 
 		$paramsDiff = array_diff_key($params, array_flip($allowedParams));
-		// $params = array_intersect_key($params, array_flip($allowedParams));
 
 		if (! empty($paramsDiff)) {
 			foreach ($paramsDiff as $key => $value) {
 				$fields[] = [
 					'field' => $key,
-					'message' => Yii::t('app', 'fieldNotValid', ['field' => $key]),
+					'message' => Yii::t('rule', 'fieldNotValid', ['field' => $key]),
 				];
 			}
 
@@ -84,56 +92,88 @@ class CoreAPI
 		}
 	}
 
-	public function validateStatusTransition($model, $params)
-    {
-		$completedStatus = Constants::STATUS_COMPLETED;
-        $activeStatus = Constants::STATUS_ACTIVE;
+	public static function detailInfoAddition($model, $change_log, $timestamp=null, $username=null) {
+		$tableName = $model->tableName();
 
-		if (isset($params['status'])){
-			$allowedTransitions = [
-				'0' => [1, 4],
-				'2' => [1, 4],
-				'5' => [1, 4],
-				'1' => [3],
-				'3' => [],
-				// '4' => ['superadmin'], // Special case for superadmin
+		switch ($tableName) {
+			case 'delivery_order':
+				$change_log['received_at'] = $timestamp;
+				$change_log['received_by'] = $username;
+			break;
+			case 'purchase':
+				$change_log['approved_at'] = $timestamp;
+				$change_log['approved_by'] = $username;
+			break;
+			
+			default:
+				
+			break;
+		}
+
+		return $change_log;
+	}
+
+	public function timestamp(){
+		return gmdate("Y-m-d\TH:i:s\Z");
+	}
+
+	public function username() {
+		if ($username = Yii::$app->session->get('username')) {
+			return $username;
+		}
+		return 'admin';
+	}
+
+	public function changeLog($model, $insert)
+	{
+		$timestamp = self::timestamp();
+		$username = self::username();
+		$change_log = [];
+
+		$detailInfoAddition = self::detailInfoAddition($model, $change_log, $timestamp, $username);
+		
+		if ($insert) {
+			$change_log = [
+				'created_at' => $timestamp,
+				'created_by' => $username,
+				'updated_at' => null,
+				'updated_by' => null,
+				'deleted_at' => null,
+				'deleted_by' => null,
 			];
+
+			$change_log = self::detailInfoAddition($model, $change_log, null, null);
+			// $this->status = Constants::STATUS_DRAFT;
+		} else {
+			$change_log = $model['detail_info']['change_log'];
+
+			if (isset($model->status)) {
+				if ($model->status == Constants::STATUS_DELETED) {
+					$change_log['deleted_at'] = $timestamp;
+					$change_log['deleted_by'] = $username;
+				} else {
+					$change_log['updated_at'] = $timestamp;
+					$change_log['updated_by'] = $username;
 	
-			$currentStatus = $model->getOldAttribute('status');
-			$newStatus = (int) $params['status'];
-			var_dump($currentStatus, $newStatus);
-
-            // Check if the current status is completed or active
-            if (in_array($currentStatus, [$completedStatus, $activeStatus])) {
-				foreach ($params as $key => $value) {
-                    if (! in_array($key, ['status', 'id'])) {
-                        // unset($params[$key]);
-						$model->addError('status', 'Cannot update other fields when status is ' . Constants::statusList()[$currentStatus] . '. Only status can be updated.');
-						return $model;
-                    }
-                }
-
-				$model->addError('status', 'Cannot update the status to ' . Constants::statusList()[$newStatus] . ' if the data is already '. Constants::statusList()[$activeStatus] . ' or '. Constants::statusList()[$completedStatus] . '.');
-				return $model;
-			}
-
-			// Check if current status allows the new status
-			if (isset($allowedTransitions[$currentStatus])) {
-				// if ($newStatus == 4 && Yii::$app->user->can('superadmin')) {
-				//     // Allow transition if user has superadmin permission
-				//     return;
-				// }
-	
-				if (!in_array($newStatus, $allowedTransitions[$currentStatus])) {
-					$model->addError('status', 'Invalid status transition 0.');
-					return $model;
+					$change_log = self::detailInfoAddition($model, $change_log, null, null);
 				}
-			} else {
-				$model->addError('status', 'Invalid status transition 1.');
-				return $model;
 			}
 		}
+
+		$model->change_log = $change_log;
+		return $model->change_log;
 	}
+
+	public function superAdmin() 
+    {
+		$roles = Yii::$app->session->get('roles', []);
+
+		if (!in_array('superadmin', $roles)) {
+			return true;
+		}
+
+		return true;
+    }
 
 	public static function restrictStatusUpdate($status) 
     {
@@ -146,44 +186,287 @@ class CoreAPI
 		return false;
     }
 
-	public function changeLog($model, $insert)
-	{
-		$timestamp = self::timestamp();
-		$username = Yii::$app->session->get('username');
-		$change_log = [];
-		
-		if ($insert) {
-			$change_log = [
-				'created_at' => $timestamp,
-				'created_by' => (is_null($username) ? 'admin' : $username), 
-				'updated_at' => null,
-				'updated_by' => null,
-				'deleted_at' => null,
-				'deleted_by' => null,
-			];
-		} else {
-			$change_log = $model['detail_info']['change_log'];
-
-			if ($model->status == Constants::STATUS_DELETED) {
-				$change_log['deleted_at'] = $timestamp;
-				$change_log['deleted_by'] = (is_null($username) ? 'admin' : $username);
-			} else {
-				$change_log['updated_at'] = $timestamp;
-				$change_log['updated_by'] = (is_null($username) ? 'admin' : $username);
-			}
-		}
-		
-		$model->change_log = $change_log;
-		return $model->change_log;
+	function htmlPurifier($value){
+		$dirtyHtml = HtmlPurifier::process($value);
+		$cleanText = strip_tags($dirtyHtml);
+		$cleanText = $this->nullSafe($cleanText);
+	
+		return $cleanText;
 	}
 
-	public function detailInfoAddition($model, $insert) 
-	{
-			$detail_info = $model->detail_info;
-			$detail_info['dayoff'] = false;
-			$detail_info['blacklist'] = [];
-			$model->detail_info = $detail_info;
+	public function validateDependencies($attribute, $params, $validator, $model, $dependencies)
+    {
+		if (!$model->isNewRecord) {
+			$changedAttributes = [];
+			$fields = Yii::$app->params['fieldUpdateRestriction'][$model->tableName()];
+			$disallowedStatusUpdate = Constants::disallowedStatusUpdate();
 
-			return $detail_info;
+			foreach ($fields as $field) {
+				if ($model->isAttributeChanged($field)) {
+					$changedAttributes[] = $field;
+				}
+
+				if ($field == 'status') {
+					if ($model->isAttributeChanged($field) && in_array($model->status, $disallowedStatusUpdate)) {
+						$changedAttributes[] = $field;
+					}
+				}
+			}
+
+			if (!empty($changedAttributes)) {
+				$dataId = $model->id;
+
+				foreach ($dependencies as $dependency) {
+					$className = $dependency['class'];
+
+					foreach ($dependency['field'] as $field) {
+						if ($className::find()->where([$field => $dataId])->exists()) {
+							foreach ($changedAttributes as $changedAttribute) {
+								$model->addError($changedAttribute, Yii::t('app', 'updatePermission', [
+									'label' => $model->getAttributeLabel($changedAttribute),
+									'tableName' => $model->tableName(),
+								]));
+							}
+
+							return;
+						}
+					}
+				}
+			}
+		}
+    }
+
+	public function validateDependenciesBackup($attribute, $params, $validator, $model, $dependencies)
+    {
+		$isDataUsed = false;
+
+		if (!$model->isNewRecord) {
+            $changedAttributes = [];
+            $fields = Yii::$app->params['fieldUpdateRestriction'][$model->tableName()];
+			$disallowedStatusUpdate = Constants::disallowedStatusUpdate();
+
+            foreach ($fields as $field) {
+                if ($model->isAttributeChanged($field)) {
+                    $changedAttributes[] = $field;
+                }
+
+                if ($field == 'status') {
+                    if ($model->isAttributeChanged($field) && in_array($model->status, $disallowedStatusUpdate)) {
+                        $changedAttributes[] = $field;
+                    }
+                } 
+            }
+
+            if (!empty($changedAttributes)) {
+                $dataId = $model->id;
+
+                foreach ($dependencies as $dependency) {
+					$className = $dependency['class'];
+
+                    if (count($dependency['field']) > 1) {
+                        $query = $className::find();
+                        foreach ($dependency['field'] as $field) {
+                            $query->orWhere([$field => $dataId]);
+                        }
+                        $isDataUsed = $isDataUsed || $query->exists();
+                    } else {
+                        $isDataUsed = $isDataUsed || $className::find()->where([$dependency['field'][0] => $dataId])->exists();
+                    }
+				}
+
+				// $isDataUsed = Purchase::find()->where(['vendor_id' => $dataId])->exists() ||
+                //     MasterData::find()->where(['vendor_id' => $dataId])->exists();
+
+                if ($isDataUsed && self::superAdmin()) {
+                    foreach ($changedAttributes as $changedAttribute) {
+                        $model->addError($changedAttribute, Yii::t('app', 'updatePermission', [
+                            'label' => $model->getAttributeLabel($changedAttribute),
+                            'tableName' => $model->tableName(),
+                        ]));
+                    }
+                }
+            }
+        }
+    }
+
+	public function validateStatusUpdate($attribute, $params, $model)
+    {
+        $newStatus = $model->$attribute;
+        $oldStatus = $model->getOldAttribute($attribute);
+        $statusList = Constants::statusList();
+		$allowedStatusUpdate = Constants::allowedStatusUpdate();
+        $disallowedStatusUpdate = Constants::disallowedStatusUpdate();
+
+        if (!$model->isNewRecord && $model->isAttributeChanged($attribute)) {
+            $oldStatus = $model->getOldAttribute($attribute);
+            $newStatus = $model->$attribute;
+
+            if ($oldStatus == Constants::STATUS_DELETED && $newStatus != Constants::STATUS_DELETED && self::superAdmin()) {
+                $model->addError($attribute, Yii::t('rule', 'deletedStatusChanged', ['status' => $statusList[Constants::STATUS_DELETED]]));
+                return;
+            }
+        } else if ($oldStatus !== $newStatus){
+			if ($oldStatus !== null) {
+				if (in_array($oldStatus, $disallowedStatusUpdate)) {
+					$model->addError($attribute, Yii::t('rule', 'disallowedStatusUpdate', ['status' => $statusList[$oldStatus]]));
+				} elseif (!isset($allowedStatusUpdate[$oldStatus])) {
+					$model->addError($attribute, 'Invalid status transition');
+				} elseif (!in_array($newStatus, $allowedStatusUpdate[$oldStatus])) {
+					$model->addError($attribute, Yii::t('rule', 'cannotChangeStatus', [
+						'status' => $statusList[$oldStatus],
+						'newStatus' => $statusList[$newStatus]
+					]));
+				}
+			}
+        }
+    }
+
+	public function validatePage($attribute, $params, $model)
+	{
+		if ($model->$attribute <= 0) {
+			$model->addError($attribute, 'Page must be greater than 0');
+		}
+	}
+
+	// public function validateInteger($attribute, $params, $model)
+	// {
+	// 	if (!is_numeric($model->$attribute) || intval($model->$attribute) != $model->$attribute || intval($model->$attribute) <= 0) {
+	// 		$this->addError($attribute, Yii::t('app', '{attribute} must be an integer.', ['attribute' => $this->getAttributeLabel('id')]));
+	// 		return;
+	// 	}
+	// }
+
+	function setPagination($params, $dataProvider) {
+		$page = isset($params['page']) ? $params['page'] : 1;
+		$page_size = isset($params['page_size']) ? (int) $params['page_size'] : (int) Constants::DEFAULT_PAGE_SIZE;
+		$totalCount = (int) $dataProvider->getTotalCount();
+	
+		if ($totalCount < $page_size) {
+			$page_size = $totalCount;
+
+			return [
+				'page' => $page - 1,
+				// 'pageSize' => $page_size,
+				// 'defaultPageSize' => $page_size,
+			];
+		}
+
+		return [
+			'page' => $page - 1,
+			'pageSize' => $page_size,
+			'defaultPageSize' => $page_size,
+		];
+	}
+
+	function setSort($params) {
+        $sort = isset($params['sort']) ? $params['sort'] : SORT_DESC;
+        $sortBy = isset($params['sort_by']) ? $params['sort_by'] : 'id';
+        $sort = $sort === 'asc' ? SORT_ASC : SORT_DESC;
+
+        return [
+            'defaultOrder' => [$sortBy => $sort],
+        ];
+    }
+
+	public function statusRules($model) {
+        return [
+            [['status'], 'default', 'value' => Constants::STATUS_DRAFT],
+            [['status'], 'integer'],
+            [['status'], 'in', 'range' => array_keys(Constants::statusList())],
+            [['status'], 'filter', 'filter' => 'intval'],
+            [['status'], function ($attribute, $params) use ($model) {
+                return Yii::$app->coreAPI->validateStatusUpdate($attribute, $params, $model);
+            }],
+        ];
+    }
+
+	// public function mongodbResult($model, $params, $where) 
+    // {
+	// 	$model->load([$this->modelClassName($model) => $params]);
+        
+	// 	if ($unavailableParams = $this->unavailableParams($model->rules(), $params)) {
+	// 		return $unavailableParams;
+	// 	}
+
+	// 	$filters = [
+	// 		'where' => [],
+	// 		'sort' => [],
+	// 		'limit' => $model->page_size,
+	// 		'offset' => ($model->page - 1) * $model->page_size,
+	// 		'orderBy' => $model->sort,
+	// 		'indexBy' => $model->sort_by,
+	// 	];
+
+	// 	if (isset($model->id)) {
+	// 		$filters['where']['id'] = (int) $model->id;
+	// 	}
+		
+	// 	if (isset($model->name)) {
+	// 		$filters['where']['name'] = ['$regex' => str_replace(' ', '.*', $model->name), '$options' => 'i'];
+	// 	}
+
+	// 	if (isset($model->status)) {
+	// 		$filters['where']['status'] = ['$ne' => 4, '$eq' => (int) $model->status];
+	// 	}
+
+	// 	if ($where) {
+	// 		$filters['where'] = array_merge($filters['where'], $where);
+	// 	}
+        
+    //     return Yii::$app->mongodb->search($model, $filters['where']);
+    // }
+
+	function changelogDateFilters($model, $fields = ['created_at', 'updated_at', 'deleted_at'])
+	{
+		$conditions = ['and'];
+
+		foreach ($fields as $field) {
+			$fieldValue = $model->$field;
+
+			if (!empty($fieldValue) && strpos($fieldValue, ',') !== false) {
+				$dates = explode(',', $fieldValue);
+				if (count($dates) == 2) {
+					$start_date = trim($dates[0]);
+					$end_date = trim($dates[1]);
+
+					$conditions[] = ['>=', new \yii\db\Expression("(detail_info #>> '{change_log,$field}')::date"), $start_date.'T00:00:00Z'];
+					$conditions[] = ['<=', new \yii\db\Expression("(detail_info #>> '{change_log,$field}')::date"), $end_date];
+				} else {
+					$conditions[] = ['=', new \yii\db\Expression("(detail_info #>> '{change_log,$field}')::date"), $fieldValue];
+				}
+			} else {
+				$conditions[] = ['=', new \yii\db\Expression("(detail_info #>> '{change_log,$field}')::date"), $fieldValue];
+			}
+		}
+
+		return $conditions;
+	}
+
+	function changelogFilters($model)
+	{
+		$conditions = ['and'];
+
+		if (!empty($model->created_by)) {
+			$conditions[] = ['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $model->created_by];
+		}
+
+		if (!empty($model->updated_by)) {
+			$conditions[] = ['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_by}'"), $model->updated_by];
+		}
+
+		if (!empty($model->deleted_by)) {
+			$conditions[] = ['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_by}'"), $model->deleted_by];
+		}
+
+		return $conditions;
+	}
+
+	function nameFilter($name) {
+		if ($name){
+            $patternName = '%' . str_replace(' ', '%', trim($name)) . '%';
+			return ['ilike', 'name', $patternName, false];
+        }
+
+		return ['ilike', 'name', $name, false];
 	}
 }
