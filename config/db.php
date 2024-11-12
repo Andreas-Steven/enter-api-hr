@@ -2,7 +2,6 @@
 
 return [
     'class' => 'yii\db\Connection',
-    // 'dsn' => 'pgsql:host=localhost;port=5432;dbname=dev_master_data',
     'dsn' => 'pgsql:host=localhost;port=5432;dbname=dev_master_data',
     'username' => 'dev_ironhead',
     'password' => 'vYbrXeVMy#X7',
