@@ -41,32 +41,25 @@ class EmployeeSearch extends Employee
         return Model::scenarios();
     }
 
+    public function getErrors($attribute = null)
+    {
+        return Yii::$app->coreAPI->searchGetErrors(parent::getErrors());
+    }
+
     public function search($params)
     {
-        $query = Employee::find();
-        $query->where(Constants::STATUS_NOT_DELETED);
+        $this->load([Yii::$app->coreAPI->modelClassName($this) => $params]);
 
-        // add conditions that should always apply here
-        $rules = $this->rules();
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this->rules(), $params)) {
             return $unavailableParams;
         }
 
+        $query = Employee::find();
+        $query->where(Constants::STATUS_NOT_DELETED);
+
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'sort' => [
-                'defaultOrder' => [
-                    isset($params['sort']) ? $params['sort'] : 'id' => isset($params['sort_by']) && $params['sort_by'] == 'asc' ? SORT_ASC : SORT_DESC
-                ],
-            ],
-            'pagination' => [
-                'pageSize' => isset($params['page_size']) ? $params['page_size'] : 10,
-                'page' => isset($params['page']) ? $params['page'] - 1 : 0,
-            ],
         ]);
-
-        
-        $this->load(['EmployeeSearch' => $params]);
         
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails
@@ -74,7 +67,10 @@ class EmployeeSearch extends Employee
             return $dataProvider;
         }
 
+        // add conditions that should always apply here
         // grid filtering conditions
+        $query->andFilterWhere(Yii::$app->coreAPI->nameFilter($this->name));
+        
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
@@ -85,19 +81,16 @@ class EmployeeSearch extends Employee
             'date_resign' => $this->date_resign,
         ]);
         
-        $query
-            ->andFilterWhere(['ilike', 'nik', $this->nik])
-            ->andFilterWhere(['ilike', 'name', $this->name])
-            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_at}'"), $this->created_at])
-            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $this->created_by])
-            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_at}'"), $this->updated_at])
-            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_by}'"), $this->updated_by])
-            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_at}'"), $this->deleted_at])
-            ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_by}'"), $this->deleted_by]);
+        $query->andFilterWhere(Yii::$app->coreAPI->changelogDateFilters($this));
+        $query->andFilterWhere(Yii::$app->coreAPI->changelogFilters($this));
+        
+        $dataProvider->setPagination(
+            Yii::$app->coreAPI->setPagination($params, $dataProvider)
+        );
 
-        if (!empty($this->contact)) {
-            $query->andWhere(new \yii\db\Expression("EXISTS (SELECT 1 FROM jsonb_array_elements_text(contact::jsonb) AS elem WHERE elem ILIKE :contact)"), [':contact' => '%' . $this->contact . '%']);
-        }
+        $dataProvider->setSort(
+            Yii::$app->coreAPI->setSort($params)
+        );
 
         return $dataProvider;
     }

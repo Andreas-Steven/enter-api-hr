@@ -49,8 +49,20 @@ class GeneralAffairSearch extends GeneralAffair
         return Model::scenarios();
     }
 
+    public function getErrors($attribute = null)
+    {
+        return Yii::$app->coreAPI->searchGetErrors(parent::getErrors());
+    }
+
     public function search($params)
     {
+
+        $this->load([Yii::$app->coreAPI->modelClassName($this) => $params]);
+
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this->rules(), $params)) {
+            return $unavailableParams;
+        }
+        
         $query = GeneralAffair::find();
         $query->where(Constants::STATUS_NOT_DELETED);
         $query->addSelect([

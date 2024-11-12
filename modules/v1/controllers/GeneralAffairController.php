@@ -25,6 +25,7 @@ class GeneralAffairController extends CoreController
 				'except' => [
 					Constants::AUTH_EXCEPTION,
 				],
+				'role' => Yii::$app->params['codeApp'],
 			],
 			'verbs' => [
 				'class' => VerbFilter::className(),
@@ -35,13 +36,7 @@ class GeneralAffairController extends CoreController
 
 	public function actionIndex()
 	{
-		$data = [
-			'code' => 200,
-			'success' => true,
-			'message' => Yii::$app->params['titleService'].' '.Yii::$app->params['serviceVersion'],  
-		];
-
-		return $data;
+		return CoreController::coreActionIndex();
 	}
 
 	public function actionData()
@@ -55,38 +50,26 @@ class GeneralAffairController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$models = $dataProvider->getModels();
-		$formattedData = [];
+		// $models = $dataProvider->getModels();
+		// $formattedData = [];
 
-		foreach ($models as $model) {
-			$formattedData[] = [
-				'id' => $model->id,
-				'name' => $model->name,
-				'category_id' => $model->category_id,
-				'location_id' => $model->location_id,
-				'status' => $model->status,
-				'detail_info' => $model->detail_info,
-				'item' => [
-					'items' => json_decode($model->data),
-					'quantity' => $model->item['quantity'] ?? null,
-					'total_price' => $model->item['total_price'] ?? null,
-				], 
-			];
-		}
+		// foreach ($models as $model) {
+		// 	$formattedData[] = [
+		// 		'id' => $model->id,
+		// 		'name' => $model->name,
+		// 		'category_id' => $model->category_id,
+		// 		'location_id' => $model->location_id,
+		// 		'status' => $model->status,
+		// 		'detail_info' => $model->detail_info,
+		// 		'item' => [
+		// 			'items' => json_decode($model->data),
+		// 			'quantity' => $model->item['quantity'] ?? null,
+		// 			'total_price' => $model->item['total_price'] ?? null,
+		// 		], 
+		// 	];
+		// }
 
-		$data = [
-			'code' => 200,
-			'success' => true,
-			'message' => Yii::t('app', 'success'), 
-			'pagination' => [
-				'page' => intval(isset($params['page']) ? $params['page'] : 1),
-				'total' => $dataProvider->getTotalCount(),
-				'display' => $dataProvider->getCount(),
-			],
-			'data' => $formattedData,
-		];
-
-		return $data;
+		return CoreController::coreData($dataProvider);
 	}
 
 	public function actionCreate()
@@ -127,26 +110,25 @@ class GeneralAffairController extends CoreController
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_UPDATE)) {
-			return $coreBadRequestNoParams;
+		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_UPDATE)) {
+			return $coreBadRequest;
 		}
 		
-		$model = Yii::$app->coreAPI->findModel(GeneralAffair::className(), $params);
-		$rules = $model->rules();
+		$model = Yii::$app->coreAPI->findModel(new GeneralAffair(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
 
-		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
+		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
 			return CoreController::coreValidateParams($unavailableParams);
         }
+
+		$model->scenario = Constants::SCENARIO_UPDATE;
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
 			return $coreSuperadmin;
 		}
-
-		$model->scenario = Constants::SCENARIO_UPDATE;
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
@@ -154,29 +136,30 @@ class GeneralAffairController extends CoreController
 			}
 		}
 
-		return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
+		return CoreController::coreValidationFailed($model, 'updateRecordFailed');
 	}
 
 	public function actionDelete()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_DELETE)) {
-			return $coreBadRequestNoParams;
+		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_DELETE)) {
+			return $coreBadRequest;
 		}
-		
+
 		$model = GeneralAffair::find()->where([
 			'id' => $params['id'],
 		])->one();
- 
+
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
-			
+
 		if (!isset($params['code']) && empty($params['code'])) {
 			$params['status'] = Constants::STATUS_DELETED;
 		}
 
+		$params['status'] = Constants::STATUS_DELETED;
 		$model->scenario = Constants::SCENARIO_DELETE;
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
@@ -189,6 +172,6 @@ class GeneralAffairController extends CoreController
 			}
 		}
 
-		return CoreController::coreBadRequest($model, Yii::t('app', 'deleteRecordFailed'));
+		return CoreController::coreValidationFailed($model, 'deleteRecordFailed');;
 	}
 }

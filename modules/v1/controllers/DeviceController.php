@@ -26,6 +26,7 @@ class DeviceController extends CoreController
 				'except' => [
 					Constants::AUTH_EXCEPTION,
 				],
+				'role' => Yii::$app->params['codeApp'],
 			],
 			'verbs' => [
 				'class' => VerbFilter::className(),
@@ -36,13 +37,7 @@ class DeviceController extends CoreController
 
 	public function actionIndex()
 	{
-		$data = [
-			'code' => 200,
-			'success' => true,
-			'message' => Yii::$app->params['titleService'].' '.Yii::$app->params['serviceVersion'],  
-		];
-
-		return $data;
+		return CoreController::coreActionIndex();
 	}
 
 	public function actionData()
@@ -56,19 +51,7 @@ class DeviceController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$data = [
-			'code' => 200,
-			'success' => true,
-			'message' => Yii::t('app', 'success'), 
-			'pagination' => [
-				'page' => intval(isset($params['page']) ? $params['page'] : 1),
-				'total' => $dataProvider->getTotalCount(),
-				'display' => $dataProvider->getCount(),
-			],
-			'data' => $dataProvider,
-		];
-
-		return $data;
+		return CoreController::coreData($dataProvider);
 	}
 
 	public function actionCreate()
@@ -135,11 +118,11 @@ class DeviceController extends CoreController
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_DELETE)) {
-			return $coreBadRequestNoParams;
+		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_DELETE)) {
+			return $coreBadRequest;
 		}
 
-		$model = Yii::$app->coreAPI->findModel(Device::className(), $params);
+		$model = Yii::$app->coreAPI->findModel(new Device(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -148,9 +131,9 @@ class DeviceController extends CoreController
 		$params['status'] = Constants::STATUS_DELETED;
 		$model->scenario = Constants::SCENARIO_DELETE;
 
-		// if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-		// 	return $coreSuperadmin;
-		// }
+		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
+			return $coreSuperadmin;
+		}
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
@@ -158,6 +141,6 @@ class DeviceController extends CoreController
 			}
 		}
 
-		return CoreController::coreBadRequest($model, Yii::t('app', 'deleteRecordFailed'));
+		return CoreController::coreValidationFailed($model, 'deleteRecordFailed');
 	}
 }

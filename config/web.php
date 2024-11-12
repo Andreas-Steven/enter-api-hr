@@ -2,6 +2,7 @@
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
+// $mongodb = require __DIR__ . '/mongodb.php';
 
 $config = [
     'id' => 'basic'.$params['extraCookies'],
@@ -15,14 +16,12 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+        'pagination' => [
+            'class' => 'yii\data\Pagination',
+            'defaultPageSize' => 10,
+        ],
         'coreAPI' => [
             'class' => 'app\components\CoreAPI',
-        ],
-        'AbsensiCoreAPI' => [
-            'class' => 'app\components\AbsensiCoreAPI',
-        ],
-        'GeneralAffairCoreAPI' => [
-            'class' => 'app\components\GeneralAffairCoreAPI',
         ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
@@ -46,18 +45,19 @@ $config = [
         ],
         'response' => [
             'class' => 'yii\web\Response',
-            // 'on beforeSend' => function ($event) {
-            //     $response = $event->sender;
-            //     if ($response->data !== null && Yii::$app->request->get('suppress_response_code')) {
-            //         $response->data = [
-            //             'success' => $response->isSuccessful,
-            //             'data' => $response->data,
-            //         ];
-            //         $response->statusCode = 200;
-            //     } else {
-            //         $response->data['success'] = $response->isSuccessful;
-            //     }
-            // },
+            'on beforeSend' => function ($event) {
+                $response = $event->sender;
+                // if ($response->data !== null && Yii::$app->request->get('suppress_response_code')) {
+                //     $response->data = [
+                //         'success' => $response->isSuccessful,
+                //         'data' => $response->data,
+                //     ];
+                //     $response->statusCode = 200;
+                // } else {
+                //     $response->data['success'] = $response->isSuccessful;
+                //     unset($response->data['type']);
+                // }
+            },
         ],
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
@@ -67,14 +67,29 @@ $config = [
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
-            // 'targets' => [
-            //     [
-            //         'class' => 'yii\log\FileTarget',
-            //         'levels' => ['error', 'warning'],
-            //     ],
-            // ],
+            'targets' => [
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'levels' => ['error', 'warning'],
+                    // adding for query logging
+                    'categories' => ['yii\db\Command::execute'],
+                    'logFile' => '@runtime/logs/sql.log',  // Log SQL queries to a specific file
+                    'maxFileSize' => 1024 * 2,
+                    'maxLogFiles' => 10,
+                    'logVars' => [],  // Prevents logging of $_SERVER, $_SESSION, etc.
+                ],
+            ],
         ],
         'db' => $db,
+        // 'mongodb' => $mongodb,
+        // 'mongodb' => [
+        //     'class' => '\MongoDB\Client',
+        //     'options' => [
+        //         'uri' => 'mongodb://localhost:27017',
+        //         'database' => 'enterkomputer',
+        //     ],
+        //     // 'uri' => 'mongodb://localhost:27017',
+        // ],
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
@@ -86,10 +101,11 @@ $config = [
                         'v1/default',
                     ]
                 ],
-
-                /**==== EnterHR API Route ====*/
-                'v1'        => 'v1/default/index',
-                'v1/data'   => 'v1/default/data',
+                'v1' => 'v1/default/index',
+                'v1/data' => 'v1/default/data',
+                // 'v1/category/searchLastPosition/<id>' => 'v1/category/hierarchy',
+                // 'v1/brand' => 'v1/brand/index',
+                // 'v1/brand/data' => 'v1/brand/data',
             ],
         ],
         'i18n' => [
@@ -102,17 +118,16 @@ $config = [
                     ],
                     'on missingTranslation' => ['app\components\TranslationEventHandler', 'handleMissingTranslation']
                 ],
+                'rule' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@app/translation',
+                    'fileMap' => [
+                        'rule' => 'rule.php',
+                    ],
+                    'on missingTranslation' => ['app\components\TranslationEventHandler', 'handleMissingTranslation']
+                ]
             ],
         ],
-        'formatter' => [
-        'class' => 'yii\i18n\Formatter',
-        'decimalSeparator' => '.',
-        'thousandSeparator' => '',
-        'numberFormatterOptions' => [
-            NumberFormatter::MIN_FRACTION_DIGITS => 2,
-            NumberFormatter::MAX_FRACTION_DIGITS => 2,
-        ],
-    ],
     ],
     'params' => $params,
     'modules' => [

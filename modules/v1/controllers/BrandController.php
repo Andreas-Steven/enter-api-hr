@@ -5,8 +5,8 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
-use app\helpers\Constants;
 use yii\filters\VerbFilter;
+use app\helpers\Constants;
 use app\components\CustomException;
 use app\controllers\CoreController;
 use app\models\search\BrandSearch;
@@ -17,16 +17,15 @@ use app\models\Brand;
  */
 class BrandController extends CoreController
 {
-	public $enableCsrfValidation = false;
-
 	public function behaviors()
 	{
 		return parent::behaviors() + [
-		   'authenticator' => [
+			'authenticator' => [
 				'class' => 'app\components\JwtBearerAuth',
 				'except' => [
 					Constants::AUTH_EXCEPTION,
 				],
+				'role' => Yii::$app->params['codeApp'],
 			],
 			'verbs' => [
 				'class' => VerbFilter::className(),
@@ -37,13 +36,7 @@ class BrandController extends CoreController
 
 	public function actionIndex()
 	{
-		$data = [
-			'code' => 200,
-			'success' => true,
-			'message' => Yii::$app->params['titleService'].' '.Yii::$app->params['serviceVersion'],  
-		];
-
-		return $data;
+		return CoreController::coreActionIndex();
 	}
 
 	public function actionData()
@@ -53,92 +46,99 @@ class BrandController extends CoreController
 		$searchModel = new BrandSearch();
 		$dataProvider = $searchModel->search($params);
 
-		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
+		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider, $searchModel)) {
 			return $coreValidateParams;
 		}
 
-		$data = [
-			'code' => 200,
-			'success' => true,
-			'message' => Yii::t('app', 'success'), 
-			'data' => $dataProvider,
-		];
+		return CoreController::coreData($dataProvider);
+	}
 
-		return $data;
+	public function actionList()
+	{
+		$params = Yii::$app->getRequest()->getBodyParams();
+
+		$searchModel = new BrandSearch();
+		$searchModel->load($params);
+		$dataProvider = $searchModel->mongodbSearch($params);
+
+		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider, $searchModel)) {
+			return $coreValidateParams;
+		}
+
+		return CoreController::coreList($dataProvider);
 	}
 
 	public function actionCreate()
 	{
 		$model = new Brand();
 		$params = Yii::$app->getRequest()->getBodyParams();
-		$rules = $model->rules();
 
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
 			return CoreController::coreValidateParams($unavailableParams);
         }
 
 		$params['status'] = Constants::STATUS_DRAFT;
 		$model->scenario = Constants::SCENARIO_CREATE;
 
-		if ($model->load($params, '') && $model->save()) {
-			return CoreController::coreSuccess($model, 'insertRecordSuccess');
+		if ($model->load($params, '') && $model->validate()) {
+			if ($model->save()) {
+				Yii::$app->mongodb->upsert($model);
+
+				return CoreController::coreSuccess($model, 'insertRecordSuccess');
+			}
 		}
 
-		return CoreController::coreBadRequest($model, Yii::t('app', 'insertRecordFailed'));
+		return CoreController::coreValidationFailed($model, 'insertRecordFailed');
 	}
 
 	public function actionUpdate()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_UPDATE)) {
-			return $coreBadRequestNoParams;
+		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_UPDATE)) {
+			return $coreBadRequest;
 		}
 		
-		$model = Yii::$app->coreAPI->findModel(Brand::className(), $params);
-		$rules = $model->rules();
+		$model = Yii::$app->coreAPI->findModel(new Brand(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
 
-		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
+		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
 			return CoreController::coreValidateParams($unavailableParams);
         }
 
-		if (isset($params['name'])) {
-			$params['brand_id'] = $model->id;
-		}
+		$model->scenario = Constants::SCENARIO_UPDATE;
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
 			return $coreSuperadmin;
 		}
 
-		$model->scenario = Constants::SCENARIO_UPDATE;
-
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
+				Yii::$app->mongodb->upsert($model);
 				return CoreController::coreSuccess($model, 'updateRecordSuccess');
 			}
 		}
 
-		return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
+		return CoreController::coreValidationFailed($model, 'updateRecordFailed');
 	}
 
 	public function actionDelete()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_DELETE)) {
-			return $coreBadRequestNoParams;
+		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_DELETE)) {
+			return $coreBadRequest;
 		}
 
-		$model = Yii::$app->coreAPI->findModel(Brand::className(), $params);
+		$model = Yii::$app->coreAPI->findModel(new Brand(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
-		
+
 		$params['status'] = Constants::STATUS_DELETED;
 		$model->scenario = Constants::SCENARIO_DELETE;
 
@@ -148,10 +148,11 @@ class BrandController extends CoreController
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
+				Yii::$app->mongodb->upsert($model);
 				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
 			}
 		}
 
-		return CoreController::coreBadRequest($model, Yii::t('app', 'deleteRecordFailed'));
+		return CoreController::coreValidationFailed($model, 'deleteRecordFailed');;
 	}
 }
