@@ -1,21 +1,8 @@
 <?php
 
-// return [
-//     'class' => 'yii\db\Connection',
-//     'dsn' => 'pgsql:host=localhost;port=5432;dbname=enterhr',
-//     'username' => 'postgres',
-//     'password' => '',
-//     'charset' => 'utf8',
-
-//     // Schema cache options (for production environment)
-//     //'enableSchemaCache' => true,
-//     //'schemaCacheDuration' => 60,
-//     //'schemaCache' => 'cache',
-// ];
-
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'pgsql:host=localhost;port=5432;dbname=dev_master_data',
+    'dsn' => 'pgsql:host=localhost;port=5432;dbname=dev_enter_hr',
     'username' => 'dev_ironhead',
     'password' => 'vYbrXeVMy#X7',
     'charset' => 'utf8',
