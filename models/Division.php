@@ -25,18 +25,15 @@ class Division extends \yii\db\ActiveRecord
 
     public function rules()
     {
-        return [
-            [['status'], 'integer'],
-            [['detail_info'], 'safe'],
-            [['code', 'name'], 'string', 'max' => 255],
+        return array_merge(
+            [
+                [['detail_info'], 'safe'],
+                [['code', 'name'], 'string', 'max' => 255],
+                [['code', 'name'], 'required', 'on' => Constants::SCENARIO_CREATE]
+            ], 
+            Yii::$app->coreAPI->statusRules($this)
+        );
             
-            [['status'], 'default', 'value' => 2],
-            [['code', 'name'], 'required', 'on' => Constants::SCENARIO_CREATE],
-            
-            [['status'], 'filter', 'filter' => 'intval'],
-            [['status'], 'in', 'range' => array_keys(Constants::statusList())],
-            [['status'], 'validateStatusChange', 'on' => Constants::scenarioUpdate()],
-        ];
     }
 
     public function scenarios()

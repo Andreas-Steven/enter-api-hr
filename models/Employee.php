@@ -30,26 +30,24 @@ class Employee extends \yii\db\ActiveRecord
     }
 
     public function rules()
-    {
-        return [
-            [['contact', 'detail_info'], 'safe'],
-            [['name', 'nik'], 'string', 'max' => 255],
-            [['sso_id', 'division_id', 'status'], 'integer'],
+    {  
+        return array_merge(
+            [
+                [['contact', 'detail_info'], 'safe'],
+                [['name', 'nik'], 'string', 'max' => 255],
+                [['sso_id', 'division_id', 'status'], 'integer'],
 
-            [['status'], 'default', 'value' => 2],
-            [['status'], 'in', 'range' => array_keys(Constants::statusList())],
-            [['status', 'sso_id', 'division_id'], 'filter', 'filter' => 'intval'],
-            [['status'], 'validateStatusChange', 'on' => Constants::scenarioUpdate()],
+                [['nik', 'sso_id'], 'unique'],
+                [['nik', 'name', 'sso_id', 'division_id'], 'required'],
+                [['contact'], 'validateContact', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE]],
 
-            [['nik', 'sso_id'], 'unique'],
-            [['nik', 'name', 'sso_id', 'division_id'], 'required'],
-            [['contact'], 'validateContact', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE]],
-
-            [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
-                return $value === "" ? null : $value; }],
-            [['birth_date', 'date_start', 'date_resign'], 'date', 'format' => 'php:Y-m-d', 'when' => function($model, $attribute) { 
-                return $model->$attribute !== null && isset($model->$attribute); }],
-        ];
+                [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
+                    return $value === "" ? null : $value; }],
+                [['birth_date', 'date_start', 'date_resign'], 'date', 'format' => 'php:Y-m-d', 'when' => function($model, $attribute) { 
+                    return $model->$attribute !== null && isset($model->$attribute); }],
+            ],
+            Yii::$app->coreAPI->statusRules($this)
+        );
     }
 
     public function scenarios()

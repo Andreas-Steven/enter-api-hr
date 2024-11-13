@@ -26,19 +26,16 @@ class WorkTime extends \yii\db\ActiveRecord
 
     public function rules()
     {
-        return [
-            [['name', 'entry_time', 'home_time'], 'required'],
-            [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
-
-            [['status'], 'integer'],
-            [['flexible'], 'boolean'],
-            [['name'], 'string', 'max' => 255],
-            [['working_days', 'detail_info'], 'safe'],
-
-            [['status'], 'default', 'value' => 2],
-            [['status'], 'filter', 'filter' => 'intval'],
-            [['status'], 'in', 'range' => array_keys(Constants::statusList())],
-        ];
+        return array_merge(
+            [
+                [['flexible'], 'boolean'],
+                [['name'], 'string', 'max' => 255],
+                [['working_days', 'detail_info'], 'safe'],
+                [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
+                [['name', 'entry_time', 'home_time'], 'required'],
+            ],
+            Yii::$app->coreAPI->statusRules($this)
+        );
     }
 
     public function scenarios()
