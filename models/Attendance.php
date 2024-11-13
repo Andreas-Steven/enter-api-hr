@@ -54,6 +54,7 @@ class Attendance extends \yii\db\ActiveRecord
                 [['attendance', 'blacklist', 'detail_info'], 'safe', 'skipOnEmpty' => true],
                 
                 [['attendance'], 'validateAttendance'],
+                [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],
             ],
             Yii::$app->coreAPI->statusRules($this)
         );
@@ -63,7 +64,7 @@ class Attendance extends \yii\db\ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios[Constants::SCENARIO_CREATE] = ['date', 'attendance', 'status', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['date', 'attendance', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['attendance', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -244,22 +245,21 @@ class Attendance extends \yii\db\ActiveRecord
         $this->$attribute = $oldAttendance;
     }
 
-    public function beforeSave($insert)
+    public function validateAttendanceNotCheckout($attribute, $params)
     {
-        if (parent::beforeSave($insert)) {
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-            $this->detail_info = array_merge($this->detail_info ?? [], [
-                'change_log' => $this->change_log,
-                'dayoff' => $this->detail_info['dayoff'] ?? false,
-                'blacklist' => $this->detail_info['blacklist'] ?? [],
-            ]);
-    
-            return true;
-        }
-    
-        return false;
-    }
+        $lastAttendance = $this->getOldAttribute($attribute);
+        
+        foreach ($lastAttendance as $key => $value) {
+            if (empty($value['end_time'])) {
+                $value['info']['detail'][] = "Tidak Absen Pulang";
+                $value['info']['out'] = false;
+            }
 
+            $lastAttendance[$key]['info'] = $value['info'];
+        }
+        
+        $this->$attribute = $lastAttendance;
+    }
 
     public function addBlacklist($blacklist, $employee_id, $name, $date, $start_time)
     {
@@ -281,10 +281,19 @@ class Attendance extends \yii\db\ActiveRecord
         $this->setAttribute('detail_info', array_merge($this->detail_info, ['blacklist' => $exsistingBlacklist]));
     }
 
-    // Tidak absen pulang
-	// 	if (!empty($attendance['end_time']) && !empty($attendance['start_time']) && date('Y-m-d') != date('Y-m-d', strtotime($attendance['start_time'])) {
-	// 		if (!in_array("Tidak Absen Pulang", $attendance['info']['detail'])) {
-	// 			$attendance['info']['detail'][] = "Tidak Absen Pulang";
-	// 		}
-	// 	}
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+            $this->detail_info = array_merge($this->detail_info ?? [], [
+                'change_log' => $this->change_log,
+                'dayoff' => $this->detail_info['dayoff'] ?? false,
+                'blacklist' => $this->detail_info['blacklist'] ?? [],
+            ]);
+    
+            return true;
+        }
+    
+        return false;
+    }
 }

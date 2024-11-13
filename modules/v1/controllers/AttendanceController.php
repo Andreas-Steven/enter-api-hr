@@ -70,8 +70,18 @@ class AttendanceController extends CoreController
 			$model = $findModel;
 		}
 
-		if ($model === null) {
+		if ($findModel === null) {
   			// update tgl sebelumnya jadi completed / 3
+			$lastAttendance = Yii::$app->coreAPI->findModel($model, [], ['status' => Constants::STATUS_ACTIVE]);
+
+			if ($lastAttendance !== null) {
+				$params['status'] = Constants::STATUS_COMPLETED;
+				$lastAttendance->scenario = Constants::SCENARIO_UPDATE;
+
+				if ($lastAttendance->load($params, '') && $lastAttendance->validate()) {
+					$lastAttendance->save();
+				}
+			}
 		}
 
         if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
