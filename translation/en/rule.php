@@ -48,5 +48,6 @@ return [
     
     // Attendance Rules
     'dateCannotBlank' => 'Date cannot be blank.',
+    'dateAlreadyPast' => 'The date has passed.',
 ];
 
