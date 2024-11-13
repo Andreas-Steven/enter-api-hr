@@ -29,10 +29,10 @@ class Device extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
-                [['device_code', 'device_name', 'device_address', 'device_ip'], 'required'],
-                [['device_code', 'device_name', 'device_address', 'device_ip'], 'string', 'max' => 255],
                 [['detail_info', 'device_location'], 'safe'],
+                [['device_code', 'device_name', 'device_address', 'device_ip'], 'string', 'max' => 255],
 
+                [['device_code', 'device_name', 'device_address', 'device_ip'], 'required'],
             ],
             Yii::$app->coreAPI->statusRules($this)
         );

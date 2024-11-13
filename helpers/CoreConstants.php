@@ -32,6 +32,8 @@ class CoreConstants
     const DEFAULT_PAGE_SIZE = 10;
     const ENABLE_CSRF_VALIDATION = false;
 
+    const DEVICE_APP = 'APP';
+
     public static function verbsAction() {
         return [
             'index' => ['get'],

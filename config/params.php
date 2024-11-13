@@ -46,16 +46,7 @@ return [
         "device" => null,
         "division" => null,
         "work_time" => null,
-        "location" => [
-            "entry" => [
-                "lat" => null,
-                "lng" => null,
-            ],
-            "exit" => [
-                "lat" => null,
-                "lng" => null,
-            ],
-        ],
+        "location" => null,
         "info" => [
             'in' => null,
             'out' => null,
