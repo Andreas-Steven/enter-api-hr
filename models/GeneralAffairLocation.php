@@ -24,15 +24,14 @@ class GeneralAffairLocation extends \yii\db\ActiveRecord
 
     public function rules()
     {
-        return [
-            [['name'], 'required'],
-            [['detail_info'], 'safe'],
-            [['name'], 'string', 'max' => 255],
-            [['status'], 'default', 'value' => 2],
-            [['status'], 'integer'],
-            [['status'], 'in', 'range' => array_keys(Constants::statusList())],
-            [['status'], 'filter', 'filter' => 'intval']
-        ];
+        return array_merge(
+            [
+                [['name'], 'required'],
+                [['detail_info'], 'safe'],
+                [['name'], 'string', 'max' => 255],
+            ],
+            Yii::$app->coreAPI->statusRules($this)
+        );
     }
 
     public function scenarios()

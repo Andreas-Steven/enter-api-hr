@@ -44,14 +44,16 @@ class Attendance extends \yii\db\ActiveRecord
             [
                 [['date'], 'required'],
                 [['dayoff'], 'boolean'],
-                [['attendance', 'blacklist', 'detail_info'], 'safe', 'skipOnEmpty' => true],
-                [['dayoff'], 'default', 'value' => false],
-                [['date'], 'date', 'format' => 'php:Y-m-d'],
-                [['system_date'], 'date', 'format' => 'php:Y-m-d'],
                 [['attendance'], 'safe'],
-                [['attendance'], 'validateAttendance'],
+                [['date'], 'date', 'format' => 'php:Y-m-d'],
                 [['employee_id'], 'filter', 'filter' => 'intval'],
+                [['system_date'], 'date', 'format' => 'php:Y-m-d'],
                 [['end_time', 'start_time'], 'date', 'format' => 'php:H:i:s'],
+
+                [['dayoff'], 'default', 'value' => false],
+                [['attendance', 'blacklist', 'detail_info'], 'safe', 'skipOnEmpty' => true],
+                
+                [['attendance'], 'validateAttendance'],
             ],
             Yii::$app->coreAPI->statusRules($this)
         );
@@ -98,10 +100,10 @@ class Attendance extends \yii\db\ActiveRecord
         
         foreach ($attendanceData as $key => $value) {
             $employeeAttendance = Yii::$app->params['attendance'];
-            $employeeAttendance = array_merge($employeeAttendance, $value);
+            // $employeeAttendance = array_merge($employeeAttendance, $value);
             
-            // $nonLocationData = array_diff_key($value, ['location' => 1, 'lat' => 1, 'lng' => 1]);
-            // $employeeAttendance = array_merge($employeeAttendance, $nonLocationData);
+            $nonLocationData = array_diff_key($value, ['location' => 1, 'lat' => 1, 'lng' => 1]);
+            $employeeAttendance = array_merge($employeeAttendance, $nonLocationData);
             // var_dump($nonLocationData, $employeeAttendance); exit;
 
             if (isset($value['location']) && !empty($value['start_time'])) {

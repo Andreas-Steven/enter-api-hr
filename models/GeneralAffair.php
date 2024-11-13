@@ -33,24 +33,23 @@ class GeneralAffair extends \yii\db\ActiveRecord
     
     public function rules()
     {
-        return [
-            [['name'], 'string', 'max' => 255],
-            [['category_id', 'location_id', 'status'], 'integer'],
-            [['name', 'category_id', 'location_id'], 'required'],
-            [['detail_info', 'item', 'data'], 'safe', 'skipOnEmpty' => true],
-            
-            [['status'], 'default', 'value' => 2],
-            [['status'], 'in', 'range' => array_keys(Constants::statusList())],
-
-            [['item', 'code'], 'safe'],
-            [['item'], 'validateItem'],
-
-            [['category_id', 'location_id', 'status'], 'filter', 'filter' => 'intval'],
-            [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => GeneralAffairCategory::class, 'targetAttribute' => ['category_id' => 'id']],
-            [['location_id'], 'exist', 'skipOnError' => true, 'targetClass' => GeneralAffairLocation::class, 'targetAttribute' => ['location_id' => 'id']],
-            
-            [['code', 'status'], 'validateDeleted', 'on' => Constants::SCENARIO_DELETE],
-        ];
+        return array_merge(
+            [
+                [['item', 'code'], 'safe'],
+                [['name'], 'string', 'max' => 255],
+                [['category_id', 'location_id'], 'integer'],
+                [['name', 'category_id', 'location_id'], 'required'],
+                [['detail_info', 'item', 'data'], 'safe', 'skipOnEmpty' => true],
+                
+                [['category_id', 'location_id'], 'filter', 'filter' => 'intval'],
+                [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => GeneralAffairCategory::class, 'targetAttribute' => ['category_id' => 'id']],
+                [['location_id'], 'exist', 'skipOnError' => true, 'targetClass' => GeneralAffairLocation::class, 'targetAttribute' => ['location_id' => 'id']],
+                
+                [['item'], 'validateItem'],
+                [['code', 'status'], 'validateDeleted', 'on' => Constants::SCENARIO_DELETE],
+            ],
+            Yii::$app->coreAPI->statusRules($this)
+        );
     }
 
     public function scenarios()
