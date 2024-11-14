@@ -32,6 +32,7 @@ class Attendance extends \yii\db\ActiveRecord
     public $device;
     public $device_code;
     public $system_date;
+    public $isDateMismatch;
 
     public static function tableName()
     {
@@ -43,11 +44,11 @@ class Attendance extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['date'], 'required'],
-                [['dayoff'], 'boolean'],
                 [['attendance'], 'safe'],
+                [['dayoff'], 'boolean'],
                 [['date'], 'date', 'format' => 'php:Y-m-d'],
                 [['employee_id'], 'filter', 'filter' => 'intval'],
-                [['system_date'], 'date', 'format' => 'php:Y-m-d'],
+                [['system_date', 'isDateMismatch'], 'date', 'format' => 'php:Y-m-d'],
                 [['end_time', 'start_time'], 'date', 'format' => 'php:H:i:s'],
 
                 [['dayoff'], 'default', 'value' => false],
@@ -63,7 +64,7 @@ class Attendance extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'attendance', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'attendance', 'isDateMismatch', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['attendance', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
@@ -96,10 +97,10 @@ class Attendance extends \yii\db\ActiveRecord
         }
 
         $employeeAttendance = [];
-        $attendanceData = $this->$attribute;
+        $attendanceData = $this->$attribute;  
         $oldAttendance = $this->getOldAttribute($attribute);
         $latestAttendance = !empty($oldAttendance) ? end($oldAttendance) : null;
-        
+
         foreach ($attendanceData as $key => $value) {
             $employeeAttendance = Yii::$app->params['attendance'];
             $employeeAttendance = array_merge($employeeAttendance, $value);
@@ -143,15 +144,15 @@ class Attendance extends \yii\db\ActiveRecord
                 $employeeAttendance['device'] = ['id' => $device->id, 'device_code' => $device->device_code, 'device_name' => $device->device_name];
             }
 
+            $employeeAttendance['employee_id'] = intval($employeeAttendance['employee_id']);
+
+            $employee = Employee::find()->where(['id' => $employeeAttendance['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
+            if ($employee === null) {
+                $this->addError($attribute.'['.$key.'].employee_id', 'Employee not found');
+                return;
+            }
+
             if ($oldAttendance === null || !isset($oldAttendance[$key])) {
-                $employeeAttendance['employee_id'] = intval($employeeAttendance['employee_id']);
-
-                $employee = Employee::find()->where(['id' => $employeeAttendance['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
-                if ($employee === null) {
-                    $this->addError($attribute.'['.$key.'].employee_id', 'Employee not found');
-                    return;
-                }
-
                 $division_id = $employee->division_id;
                 $division = Division::find()->where([
                     'id' => $division_id, 
@@ -237,9 +238,14 @@ class Attendance extends \yii\db\ActiveRecord
             
             $oldAttendance[$key] = $employeeAttendance;
         }
+
         if (!empty($latestAttendance) && strtotime($oldAttendance[$key]['start_time']) < strtotime($latestAttendance['start_time'])) {
             $this->addBlacklist($this->detail_info, $oldAttendance[$key]['employee_id'], $oldAttendance[$key]['employee_name'], $this->date, $oldAttendance[$key]['start_time']);
             $oldAttendance[$key]['start_time'] = date('H:i:s');
+        }
+
+        if (!empty($this->isDateMismatch)) {
+            $this->addBlacklist($this->detail_info, $oldAttendance[$key]['employee_id'], $oldAttendance[$key]['employee_name'], $this->isDateMismatch, $oldAttendance[$key]['start_time']);
         }
         
         $this->$attribute = $oldAttendance;
@@ -261,7 +267,7 @@ class Attendance extends \yii\db\ActiveRecord
         $this->$attribute = $lastAttendance;
     }
 
-    public function addBlacklist($blacklist, $employee_id, $name, $date, $start_time)
+    public function addBlacklist($detail_info, $employee_id, $name, $date, $start_time)
     {
         $blacklist = [
             'employee_id' => $employee_id,
@@ -270,7 +276,7 @@ class Attendance extends \yii\db\ActiveRecord
             'date' => $date,
             'time' => date('H:i:s')
         ];
-        $exsistingBlacklist = $this->detail_info['blacklist'];
+        $exsistingBlacklist = $detail_info['blacklist'];
         
         if (!empty($exsistingBlacklist)) {
             array_push($exsistingBlacklist, $blacklist);
