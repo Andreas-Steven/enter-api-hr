@@ -63,10 +63,10 @@ class AttendanceController extends CoreController
 			return CoreController::coreBadRequest($model, Yii::t('rule', 'dateCannotBlank'));
 		}
 
-		if ($params['date'] != $params['system_date']) {
-			// Add blacklist logic here
-			return CoreController::coreBadRequest($model, Yii::t('rule', 'dateAlreadyPast'));
-		}
+		// if ($params['date'] != $params['system_date']) {
+		// 	// Add blacklist logic here
+		// 	return CoreController::coreBadRequest($model, Yii::t('rule', 'dateAlreadyPast'));
+		// }
 
 		$findModel = Yii::$app->coreAPI->findModel($model, [], ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE]);
 
