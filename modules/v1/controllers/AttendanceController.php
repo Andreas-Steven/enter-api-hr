@@ -57,12 +57,16 @@ class AttendanceController extends CoreController
 	{
 		$model = new Attendance();
 		$params = Yii::$app->getRequest()->getBodyParams();
-
 		$params['system_date'] = date('Y-m-d');
 
 		if (!isset($params['date'])) {
 			return CoreController::coreBadRequest($model, Yii::t('rule', 'dateCannotBlank'));
 		}
+
+		// if ($params['date'] != $params['system_date']) {
+		// 	// Add blacklist logic here
+		// 	return CoreController::coreBadRequest($model, Yii::t('rule', 'dateAlreadyPast'));
+		// }
 
 		$findModel = Yii::$app->coreAPI->findModel($model, [], ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE]);
 
@@ -70,8 +74,18 @@ class AttendanceController extends CoreController
 			$model = $findModel;
 		}
 
-		if ($model === null) {
-  			// update tgl sebelumnya jadi completed / 3
+		if ($findModel === null) {
+  			// Update last date to Status Completed
+			$lastAttendance = Yii::$app->coreAPI->findModel($model, [], ['status' => Constants::STATUS_ACTIVE]);
+
+			if ($lastAttendance !== null) {
+				$params['status'] = Constants::STATUS_COMPLETED;
+				$lastAttendance->scenario = Constants::SCENARIO_UPDATE;
+
+				if ($lastAttendance->load($params, '') && $lastAttendance->validate()) {
+					$lastAttendance->save();
+				}
+			}
 		}
 
         if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {

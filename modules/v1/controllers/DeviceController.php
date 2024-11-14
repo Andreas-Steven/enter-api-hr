@@ -63,10 +63,6 @@ class DeviceController extends CoreController
         if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
 			return CoreController::coreValidateParams($unavailableParams);
         }
-
-        if (isset($params['device_location'])) {
-			$params['device_location'] = json_encode($params['device_location']);
-        }
 		
 		$model->scenario = Constants::SCENARIO_CREATE;
 		if ($model->load($params, '') && $model->save()) {
