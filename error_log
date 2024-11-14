@@ -1,0 +1,40 @@
+[13-Nov-2024 06:01:54 UTC] PHP Warning:  require(/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:01:54 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php83/root/usr/share/pear') in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:7
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:18 UTC] PHP Warning:  require(/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:18 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php83/root/usr/share/pear') in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:7
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:19 UTC] PHP Warning:  require(/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:19 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php83/root/usr/share/pear') in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:7
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:21 UTC] PHP Warning:  require(/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:21 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php83/root/usr/share/pear') in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:7
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:21 UTC] PHP Warning:  require(/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:21 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php83/root/usr/share/pear') in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:7
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:22 UTC] PHP Warning:  require(/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:22 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php83/root/usr/share/pear') in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:7
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:27 UTC] PHP Warning:  require(/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:02:27 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php83/root/usr/share/pear') in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:7
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:03:01 UTC] PHP Warning:  require(/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[13-Nov-2024 06:03:01 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/dev/public_html/api-hr.dev-enterkomputer.com/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php83/root/usr/share/pear') in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:7
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7

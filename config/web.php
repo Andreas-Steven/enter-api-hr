@@ -81,15 +81,6 @@ $config = [
             ],
         ],
         'db' => $db,
-        // 'mongodb' => $mongodb,
-        // 'mongodb' => [
-        //     'class' => '\MongoDB\Client',
-        //     'options' => [
-        //         'uri' => 'mongodb://localhost:27017',
-        //         'database' => 'enterkomputer',
-        //     ],
-        //     // 'uri' => 'mongodb://localhost:27017',
-        // ],
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
