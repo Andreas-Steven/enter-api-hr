@@ -58,24 +58,22 @@ class AttendanceController extends CoreController
 		$model = new Attendance();
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$params['system_date'] = date('Y-m-d');
+		$params['dateMismatch'] = null;
 
 		if (!isset($params['date'])) {
 			return CoreController::coreBadRequest($model, Yii::t('rule', 'dateCannotBlank'));
 		}
 
-		// if ($params['date'] != $params['system_date']) {
-		// 	// Add blacklist logic here
-		// 	return CoreController::coreBadRequest($model, Yii::t('rule', 'dateAlreadyPast'));
-		// }
-
-		$findModel = Yii::$app->coreAPI->findModel($model, [], ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE]);
-
-		if ($findModel !== null) {
-			$model = $findModel;
+		// Date blacklist
+		if ($params['date'] !== $params['system_date']) {
+			$params['dateMismatch'] = $params['date'];
+			$params['date'] = $params['system_date'];
 		}
 
-		if ($findModel === null) {
-  			// Update last date to Status Completed
+		$existingModel = Yii::$app->coreAPI->findModel($model, [], ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE]);
+
+		// Update last date to Status Completed
+		if ($existingModel === null) {
 			$lastAttendance = Yii::$app->coreAPI->findModel($model, [], ['status' => Constants::STATUS_ACTIVE]);
 
 			if ($lastAttendance !== null) {
@@ -88,9 +86,13 @@ class AttendanceController extends CoreController
 			}
 		}
 
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
-            return CoreController::coreValidateParams($unavailableParams);
-        }
+		if ($existingModel !== null) {
+			$model = $existingModel;
+		}
+
+		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
+			return CoreController::coreValidateParams($unavailableParams);
+		}
 
 		$params['status'] = Constants::STATUS_ACTIVE;
 		$model->scenario = Constants::SCENARIO_CREATE;
@@ -100,7 +102,7 @@ class AttendanceController extends CoreController
 				return CoreController::coreSuccess($model, 'insertRecordSuccess');
 			}
 		}
-    
+
 		return CoreController::coreBadRequest($model, Yii::t('rule', 'insertRecordFailed'));
 	}
 
