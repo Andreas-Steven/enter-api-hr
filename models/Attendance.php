@@ -244,10 +244,8 @@ class Attendance extends \yii\db\ActiveRecord
                 if (isset($value['start_time']) && empty($employeeAttendance['start_time'])) {
                     $employeeAttendance['start_time'] = $value['start_time'];
                 }
-            }
+            } 
 
-
-            
             $oldAttendance[$key] = $employeeAttendance;
         }
                
@@ -280,7 +278,7 @@ class Attendance extends \yii\db\ActiveRecord
             'time' => date('H:i:s'),
             'description' => $description
         ];
-        $exsistingBlacklist = $detail_info['blacklist'];
+        $exsistingBlacklist = $detail_info['blacklist'] ?? [];
         
         if (!empty($exsistingBlacklist)) {
             array_push($exsistingBlacklist, $blacklist);
@@ -288,7 +286,7 @@ class Attendance extends \yii\db\ActiveRecord
             $exsistingBlacklist[] = $blacklist;
         }
 
-        $this->setAttribute('detail_info', array_merge($detail_info, ['blacklist' => $exsistingBlacklist]));
+        $this->setAttribute('detail_info', array_merge($detail_info ?? [], ['blacklist' => $exsistingBlacklist]));
     }
 
     public function beforeSave($insert)
