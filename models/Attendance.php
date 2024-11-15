@@ -32,7 +32,7 @@ class Attendance extends \yii\db\ActiveRecord
     public $device;
     public $device_code;
     public $system_date;
-    public $isDateMismatch;
+    public $dateMismatch;
 
     public static function tableName()
     {
@@ -44,18 +44,16 @@ class Attendance extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['date'], 'required'],
-                [['attendance'], 'safe'],
                 [['dayoff'], 'boolean'],
-                [['date'], 'date', 'format' => 'php:Y-m-d'],
-                [['employee_id'], 'filter', 'filter' => 'intval'],
-                [['system_date', 'isDateMismatch'], 'date', 'format' => 'php:Y-m-d'],
-                [['end_time', 'start_time'], 'date', 'format' => 'php:H:i:s'],
-
                 [['dayoff'], 'default', 'value' => false],
-                [['attendance', 'blacklist', 'detail_info'], 'safe', 'skipOnEmpty' => true],
+                [['employee_id'], 'filter', 'filter' => 'intval'],
+                [['attendance', 'blacklist', 'detail_info'], 'safe'],
+                [['end_time', 'start_time'], 'date', 'format' => 'php:H:i:s'],
+                [['date', 'system_date', 'dateMismatch'], 'date', 'format' => 'php:Y-m-d'],
+
                 
-                [['attendance'], 'validateAttendance'],
-                [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],
+                [['attendance'], 'validateAttendance', 'on' => Constants::SCENARIO_CREATE],
+                // [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],
             ],
             Yii::$app->coreAPI->statusRules($this)
         );
@@ -64,7 +62,7 @@ class Attendance extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'attendance', 'isDateMismatch', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'attendance', 'dateMismatch', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['attendance', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
@@ -97,10 +95,11 @@ class Attendance extends \yii\db\ActiveRecord
         }
 
         $employeeAttendance = [];
-        $attendanceData = $this->$attribute;  
+        $attendanceData = $this->$attribute;
         $oldAttendance = $this->getOldAttribute($attribute);
-        $latestAttendance = !empty($oldAttendance) ? end($oldAttendance) : null;
-
+        $lastStartTime = $oldAttendance ? array_column($oldAttendance, 'start_time') : [];
+        $latestAttendance = !empty($lastStartTime) ? end($lastStartTime) : null;
+        
         foreach ($attendanceData as $key => $value) {
             $employeeAttendance = Yii::$app->params['attendance'];
             $employeeAttendance = array_merge($employeeAttendance, $value);
@@ -145,7 +144,6 @@ class Attendance extends \yii\db\ActiveRecord
             }
 
             $employeeAttendance['employee_id'] = intval($employeeAttendance['employee_id']);
-
             $employee = Employee::find()->where(['id' => $employeeAttendance['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
             if ($employee === null) {
                 $this->addError($attribute.'['.$key.'].employee_id', 'Employee not found');
@@ -199,15 +197,23 @@ class Attendance extends \yii\db\ActiveRecord
                     }
                 }
 
+                // Time blacklist
+                if (!empty($latestAttendance)) {
+                    if (strtotime($employeeAttendance['start_time']) < strtotime($latestAttendance)) {
+                        $this->addBlacklist($this->detail_info, $employeeAttendance['employee_id'], $employee->name, $this->date, $employeeAttendance['start_time']);
+                        $employeeAttendance['start_time'] = date('H:i:s');
+                    }
+                }
+
+                if (!empty($value['location']) && !empty($value['start_time'])) {
+                    $employeeAttendance['location']['entry'] = $value['location'];
+                }
+
                 $employeeAttendance['info']['in'] = true;
                 $employeeAttendance['employee_id'] = $employeeAttendance['employee_id'];   
                 $employeeAttendance['employee_name'] = $employee->name;
                 $employeeAttendance['division'] = ['id' => $division->id, 'name' => $division->name];
                 $employeeAttendance['end_time'] = $employeeAttendance['end_time'];
-                
-                if (!empty($value['location']) && !empty($value['start_time'])) {
-                    $employeeAttendance['location']['entry'] = $value['location'];
-                }
             } else {
                 $employeeAttendance = array_merge($employeeAttendance, $oldAttendance[$key]);
 
@@ -238,16 +244,7 @@ class Attendance extends \yii\db\ActiveRecord
             
             $oldAttendance[$key] = $employeeAttendance;
         }
-
-        if (!empty($latestAttendance) && strtotime($oldAttendance[$key]['start_time']) < strtotime($latestAttendance['start_time'])) {
-            $this->addBlacklist($this->detail_info, $oldAttendance[$key]['employee_id'], $oldAttendance[$key]['employee_name'], $this->date, $oldAttendance[$key]['start_time']);
-            $oldAttendance[$key]['start_time'] = date('H:i:s');
-        }
-
-        if (!empty($this->isDateMismatch)) {
-            $this->addBlacklist($this->detail_info, $oldAttendance[$key]['employee_id'], $oldAttendance[$key]['employee_name'], $this->isDateMismatch, $oldAttendance[$key]['start_time']);
-        }
-        
+               
         $this->$attribute = $oldAttendance;
     }
 
@@ -284,7 +281,7 @@ class Attendance extends \yii\db\ActiveRecord
             $exsistingBlacklist[] = $blacklist;
         }
 
-        $this->setAttribute('detail_info', array_merge($this->detail_info, ['blacklist' => $exsistingBlacklist]));
+        $this->setAttribute('detail_info', array_merge($detail_info, ['blacklist' => $exsistingBlacklist]));
     }
 
     public function beforeSave($insert)

@@ -57,15 +57,16 @@ class AttendanceController extends CoreController
 	{
 		$model = new Attendance();
 		$params = Yii::$app->getRequest()->getBodyParams();
-		$params['system_date'] = date('Y-m-d', strtotime('+1 days'));
-		$params['isDateMismatch'] = null;
+		$params['system_date'] = date('Y-m-d');
+		$params['dateMismatch'] = null;
 
 		if (!isset($params['date'])) {
 			return CoreController::coreBadRequest($model, Yii::t('rule', 'dateCannotBlank'));
 		}
 
+		// Date blacklist
 		if ($params['date'] !== $params['system_date']) {
-			$params['isDateMismatch'] = $params['date'];
+			$params['dateMismatch'] = $params['date'];
 			$params['date'] = $params['system_date'];
 		}
 
