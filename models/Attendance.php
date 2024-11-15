@@ -197,16 +197,20 @@ class Attendance extends \yii\db\ActiveRecord
                     }
                 }
 
-                // Time blacklist
-                if (!empty($latestAttendance)) {
-                    if (strtotime($employeeAttendance['start_time']) < strtotime($latestAttendance)) {
-                        $this->addBlacklist($this->detail_info, $employeeAttendance['employee_id'], $employee->name, $this->date, $employeeAttendance['start_time']);
-                        $employeeAttendance['start_time'] = date('H:i:s');
-                    }
-                }
-
                 if (!empty($value['location']) && !empty($value['start_time'])) {
                     $employeeAttendance['location']['entry'] = $value['location'];
+                }
+
+                // Blacklist
+                if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
+                    if (strtotime($employeeAttendance['start_time']) < strtotime($latestAttendance)) {
+                        $this->addBlacklist($this->detail_info, $employeeAttendance['employee_id'], $employee->name, $this->date, $employeeAttendance['start_time'], 'Time blacklist');
+                    } elseif (!empty($this->dateMismatch)) {
+                        $this->addBlacklist($this->detail_info, $employeeAttendance['employee_id'], $employee->name, $this->dateMismatch, $employeeAttendance['start_time'], 'Date blacklist');
+                        $this->dateMismatch = null;
+                    }
+
+                    $employeeAttendance['start_time'] = date('H:i:s');
                 }
 
                 $employeeAttendance['info']['in'] = true;
@@ -241,6 +245,8 @@ class Attendance extends \yii\db\ActiveRecord
                     $employeeAttendance['start_time'] = $value['start_time'];
                 }
             }
+
+
             
             $oldAttendance[$key] = $employeeAttendance;
         }
@@ -264,14 +270,15 @@ class Attendance extends \yii\db\ActiveRecord
         $this->$attribute = $lastAttendance;
     }
 
-    public function addBlacklist($detail_info, $employee_id, $name, $date, $start_time)
+    public function addBlacklist($detail_info, $employee_id, $name, $date, $start_time, $description = null)
     {
         $blacklist = [
             'employee_id' => $employee_id,
             'employee_name' => $name,
             'start_time' => $start_time,
             'date' => $date,
-            'time' => date('H:i:s')
+            'time' => date('H:i:s'),
+            'description' => $description
         ];
         $exsistingBlacklist = $detail_info['blacklist'];
         
