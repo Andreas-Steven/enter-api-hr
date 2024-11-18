@@ -61,7 +61,7 @@ class AttendanceController extends CoreController
 		$params['dateMismatch'] = null;
 
 		if (!isset($params['date'])) {
-			return CoreController::coreBadRequest($model, Yii::t('rule', 'dateCannotBlank'));
+			return CoreController::coreBadRequest__($model, Yii::t('rule', 'dateCannotBlank'));
 		}
 
 		// Date blacklist
@@ -70,7 +70,7 @@ class AttendanceController extends CoreController
 			$params['date'] = $params['system_date'];
 		}
 
-		$existingModel = Yii::$app->coreAPI->findModel($model, [], ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE], []);
+		$existingModel = Yii::$app->coreAPI->findModel($model, [], ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE]);
 
 		// Update last date to Status Completed
 		if ($existingModel === null) {
@@ -103,7 +103,7 @@ class AttendanceController extends CoreController
 			}
 		}
 
-		return CoreController::coreBadRequest($model, Yii::t('rule', 'insertRecordFailed'));
+		return CoreController::coreBadRequest__($model, Yii::t('rule', 'insertRecordFailed'));
 	}
 
 	public function actionUpdate()

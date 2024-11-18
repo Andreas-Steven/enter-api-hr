@@ -13,33 +13,40 @@ use app\models\GeneralAffair;
  */
 class GeneralAffairSearch extends GeneralAffair
 {
+    public $page;
+    public $page_size;
+    public $sort;
+    public $sort_by;
     public $created_at;
     public $created_by;
     public $updated_at;
     public $updated_by;
     public $deleted_at;
     public $deleted_by;
-    public $code;
-    public $sort;
-    public $sort_by;
-    public $page;
-    public $page_size;
+
+    public $name;
+    public $code; 
     public $min_price;
     public $max_price;
     public $date_min;
     public $date_max;
-    public $data;  
-    public $name;
 
     public function rules()
     {
         return [
-            [['id', 'category_id', 'location_id', 'status', 'page', 'page_size'], 'integer'],
+            [['code', 'name'], 'string'],
             [['detail_info', 'item', 'test'], 'safe'],
-            [['code', 'sort', 'sort_by', 'name'], 'string'],
-            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
-            [['min_price', 'max_price'], 'filter', 'filter' => 'floatval'],
+            [['id', 'category_id', 'location_id', 'status'], 'integer'],
             [['date_min', 'date_max'], 'date', 'format' => 'php:Y-m-d'],
+            [['min_price', 'max_price'], 'filter', 'filter' => 'floatval'],
+            
+            
+            [['sort', 'sort_by'], 'string'],
+            [['page', 'page_size'], 'integer'],
+            [['page'], function ($attribute, $params, $validator) {
+                Yii::$app->coreAPI->validatePage($attribute, $params, $this);
+            }],
+            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
         ];
     }
 
@@ -64,10 +71,10 @@ class GeneralAffairSearch extends GeneralAffair
         }
         
         $query = GeneralAffair::find();
-        $query->where(Constants::STATUS_NOT_DELETED);
+        $query->where(Constants::STATUS_NOT_DELETED);     
         $query->addSelect([
             '*',
-            'data' => new \yii\db\Expression("(
+            'items' => new \yii\db\Expression("(
                 SELECT jsonb_agg(value)
                 FROM jsonb_each(general_affair.item->'items') AS items_record(key, value)
                 WHERE value->'items_change_log'->>'deleted_at' IS NULL
@@ -78,57 +85,43 @@ class GeneralAffairSearch extends GeneralAffair
 
         if ($this->code != null) {
             $query
-            ->select(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info', new \yii\db\Expression("jsonb_build_object(key, value) AS data")])
+            ->select(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info', new \yii\db\Expression("jsonb_build_object(key, value) AS item")])
             ->from(['general_affair', new \yii\db\Expression("jsonb_each(item->'items') AS items_record(key, value)")])
             ->andWhere(['key' => $this->code])
             ->andWhere(new \yii\db\Expression("value->'items_change_log'->>'deleted_at' IS NULL"));
-        }         
+        }  
 
-        // add conditions that should always apply here
-        $rules = $this->rules();
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
-            return $unavailableParams;
-        }
-        
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'sort' => [
-                'defaultOrder' => [
-                    isset($params['sort']) ? $params['sort'] : 'id' => isset($params['sort_by']) && $params['sort_by'] == 'asc' ? SORT_ASC : SORT_DESC
-                ],
-            ],
-            'pagination' => [
-                'pageSize' => isset($params['page_size']) ? $params['page_size'] : 10,
-                'page' => isset($params['page']) ? $params['page'] - 1 : 0,
-            ],
         ]);
 
-        $this->load(['GeneralAffairSearch' => $params]);
-        
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails
             // $query->where('0=1');
             return $dataProvider;
         }
         
+        // add conditions that should always apply here
         // grid filtering conditions
+        $query->andFilterWhere(Yii::$app->coreAPI->nameFilter($this->name));
+        
         $query->andFilterWhere([
             'id' => $this->id,
-            'name' => $this->name,
-            'category_id' => $this->category_id,
-            'location_id' => $this->location_id,
             'status' => $this->status,
         ]);
 
-        $query->andFilterWhere(['ilike', 'name', $this->name])
-        ->andFilterWhere(['ilike', 'detail_info', $this->detail_info])
-        ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_at}'"), $this->created_at])
-        ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,created_by}'"), $this->created_by])
-        ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_at}'"), $this->updated_at])
-        ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,updated_by}'"), $this->updated_by])
-        ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_at}'"), $this->deleted_at])
-        ->andFilterWhere(['ilike', new \yii\db\Expression("detail_info #>> '{change_log,deleted_by}'"), $this->deleted_by]);
-        
+        $query->andFilterWhere(Yii::$app->coreAPI->changelogDateFilters($this));
+        $query->andFilterWhere(Yii::$app->coreAPI->changelogFilters($this));
+
+        $dataProvider->setPagination(
+            Yii::$app->coreAPI->setPagination($params, $dataProvider)
+        );
+
+        $dataProvider->setSort(
+            Yii::$app->coreAPI->setSort($params)
+        );
+
+        // Custom Query for Item.Items Filter        
         if (isset($this->min_price) && isset($this->max_price) && !empty($this->min_price) && !empty($this->max_price)) {
             $query->andWhere(new \yii\db\Expression("(
                 SELECT COUNT(*)
@@ -192,6 +185,4 @@ class GeneralAffairSearch extends GeneralAffair
         
         return $dataProvider;
     }
-
-
 }

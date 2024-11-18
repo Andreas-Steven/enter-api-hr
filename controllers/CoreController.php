@@ -160,7 +160,7 @@ class CoreController extends Controller
         return false;
     }
 
-    public function coreBadRequest__($params, $scenario) 
+    public function coreBadRequest($params, $scenario) 
     {
         $error = [];
 
@@ -188,8 +188,6 @@ class CoreController extends Controller
             ];
         }
 
-        var_dump($error, $params, $scenario); exit;
-
         if (!empty($error)) {
             return [
                 'code' => Yii::$app->response->statusCode = 400,
@@ -203,7 +201,7 @@ class CoreController extends Controller
     }
 
     
-    public function coreBadRequest($model, $mesage) 
+    public function coreBadRequest__($model, $mesage) 
     {
         Yii::$app->response->statusCode = 400;
         

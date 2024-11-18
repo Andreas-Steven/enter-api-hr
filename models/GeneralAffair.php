@@ -24,7 +24,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
 {
     public $change_log;
     public $code;
-    public $data;  
 
     public static function tableName()
     {
@@ -39,13 +38,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 [['name'], 'string', 'max' => 255],
                 [['category_id', 'location_id'], 'integer'],
                 [['name', 'category_id', 'location_id'], 'required'],
-                [['detail_info', 'item', 'data'], 'safe', 'skipOnEmpty' => true],
-                
+                [['detail_info', 'item'], 'safe', 'skipOnEmpty' => true],
                 [['category_id', 'location_id'], 'filter', 'filter' => 'intval'],
-                [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => GeneralAffairCategory::class, 'targetAttribute' => ['category_id' => 'id']],
-                [['location_id'], 'exist', 'skipOnError' => true, 'targetClass' => GeneralAffairLocation::class, 'targetAttribute' => ['location_id' => 'id']],
                 
-                [['item'], 'validateItem'],
+                [['item'], 'validateItem', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'status'], 'validateDeleted', 'on' => Constants::SCENARIO_DELETE],
             ],
             Yii::$app->coreAPI->statusRules($this)
@@ -89,85 +85,66 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $itemData = $this->$attribute;
         $oldItem = $this->getOldAttribute($attribute);
         $itemCodes = $oldItem ? array_column($oldItem['items'], 'code') : [];
-        $defaultItems = Yii::$app->params['items'];
 
         foreach ($itemData['items'] as $key => $value) {
-            $generalAffairItems = $defaultItems;
+            $generalAffairItems = Yii::$app->params['items'];
+            $generalAffairItems = array_merge($generalAffairItems, $value);
             
-            if (!isset($value['code']) || empty($value['code'])) {
+            if (empty($generalAffairItems['code'])) {
                 $this->addError($attribute, 'Item code cannot be empty');
                 return;
             } 
 
-            if (!isset($value['price']) || empty($value['price']) || $value['price'] < 0) {
+            if (empty($generalAffairItems['price']) || $generalAffairItems['price'] < 0) {
                 $this->addError($attribute, 'Price value must be a float greater than or equal to 0');
                 return;
             } 
-
-            $value['price'] = floatval($value['price']);
-
-            if (!isset($value['condition']) || empty($value['condition']) || $value['price'] < 1) {
+            
+            if (empty($generalAffairItems['condition']) || $generalAffairItems['condition'] < 1) {
                 $this->addError($attribute, 'Condition value must be an integer greater than 0');
                 return;
             } 
 
-            $value['condition'] = intval($value['condition']);
-
-            if (isset($value['divison']['id'])) {
-                $value['divison']['id'] = intval($value['divison']['id']);
-                if (!is_integer($value['divison']['id']) || $value['divison']['id'] < 1 || empty($value['condition']) ) {
-                    $this->addError($attribute, 'Items divison id value must be an integer greater than 0');
-                    return;
-                }
-                
-                $divison = Division::find()->where([
-                    'id' => $value['divison']['id'],
-                    'status' => Constants::STATUS_ACTIVE
-                ])->one();
-                    
-                if ($divison === null) {
-                    $this->addError($attribute, 'Divison not found');
-                    return;
-                }
-                
-                $generalAffairItems['divison'] = ['id' => $divison->id, 'name' => $divison->name];
-            } elseif (!isset($value['divison']['id'])) {
+            if (empty($generalAffairItems['division']['id'])) {
                 $this->addError($attribute, 'Items divison cannot be empty');
                 return;
             }
 
-            if (isset($value['description'])) {
-                if (empty($value['description'])) {
-                    $value['description'] = null;
-                } 
+            $division = Division::find()->where([
+                'id' => $generalAffairItems['division']['id'], 
+                'status' => Constants::STATUS_ACTIVE
+            ])->one();
+
+            if ($division === null) {
+                $this->addError($attribute.'['.$key.'].items', 'Division not found');
+                return;
             }
 
-            if (isset($value['image'])) {
-                $value['image'] = array_filter($value['image'], function($image) {
-                    return !empty($image);
-                });
+            $dateValidator = new \yii\validators\DateValidator(['format' => 'php:Y-m-d']);
+            if (isset($generalAffairItems['buying_date']) && !$dateValidator->validate($generalAffairItems['buying_date'], $error)) {
+                $this->addError($attribute.'['.$key.'].items.buying_date', $error);
+                return;
             }
 
-            if (isset($value['tax_date'])) {
-                if (empty($value['tax_date'])) {
-                    $value['tax_date'] = null;
-                } 
+            if (isset($generalAffairItems['tax_date']) && !$dateValidator->validate($generalAffairItems['tax_date'], $error)) {
+                $this->addError($attribute.'['.$key.'].items.tax_date', $error);
+                return;
             }
 
-            if (isset($value['inspection_date'])) {
-                if (empty($value['inspection_date'])) {
-                    $value['inspection_date'] = null;
-                } 
+            if (isset($generalAffairItems['inspection_date']) && !$dateValidator->validate($generalAffairItems['inspection_date'], $error)) {
+                $this->addError($attribute.'['.$key.'].items.inspection_date', $error);
+                return;
             }
 
-            $generalAffairItems['code'] = $value['code'] ?? null;
-            $generalAffairItems['price'] = $value['price'] ?? null;
-            $generalAffairItems['condition'] = $value['condition'] ?? null;
-            $generalAffairItems['buying_date'] = $value['buying_date'] ?? null;
-            $generalAffairItems['inspection_date'] = $value['inspection_date'] ?? null;
-            $generalAffairItems['tax_date'] = $value['tax_date'] ?? null;
-            $generalAffairItems['description'] = $value['description'] ?? null; 
-            $generalAffairItems['image'] = $value['image'] ?? [];
+            $generalAffairItems['code'] = $generalAffairItems['code'];
+            $generalAffairItems['price'] = floatval($generalAffairItems['price']);
+            $generalAffairItems['condition'] = intval($generalAffairItems['condition']);
+            $generalAffairItems['buying_date'] = $generalAffairItems['buying_date'];
+            $generalAffairItems['inspection_date'] = $generalAffairItems['inspection_date'];
+            $generalAffairItems['tax_date'] = $generalAffairItems['tax_date'];
+            $generalAffairItems['description'] = $generalAffairItems['description']; 
+            $generalAffairItems['image'] = $generalAffairItems['image'];
+            $generalAffairItems['division'] = ['id' => $division->id, 'name' => $division->name];
             $generalAffairItems['items_change_log'] = $this->itemChangeLog($generalAffairItems, 'cerate');
 
             if (isset($this->id)) {
@@ -185,7 +162,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $oldItem['items'][$generalAffairItems['code']] = $generalAffairItems;        
             }
         }
-
+        
         $this->$attribute = $oldItem;
     }
 
@@ -195,7 +172,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $itemCodes = $oldItem && array_key_exists('items', $oldItem['item']) ? array_column($oldItem['item']['items'], 'code') : [];
         
         if (!empty($this->code) && is_array($oldItem['item']) && array_key_exists('items', $oldItem['item'])) { 
-            // $itemsIndex = array_search($this->code, $itemCodes);
             $timestamp = Yii::$app->coreAPI->timestamp();
 
             if ($this->code !== false) {
@@ -205,7 +181,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $this->setAttribute('item', $oldItem['item']);
                 return true;
             }
-        } elseif (isset($this->status) && !empty($this->status) && $this->status === Constants::STATUS_DELETED) {
+        } elseif (isset($this->status) && $this->status === Constants::STATUS_DELETED) {
             if (!$this->isNewRecord && $this->isAttributeChanged($attribute)) {       
                 $oldStatus = $this->getOldAttribute($attribute);
                 $newStatus = $this->$attribute;
@@ -226,10 +202,11 @@ class GeneralAffair extends \yii\db\ActiveRecord
 	{
 		$timestamp = Yii::$app->coreAPI->timestamp();
 		$username = Yii::$app->session->get('username');
+
         if (!isset($generalAffairItems['items_change_log']) || empty($generalAffairItems['items_change_log']) && $type == 'cerate') {
             $generalAffairItems['items_change_log'] = [
                 'created_at' => $timestamp,
-                'created_by' => (is_null($username) ? 'System' : $username), 
+                'created_by' => (is_null($username) ? 'Admin' : $username), 
                 'updated_at' => null,
                 'updated_by' => null,
                 'deleted_at' => null,
@@ -237,10 +214,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
             ];
         } elseif ($type == 'update') {
             $generalAffairItems['items_change_log']['updated_at'] = $timestamp;
-            $generalAffairItems['items_change_log']['updated_by'] = (is_null($username) ? 'System' : $username);
+            $generalAffairItems['items_change_log']['updated_by'] = (is_null($username) ? 'Admin' : $username);
         } elseif ($type == 'delete') {
             $generalAffairItems['items_change_log']['deleted_at'] = $timestamp;
-            $generalAffairItems['items_change_log']['deleted_by'] = (is_null($username) ? 'System' : $username);
+            $generalAffairItems['items_change_log']['deleted_by'] = (is_null($username) ? 'Admin' : $username);
         }
 		
 		return $generalAffairItems['items_change_log'];
@@ -265,13 +242,17 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function beforeSave($insert)
     {
-        $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
-        $this->item = $this->calculateItems($this->item);
-        $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-        $this->detail_info = [
-            'change_log' => $this->change_log ?: null,
-        ];
+        if (parent::beforeSave($insert)) {
+            $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
+            $this->item = $this->calculateItems($this->item);
+            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+            $this->detail_info = [
+                'change_log' => $this->change_log,
+            ];
 
-        return parent::beforeSave($insert);
+            return true;
+        }
+
+        return false;
     }
 }
