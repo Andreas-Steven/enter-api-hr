@@ -62,17 +62,14 @@ class GeneralAffairController extends CoreController
             return CoreController::coreValidateParams($unavailableParams);
         }
 
-		if ((!isset($params['name']) || $params['name'] === "") && (!isset($params['location_id']) || $params['location_id'] === "")) {
-			return CoreController::coreBadRequest($model, Yii::t('app', 'dateEmpty'));
+		if (!isset($params['name']) && !isset($params['location_id'])) {
+			return CoreController::coreBadRequest($model, Yii::t('rule', 'paramsEmpty'));
 		}
 
-		$model = GeneralAffair::find()->where([
-			'name' => $params['name'],
-			'location_id' => $params['location_id'],
-		])->one();
+		$existingModel = Yii::$app->coreAPI->findModel($model, [], ['name' => $params['name'], 'location_id' => $params['location_id']]);
 
-		if ($model === null) {
-			$model = new GeneralAffair();
+		if ($existingModel !== null) {
+			$model = $existingModel;
 		}
 
 		$params['status'] = Constants::STATUS_DRAFT;
@@ -128,19 +125,16 @@ class GeneralAffairController extends CoreController
 			return $coreBadRequest;
 		}
 
-		$model = GeneralAffair::find()->where([
-			'id' => $params['id'],
-		])->one();
+		$model = Yii::$app->coreAPI->findModel(new GeneralAffair(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
 
-		if (!isset($params['code']) && empty($params['code'])) {
+		if (!isset($params['code'])) {
 			$params['status'] = Constants::STATUS_DELETED;
 		}
 
-		$params['status'] = Constants::STATUS_DELETED;
 		$model->scenario = Constants::SCENARIO_DELETE;
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {

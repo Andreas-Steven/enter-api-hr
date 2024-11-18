@@ -34,8 +34,8 @@ return [
         "buying_date" => null,
         "tax_date" => null,
         "inspection_date" => null,
-        "divison" => null,
-        "image" => null,
+        "division" => null,
+        "image" => [],
         "items_change_log" => null
     ],
 
