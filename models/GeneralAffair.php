@@ -170,10 +170,9 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         $oldItem = $this->attributes;
         $itemCodes = $oldItem && array_key_exists('items', $oldItem['item']) ? array_column($oldItem['item']['items'], 'code') : [];
+        $timestamp = Yii::$app->coreAPI->timestamp();
         
         if (!empty($this->code) && is_array($oldItem['item']) && array_key_exists('items', $oldItem['item'])) { 
-            $timestamp = Yii::$app->coreAPI->timestamp();
-
             if ($this->code !== false) {
                 $item_change_log = $this->itemChangeLog($oldItem['item']['items'][$this->code], 'delete');
                 $oldItem['item']['items'][$this->code]['items_change_log'] = $item_change_log;
