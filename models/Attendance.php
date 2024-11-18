@@ -44,16 +44,13 @@ class Attendance extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['date'], 'required'],
-                [['dayoff'], 'boolean'],
-                [['dayoff'], 'default', 'value' => false],
                 [['employee_id'], 'filter', 'filter' => 'intval'],
                 [['attendance', 'blacklist', 'detail_info'], 'safe'],
                 [['end_time', 'start_time'], 'date', 'format' => 'php:H:i:s'],
                 [['date', 'system_date', 'dateMismatch'], 'date', 'format' => 'php:Y-m-d'],
-
                 
                 [['attendance'], 'validateAttendance', 'on' => Constants::SCENARIO_CREATE],
-                // [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],
+                [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],
             ],
             Yii::$app->coreAPI->statusRules($this)
         );
@@ -74,7 +71,6 @@ class Attendance extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'date' => 'Date',
-            'dayoff' => 'Dayoff',
             'status' => 'Status',
             'attendance' => 'Attendance',
             'blacklist' => 'Blacklist',
@@ -204,9 +200,9 @@ class Attendance extends \yii\db\ActiveRecord
                 // Blacklist
                 if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
                     if (strtotime($employeeAttendance['start_time']) < strtotime($latestAttendance)) {
-                        $this->addBlacklist($this->detail_info, $employeeAttendance['employee_id'], $employee->name, $this->date, $employeeAttendance['start_time'], 'Time blacklist');
+                        $this->addBlacklist($this->detail_info, $employeeAttendance['employee_id'], $employee->name, $this->date, $employeeAttendance['start_time']);
                     } elseif (!empty($this->dateMismatch)) {
-                        $this->addBlacklist($this->detail_info, $employeeAttendance['employee_id'], $employee->name, $this->dateMismatch, $employeeAttendance['start_time'], 'Date blacklist');
+                        $this->addBlacklist($this->detail_info, $employeeAttendance['employee_id'], $employee->name, $this->dateMismatch, $employeeAttendance['start_time']);
                         $this->dateMismatch = null;
                     }
 
@@ -273,10 +269,9 @@ class Attendance extends \yii\db\ActiveRecord
         $blacklist = [
             'employee_id' => $employee_id,
             'employee_name' => $name,
-            'start_time' => $start_time,
             'date' => $date,
-            'time' => date('H:i:s'),
-            'description' => $description
+            'start_time' => $start_time,
+            'time' => date('H:i:s')
         ];
         $exsistingBlacklist = $detail_info['blacklist'] ?? [];
         

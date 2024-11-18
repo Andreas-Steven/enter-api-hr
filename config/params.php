@@ -2,6 +2,7 @@
 
 return [
     'titleService' => 'Enter-HR',
+    'serviceVersion' => 'v1',
     'timeZone' => 'Asia/Jakarta',
     'extraCookies' => 'name-cookie-01',
     'defaultLanguage' => 'en',

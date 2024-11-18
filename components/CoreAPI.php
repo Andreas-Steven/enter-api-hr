@@ -39,14 +39,14 @@ class CoreAPI
         return $result;
     }
 
-	public function findModel($model, $params, $where=[])
+	public function findModel($model, $params, $where=[], $orderBy=[])
 	{
 		if (isset($params['id'])) {
 			if (($dataset = $model::find()->where(array_merge(['id' => $params['id']], $where))->one()) !== null) {
 				return $dataset;
 			}
 		} else {
-			if (($dataset = $model::find()->where($where)->one()) !== null) {
+			if (($dataset = $model::find()->where($where)->orderBy($orderBy)->one()) !== null) {
 				return $dataset;
 			}
 		}

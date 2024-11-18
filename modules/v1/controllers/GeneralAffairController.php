@@ -50,25 +50,6 @@ class GeneralAffairController extends CoreController
 			return $coreValidateParams;
 		}
 
-		// $models = $dataProvider->getModels();
-		// $formattedData = [];
-
-		// foreach ($models as $model) {
-		// 	$formattedData[] = [
-		// 		'id' => $model->id,
-		// 		'name' => $model->name,
-		// 		'category_id' => $model->category_id,
-		// 		'location_id' => $model->location_id,
-		// 		'status' => $model->status,
-		// 		'detail_info' => $model->detail_info,
-		// 		'item' => [
-		// 			'items' => json_decode($model->data),
-		// 			'quantity' => $model->item['quantity'] ?? null,
-		// 			'total_price' => $model->item['total_price'] ?? null,
-		// 		], 
-		// 	];
-		// }
-
 		return CoreController::coreData($dataProvider);
 	}
 

@@ -70,11 +70,11 @@ class AttendanceController extends CoreController
 			$params['date'] = $params['system_date'];
 		}
 
-		$existingModel = Yii::$app->coreAPI->findModel($model, [], ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE]);
+		$existingModel = Yii::$app->coreAPI->findModel($model, [], ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE], []);
 
 		// Update last date to Status Completed
 		if ($existingModel === null) {
-			$lastAttendance = Yii::$app->coreAPI->findModel($model, [], ['status' => Constants::STATUS_ACTIVE]);
+			$lastAttendance = Yii::$app->coreAPI->findModel($model, [], ['status' => Constants::STATUS_ACTIVE], ['id' => SORT_DESC]);
 
 			if ($lastAttendance !== null) {
 				$params['status'] = Constants::STATUS_COMPLETED;

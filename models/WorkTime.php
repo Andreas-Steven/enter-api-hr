@@ -28,9 +28,7 @@ class WorkTime extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
-                // [['flexible'], 'boolean'],
                 [['name'], 'string', 'max' => 255],
-                // [['working_days', 'detail_info'], 'safe'],
                 [['detail_info'], 'safe'],
                 [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
                 [['name', 'entry_time', 'home_time'], 'required'],
@@ -44,8 +42,6 @@ class WorkTime extends \yii\db\ActiveRecord
         $scenarios = parent::scenarios();
         $scenarios[Constants::SCENARIO_CREATE] = ['name', 'entry_time', 'home_time'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'entry_time', 'home_time'];
-        // $scenarios[Constants::SCENARIO_CREATE] = ['name', 'entry_time', 'home_time', 'working_days', 'flexible'];
-        // $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'entry_time', 'home_time', 'working_days', 'flexible'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
