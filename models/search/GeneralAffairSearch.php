@@ -104,23 +104,30 @@ class GeneralAffairSearch extends GeneralAffair
         );
 
         // Filter for code and deleted_at
-        $query->addSelect([
-            '*',
-            'item' => new \yii\db\Expression("(
-                SELECT jsonb_build_object(
-                    'items', jsonb_object_agg(key, value)
-                    " . ($this->code === null ? ",
-                    'quantity', (general_affair.item->>'quantity')::integer,
-                    'total_price', (general_affair.item->>'total_price')::numeric" : "") . "
-                )
-                FROM jsonb_each(general_affair.item->'items') AS items_record(key, value)
-                WHERE value->'items_change_log'->>'deleted_at' IS NULL
-                " . ($this->code !== null ? "AND key = :code" : "") . "
-            )")
-        ]);
-
-        $this->code !== null ? $query->addParams([':code' => $this->code]) : null;
-
+        if ($this->code != null) {
+            $query->select([
+                    'id', 'name', 'category_id', 'location_id', 'status', 'detail_info',
+                    'item' => new \yii\db\Expression("jsonb_build_object('items', jsonb_object_agg(key, value))")
+                ])
+                ->from(['general_affair', new \yii\db\Expression("jsonb_each(item->'items') AS items_record(key, value)")])
+                ->andWhere(['key' => $this->code])
+                ->andWhere(new \yii\db\Expression("value->'items_change_log'->>'deleted_at' IS NULL"))
+                ->groupBy(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info']);
+        } else {
+            $query->addSelect([
+                '*',
+                'item' => new \yii\db\Expression("(
+                    SELECT jsonb_build_object(
+                        'items', jsonb_object_agg(key, value),
+                        'quantity', (general_affair.item->>'quantity')::integer,
+                        'total_price', (general_affair.item->>'total_price')::numeric
+                    )
+                    FROM jsonb_each(general_affair.item->'items') AS items_record(key, value)
+                    WHERE value->'items_change_log'->>'deleted_at' IS NULL
+                )")
+            ]);
+        }
+        
         // Filter for price range
         $priceConditions = [];
         !empty($this->min_price) ? $priceConditions[] = "(value->>'price')::numeric >= :min_price" : null;
