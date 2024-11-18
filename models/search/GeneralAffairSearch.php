@@ -118,10 +118,8 @@ class GeneralAffairSearch extends GeneralAffair
                 " . ($this->code !== null ? "AND key = :code" : "") . "
             )")
         ]);
-    
-        if ($this->code != null) {
-            $query->addParams([':code' => $this->code]);
-        }
+
+        $this->code !== null ? $query->addParams([':code' => $this->code]) : null;
 
         // Filter for price range
         $priceConditions = [];
