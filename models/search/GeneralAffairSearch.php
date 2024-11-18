@@ -40,7 +40,6 @@ class GeneralAffairSearch extends GeneralAffair
             [['date_min', 'date_max'], 'date', 'format' => 'php:Y-m-d'],
             [['min_price', 'max_price'], 'filter', 'filter' => 'floatval'],
             
-            
             [['sort', 'sort_by'], 'string'],
             [['page', 'page_size'], 'integer'],
             [['page'], function ($attribute, $params, $validator) {
@@ -72,24 +71,6 @@ class GeneralAffairSearch extends GeneralAffair
         
         $query = GeneralAffair::find();
         $query->where(Constants::STATUS_NOT_DELETED);     
-        $query->addSelect([
-            '*',
-            'items' => new \yii\db\Expression("(
-                SELECT jsonb_agg(value)
-                FROM jsonb_each(general_affair.item->'items') AS items_record(key, value)
-                WHERE value->'items_change_log'->>'deleted_at' IS NULL
-            )")
-        ]);
-
-        // SELECT jsonb_object_agg(key, value)
-
-        if ($this->code != null) {
-            $query
-            ->select(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info', new \yii\db\Expression("jsonb_build_object(key, value) AS item")])
-            ->from(['general_affair', new \yii\db\Expression("jsonb_each(item->'items') AS items_record(key, value)")])
-            ->andWhere(['key' => $this->code])
-            ->andWhere(new \yii\db\Expression("value->'items_change_log'->>'deleted_at' IS NULL"));
-        }  
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -104,10 +85,11 @@ class GeneralAffairSearch extends GeneralAffair
         // add conditions that should always apply here
         // grid filtering conditions
         $query->andFilterWhere(Yii::$app->coreAPI->nameFilter($this->name));
-        
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
+            'category_id' => $this->category_id,
+            'location_id' => $this->location_id,
         ]);
 
         $query->andFilterWhere(Yii::$app->coreAPI->changelogDateFilters($this));
@@ -121,7 +103,26 @@ class GeneralAffairSearch extends GeneralAffair
             Yii::$app->coreAPI->setSort($params)
         );
 
-        // Custom Query for Item.Items Filter        
+        // Custom Query for General_Affair.Item.Items Filter
+        $query->addSelect([
+            '*',
+            'item' => new \yii\db\Expression("(
+                SELECT jsonb_build_object(
+                    'items', jsonb_object_agg(key, value)
+                    " . ($this->code === null ? ",
+                    'quantity', (general_affair.item->>'quantity')::integer,
+                    'total_price', (general_affair.item->>'total_price')::numeric" : "") . "
+                )
+                FROM jsonb_each(general_affair.item->'items') AS items_record(key, value)
+                WHERE value->'items_change_log'->>'deleted_at' IS NULL
+                " . ($this->code !== null ? "AND key = :code" : "") . "
+            )")
+        ]);
+    
+        if ($this->code != null) {
+            $query->addParams([':code' => $this->code]);
+        }
+
         if (isset($this->min_price) && isset($this->max_price) && !empty($this->min_price) && !empty($this->max_price)) {
             $query->andWhere(new \yii\db\Expression("(
                 SELECT COUNT(*)
