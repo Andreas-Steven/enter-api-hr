@@ -27,11 +27,13 @@ class EmployeeSearch extends Employee
             [['nik', 'name', 'sort', 'sort_by'], 'string'],
             [['id', 'status', 'sso_id', 'division_id', 'page', 'page_size'], 'integer'],
             [['birth_date', 'date_start', 'date_resign'], 'date', 'format' => 'php:Y-m-d'],
-            [['contact', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
-
-            // Pagination and Sorting Section
+            
             [['sort', 'sort_by'], 'string'],
             [['page', 'page_size'], 'integer'],
+            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+            [['page'], function ($attribute, $params, $validator) {
+                Yii::$app->coreAPI->validatePage($attribute, $params, $this);
+            }],
         ];
     }
 

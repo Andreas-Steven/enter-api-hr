@@ -25,12 +25,14 @@ class AttendanceSearch extends Attendance
     public function rules()
     {
         return [
+            [['employee_name'], 'string'],
             [['id', 'status'], 'integer'],
             [['attendance', 'detail_info'], 'safe'],
-            [['sort', 'sort_by', 'employee_name'], 'string'],
             [['date'], 'date', 'format' => 'Y-m-d'],
-            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+            
+            [['sort', 'sort_by'], 'string'],
             [['page', 'page_size'], 'integer'],
+            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             [['page'], function ($attribute, $params, $validator) {
                 Yii::$app->coreAPI->validatePage($attribute, $params, $this);
             }],
