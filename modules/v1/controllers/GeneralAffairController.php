@@ -81,7 +81,7 @@ class GeneralAffairController extends CoreController
 			}
 		}
 
-		return CoreController::coreBadRequest($model, Yii::t('app', 'insertRecordFailed'));
+		return CoreController::coreBadRequest__($model, Yii::t('rule', 'insertRecordFailed'));
 	}
 
 	public function actionUpdate()

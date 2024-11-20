@@ -36,7 +36,14 @@ return [
         "inspection_date" => null,
         "division" => null,
         "image" => [],
-        "items_change_log" => null
+        "items_change_log" => [
+            'created_at' => null,
+            'created_by' => null, 
+            'updated_at' => null,
+            'updated_by' => null,
+            'deleted_at' => null,
+            'deleted_by' => null
+        ]
     ],
 
     'attendance' => [

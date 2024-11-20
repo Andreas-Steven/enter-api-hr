@@ -97,8 +97,7 @@ class Attendance extends \yii\db\ActiveRecord
         $latestAttendance = !empty($lastStartTime) ? end($lastStartTime) : null;
         
         foreach ($attendanceData as $key => $value) {
-            $employeeAttendance = Yii::$app->params['attendance'];
-            $employeeAttendance = array_merge($employeeAttendance, $value);
+            $employeeAttendance = array_merge(Yii::$app->params['attendance'], $value);
             
             if (empty($employeeAttendance['employee_id'])) {
                 $this->addError($attribute, 'Employee Id must be filled');

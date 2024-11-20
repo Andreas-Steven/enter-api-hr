@@ -29,11 +29,13 @@ class DeviceSearch extends Device
         return [
             [['id', 'status'], 'integer'],
             [['device_code', 'device_name', 'device_address', 'device_ip'], 'string', 'max' => 255],
-            [['detail_info', 'device_location'], 'safe'],
 
-            // Pagination and Sorting Section
             [['sort', 'sort_by'], 'string'],
             [['page', 'page_size'], 'integer'],
+            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+            [['page'], function ($attribute, $params, $validator) {
+                Yii::$app->coreAPI->validatePage($attribute, $params, $this);
+            }],
         ];
     }
 

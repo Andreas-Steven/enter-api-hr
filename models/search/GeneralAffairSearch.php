@@ -42,10 +42,10 @@ class GeneralAffairSearch extends GeneralAffair
             
             [['sort', 'sort_by'], 'string'],
             [['page', 'page_size'], 'integer'],
+            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             [['page'], function ($attribute, $params, $validator) {
                 Yii::$app->coreAPI->validatePage($attribute, $params, $this);
             }],
-            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
         ];
     }
 
@@ -95,16 +95,8 @@ class GeneralAffairSearch extends GeneralAffair
         $query->andFilterWhere(Yii::$app->coreAPI->changelogDateFilters($this));
         $query->andFilterWhere(Yii::$app->coreAPI->changelogFilters($this));
 
-        $dataProvider->setPagination(
-            Yii::$app->coreAPI->setPagination($params, $dataProvider)
-        );
-
-        $dataProvider->setSort(
-            Yii::$app->coreAPI->setSort($params)
-        );
-
         // Filter for code and deleted_at
-        if ($this->code != null) {
+        if (!empty($this->code)) {
             $query->select([
                     'id', 'name', 'category_id', 'location_id', 'status', 'detail_info',
                     'item' => new \yii\db\Expression("jsonb_build_object('items', jsonb_object_agg(key, value))")
@@ -127,7 +119,7 @@ class GeneralAffairSearch extends GeneralAffair
                 )")
             ]);
         }
-        
+
         // Filter for price range
         $priceConditions = [];
         !empty($this->min_price) ? $priceConditions[] = "(value->>'price')::numeric >= :min_price" : null;
@@ -157,6 +149,14 @@ class GeneralAffairSearch extends GeneralAffair
             !empty($this->date_min) ? $query->addParams([':date_min' => $this->date_min]) : null;
             !empty($this->date_max) ? $query->addParams([':date_max' => $this->date_max]) : null;
         }
+
+        $dataProvider->setPagination(
+            Yii::$app->coreAPI->setPagination($params, $dataProvider)
+        );
+
+        $dataProvider->setSort(
+            Yii::$app->coreAPI->setSort($params)
+        );
 
         return $dataProvider;
     }
