@@ -80,38 +80,49 @@ class GeneralAffair extends \yii\db\ActiveRecord
             $this->addError($attribute, 'Item must be an array');
             return;
         }
-    
+
         $generalAffairItems = [];
         $itemData = $this->$attribute;
         $oldItem = $this->getOldAttribute($attribute);
     
         foreach ($itemData['items'] as $key => $value) {
-            $currentItem = array_merge(Yii::$app->params['items'], $value);
+            $timestamp = Yii::$app->coreAPI->timestamp();
+            $username = Yii::$app->session->get('username') ?? 'Admin';
 
-            if (empty($currentItem['code'])) {
+            if (empty($value['code'])) {
                 $this->addError($attribute.'['.$key.'].code', 'Item code cannot be empty');
                 return;
             }
-    
-            $currentItem['price'] = floatval($currentItem['price']);
-            if (empty($currentItem['price']) || $currentItem['price'] < 0) {
+            
+            if (isset($oldItem['items'][$value['code']])) {
+                $generalAffairItems = array_merge($oldItem['items'][$value['code']], $value);
+                $generalAffairItems['items_change_log']['updated_at'] = $timestamp;
+                $generalAffairItems['items_change_log']['updated_by'] = $username;
+            } else {
+                $generalAffairItems = array_merge(Yii::$app->params['items'], $value);
+                $generalAffairItems['items_change_log']['created_at'] = $timestamp;
+                $generalAffairItems['items_change_log']['created_by'] = $username;
+            }
+
+            $generalAffairItems['price'] = floatval($generalAffairItems['price']);
+            if (empty($generalAffairItems['price']) || $generalAffairItems['price'] < 0) {
                 $this->addError($attribute.'['.$key.'].price', 'Price value must be a float and greater than or equal to 0');
                 return;
             } 
     
-            $currentItem['condition'] = intval($currentItem['condition']);
-            if (empty($currentItem['condition']) || $currentItem['condition'] < 1) {
+            $generalAffairItems['condition'] = intval($generalAffairItems['condition']);
+            if (empty($generalAffairItems['condition']) || $generalAffairItems['condition'] < 1) {
                 $this->addError($attribute.'['.$key.'].condition', 'Condition value must be an integer greater than 0');
                 return;
             } 
     
-            if (empty($currentItem['division']['id'])) {
+            if (empty($generalAffairItems['division']['id'])) {
                 $this->addError($attribute.'['.$key.'].division.id', 'Items division cannot be empty');
                 return;
             }
     
             $division = Division::find()->where([
-                'id' => $currentItem['division']['id'], 
+                'id' => $generalAffairItems['division']['id'], 
                 'status' => Constants::STATUS_ACTIVE
             ])->one();
             
@@ -119,30 +130,25 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $this->addError($attribute.'['.$key.'].division.id', 'Division not found or inactive');
                 return;
             }
-            $currentItem['division'] = ['id' => $division->id, 'name' => $division->name];
+            $generalAffairItems['division'] = ['id' => $division->id, 'name' => $division->name];
     
             $dateValidator = new \yii\validators\DateValidator(['format' => 'php:Y-m-d']);
-            if (isset($currentItem['buying_date']) && !$dateValidator->validate($currentItem['buying_date'], $error)) {
+            if (isset($generalAffairItems['buying_date']) && !$dateValidator->validate($generalAffairItems['buying_date'], $error)) {
                 $this->addError($attribute.'['.$key.'].items.buying_date', $error);
                 return;
             }
     
-            if (isset($currentItem['tax_date']) && !$dateValidator->validate($currentItem['tax_date'], $error)) {
+            if (isset($generalAffairItems['tax_date']) && !$dateValidator->validate($generalAffairItems['tax_date'], $error)) {
                 $this->addError($attribute.'['.$key.'].items.tax_date', $error);
                 return;
             }
     
-            if (isset($currentItem['inspection_date']) && !$dateValidator->validate($currentItem['inspection_date'], $error)) {
+            if (isset($generalAffairItems['inspection_date']) && !$dateValidator->validate($generalAffairItems['inspection_date'], $error)) {
                 $this->addError($attribute.'['.$key.'].items.inspection_date', $error);
                 return;
             }
-
-            if (isset($currentItem['items_change_log'])) {
-                $currentItem['items_change_log']['created_at'] = Yii::$app->coreAPI->timestamp();
-                $currentItem['items_change_log']['created_by'] = Yii::$app->session->get('username') ?? 'Admin';
-            }
             
-            $oldItem['items'][$currentItem['code']] = $currentItem;
+            $oldItem['items'][$generalAffairItems['code']] = $generalAffairItems;
         }
 
         $this->$attribute = ['items' => $oldItem['items']];
