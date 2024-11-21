@@ -83,6 +83,20 @@ class AttendanceSearch extends Attendance
         $query->andFilterWhere(Yii::$app->coreAPI->changelogDateFilters($this));
         $query->andFilterWhere(Yii::$app->coreAPI->changelogFilters($this));
 
+        // $query->addSelect([
+        //     '*',
+        //     'attendance' => new \yii\db\Expression("(
+        //         WITH sorted_attendance AS (
+        //             SELECT key, value
+        //             FROM attendance,
+        //                 jsonb_each(attendance.attendance)
+        //             ORDER BY (value->>'start_time')::text DESC
+        //         )
+        //         SELECT jsonb_object_agg(key, value) AS attendance
+        //         FROM sorted_attendance
+        //     )")
+        // ]);
+        
         if ($this->employee_name || $this->employee_id) {
             $query->addSelect([
                 '*',
