@@ -200,12 +200,11 @@ class Attendance extends \yii\db\ActiveRecord
                 if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
                     if (strtotime($employeeAttendance['start_time']) < strtotime($latestAttendance)) {
                         $this->addBlacklist($this->detail_info, $employeeAttendance['employee_id'], $employee->name, $this->date, $employeeAttendance['start_time']);
+                        $employeeAttendance['start_time'] = date('H:i:s');
                     } elseif (!empty($this->dateMismatch)) {
                         $this->addBlacklist($this->detail_info, $employeeAttendance['employee_id'], $employee->name, $this->dateMismatch, $employeeAttendance['start_time']);
                         $this->dateMismatch = null;
                     }
-
-                    $employeeAttendance['start_time'] = date('H:i:s');
                 }
 
                 $employeeAttendance['info']['in'] = true;

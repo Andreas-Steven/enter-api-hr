@@ -17,6 +17,7 @@ class AttendanceSearch extends Attendance
     public $deleted_at;
     public $deleted_by;
     public $employee_name;
+    public $employee_id;
     public $sort;
     public $sort_by;
     public $page;
@@ -26,9 +27,9 @@ class AttendanceSearch extends Attendance
     {
         return [
             [['employee_name'], 'string'],
-            [['id', 'status'], 'integer'],
             [['attendance', 'detail_info'], 'safe'],
             [['date'], 'date', 'format' => 'Y-m-d'],
+            [['id', 'status','employee_id'], 'integer'],
             
             [['sort', 'sort_by'], 'string'],
             [['page', 'page_size'], 'integer'],
