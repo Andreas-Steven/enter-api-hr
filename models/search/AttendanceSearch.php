@@ -92,11 +92,11 @@ class AttendanceSearch extends Attendance
         //                 jsonb_each(attendance.attendance)
         //             ORDER BY (value->>'start_time')::text DESC
         //         )
-        //         SELECT jsonb_object_agg(key, value) AS attendance
+        //         SELECT jsonb_object_agg(key, value ORDER BY key DESC) as attendance
         //         FROM sorted_attendance
         //     )")
         // ]);
-        
+
         if ($this->employee_name || $this->employee_id) {
             $query->addSelect([
                 '*',
