@@ -158,7 +158,7 @@ class Attendance extends \yii\db\ActiveRecord
                 }
                 
                 // $work_time_id = $employee->employee_detail['work_time']['id']; 
-                $work_time_id = 1;
+                $work_time_id = rand(1, 3);
                 $workTime = WorkTime::find()->where([
                     'id' => $work_time_id, 
                     'status' => Constants::STATUS_ACTIVE
@@ -184,10 +184,19 @@ class Attendance extends \yii\db\ActiveRecord
                 if (!empty($employeeAttendance['start_time']) && !empty($employeeAttendance['work_time']['entry_time'])) {
                     $startTime = strtotime($employeeAttendance['start_time']);
                     $entryTime = strtotime($employeeAttendance['work_time']['entry_time']);
-                    
+                    $workingDays = $workTime->working_days;
+                    $dayNow = date('l', strtotime($this->date));
+        
+
                     if ($startTime > $entryTime) {
                         if (!in_array("Telat Masuk", $employeeAttendance['info']['detail'])) {
                             $employeeAttendance['info']['detail'][] = "Telat Masuk";
+                        }
+                    }
+                    
+                    if (!in_array($dayNow, $workingDays)) {
+                        if (!in_array("Lembur", $employeeAttendance['info']['detail'])) {
+                            $employeeAttendance['info']['detail'][] = "Lembur";
                         }
                     }
                 }
