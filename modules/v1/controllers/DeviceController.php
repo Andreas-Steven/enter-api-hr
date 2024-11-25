@@ -5,14 +5,13 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
-use yii\filters\VerbFilter;
 use app\helpers\Constants;
+use yii\filters\VerbFilter;
+use app\controllers\CoreController;
 use app\components\CustomException;
-
 
 use app\models\Device;
 use app\models\search\DeviceSearch;
-use app\controllers\CoreController;
 
 class DeviceController extends CoreController
 {

@@ -5,12 +5,12 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
+use app\helpers\Constants;
 use yii\filters\VerbFilter;
+use app\controllers\CoreController;
 use app\components\CustomException;
 
 use app\models\Attendance;
-use app\helpers\Constants;
-use app\controllers\CoreController;
 use app\models\search\AttendanceSearch;
 
 class AttendanceController extends CoreController

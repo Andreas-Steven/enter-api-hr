@@ -5,18 +5,18 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
-use yii\filters\VerbFilter;
 use app\helpers\Constants;
+use yii\filters\VerbFilter;
+use app\controllers\CoreController;
+use app\components\CustomException;
 
 use app\models\Division;
-use app\controllers\CoreController;
 use app\models\search\DivisionSearch;
 
-/**
- * GeneralAffairDepartmentController implements the CRUD actions for GeneralAffairDepartment model.
- */
 class DivisionController extends CoreController
 {
+	public $enableCsrfValidation = false;
+	
 	public function behaviors()
 	{
 		return parent::behaviors() + [

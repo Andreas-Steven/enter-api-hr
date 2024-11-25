@@ -5,13 +5,14 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
-use yii\filters\VerbFilter;
 use app\helpers\Constants;
+use yii\filters\VerbFilter;
+use app\controllers\CoreController;
 use app\components\CustomException;
 
+
 use app\models\WorkTime;
-use app\controllers\CoreController;
-use app\models\search\WorkTimeSearch as WorkTimeSearch;
+use app\models\search\WorkTimeSearch;
 
 class WorkTimeController extends CoreController
 {

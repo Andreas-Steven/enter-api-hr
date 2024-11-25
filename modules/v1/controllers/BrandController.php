@@ -5,18 +5,18 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
-use yii\filters\VerbFilter;
 use app\helpers\Constants;
-use app\components\CustomException;
+use yii\filters\VerbFilter;
 use app\controllers\CoreController;
-use app\models\search\BrandSearch;
-use app\models\Brand;
+use app\components\CustomException;
 
-/**
- * Default controller for the `v1` module
- */
+use app\models\Brand;
+use app\models\search\BrandSearch;
+
 class BrandController extends CoreController
 {
+	public $enableCsrfValidation = false;
+	
 	public function behaviors()
 	{
 		return parent::behaviors() + [
