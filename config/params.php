@@ -60,5 +60,25 @@ return [
             'out' => null,
             'detail' => [],
         ],
+    ],
+
+    'salary_detail' => [
+        "employee_id" => null,
+        "employee_name" => null,
+        "base_salary" => null,
+        "overtime_pay" => 0,
+        "allowances" => [],
+        "reimbursements" => [],
+        "deductions" => [
+            "tax" => 0,
+            "insurance" => 0,
+            "loan" => 0,
+            "absent" => 0,
+            "early_leave" => 0,
+            "late" => 0
+        ],
+        "bonuses" => 0,
+        "gross_salary" => null,
+        "net_salary" => null
     ]
 ];

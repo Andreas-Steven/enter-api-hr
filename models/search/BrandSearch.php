@@ -4,9 +4,10 @@ namespace app\models\search;
 
 use Yii;
 use yii\base\Model;
-use yii\data\ActiveDataProvider;
 use yii\db\Expression;
 use app\helpers\Constants;
+use yii\data\ActiveDataProvider;
+
 use app\models\Brand;
 
 /**
