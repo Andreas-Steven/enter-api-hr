@@ -65,20 +65,32 @@ return [
     'salary_detail' => [
         "employee_id" => null,
         "employee_name" => null,
-        "base_salary" => null,
-        "overtime_pay" => 0,
-        "allowances" => [],
-        "reimbursements" => [],
+        "division_id" => null,
+        "absences" => [
+            "sick" => null,
+            "leave" => null,
+        ],
+        "earnings" => [
+            "bonuses" => 0,
+            "allowances" => 0,
+            "overtime_pay" => 0,
+            "reimbursements" => 0,
+        ],
         "deductions" => [
             "tax" => 0,
             "insurance" => 0,
             "loan" => 0,
             "absent" => 0,
             "early_leave" => 0,
-            "late" => 0
+            "late" => 0,
         ],
-        "bonuses" => 0,
-        "gross_salary" => null,
-        "net_salary" => null
+        "summary" => [
+            "base_salary" => null,
+            "total_earnings" => null,
+            "gross_salary" => null,
+            "total_deductions" => null,
+            "net_salary" => null,
+        ]
     ]
 ];
+  

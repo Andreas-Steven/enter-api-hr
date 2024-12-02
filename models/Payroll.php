@@ -31,7 +31,7 @@ class Payroll extends \yii\db\ActiveRecord
                 [['pay_period'], 'string', 'max' => 255],
                 [['salary_detail', 'detail_info'], 'safe'],
                 [['pay_date'], 'date', 'format' => 'php:Y-m-d'],
-                [['pay_period', 'pay_date', 'salary_detail'], 'required', 'on' => Constants::SCENARIO_CREATE],
+                [['pay_period', 'salary_detail'], 'required', 'on' => Constants::SCENARIO_CREATE],
 
                 [['salary_detail'], 'validateSalaryDetail'],
             ],
@@ -80,9 +80,14 @@ class Payroll extends \yii\db\ActiveRecord
         foreach ($salaryDetailData as $key => $value) {
             if (isset($oldSalaryDetail[$value['employee_id']])) {
                 $salaryDetail = array_merge($oldSalaryDetail[$value['employee_id']], $value);
+                $salaryDetail['deductions'] = array_merge(Yii::$app->params['salary_detail']['deductions'], $oldSalaryDetail[$value['employee_id']]['deductions']);
+                $salaryDetail['earnings'] = array_merge(Yii::$app->params['salary_detail']['earnings'], $oldSalaryDetail[$value['employee_id']]['earnings']);
+                $salaryDetail['absences'] = array_merge(Yii::$app->params['salary_detail']['absences'], $oldSalaryDetail[$value['employee_id']]['absences']);
             } else {
                 $salaryDetail = array_merge(Yii::$app->params['salary_detail'], $value);
                 $salaryDetail['deductions'] = array_merge(Yii::$app->params['salary_detail']['deductions'], $salaryDetail['deductions']);
+                $salaryDetail['earnings'] = array_merge(Yii::$app->params['salary_detail']['earnings'], $salaryDetail['earnings']);
+                $salaryDetail['absences'] = array_merge(Yii::$app->params['salary_detail']['absences'], $salaryDetail['absences']);
             }
 
             $salaryDetail['employee_id'] = intval($salaryDetail['employee_id']);
@@ -98,53 +103,47 @@ class Payroll extends \yii\db\ActiveRecord
                 return;
             }
 
-            $salaryDetail['overtime_pay'] = floatval($salaryDetail['overtime_pay']);
-            if ($salaryDetail['overtime_pay']  < 0) {
-                $this->addError($attribute.'['.$key.'].overtime_pay', 'Price value must be a float and greater than or equal to 0');
-                return;
-            } 
+            $convertAndValidateFloat = function(&$item, $key) use ($attribute) {
+                if (!is_numeric($item) || floatval($item) < 0) {
+                    $this->addError($attribute.'['.$key.'].' . $key, 'Value must be a valid number and greater than or equal to 0');
+                    $item = 0;
+                } else {
+                    $item = floatval($item);
+                }
+            };
 
-            $salaryDetail['deductions']['tax'] = floatval($salaryDetail['deductions']['tax']);
-            if ($salaryDetail['deductions']['tax']  < 0) {
-                $this->addError($attribute.'['.$key.'].deductions.tax', 'Price value must be a float and greater than or equal to 0');
-                return;
-            } 
+            $convertAndValidateInt = function(&$item, $key) use ($attribute) {
+                if ($item !== null) {
+                    if (!is_numeric($item) || intval($item) < 0) {
+                        $this->addError($attribute.'['.$key.'].' . $key, 'Value must be a valid integer and greater than or equal to 0');
+                        $item = 0;
+                    } else {
+                        $item = intval($item);
+                    }
+                }
+            };
+    
+            array_walk($salaryDetail['earnings'], $convertAndValidateFloat);
+            array_walk($salaryDetail['deductions'], $convertAndValidateFloat);
+            array_walk($salaryDetail['absences'], $convertAndValidateInt);
+            $salaryDetail['summary']['base_salary'] = floatval($baseSalary->base_salary);
+            $salaryDetail['summary'] = array_map('floatval', $salaryDetail['summary']);
 
-            $salaryDetail['deductions']['loan'] = floatval($salaryDetail['deductions']['loan']);
-            if ($salaryDetail['deductions']['loan']  < 0) {
-                $this->addError($attribute.'['.$key.'].deductions.loan', 'Price value must be a float and greater than or equal to 0');
-                return;
-            } 
-
-            $salaryDetail['deductions']['absent'] = floatval($salaryDetail['deductions']['absent']);
-            if ($salaryDetail['deductions']['absent']  < 0) {
-                $this->addError($attribute.'['.$key.'].deductions.absent', 'Price value must be a float and greater than or equal to 0');
-                return;
-            } 
-
-            $salaryDetail['deductions']['early_leave'] = floatval($salaryDetail['deductions']['early_leave']);
-            if ($salaryDetail['deductions']['early_leave']  < 0) {
-                $this->addError($attribute.'['.$key.'].deductions.early_leave', 'Price value must be a float and greater than or equal to 0');
-                return;
-            } 
-
-            $salaryDetail['deductions']['late'] = floatval($salaryDetail['deductions']['late']);
-            if ($salaryDetail['deductions']['late']  < 0) {
-                $this->addError($attribute.'['.$key.'].deductions.late', 'Price value must be a float and greater than or equal to 0');
-                return;
-            } 
-
-            $salaryDetail['bonuses'] = floatval($salaryDetail['bonuses']);
-            if ($salaryDetail['bonuses'] < 0) {
-                $this->addError($attribute.'['.$key.'].bonuses', 'Price value must be a float and greater than or equal to 0');
-                return;
-            } 
+            $total_deductions = array_sum($salaryDetail['deductions']);
+            $total_earnings = array_sum($salaryDetail['earnings']);
+            $gross_salary = $salaryDetail['summary']['base_salary'] + $total_earnings;
+            $net_salary = $gross_salary - $total_deductions;
 
             $salaryDetail['employee_name'] = $employee->name;
-            $salaryDetail['base_salary'] = floatval($baseSalary->base_salary);
-            $salaryDetail['gross_salary'] = floatval($salaryDetail['base_salary'] + $salaryDetail['bonuses'] + $salaryDetail['overtime_pay']);
-            $totalDeduction = $salaryDetail['deductions']['tax'] + $salaryDetail['deductions']['loan'] + $salaryDetail['deductions']['absent'] + $salaryDetail['deductions']['early_leave'] + $salaryDetail['deductions']['late'];
-            $salaryDetail['net_salary'] = floatval($salaryDetail['gross_salary'] - $totalDeduction);
+            $salaryDetail['division_id'] = $employee->division_id;
+
+            $salaryDetail['summary'] = [
+                "base_salary" => $salaryDetail['summary']['base_salary'],
+                "total_earnings" => $total_earnings,
+                "gross_salary" => $gross_salary,
+                "total_deductions" => $total_deductions,
+                "net_salary" => $net_salary,
+            ];
 
             $oldSalaryDetail[$key] = $salaryDetail;
         }

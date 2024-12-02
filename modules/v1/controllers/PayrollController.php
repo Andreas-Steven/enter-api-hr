@@ -62,6 +62,10 @@ class PayrollController extends CoreController
 			return CoreController::coreValidateParams($unavailableParams);
         }
 
+		if (!isset($params['pay_period'])) {
+			return CoreController::coreBadRequest__($model, Yii::t('rule', 'dataNotFound'));
+		}
+
 		$existingModel = Yii::$app->coreAPI->findModel($model, [], ['pay_period' => $params['pay_period']]);
 
 		if ($existingModel !== null) {
