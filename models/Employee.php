@@ -25,6 +25,7 @@ class Employee extends \yii\db\ActiveRecord
 {
     public $change_log;
     public $division;
+    public $username;
     public $sso;
     
     public static function tableName()
@@ -50,7 +51,7 @@ class Employee extends \yii\db\ActiveRecord
                     return $model->$attribute !== null && isset($model->$attribute); }],
                 
                 [['contact'], 'validateContact'],
-                [['sso_id'], 'validateSSO'],
+                [['sso_id', 'username'], 'validateSSO'],
                 [['division_id'], 'validateDivision'], 
             ],
             CoreModel::getStatusRules($this)
@@ -60,7 +61,7 @@ class Employee extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'sso_id', 'division_id', 'status','detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'sso_id', 'username', 'division_id', 'status','detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'birth_date', 'date_start', 'date_resign', 'status', 'contact', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
         return $scenarios;
@@ -78,6 +79,7 @@ class Employee extends \yii\db\ActiveRecord
             'date_resign' => 'Date Resign',
             'sso_id' => 'Sso ID',
             'division_id' => 'Division ID',
+            'username' => 'Username',
             'status' => 'Status',
             'detail_info' => 'Detail Info',
         ];
@@ -91,29 +93,10 @@ class Employee extends \yii\db\ActiveRecord
     public function validateSSO($attribute, $params, $validator)
     {
         if (isset($this->detail_info['sso'])) {
-            $sso = $this->detail_info['sso'];
+            $this->sso = $this->detail_info['sso'];
         } else {
-            $sso = null;
-
-            if ($this->isAttributeChanged($attribute)) {
-                // $sso = SSO::find()->where([
-                //     'id' => $this->$attribute,
-                //     'status' => Constants::STATUS_ACTIVE
-                // ])->one();
-
-                $sso = [
-                    'sso_id' => $this->sso_id,
-                    'username' => 'Test'
-                ];
-            }
-
-            if ($sso === null) {
-                $this->addError($attribute, 'SSO Data not found');
-                return;
-            }
+            $this->sso = ['sso_id' => $this->sso_id, 'username' => $this->username];
         }
-
-        $this->sso = ['sso_id' => $sso['sso_id'], 'username' => $sso['username']];
     }
 
     public function validateDivision($attribute, $params, $validator)
