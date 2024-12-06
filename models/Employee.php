@@ -102,7 +102,7 @@ class Employee extends \yii\db\ActiveRecord
                 // ])->one();
 
                 $sso = [
-                    'sso_id' => 1001,
+                    'sso_id' => $this->sso_id,
                     'username' => 'Test'
                 ];
             }
