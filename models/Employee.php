@@ -42,6 +42,7 @@ class Employee extends \yii\db\ActiveRecord
 
                 [['nik', 'sso_id'], 'unique'],
                 [['sso_id', 'division_id'], 'filter', 'filter' => 'intval'],
+                [['division_id'], 'default', 'value' => 1],
 
                 [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
                     return $value === "" ? null : $value; }],
@@ -49,7 +50,7 @@ class Employee extends \yii\db\ActiveRecord
                     return $model->$attribute !== null && isset($model->$attribute); }],
                 
                 [['contact'], 'validateContact'],
-                [['sso_id'], 'validateSSO', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE]],
+                [['sso_id'], 'validateSSO'],
                 [['division_id'], 'validateDivision'], 
             ],
             CoreModel::getStatusRules($this)
@@ -59,7 +60,7 @@ class Employee extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'sso_id', 'status','detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'sso_id', 'division_id', 'status','detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'birth_date', 'date_start', 'date_resign', 'status', 'contact', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
         return $scenarios;
@@ -117,10 +118,9 @@ class Employee extends \yii\db\ActiveRecord
 
     public function validateDivision($attribute, $params, $validator)
     {
-        if (isset($this->detail_info['division'])) {
-            $division = $this->detail_info['division'];
-        } else {
+        if ($this->isAttributeChanged($attribute)) {
             $division = null;
+            $this->$attribute = ($this->$attribute === 0) ? 1 : $this->$attribute;
 
             if ($this->isAttributeChanged($attribute)) {
                 $division = Division::find()->where([
@@ -132,6 +132,11 @@ class Employee extends \yii\db\ActiveRecord
             if ($division === null) {
                 $this->addError($attribute, 'Division data not found');
                 return;
+            }
+            
+        } else { 
+            if (isset($this->detail_info['division'])) {
+                $division = $this->detail_info['division'];
             }
         }
         
