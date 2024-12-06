@@ -102,7 +102,7 @@ class CoreController extends Controller
             'code' => Yii::$app->response->statusCode = 422,
             'success' => false,
             'message' => Yii::t('core', $message ?? "{$model->scenario}RecordFailed"),
-            'errors' => $model->errors ? $model : [],
+            'errors' => isset($model->errors) ? $model : [],
         ];
     }
 
@@ -217,7 +217,7 @@ class CoreController extends Controller
         }
 
         if ($searchModel !== null && !$searchModel->validate()) {
-            return $this->coreError($searchModel->errors, 'badRequest');
+            return $this->coreError($searchModel, 'badRequest');
         }
 
         return false;
