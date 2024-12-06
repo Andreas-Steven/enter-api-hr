@@ -29,7 +29,6 @@ class CoreAPI
 
 	public function unavailableParams(?array $rules, ?array $params): object|false
 	{
-		$dataProvider = new \stdClass();
 		$errors = [];
 		$allowedParams = [];
 		unset($params['id']);
@@ -37,8 +36,6 @@ class CoreAPI
 		foreach ($rules as $rule) {
 			$allowedParams = array_merge($allowedParams, $rule[0]);
 		}
-
-		$dataProvider->errors = [];
 
 		$unsupportedParams = array_diff_key($params, array_flip($allowedParams));
 		
@@ -81,28 +78,5 @@ class CoreAPI
 			$model->sync = 1;
 			$model->save(false);
 		}
-	}
-
-	public function actionUpdate($seo_url)
-	{
-		$model = $this->findModelbyUrl($seo_url);
-
-		if ($this->request->isPost && $model->load($this->request->post()) && $model->validate()) {
-			if(empty($model->getDirtyAttributes())) {
-				Yii::$app->session->setFlash('success', 'Nothing has been changed.');
-				return $this->redirect(['view', 'seo_url' => $model->seo_url]);
-			}
-
-			
-			$detailInfo = GlobalFunction::changeLogUpdate($model->detail_info);
-			$model->detail_info = $detailInfo;
-			$model->save();
-			Yii::$app->session->setFlash('success', 'Data has been updated.');
-			return $this->redirect(['view', 'seo_url' => $model->seo_url]);
-		}
-
-		return $this->render('update', [
-			'model' => $model,
-		]);
 	}
 }
