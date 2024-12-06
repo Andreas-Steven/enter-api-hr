@@ -29,6 +29,8 @@ class CoreAPI
 
 	public function unavailableParams(?array $rules, ?array $params): object|false
 	{
+		$dataProvider = new \stdClass();
+		$errors = [];
 		$allowedParams = [];
 		unset($params['id']);
 
@@ -36,21 +38,18 @@ class CoreAPI
 			$allowedParams = array_merge($allowedParams, $rule[0]);
 		}
 
+		$dataProvider->errors = [];
+
 		$unsupportedParams = array_diff_key($params, array_flip($allowedParams));
 		
 		if (!empty($unsupportedParams)) {
-			$errors = [];
+			$model = new \yii\base\DynamicModel();
+			
 			foreach ($unsupportedParams as $key => $value) {
-				$errors[] = [
-					'field' => $key,
-					'message' => Yii::t('core', 'invalidField', ['field' => $key]),
-				];
+				$model->addError($key, Yii::t('core', 'invalidField', ['field' => $key]));
 			}
 
-			return (object) [
-				'error' => true,
-				'params' => $errors,
-			];
+			return $model;
 		}
 
 		return false;
@@ -82,5 +81,28 @@ class CoreAPI
 			$model->sync = 1;
 			$model->save(false);
 		}
+	}
+
+	public function actionUpdate($seo_url)
+	{
+		$model = $this->findModelbyUrl($seo_url);
+
+		if ($this->request->isPost && $model->load($this->request->post()) && $model->validate()) {
+			if(empty($model->getDirtyAttributes())) {
+				Yii::$app->session->setFlash('success', 'Nothing has been changed.');
+				return $this->redirect(['view', 'seo_url' => $model->seo_url]);
+			}
+
+			
+			$detailInfo = GlobalFunction::changeLogUpdate($model->detail_info);
+			$model->detail_info = $detailInfo;
+			$model->save();
+			Yii::$app->session->setFlash('success', 'Data has been updated.');
+			return $this->redirect(['view', 'seo_url' => $model->seo_url]);
+		}
+
+		return $this->render('update', [
+			'model' => $model,
+		]);
 	}
 }

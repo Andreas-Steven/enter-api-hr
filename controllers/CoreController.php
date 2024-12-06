@@ -94,8 +94,6 @@ class CoreController extends Controller
         return $response;
     }
 
-    
-
     public function coreError($model, ?string $message = null): array 
     {
         return [
@@ -212,8 +210,8 @@ class CoreController extends Controller
 
     public function coreValidateParams($dataProvider, $searchModel = null): array|bool
     {
-        if (isset($dataProvider->error)) {
-            return $this->coreError($dataProvider->params, 'validationFailed');
+        if (isset($dataProvider->errors)) {
+            return $this->coreError($dataProvider, 'validationFailed');
         }
 
         if ($searchModel !== null && !$searchModel->validate()) {
