@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\models\CoreModel;
 
 /**
  * This is the model class for table "general_affair".
@@ -14,7 +15,7 @@ use app\helpers\Constants;
  * @property int $location_id
  * @property int $status
  * @property string $detail_info
- * @property string $item
+ * @property string $asset
  *
  * @property GeneralAffairCategory $category
  * @property GeneralAffairLocation $location
@@ -24,34 +25,37 @@ class GeneralAffair extends \yii\db\ActiveRecord
 {
     public $change_log;
     public $code;
+    public $location;
 
     public static function tableName()
     {
         return 'general_affair';
     }
     
+
     public function rules()
     {
         return array_merge(
             [
-                [['item', 'code'], 'safe'],
+                [['asset', 'code'], 'safe'],
                 [['name'], 'string', 'max' => 255],
                 [['category_id', 'location_id'], 'integer'],
                 [['name', 'category_id', 'location_id'], 'required'],
-                [['detail_info', 'item'], 'safe', 'skipOnEmpty' => true],
+                [['detail_info', 'asset'], 'safe', 'skipOnEmpty' => true],
                 [['category_id', 'location_id'], 'filter', 'filter' => 'intval'],
                 
-                [['item'], 'validateItem', 'on' => Constants::SCENARIO_CREATE],
+                [['asset'], 'validateItem', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'status'], 'validateDeleted', 'on' => Constants::SCENARIO_DELETE],
+                [['location_id'], 'validateLocation'],
             ],
-            Yii::$app->coreAPI->statusRules($this)
+            CoreModel::getStatusRules($this)
         );
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'category_id', 'location_id', 'item', 'status',  'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'category_id', 'location_id', 'asset', 'status',  'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['id', 'name', 'category_id', 'location_id', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['code', 'status'];
         return $scenarios;
@@ -65,7 +69,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
             'category_id' => 'Category ID',
             'location_id' => 'Location ID',
             'detail_info' => 'Detail Info',
-            'item' => 'Item',
+            'asset' => 'Asset',
         ];
     }
 
@@ -74,10 +78,30 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return new \app\models\query\GeneralAffairQuery(get_called_class());
     }
 
+    
+    public function validateLocation($attribute, $params, $validator)
+    {
+        $location = isset($this->$attribute) ? $this->detail_info['location'] : null;
+
+        if ($this->isAttributeChanged($attribute)) {
+            $location = GeneralAffairLocation::find()->where([
+                'id' => $this->$attribute,
+                'status' => Constants::STATUS_ACTIVE
+            ])->one();
+        }
+
+        if ($location === null) {
+            $this->addError($attribute, 'Location not found');
+            return;
+        }
+
+        $this->location = ['id' => $location->id, 'name' => $location->name];
+    }
+
     public function validateItem($attribute, $params, $validator)
     {
         if (!is_array($this->$attribute)) {
-            $this->addError($attribute, 'Item must be an array');
+            $this->addError($attribute, 'Asset must be an array');
             return;
         }
 
@@ -86,11 +110,11 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $oldItem = $this->getOldAttribute($attribute);
     
         foreach ($itemData['items'] as $key => $value) {
-            $timestamp = Yii::$app->coreAPI->timestamp();
+            $timestamp = Yii::$app->coreAPI->getTimestamp();
             $username = Yii::$app->session->get('username') ?? 'Admin';
 
             if (empty($value['code'])) {
-                $this->addError($attribute.'['.$key.'].code', 'Item code cannot be empty');
+                $this->addError($attribute.'['.$key.'].code', 'Asset code cannot be empty');
                 return;
             }
             
@@ -157,15 +181,15 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function validateDeleted($attribute, $params, $validator)
     {
         $oldData = $this->getAttributes();
-        $itemCodes = array_column($oldData['item']['items'], 'code') ?? [];
-        $timestamp = Yii::$app->coreAPI->timestamp();
+        $itemCodes = array_column($oldData['asset']['items'], 'code') ?? [];
+        $timestamp = Yii::$app->coreAPI->getTimestamp();
 
-        if (!empty($this->code) && is_array($oldData['item']) && array_key_exists('items', $oldData['item'])) {
+        if (!empty($this->code) && is_array($oldData['asset']) && array_key_exists('items', $oldData['asset'])) {
             if (in_array($this->code, $itemCodes, true)) {
-                $oldData['item']['items'][$this->code]['items_change_log']['deleted_at'] = $timestamp;
-                $oldData['item']['items'][$this->code]['items_change_log']['deleted_by'] = $username ?? 'Admin';
+                $oldData['asset']['items'][$this->code]['items_change_log']['deleted_at'] = $timestamp;
+                $oldData['asset']['items'][$this->code]['items_change_log']['deleted_by'] = $username ?? 'Admin';
 
-                $this->setAttribute('item', $oldData['item']);
+                $this->setAttribute('asset', $oldData['asset']);
                 return true;
             }
         } elseif (isset($this->status) && $this->status === Constants::STATUS_DELETED) {
@@ -185,33 +209,36 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return false;
     }
 
-    public function calculateItems($item)
+    public function calculateItems($asset)
     {
         $totalPrice = 0;
         $quantity = 0;
 
-        foreach ($item['items'] as $key => $value) {
+        foreach ($asset['items'] as $key => $value) {
             if (is_array($value) && array_key_exists('price', $value) && $value['items_change_log']['deleted_at'] === null) {
                 $totalPrice += $value['price'];
                 $quantity++;
             }
         }
 
-        $item['quantity'] = $quantity;
-        $item['total_price'] = $totalPrice;
+        $asset['quantity'] = $quantity;
+        $asset['total_price'] = $totalPrice;
 
-        return $item;
+        return $asset;
     }
 
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
-            $this->item = $this->calculateItems($this->item);
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+            $this->name = CoreModel::htmlPurifier($this->name);
+            $this->asset = $this->calculateItems($this->asset);
+            $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->detail_info = [
                 'change_log' => $this->change_log,
+                'location' => $this->location,
             ];
+
+            var_dump($this->location);exit;
 
             return true;
         }

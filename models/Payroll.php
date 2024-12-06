@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\models\CoreModel;
 
 /**
  * This is the model class for table "payroll".
@@ -18,6 +19,7 @@ use app\helpers\Constants;
 class Payroll extends \yii\db\ActiveRecord
 {
     public $change_log;
+    public $division;
 
     public static function tableName()
     {
@@ -35,7 +37,7 @@ class Payroll extends \yii\db\ActiveRecord
 
                 [['salary_detail'], 'validateSalaryDetail'],
             ],
-            Yii::$app->coreAPI->statusRules($this)
+            CoreModel::getStatusRules($this)
         );
     }
 
@@ -122,6 +124,8 @@ class Payroll extends \yii\db\ActiveRecord
                     }
                 }
             };
+            
+            
     
             array_walk($salaryDetail['earnings'], $convertAndValidateFloat);
             array_walk($salaryDetail['deductions'], $convertAndValidateFloat);
@@ -136,7 +140,6 @@ class Payroll extends \yii\db\ActiveRecord
 
             $salaryDetail['employee_name'] = $employee->name;
             $salaryDetail['division_id'] = $employee->division_id;
-
             $salaryDetail['summary'] = [
                 "base_salary" => $salaryDetail['summary']['base_salary'],
                 "total_earnings" => $total_earnings,
@@ -145,6 +148,7 @@ class Payroll extends \yii\db\ActiveRecord
                 "net_salary" => $net_salary,
             ];
 
+            $this->division = ['id' => $division->id, 'name' => $division->name];
             $oldSalaryDetail[$key] = $salaryDetail;
         }
 
@@ -154,11 +158,12 @@ class Payroll extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-            $this->pay_period = Yii::$app->coreAPI->htmlPurifier($this->pay_period);
+            $this->change_log = CoreModel::getChangeLog($this, $insert);
+            $this->pay_period = CoreModel::htmlPurifier($this->pay_period);
 
             $this->detail_info = [
                 'change_log' => $this->change_log,
+                'division' => $this->division
             ];
             return true;
         }

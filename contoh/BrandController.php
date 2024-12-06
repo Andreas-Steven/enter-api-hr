@@ -5,44 +5,37 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
-use app\helpers\Constants;
 use yii\filters\VerbFilter;
+use app\helpers\Constants;
 use app\controllers\CoreController;
-use app\components\CustomException;
-
-use app\models\Brand;
 use app\models\search\BrandSearch;
+use app\models\Brand;
 
+/**
+ * Default controller for the `v1` module
+ */
 class BrandController extends CoreController
 {
-	public $enableCsrfValidation = false;
-	
 	public function behaviors()
 	{
-		return parent::behaviors() + [
-			'authenticator' => [
-				'class' => 'app\components\JwtBearerAuth',
-				'except' => [
-					Constants::AUTH_EXCEPTION,
+		return array_merge(
+			parent::behaviors(),
+			[
+				'authenticator' => [
+					'class' => 'app\components\JwtBearerAuth',
+					'except' => [
+						Yii::$app->params['jwt']['authException'],
+					],
+					'role' => Yii::$app->params['codeApp'],
 				],
-				'role' => Yii::$app->params['codeApp'],
 			],
-			'verbs' => [
-				'class' => VerbFilter::className(),
-				'actions' => Constants::verbsAction(),
-			],
-		];
-	}
-
-	public function actionIndex()
-	{
-		return CoreController::coreActionIndex();
+		);
 	}
 
 	public function actionData()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
-
+		
 		$searchModel = new BrandSearch();
 		$dataProvider = $searchModel->search($params);
 
@@ -51,21 +44,6 @@ class BrandController extends CoreController
 		}
 
 		return CoreController::coreData($dataProvider);
-	}
-
-	public function actionList()
-	{
-		$params = Yii::$app->getRequest()->getBodyParams();
-
-		$searchModel = new BrandSearch();
-		$searchModel->load($params);
-		$dataProvider = $searchModel->mongodbSearch($params);
-
-		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider, $searchModel)) {
-			return $coreValidateParams;
-		}
-
-		return CoreController::coreList($dataProvider);
 	}
 
 	public function actionCreate()
@@ -82,13 +60,11 @@ class BrandController extends CoreController
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
-				Yii::$app->mongodb->upsert($model);
-
-				return CoreController::coreSuccess($model, 'insertRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'insertRecordFailed');
+		return CoreController::coreError($model);
 	}
 
 	public function actionUpdate()
@@ -99,7 +75,7 @@ class BrandController extends CoreController
 			return $coreBadRequest;
 		}
 		
-		$model = Yii::$app->coreAPI->findModel(new Brand(), $params);
+		$model = CoreController::findModel(new Brand(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -116,13 +92,16 @@ class BrandController extends CoreController
 		}
 
 		if ($model->load($params, '') && $model->validate()) {
+			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
+                return $coreEmptyParams;
+            }
+
 			if ($model->save()) {
-				Yii::$app->mongodb->upsert($model);
-				return CoreController::coreSuccess($model, 'updateRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'updateRecordFailed');
+		return CoreController::coreError($model);
 	}
 
 	public function actionDelete()
@@ -133,7 +112,7 @@ class BrandController extends CoreController
 			return $coreBadRequest;
 		}
 
-		$model = Yii::$app->coreAPI->findModel(new Brand(), $params);
+		$model = CoreController::findModel(new Brand(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -147,12 +126,15 @@ class BrandController extends CoreController
 		}
 
 		if ($model->load($params, '') && $model->validate()) {
+			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
+                return $coreEmptyParams;
+            }
+
 			if ($model->save()) {
-				Yii::$app->mongodb->upsert($model);
-				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'deleteRecordFailed');;
+		return CoreController::coreError($model);
 	}
 }

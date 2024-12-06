@@ -17,7 +17,7 @@ class m241001_072940_create_general_affair_table extends Migration
             'name' => $this->string(255)->notNull(),
             'category_id' => $this->integer()->notNull(),
             'location_id' => $this->integer()->notNull(),
-            'item' => $this->json()->notNull()->defaultValue('[]'),
+            'asset' => $this->json()->notNull()->defaultValue('[]'),
             'status' => $this->smallInteger()->notNull()->defaultValue(2)->comment('0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance'),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
                 'change_log' => [

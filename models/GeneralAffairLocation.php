@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\models\CoreModel;
 
 /**
  * This is the model class for table "general_affair_location".
@@ -26,11 +27,11 @@ class GeneralAffairLocation extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
-                [['name'], 'required'],
-                [['detail_info'], 'safe'],
                 [['name'], 'string', 'max' => 255],
+                [['detail_info'], 'safe'],
+                [['name'], 'required'],
             ],
-            Yii::$app->coreAPI->statusRules($this)
+            CoreModel::getStatusRules($this)
         );
     }
 
@@ -62,11 +63,11 @@ class GeneralAffairLocation extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-            $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
+            $this->change_log = CoreModel::getChangeLog($this, $insert);
+            $this->name = CoreModel::htmlPurifier($this->name);
 
             $this->detail_info = [
-                'change_log' => $this->change_log ?: null,
+                'change_log' => $this->change_log,
             ];
             return true;
         }

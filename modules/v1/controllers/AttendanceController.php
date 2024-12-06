@@ -5,38 +5,28 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
-use app\helpers\Constants;
 use yii\filters\VerbFilter;
+use app\helpers\Constants;
 use app\controllers\CoreController;
-use app\components\CustomException;
-
-use app\models\Attendance;
 use app\models\search\AttendanceSearch;
+use app\models\Attendance;
 
 class AttendanceController extends CoreController
 {
-	public $enableCsrfValidation = false;
-
 	public function behaviors()
 	{
-		return parent::behaviors() + [
-		   'authenticator' => [
-				'class' => 'app\components\JwtBearerAuth',
-				'except' => [
-					Constants::AUTH_EXCEPTION,
+		return array_merge(
+			parent::behaviors(),
+			[
+				'authenticator' => [
+					'class' => 'app\components\JwtBearerAuth',
+					'except' => [
+						Yii::$app->params['jwt']['authException'],
+					],
+					'role' => Yii::$app->params['codeApp'],
 				],
-				'role' => Yii::$app->params['codeApp'],
 			],
-			'verbs' => [
-				'class' => VerbFilter::className(),
-				'actions' => Constants::verbsAction(),
-			],
-		];
-	}
-
-	public function actionIndex()
-	{
-		return CoreController::coreActionIndex();
+		);
 	}
 
 	public function actionData()
@@ -46,7 +36,7 @@ class AttendanceController extends CoreController
 		$searchModel = new AttendanceSearch();
 		$dataProvider = $searchModel->search($params);
 		
-		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
+		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider, $searchModel)) {
 			return $coreValidateParams;
 		}
 		
@@ -70,11 +60,13 @@ class AttendanceController extends CoreController
 			$params['date'] = $params['system_date'];
 		}
 
-		$existingModel = Yii::$app->coreAPI->findModel($model, [], ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE]);
+		// $existingModel = CoreController::findModel($model, [], ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE]);
+		$existingModel = CoreController::findModel($model, $params);
 
 		// Update last date to Status Completed
 		if ($existingModel === null) {
-			$lastAttendance = Yii::$app->coreAPI->findModel($model, [], ['status' => Constants::STATUS_ACTIVE], ['id' => SORT_DESC]);
+			// $lastAttendance = CoreController::findModel($model, [], ['status' => Constants::STATUS_ACTIVE], ['id' => SORT_DESC]);
+			$lastAttendance = CoreController::findModel($model, $params);
 
 			if ($lastAttendance !== null) {
 				$params['status'] = Constants::STATUS_COMPLETED;
@@ -99,20 +91,10 @@ class AttendanceController extends CoreController
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'insertRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreBadRequest__($model, Yii::t('rule', 'insertRecordFailed'));
-	}
-
-	public function actionUpdate()
-	{
-		return CoreController::coreActionIndex();
-	}
-
-	public function actionDelete()
-	{
-		return CoreController::coreActionIndex();
+		return CoreController::coreError($model);
 	}
 }

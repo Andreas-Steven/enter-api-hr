@@ -28,12 +28,17 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        \Yii::$app->language = 'id'; // set language output
+        // \Yii::$app->language = Yii::$app->params['defaultLanguage']; // set language output
         $data = [
             'code' => 200,
             'success' => true,
             'message' => Yii::$app->params['titleService'],
-            'languages' => Yii::t('app', 'responseLanguage'),
+            'data' => [
+                [
+                    'language' => Yii::$app->language,
+                    'version' => Yii::$app->params['serviceVersion'],
+                ]
+            ],
         ];
 
         return $data;
@@ -45,9 +50,9 @@ class SiteController extends Controller
             'status' => Yii::$app->errorHandler->exception->statusCode,
             'success' => false,
             'message' => Yii::$app->errorHandler->exception->getMessage(),
+            'errors' => [],
         ];
 
         return $data;
     }
-   
 }

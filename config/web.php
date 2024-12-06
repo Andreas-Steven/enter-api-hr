@@ -2,7 +2,6 @@
 
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
-// $mongodb = require __DIR__ . '/mongodb.php';
 
 $config = [
     'id' => 'basic'.$params['extraCookies'],
@@ -15,55 +14,78 @@ $config = [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
+    'params' => $params,
     'components' => [
-        'pagination' => [
-            'class' => 'yii\data\Pagination',
-            'defaultPageSize' => 10,
-        ],
+        'db' => $db,
         'coreAPI' => [
             'class' => 'app\components\CoreAPI',
         ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            // 'cookieValidationKey' => 'rHaRkLSi4OMU-_Gi8LBn0Fh8IcqrYJP7'.$params['extraCookies'],
-            'enableCookieValidation' => false,
+            'cookieValidationKey' => 'rHaRkLSi4OMU-_Gi8LBn0Fh8IcqrYJP7'.$params['extraCookies'],
+            'enableCookieValidation' => !YII_ENV_DEV,
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
             ]
-        ],
-        'cache' => [
-            'class' => 'yii\caching\FileCache',
-        ],
-        'user' => [
-            'identityClass' => 'app\models\User',
-            'enableAutoLogin' => true,
-            'enableSession' => false,
-            'loginUrl' => null
-        ],
-        'errorHandler' => [
-            'errorAction' => 'site/error',
         ],
         'response' => [
             'class' => 'yii\web\Response',
             'on beforeSend' => function ($event) {
                 $response = $event->sender;
-                // if ($response->data !== null && Yii::$app->request->get('suppress_response_code')) {
-                //     $response->data = [
-                //         'success' => $response->isSuccessful,
-                //         'data' => $response->data,
-                //     ];
-                //     $response->statusCode = 200;
-                // } else {
-                //     $response->data['success'] = $response->isSuccessful;
-                //     unset($response->data['type']);
-                // }
+
+                if (!YII_ENV_DEV){
+                    if ($response->data !== null && Yii::$app->request->get('suppress_response_code')) {
+                        $response->data = [
+                            'success' => $response->isSuccessful,
+                            'data' => $response->data,
+                        ];
+                        $response->statusCode = 200;
+                    } else {
+                        $response->data['success'] = $response->isSuccessful;
+                        unset($response->data['type']);
+                    }
+                }
             },
         ],
-        'mailer' => [
-            'class' => \yii\symfonymailer\Mailer::class,
-            'viewPath' => '@app/mail',
-            // send all mails to a file by default.
-            'useFileTransport' => true,
+        'errorHandler' => [
+            // 'errorAction' => 'site/error',
+            'class' => 'app\components\CustomErrorHandler',
+        ],
+        'urlManager' => [
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            'rules' => [
+                '/' => 'site/index',
+                '/v1' => 'site/index',
+                '/v1/index' => 'site/index',
+            ],
+        ],
+        'pagination' => [
+            'class' => 'yii\data\Pagination',
+            'defaultPageSize' => 10,
+        ],
+        'cache' => [
+            'class' => 'yii\caching\FileCache',
+        ],
+        'i18n' => [
+            'translations' => [
+                'app' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@app/translation',
+                    'fileMap' => [
+                        'app' => 'app.php',
+                    ],
+                    'on missingTranslation' => ['app\components\TranslationEventHandler', 'handleMissingTranslation']
+                ],
+                'core' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@app/translation',
+                    'fileMap' => [
+                        'core' => 'core.php',
+                    ],
+                    'on missingTranslation' => ['app\components\TranslationEventHandler', 'handleMissingTranslation']
+                ]
+            ],
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
@@ -80,47 +102,19 @@ $config = [
                 ],
             ],
         ],
-        'db' => $db,
-        'urlManager' => [
-            'enablePrettyUrl' => true,
-            'showScriptName' => false,
-            'rules' => [
-                '/' => 'site/index',
-                [
-                    'class' => 'yii\rest\UrlRule',
-                    'controller' => [
-                        'v1/default',
-                    ]
-                ],
-                'v1' => 'v1/default/index',
-                'v1/data' => 'v1/default/data',
-                // 'v1/category/searchLastPosition/<id>' => 'v1/category/hierarchy',
-                // 'v1/brand' => 'v1/brand/index',
-                // 'v1/brand/data' => 'v1/brand/data',
-            ],
+        'user' => [
+            'identityClass' => 'app\models\User',
+            'enableAutoLogin' => true,
+            'enableSession' => false,
+            'loginUrl' => null
         ],
-        'i18n' => [
-            'translations' => [
-                'app' => [
-                    'class' => 'yii\i18n\PhpMessageSource',
-                    'basePath' => '@app/translation',
-                    'fileMap' => [
-                        'app' => 'app.php',
-                    ],
-                    'on missingTranslation' => ['app\components\TranslationEventHandler', 'handleMissingTranslation']
-                ],
-                'rule' => [
-                    'class' => 'yii\i18n\PhpMessageSource',
-                    'basePath' => '@app/translation',
-                    'fileMap' => [
-                        'rule' => 'rule.php',
-                    ],
-                    'on missingTranslation' => ['app\components\TranslationEventHandler', 'handleMissingTranslation']
-                ]
-            ],
+        'mailer' => [
+            'class' => \yii\symfonymailer\Mailer::class,
+            'viewPath' => '@app/mail',
+            // send all mails to a file by default.
+            'useFileTransport' => true,
         ],
     ],
-    'params' => $params,
     'modules' => [
         'v1' => [
             'class' => 'app\modules\v1\Module',
@@ -133,6 +127,14 @@ $config = [
             if(!in_array(Yii::$app->language, $params['languages'])) {
                 Yii::$app->language = $params['defaultLanguage'];
             }
+        }
+    },
+    'on beforeRequest' => function ($event) use ($params) {
+        $lang = Yii::$app->request->getHeaders()->get('Accept-Language');
+
+        Yii::$app->language = $lang ?? $params['defaultLanguage'];
+        if(!in_array(Yii::$app->language, $params['languages'])) {
+            Yii::$app->language = $params['defaultLanguage'];
         }
     },
 ];

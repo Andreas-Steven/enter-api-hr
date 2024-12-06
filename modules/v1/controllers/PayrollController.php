@@ -5,44 +5,34 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
-use app\helpers\Constants;
 use yii\filters\VerbFilter;
+use app\helpers\Constants;
 use app\controllers\CoreController;
-use app\components\CustomException;
-
-use app\models\Payroll;
 use app\models\search\PayrollSearch;
+use app\models\Payroll;
 
 class PayrollController extends CoreController
 {
-    public $enableCsrfValidation = false;
-
 	public function behaviors()
 	{
-		return parent::behaviors() + [
-			'authenticator' => [
-				'class' => 'app\components\JwtBearerAuth',
-				'except' => [
-					Constants::AUTH_EXCEPTION,
+		return array_merge(
+			parent::behaviors(),
+			[
+				'authenticator' => [
+					'class' => 'app\components\JwtBearerAuth',
+					'except' => [
+						Yii::$app->params['jwt']['authException'],
+					],
+					'role' => Yii::$app->params['codeApp'],
 				],
-				'role' => Yii::$app->params['codeApp'],
 			],
-			'verbs' => [
-				'class' => VerbFilter::className(),
-				'actions' => Constants::verbsAction(),
-			],
-		];
-	}
-
-	public function actionIndex()
-	{
-		return CoreController::coreActionIndex();
+		);
 	}
 
 	public function actionData()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
-
+		
 		$searchModel = new PayrollSearch();
 		$dataProvider = $searchModel->search($params);
 
@@ -62,11 +52,7 @@ class PayrollController extends CoreController
 			return CoreController::coreValidateParams($unavailableParams);
         }
 
-		if (!isset($params['pay_period'])) {
-			return CoreController::coreBadRequest__($model, Yii::t('rule', 'dataNotFound'));
-		}
-
-		$existingModel = Yii::$app->coreAPI->findModel($model, [], ['pay_period' => $params['pay_period']]);
+		$existingModel = CoreController::findModel($model, $params);
 
 		if ($existingModel !== null) {
 			$model = $existingModel;
@@ -77,11 +63,11 @@ class PayrollController extends CoreController
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'insertRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'insertRecordFailed');
+		return CoreController::coreError($model);
 	}
 
 	public function actionUpdate()
@@ -92,7 +78,7 @@ class PayrollController extends CoreController
 			return $coreBadRequest;
 		}
 		
-		$model = Yii::$app->coreAPI->findModel(new Payroll(), $params);
+		$model = CoreController::findModel(new Payroll(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -109,12 +95,16 @@ class PayrollController extends CoreController
 		}
 
 		if ($model->load($params, '') && $model->validate()) {
+			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
+                return $coreEmptyParams;
+            }
+
 			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'updateRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'updateRecordFailed');
+		return CoreController::coreError($model);
 	}
 
 	public function actionDelete()
@@ -125,7 +115,7 @@ class PayrollController extends CoreController
 			return $coreBadRequest;
 		}
 
-		$model = Yii::$app->coreAPI->findModel(new Payroll(), $params);
+		$model = CoreController::findModel(new Payroll(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -139,11 +129,15 @@ class PayrollController extends CoreController
 		}
 
 		if ($model->load($params, '') && $model->validate()) {
+			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
+                return $coreEmptyParams;
+            }
+
 			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'deleteRecordFailed');;
+		return CoreController::coreError($model);
 	}
 }

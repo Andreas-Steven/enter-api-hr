@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\models\CoreModel;
 
 /**
  * This is the model class for table "general_affair_category".
@@ -31,7 +32,7 @@ class GeneralAffairCategory extends \yii\db\ActiveRecord
                 [['name'], 'string', 'max' => 255],
                 [['status'], 'default', 'value' => 2],
             ],
-            Yii::$app->coreAPI->statusRules($this)
+            CoreModel::getStatusRules($this)
         );
     }
 
@@ -63,11 +64,11 @@ class GeneralAffairCategory extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-            $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
+            $this->change_log = CoreModel::getChangeLog($this, $insert);
+            $this->name = CoreModel::htmlPurifier($this->name);
 
             $this->detail_info = [
-                'change_log' => $this->change_log ?: null,
+                'change_log' => $this->change_log,
             ];
             return true;
         }

@@ -19,19 +19,18 @@ class GeneralAffairController extends CoreController
 
 	public function behaviors()
 	{
-		return parent::behaviors() + [
-		   'authenticator' => [
-				'class' => 'app\components\JwtBearerAuth',
-				'except' => [
-					Constants::AUTH_EXCEPTION,
+		return array_merge(
+			parent::behaviors(),
+			[
+				'authenticator' => [
+					'class' => 'app\components\JwtBearerAuth',
+					'except' => [
+						Yii::$app->params['jwt']['authException'],
+					],
+					'role' => Yii::$app->params['codeApp'],
 				],
-				'role' => Yii::$app->params['codeApp'],
 			],
-			'verbs' => [
-				'class' => VerbFilter::className(),
-				'actions' => Constants::verbsAction(),
-			],
-		];
+		);
 	}
 
 	public function actionIndex()
@@ -46,7 +45,7 @@ class GeneralAffairController extends CoreController
 		$searchModel = new GeneralAffairSearch();
 		$dataProvider = $searchModel->search($params);
 		
-		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
+		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider, $searchModel)) {
 			return $coreValidateParams;
 		}
 
@@ -66,7 +65,8 @@ class GeneralAffairController extends CoreController
 			return CoreController::coreBadRequest($model, Yii::t('rule', 'paramsEmpty'));
 		}
 
-		$existingModel = Yii::$app->coreAPI->findModel($model, [], ['name' => $params['name'], 'location_id' => $params['location_id']]);
+		// $existingModel = CoreController::findModel($model, [], ['name' => $params['name'], 'location_id' => $params['location_id']]);
+		$existingModel = CoreController::findModel($model, $params);
 
 		if ($existingModel !== null) {
 			$model = $existingModel;
@@ -81,7 +81,7 @@ class GeneralAffairController extends CoreController
 			}
 		}
 
-		return CoreController::coreBadRequest__($model, Yii::t('rule', 'insertRecordFailed'));
+		return CoreController::coreError($model);
 	}
 
 	public function actionUpdate()
@@ -92,7 +92,7 @@ class GeneralAffairController extends CoreController
 			return $coreBadRequest;
 		}
 		
-		$model = Yii::$app->coreAPI->findModel(new GeneralAffair(), $params);
+		$model = CoreController::findModel(new GeneralAffair(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -109,12 +109,16 @@ class GeneralAffairController extends CoreController
 		}
 
 		if ($model->load($params, '') && $model->validate()) {
+			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
+                return $coreEmptyParams;
+            }
+
 			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'updateRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'updateRecordFailed');
+		return CoreController::coreError($model);
 	}
 
 	public function actionDelete()
@@ -125,7 +129,7 @@ class GeneralAffairController extends CoreController
 			return $coreBadRequest;
 		}
 
-		$model = Yii::$app->coreAPI->findModel(new GeneralAffair(), $params);
+		$model = CoreController::findModel(new GeneralAffair(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -142,11 +146,15 @@ class GeneralAffairController extends CoreController
 		}
 
 		if ($model->load($params, '') && $model->validate()) {
+			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
+                return $coreEmptyParams;
+            }
+
 			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'deleteRecordFailed');;
+		return CoreController::coreError($model);
 	}
 }

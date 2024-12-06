@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\models\CoreModel;
 
 /**
  * This is the model class for table "base_salary".
@@ -37,7 +38,7 @@ class BaseSalary extends \yii\db\ActiveRecord
 
                 [['employee_id', 'base_salary', 'efective_date'], 'required'],
             ],
-            Yii::$app->coreAPI->statusRules($this)
+            CoreModel::getStatusRules($this)
         );
     }
 
@@ -72,7 +73,7 @@ class BaseSalary extends \yii\db\ActiveRecord
     {
         if (parent::beforeSave($insert)) {
             $this->base_salary = floatval($this->base_salary);
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+            $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->detail_info = [
                 'change_log' => $this->change_log,
             ];

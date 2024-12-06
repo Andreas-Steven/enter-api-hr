@@ -5,38 +5,28 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
-use app\helpers\Constants;
 use yii\filters\VerbFilter;
+use app\helpers\Constants;
 use app\controllers\CoreController;
-use app\components\CustomException;
-
 use app\models\Employee;
 use app\models\search\EmployeeSearch;
 
 class EmployeeController extends CoreController
 {
-    public $enableCsrfValidation = false;
-
 	public function behaviors()
 	{
-		return parent::behaviors() + [
-		   'authenticator' => [
-				'class' => 'app\components\JwtBearerAuth',
-				'except' => [
-					Constants::AUTH_EXCEPTION,
+		return array_merge(
+			parent::behaviors(),
+			[
+				'authenticator' => [
+					'class' => 'app\components\JwtBearerAuth',
+					'except' => [
+						Yii::$app->params['jwt']['authException'],
+					],
+					'role' => Yii::$app->params['codeApp'],
 				],
-				'role' => Yii::$app->params['codeApp'],
 			],
-			'verbs' => [
-				'class' => VerbFilter::className(),
-				'actions' => Constants::verbsAction(),
-			],
-		];
-	}
-
-	public function actionIndex()
-	{
-		return CoreController::coreActionIndex();
+		);
 	}
 
     public function actionData()
@@ -46,7 +36,7 @@ class EmployeeController extends CoreController
 		$searchModel = new EmployeeSearch();
 		$dataProvider = $searchModel->search($params);
 
-		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
+		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider, $searchModel)) {
 			return $coreValidateParams;
 		}
 
@@ -67,11 +57,11 @@ class EmployeeController extends CoreController
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'insertRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'insertRecordFailed');
+		return CoreController::coreError($model);
 	}
 
 	public function actionUpdate()
@@ -82,7 +72,7 @@ class EmployeeController extends CoreController
 			return $coreBadRequest;
 		}
 		
-		$model = Yii::$app->coreAPI->findModel(new Employee(), $params);
+		$model = CoreController::findModel(new Employee(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -99,12 +89,16 @@ class EmployeeController extends CoreController
 		}
 
 		if ($model->load($params, '') && $model->validate()) {
+			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
+                return $coreEmptyParams;
+            }
+
 			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'updateRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'updateRecordFailed');
+		return CoreController::coreError($model);
 	}
 
 	public function actionDelete()
@@ -115,7 +109,7 @@ class EmployeeController extends CoreController
 			return $coreBadRequest;
 		}
 
-		$model = Yii::$app->coreAPI->findModel(new Employee(), $params);
+		$model = CoreController::findModel(new Employee(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -129,12 +123,15 @@ class EmployeeController extends CoreController
 		}
 
 		if ($model->load($params, '') && $model->validate()) {
+			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
+                return $coreEmptyParams;
+            }
+
 			if ($model->save()) {
-				Yii::$app->mongodb->upsert($model);
-				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'deleteRecordFailed');
+		return CoreController::coreError($model);
 	}
 }

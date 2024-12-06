@@ -1,17 +1,17 @@
 <?php
 
 return [
-    'titleService' => 'Enter-HR',
-    'serviceVersion' => 'v1',
+    'titleService' => 'enterkomputer-human-resource',
+    'serviceVersion' => 'V1',
     'timeZone' => 'Asia/Jakarta',
     'extraCookies' => 'name-cookie-01',
+    'codeApp' => 'enterHR',
+    'appRoles' => ['enterHR'],
     'defaultLanguage' => 'en',
-    'codeApp' => 'enterXXX',
     'languages' => [
         'en', 
         'id'
     ],
-
     'jwt' => [
         'key' => 'secret-key-harus-panjang-256-bit',
         'algorithm' => 'HS256',
@@ -20,12 +20,32 @@ return [
         'audience' => 'https://sso.dev-enterkomputer.com',
         'id' => 'sso-auth-v1',
         'request_time' => '+5 seconds',
+        'authException' => '*',
     ],
-
-    'adminEmail' => 'admin@example.com',
-    'senderEmail' => 'noreply@example.com',
-    'senderName' => 'Example.com mailer',
-
+    'request' => [
+        'enableCsrfValidation' => false,
+    ],
+    'cors' => [
+        'origins' => ['http://localhost:5173', 'https://entersys.dev-enterkomputer.com'],
+        'requestMethods' => ['GET', 'POST', 'PUT', 'DELETE'],
+        'allowHeaders' => ['Origin','Content-Type','Authorization','Accept-Language'],
+    ],
+    'pagination' => [
+        'pageSize' => 10,
+        'sortDir' => SORT_DESC,
+    ],
+    'verbsAction' => [
+        'index' => ['get'],
+        'create' => ['post'],
+        'update' => ['put'],
+        'delete' => ['delete'],
+    ],
+    'mailer' => [
+        'adminEmail' => 'admin@example.com',
+        'senderEmail' => 'noreply@example.com',
+        'senderName' => 'Example.com mailer',
+    ],
+    
     "items" => [
         "code" => null,
         "price" => null,
@@ -45,7 +65,6 @@ return [
             'deleted_by' => null
         ]
     ],
-
     'attendance' => [
         "employee_id" => null,
         "employee_name" => null,
@@ -61,7 +80,6 @@ return [
             'detail' => [],
         ],
     ],
-
     'salary_detail' => [
         "employee_id" => null,
         "employee_name" => null,
@@ -93,4 +111,3 @@ return [
         ]
     ]
 ];
-  

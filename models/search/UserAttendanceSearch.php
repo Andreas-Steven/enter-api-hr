@@ -4,10 +4,10 @@ namespace app\models\search;
 
 use Yii;
 use yii\base\Model;
-use yii\db\Expression;
-use app\helpers\Constants;
-use app\models\UserAttendance;
 use yii\data\ActiveDataProvider;
+use app\helpers\Constants;
+use app\models\CoreModel;
+use app\models\UserAttendance;
 
 class UserAttendanceSearch extends UserAttendance
 {
@@ -24,16 +24,13 @@ class UserAttendanceSearch extends UserAttendance
     
     public function rules()
     {
-        return [
-            [['id', 'employee_id' ,'work_time_id', 'status'], 'integer'],
-            
-            [['sort', 'sort_by'], 'string'],
-            [['page', 'page_size'], 'integer'],
-            [['page'], function ($attribute, $params, $validator) {
-                Yii::$app->coreAPI->validatePage($attribute, $params, $this);
-            }],
-            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
-        ];
+        return array_merge(
+            [
+                [['id', 'employee_id' ,'work_time_id', 'status'], 'integer'],
+                [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+            ], 
+            CoreModel::getPaginationRules($this)
+        );
     }
 
     public function scenarios()
@@ -44,12 +41,12 @@ class UserAttendanceSearch extends UserAttendance
 
     public function getErrors($attribute = null)
     {
-        return Yii::$app->coreAPI->searchGetErrors(parent::getErrors());
+        return CoreModel::getErrors(parent::getErrors());
     }
 
     public function search($params)
     {
-        $this->load([Yii::$app->coreAPI->modelClassName($this) => $params]);
+        $this->load([CoreModel::getModelClassName($this) => $params]);
 
         if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this->rules(), $params)) {
             return $unavailableParams;
@@ -77,15 +74,14 @@ class UserAttendanceSearch extends UserAttendance
             'work_time_id' => $this->work_time_id,
         ]);
 
-        $query->andFilterWhere(Yii::$app->coreAPI->changelogDateFilters($this));
-        $query->andFilterWhere(Yii::$app->coreAPI->changelogFilters($this));
+        $query->andFilterWhere(CoreModel::setChangelogFilters($this));
 
         $dataProvider->setPagination(
-            Yii::$app->coreAPI->setPagination($params, $dataProvider)
+            CoreModel::setPagination($params, $dataProvider)
         );
 
         $dataProvider->setSort(
-            Yii::$app->coreAPI->setSort($params)
+            CoreModel::setSort($params)
         );
 
         return $dataProvider;

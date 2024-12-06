@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\models\CoreModel;
 
 /**
  * This is the model class for table "work_time".
@@ -29,19 +30,19 @@ class WorkTime extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['name'], 'string', 'max' => 255],
-                [['detail_info'], 'safe'],
                 [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
                 [['name', 'entry_time', 'home_time'], 'required'],
+                [['working_days', 'detail_info'], 'safe'],
             ],
-            Yii::$app->coreAPI->statusRules($this)
+            CoreModel::getStatusRules($this)
         );
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'entry_time', 'home_time'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'entry_time', 'home_time'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'entry_time', 'home_time', 'working_days','status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'entry_time', 'home_time', 'working_days','status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -54,7 +55,6 @@ class WorkTime extends \yii\db\ActiveRecord
             'entry_time' => 'Entry Time',
             'home_time' => 'Home Time',
             'working_days' => 'Working Days',
-            'flexible' => 'Flexible',
             'status' => 'Status',
             'detail_info' => 'Detail Info',
         ];
@@ -68,9 +68,10 @@ class WorkTime extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+            $this->name = CoreModel::htmlPurifier($this->name);
+            $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->detail_info = [
-                'change_log' => $this->change_log ?: null,
+                'change_log' => $this->change_log,
             ];
 
             return true;

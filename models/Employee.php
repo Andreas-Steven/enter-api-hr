@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\models\CoreModel;
 
 /**
  * This is the model class for table "employee".
@@ -23,6 +24,8 @@ use app\helpers\Constants;
 class Employee extends \yii\db\ActiveRecord
 {
     public $change_log;
+    public $division;
+    public $sso;
     
     public static function tableName()
     {
@@ -38,23 +41,26 @@ class Employee extends \yii\db\ActiveRecord
                 [['sso_id', 'division_id', 'status'], 'integer'],
 
                 [['nik', 'sso_id'], 'unique'],
-                [['nik', 'name', 'sso_id', 'division_id'], 'required'],
-                [['contact'], 'validateContact', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE]],
+                [['sso_id', 'division_id'], 'filter', 'filter' => 'intval'],
 
                 [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
                     return $value === "" ? null : $value; }],
                 [['birth_date', 'date_start', 'date_resign'], 'date', 'format' => 'php:Y-m-d', 'when' => function($model, $attribute) { 
                     return $model->$attribute !== null && isset($model->$attribute); }],
+                
+                [['contact'], 'validateContact'],
+                [['sso_id'], 'validateSSO', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE]],
+                [['division_id'], 'validateDivision'], 
             ],
-            Yii::$app->coreAPI->statusRules($this)
+            CoreModel::getStatusRules($this)
         );
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['nik', 'name', 'sso_id', 'division_id', 'birth_date', 'status', 'contact', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'sso_id', 'division_id', 'birth_date', 'date_start', 'date_resign', 'status', 'contact', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'sso_id', 'status','detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'birth_date', 'date_start', 'date_resign', 'status', 'contact', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
         return $scenarios;
     }
@@ -79,6 +85,57 @@ class Employee extends \yii\db\ActiveRecord
     public static function find()
     {
         return new \app\models\query\EmployeeQuery(get_called_class());
+    }
+
+    public function validateSSO($attribute, $params, $validator)
+    {
+        if (isset($this->detail_info['sso'])) {
+            $sso = $this->detail_info['sso'];
+        } else {
+            $sso = null;
+
+            if ($this->isAttributeChanged($attribute)) {
+                // $sso = SSO::find()->where([
+                //     'id' => $this->$attribute,
+                //     'status' => Constants::STATUS_ACTIVE
+                // ])->one();
+
+                $sso = [
+                    'sso_id' => 1001,
+                    'username' => 'Test'
+                ];
+            }
+
+            if ($sso === null) {
+                $this->addError($attribute, 'SSO Data not found');
+                return;
+            }
+        }
+
+        $this->sso = ['sso_id' => $sso['sso_id'], 'username' => $sso['username']];
+    }
+
+    public function validateDivision($attribute, $params, $validator)
+    {
+        if (isset($this->detail_info['division'])) {
+            $division = $this->detail_info['division'];
+        } else {
+            $division = null;
+
+            if ($this->isAttributeChanged($attribute)) {
+                $division = Division::find()->where([
+                    'id' => $this->$attribute,
+                    'status' => Constants::STATUS_ACTIVE
+                ])->one();
+            }
+
+            if ($division === null) {
+                $this->addError($attribute, 'Division data not found');
+                return;
+            }
+        }
+        
+        $this->division = ['id' => $division['id'], 'name' => $division['name']];
     }
 
     public function validateContact($attribute, $params, $validator)
@@ -106,10 +163,13 @@ class Employee extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+            $this->name = CoreModel::htmlPurifier($this->name);
+            $this->change_log = CoreModel::getChangeLog($this, $insert);
+            
             $this->detail_info = [
-                'change_log' => $this->change_log ?: null,
+                'change_log' => $this->change_log,
+                'division' => $this->division,
+                'sso' => $this->sso !== null ? $this->sso : $this->detail_info['sso']
             ];
 
             return true;
