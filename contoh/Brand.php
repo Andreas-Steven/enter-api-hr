@@ -2,9 +2,9 @@
 
 namespace app\models;
 
-// use Yii;
-// use app\helpers\Constants;
-// use app\models\CoreModel;
+use Yii;
+use app\helpers\Constants;
+use app\models\CoreModel;
 
 /**
  * This is the model class for table "brand".
@@ -32,51 +32,51 @@ class Brand extends \yii\db\ActiveRecord
     public function rules()
     {
         return array_merge(
-            // [
-            //     [['detail_info'], 'safe'],
-            //     [['name'], 'string', 'max' => 255],
-            //     [['name'], 'required', 'on' => Constants::SCENARIO_CREATE],
-            //     [['name', 'status'], function ($attribute, $params, $validator) {
-            //         CoreModel::validateDependencies($attribute, $params, $validator, $this, [
-            //             ['className' => 'Product', 'field' => ['brand_id']],
-            //         ]);
-            //     }, 'on' => Constants::scenarioUpdate()],
-            // ], 
+            [
+                [['detail_info'], 'safe'],
+                [['name'], 'string', 'max' => 255],
+                [['name'], 'required', 'on' => Constants::SCENARIO_CREATE],
+                [['name', 'status'], function ($attribute, $params, $validator) {
+                    CoreModel::validateDependencies($attribute, $params, $validator, $this, [
+                        ['className' => 'Product', 'field' => ['brand_id']],
+                    ]);
+                }, 'on' => Constants::scenarioUpdate()],
+            ], 
             CoreModel::getStatusRules($this)
         );
     }
 
-    // public function scenarios()
-    // {
-    //     $scenarios = parent::scenarios();
-    //     $scenarios[Constants::SCENARIO_CREATE] = ['name', 'status', 'detail_info'];
-    //     $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'status', 'detail_info'];
-    //     $scenarios[Constants::SCENARIO_DELETE] = ['status'];
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
-    //     return $scenarios;
-    // }
+        return $scenarios;
+    }
 
     /**
      * {@inheritdoc}
      */
-    // public function attributeLabels()
-    // {
-    //     return [
-    //         'id' => 'ID',
-    //         'name' => 'Name',
-    //         'status' => 'Status',
-    //         'detail_info' => 'Detail Info',
-    //     ];
-    // }
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'name' => 'Name',
+            'status' => 'Status',
+            'detail_info' => 'Detail Info',
+        ];
+    }
 
     /**
      * {@inheritdoc}
      * @return \app\models\query\BrandQuery the active query used by this AR class.
      */
-    // public static function find()
-    // {
-    //     return new \app\models\query\BrandQuery(get_called_class());
-    // }
+    public static function find()
+    {
+        return new \app\models\query\BrandQuery(get_called_class());
+    }
 
     public function beforeSave($insert)
     {
