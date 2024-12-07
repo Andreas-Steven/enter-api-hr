@@ -83,7 +83,10 @@ return [
     'salary_detail' => [
         "employee_id" => null,
         "employee_name" => null,
-        "division_id" => null,
+        "division" => [
+            "id" => null,
+            "name" => null,
+        ],
         "absences" => [
             "sick" => null,
             "leave" => null,

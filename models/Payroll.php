@@ -19,7 +19,6 @@ use app\models\CoreModel;
 class Payroll extends \yii\db\ActiveRecord
 {
     public $change_log;
-    public $division;
 
     public static function tableName()
     {
@@ -125,7 +124,11 @@ class Payroll extends \yii\db\ActiveRecord
                 }
             };
             
-            
+            $division = Division::find()->where(['id' => $employee->division_id, 'status' => Constants::STATUS_ACTIVE])->one();
+            if ($division === null) {
+                $this->addError($attribute.'['.$key.'].division_id', 'Division not found');
+                return;
+            }
     
             array_walk($salaryDetail['earnings'], $convertAndValidateFloat);
             array_walk($salaryDetail['deductions'], $convertAndValidateFloat);
@@ -137,9 +140,11 @@ class Payroll extends \yii\db\ActiveRecord
             $total_earnings = array_sum($salaryDetail['earnings']);
             $gross_salary = $salaryDetail['summary']['base_salary'] + $total_earnings;
             $net_salary = $gross_salary - $total_deductions;
-
             $salaryDetail['employee_name'] = $employee->name;
-            $salaryDetail['division_id'] = $employee->division_id;
+            $salaryDetail['division'] = [
+                'id' => $employee->division_id,
+                'name' => $division->name
+            ];
             $salaryDetail['summary'] = [
                 "base_salary" => $salaryDetail['summary']['base_salary'],
                 "total_earnings" => $total_earnings,
@@ -148,7 +153,6 @@ class Payroll extends \yii\db\ActiveRecord
                 "net_salary" => $net_salary,
             ];
 
-            $this->division = ['id' => $division->id, 'name' => $division->name];
             $oldSalaryDetail[$key] = $salaryDetail;
         }
 
@@ -163,7 +167,6 @@ class Payroll extends \yii\db\ActiveRecord
 
             $this->detail_info = [
                 'change_log' => $this->change_log,
-                'division' => $this->division
             ];
             return true;
         }
