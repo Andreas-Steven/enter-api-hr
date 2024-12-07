@@ -61,10 +61,6 @@ class GeneralAffairController extends CoreController
             return CoreController::coreValidateParams($unavailableParams);
         }
 
-		if (!isset($params['name']) && !isset($params['location_id'])) {
-			return CoreController::coreBadRequest($model, Yii::t('rule', 'paramsEmpty'));
-		}
-
 		// $existingModel = CoreController::findModel($model, [], ['name' => $params['name'], 'location_id' => $params['location_id']]);
 		$existingModel = CoreController::findModel($model, $params);
 

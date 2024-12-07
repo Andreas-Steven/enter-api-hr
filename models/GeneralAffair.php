@@ -38,11 +38,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['asset', 'code'], 'safe'],
-                [['name'], 'string', 'max' => 255],
-                [['category_id', 'location_id'], 'integer'],
-                [['name', 'category_id', 'location_id'], 'required'],
+                [['product_id', 'category_id', 'location_id'], 'integer'],
+                [['product_id', 'category_id', 'location_id'], 'required'],
                 [['detail_info', 'asset'], 'safe', 'skipOnEmpty' => true],
-                [['category_id', 'location_id'], 'filter', 'filter' => 'intval'],
+                [['product_id', 'category_id', 'location_id'], 'filter', 'filter' => 'intval'],
                 
                 [['asset'], 'validateItem', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'status'], 'validateDeleted', 'on' => Constants::SCENARIO_DELETE],
@@ -55,8 +54,8 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'category_id', 'location_id', 'asset', 'status',  'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['id', 'name', 'category_id', 'location_id', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['product_id', 'category_id', 'location_id', 'asset', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['product_id', 'category_id', 'location_id', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['code', 'status'];
         return $scenarios;
     }
@@ -65,7 +64,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
+            'product_id' => 'Product ID',
             'category_id' => 'Category ID',
             'location_id' => 'Location ID',
             'detail_info' => 'Detail Info',
@@ -105,18 +104,22 @@ class GeneralAffair extends \yii\db\ActiveRecord
             return;
         }
 
+        
+
         $generalAffairItems = [];
         $itemData = $this->$attribute;
         $oldItem = $this->getOldAttribute($attribute);
     
         foreach ($itemData['items'] as $key => $value) {
             $timestamp = Yii::$app->coreAPI->getTimestamp();
-            $username = Yii::$app->session->get('username') ?? 'Admin';
+            $username = Yii::$app->session->get('username') ?? 'system';
 
             if (empty($value['code'])) {
                 $this->addError($attribute.'['.$key.'].code', 'Asset code cannot be empty');
                 return;
             }
+
+            var_dump($oldItem); exit;
             
             if (isset($oldItem['items'][$value['code']])) {
                 $generalAffairItems = array_merge($oldItem['items'][$value['code']], $value);
@@ -128,7 +131,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $generalAffairItems['items_change_log']['created_by'] = $username;
             }
 
-            $generalAffairItems['price'] = floatval($generalAffairItems['price']);
+            $generalAffairItems['price'] = floatval($generalAffairItems['price']);  
             if (empty($generalAffairItems['price']) || $generalAffairItems['price'] < 0) {
                 $this->addError($attribute.'['.$key.'].price', 'Price value must be a float and greater than or equal to 0');
                 return;
@@ -230,15 +233,12 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->name = CoreModel::htmlPurifier($this->name);
             $this->asset = $this->calculateItems($this->asset);
             $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->detail_info = [
                 'change_log' => $this->change_log,
                 'location' => $this->location,
             ];
-
-            var_dump($this->location);exit;
 
             return true;
         }
