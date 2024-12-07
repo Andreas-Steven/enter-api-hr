@@ -19,6 +19,7 @@ use app\models\CoreModel;
 class BaseSalary extends \yii\db\ActiveRecord
 {
     public $change_log;
+    public $employee;
 
     public static function tableName()
     {
@@ -35,8 +36,9 @@ class BaseSalary extends \yii\db\ActiveRecord
                 [['employee_id'], 'filter', 'filter' => 'intval'],
                 [['base_salary'], 'filter', 'filter' => 'floatval'],
                 [['efective_date'], 'date' , 'format' => 'php:Y-m-d'],
-
                 [['employee_id', 'base_salary', 'efective_date'], 'required'],
+
+                [['employee_id'], 'validateEmployee'],
             ],
             CoreModel::getStatusRules($this)
         );
@@ -69,6 +71,26 @@ class BaseSalary extends \yii\db\ActiveRecord
         return new \app\models\query\BaseSalaryQuery(get_called_class());
     }
 
+    public function validateEmployee($attribute, $params, $validator)
+    {
+        $employee = isset($this->detail_info['employee']) ? $this->detail_info['employee'] : null;
+
+        if ($this->isAttributeChanged($attribute)) {
+            $employee = Employee::find()->where([
+                'id' => $this->$attribute,
+                'status' => Constants::STATUS_ACTIVE
+            ])->one();
+        }
+
+        if ($employee === null) {
+            $this->addError($attribute, 'Employee not found');
+            return;
+        }
+
+        $this->employee = ['id' => $employee['id'], 'name' => $employee['name']];
+    }
+
+
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
@@ -76,6 +98,7 @@ class BaseSalary extends \yii\db\ActiveRecord
             $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->detail_info = [
                 'change_log' => $this->change_log,
+                'employee' => $this->employee
             ];
 
             return true;
