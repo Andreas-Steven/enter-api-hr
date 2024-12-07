@@ -25,7 +25,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
 {
     public $change_log;
     public $code;
+    public $product;
+    public $category;
     public $location;
+
 
     public static function tableName()
     {
@@ -45,6 +48,8 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 
                 [['asset'], 'validateItem', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'status'], 'validateDeleted', 'on' => Constants::SCENARIO_DELETE],
+                [['product_id'], 'validateProduct'],
+                [['category_id'], 'validateCategory'],
                 [['location_id'], 'validateLocation'],
             ],
             CoreModel::getStatusRules($this)
@@ -77,10 +82,47 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return new \app\models\query\GeneralAffairQuery(get_called_class());
     }
 
-    
+    public function validateProduct($attribute, $params, $validator)
+    {
+        $product = isset($this->detail_info['product']) ? $this->detail_info['product'] : null;
+
+        if ($this->isAttributeChanged($attribute)) {
+            $product = GeneralAffairProduct::find()->where([
+                'id' => $this->$attribute,
+                'status' => Constants::STATUS_ACTIVE
+            ])->one();
+        }
+
+        if ($product === null) {
+            $this->addError($attribute, 'Product not found');
+            return;
+        }
+
+        $this->product = ['id' => $product['id'], 'name' => $product['name']];
+    }
+
+    public function validateCategory($attribute, $params, $validator)
+    {
+        $category = isset($this->detail_info['category']) ? $this->detail_info['category'] : null;
+
+        if ($this->isAttributeChanged($attribute)) {
+            $category = GeneralAffairCategory::find()->where([
+                'id' => $this->$attribute,
+                'status' => Constants::STATUS_ACTIVE
+            ])->one();
+        }
+
+        if ($category === null) {
+            $this->addError($attribute, 'Category not found');
+            return;
+        }
+
+        $this->category = ['id' => $category['id'], 'name' => $category['name']];
+    }
+
     public function validateLocation($attribute, $params, $validator)
     {
-        $location = isset($this->$attribute) ? $this->detail_info['location'] : null;
+        $location = isset($this->detail_info['location']) ? $this->detail_info['location'] : null;
 
         if ($this->isAttributeChanged($attribute)) {
             $location = GeneralAffairLocation::find()->where([
@@ -94,7 +136,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
             return;
         }
 
-        $this->location = ['id' => $location->id, 'name' => $location->name];
+        $this->location = ['id' => $location['id'], 'name' => $location['name']];
     }
 
     public function validateItem($attribute, $params, $validator)
@@ -103,8 +145,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
             $this->addError($attribute, 'Asset must be an array');
             return;
         }
-
-        
 
         $generalAffairItems = [];
         $itemData = $this->$attribute;
@@ -118,8 +158,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $this->addError($attribute.'['.$key.'].code', 'Asset code cannot be empty');
                 return;
             }
-
-            var_dump($oldItem); exit;
             
             if (isset($oldItem['items'][$value['code']])) {
                 $generalAffairItems = array_merge($oldItem['items'][$value['code']], $value);
@@ -174,10 +212,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $this->addError($attribute.'['.$key.'].items.inspection_date', $error);
                 return;
             }
-            
+
             $oldItem['items'][$generalAffairItems['code']] = $generalAffairItems;
         }
-
+        
         $this->$attribute = ['items' => $oldItem['items']];
     }
     
@@ -237,6 +275,8 @@ class GeneralAffair extends \yii\db\ActiveRecord
             $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->detail_info = [
                 'change_log' => $this->change_log,
+                'product' => $this->product,
+                'category' => $this->category,
                 'location' => $this->location,
             ];
 

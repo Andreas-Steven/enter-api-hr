@@ -149,6 +149,10 @@ class CoreController extends Controller
 			if (($modelInstance = $query->one()) !== null) {
 				return $modelInstance;
 			}
+		} else {
+			if (($dataset = $model::find()->where($where)->orderBy(['id' => SORT_DESC])->one()) !== null) {
+				return $dataset;
+			}
 		}
 
 		return null;

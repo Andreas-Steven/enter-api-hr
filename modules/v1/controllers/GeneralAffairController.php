@@ -61,8 +61,8 @@ class GeneralAffairController extends CoreController
             return CoreController::coreValidateParams($unavailableParams);
         }
 
-		// $existingModel = CoreController::findModel($model, [], ['name' => $params['name'], 'location_id' => $params['location_id']]);
-		$existingModel = CoreController::findModel($model, $params);
+		$existingModel = CoreController::findModel($model, ['product_id' => $params['product_id'], 'location_id' => $params['location_id']]);
+		// $existingModel = CoreController::findModel($model, $params);
 
 		if ($existingModel !== null) {
 			$model = $existingModel;
@@ -73,7 +73,7 @@ class GeneralAffairController extends CoreController
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
-				return CoreController::coreSuccess($model->attributes, 'insertRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
