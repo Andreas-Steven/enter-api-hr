@@ -16,6 +16,7 @@ class m241010_103834_create_employee_table extends Migration
             'date_resign' => $this->date(),
             'sso_id' => $this->integer()->notNull(),
             'division_id' => $this->integer()->notNull()->defaultValue(1),
+            'image' => $this->string(255),
             'status' => $this->smallInteger()->notNull()->defaultValue(2)->comment('0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance'),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
                 'change_log' => [

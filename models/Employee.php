@@ -39,7 +39,7 @@ class Employee extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['contact', 'detail_info'], 'safe'],
-                [['name', 'nik'], 'string', 'max' => 255],
+                [['name', 'nik', 'image'], 'string', 'max' => 255],
                 [['sso_id', 'division_id', 'status'], 'integer'],
 
                 [['nik', 'sso_id'], 'unique'],
@@ -64,7 +64,7 @@ class Employee extends \yii\db\ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios[Constants::SCENARIO_CREATE] = ['name', 'sso_id', 'username', 'division_id', 'status','detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'birth_date', 'date_start', 'date_resign', 'system_date', 'status', 'contact', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'image', 'birth_date', 'date_start', 'date_resign', 'system_date', 'status', 'contact', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
         return $scenarios;
     }
