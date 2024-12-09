@@ -49,30 +49,34 @@ class AttendanceController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$params['system_date'] = date('Y-m-d');
 		$params['dateMismatch'] = null;
-
-		if (!isset($params['date'])) {
-			return CoreController::coreBadRequest__($model, Yii::t('rule', 'dateCannotBlank'));
+		
+		if (!isset($params['date']) || empty($params['date'])) {
+			$model->addError('date', 'dateCannotBlank');
+			return CoreController::coreError($model, Yii::t('app', 'dateCannotBlank'));
 		}
 
-		// Date blacklist
-		if ($params['date'] !== $params['system_date']) {
-			$params['dateMismatch'] = $params['date'];
-			$params['date'] = $params['system_date'];
+		if (!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $params['date'])) {
+			$model->addError('date', 'invalidDatetimeFormat');
+			return CoreController::coreError($model, Yii::t('app', 'invalidDatetimeFormat'));
 		}
 
-		$existingModel = CoreController::findModel($model, ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE]);
+		$existingModel = $model::findOne([
+			'date' => $params['system_date'],
+			'status' => Constants::STATUS_ACTIVE,
+		]);
 
-		// Update last date to Status Completed
-		if ($existingModel === null) {
-			$lastAttendance = CoreController::findModel($model, ['status' => Constants::STATUS_ACTIVE]);
+		if (empty($existingModel)) {
+			$updateLastAttendance = $model::findAll([
+				'status' => Constants::STATUS_ACTIVE,
+			]);
 
-			if ($lastAttendance !== null) {
-				$params['status'] = Constants::STATUS_COMPLETED;
-				$lastAttendance->scenario = Constants::SCENARIO_UPDATE;
-
-				if ($lastAttendance->load($params, '') && $lastAttendance->validate()) {
-					$lastAttendance->save();
-				}
+			if (!empty($updateLastAttendance)) {
+				Yii::$app->db->createCommand()
+					->update(
+						Attendance::tableName(), 
+						['status' => Constants::STATUS_COMPLETED], 
+						['and', ['status' => Constants::STATUS_ACTIVE], ['<>', 'date', $params['system_date']]]
+					)->execute();
 			}
 		}
 

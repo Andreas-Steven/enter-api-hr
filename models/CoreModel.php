@@ -4,7 +4,6 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
-use app\models\CoreModel;
 use yii\helpers\HtmlPurifier;
 use yii\helpers\StringHelper;
 
