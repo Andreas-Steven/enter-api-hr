@@ -24,6 +24,7 @@ use app\models\CoreModel;
 class Employee extends \yii\db\ActiveRecord
 {
     public $change_log;
+    public $system_date;
     public $division;
     public $username;
     public $sso;
@@ -47,12 +48,13 @@ class Employee extends \yii\db\ActiveRecord
 
                 [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
                     return $value === "" ? null : $value; }],
-                [['birth_date', 'date_start', 'date_resign'], 'date', 'format' => 'php:Y-m-d', 'when' => function($model, $attribute) { 
+                [['birth_date', 'date_start', 'date_resign', 'system_date'], 'date', 'format' => 'php:Y-m-d', 'when' => function($model, $attribute) { 
                     return $model->$attribute !== null && isset($model->$attribute); }],
                 
                 [['contact'], 'validateContact'],
                 [['sso_id', 'username'], 'validateSSO'],
                 [['division_id'], 'validateDivision'], 
+                [['date_resign'], 'validateResignDate'],
             ],
             CoreModel::getStatusRules($this)
         );
@@ -62,7 +64,7 @@ class Employee extends \yii\db\ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios[Constants::SCENARIO_CREATE] = ['name', 'sso_id', 'username', 'division_id', 'status','detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'birth_date', 'date_start', 'date_resign', 'status', 'contact', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'birth_date', 'date_start', 'date_resign', 'system_date', 'status', 'contact', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
         return $scenarios;
     }
@@ -145,6 +147,17 @@ class Employee extends \yii\db\ActiveRecord
             } else {
                 $this->$attribute = array_values(array_unique($this->$attribute));
             }
+        }
+    }
+
+    public function validateResignDate($attribute, $params, $validator)
+    {
+        if (!empty($this->date_resign) ) {
+            $this->status = Constants::STATUS_MAINTENANCE;
+        }
+
+        if ($this->$attribute < $this->system_date) {
+            $this->status = Constants::STATUS_COMPLETED;
         }
     }
 
