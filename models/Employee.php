@@ -45,6 +45,7 @@ class Employee extends \yii\db\ActiveRecord
                 [['nik', 'sso_id'], 'unique'],
                 [['sso_id', 'division_id'], 'filter', 'filter' => 'intval'],
                 [['division_id'], 'default', 'value' => 1],
+                [['nik', 'iamge', 'birth_date', 'date_start', 'date_resign', 'contact'], 'default', 'value' => null],
 
                 [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
                     return $value === "" ? null : $value; }],
@@ -63,8 +64,8 @@ class Employee extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'sso_id', 'username', 'division_id', 'status','detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'image', 'birth_date', 'date_start', 'date_resign', 'system_date', 'status', 'contact', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['nik', 'name', 'division_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'sso_id', 'status','detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
         return $scenarios;
     }
@@ -135,11 +136,18 @@ class Employee extends \yii\db\ActiveRecord
         if ($this->$attribute !== null && is_array($this->$attribute)) {
             if (is_array($oldContact)) {
                 foreach ($this->$attribute as $index => $newContact) {
+                    $newContact = CoreModel::nullSafe($newContact);
+                    if ($newContact === null) {
+                        $this->addError($attribute, 'Contact can not be null');
+                return;
+                    }
+
                     if (array_key_exists($index, $oldContact)) {
                         if ($newContact != $oldContact[$index]) {
                             $oldContact[$index] = $newContact;
                         }
                     } else {
+                        
                         $oldContact[] = $newContact;
                     }
                 }
