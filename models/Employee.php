@@ -152,10 +152,12 @@ class Employee extends \yii\db\ActiveRecord
 
     public function validateResignDate($attribute, $params, $validator)
     {
+        // Status 5 for one month notice
         if (!empty($this->date_resign) ) {
             $this->status = Constants::STATUS_MAINTENANCE;
         }
 
+        // Status 3 for resign
         if ($this->$attribute < $this->system_date) {
             $this->status = Constants::STATUS_COMPLETED;
         }
