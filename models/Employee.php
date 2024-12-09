@@ -168,6 +168,7 @@ class Employee extends \yii\db\ActiveRecord
         if (parent::beforeSave($insert)) {
             $this->name = CoreModel::htmlPurifier($this->name);
             $this->change_log = CoreModel::getChangeLog($this, $insert);
+            $this->image = CoreModel::nullSafe($this->image);
             
             $this->detail_info = [
                 'change_log' => $this->change_log,

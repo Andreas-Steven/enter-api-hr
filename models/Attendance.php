@@ -140,6 +140,8 @@ class Attendance extends \yii\db\ActiveRecord
                 $employeeAttendance['device'] = ['id' => $device->id, 'device_code' => $device->device_code, 'device_name' => $device->device_name];
             }
 
+            var_dump($employeeAttendance);
+
             $employeeAttendance['employee_id'] = intval($employeeAttendance['employee_id']);
             $employee = Employee::find()->where(['id' => $employeeAttendance['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
             if ($employee === null) {
@@ -210,8 +212,9 @@ class Attendance extends \yii\db\ActiveRecord
 
                 if (!empty($value['location']) && !empty($value['start_time'])) {
                     $employeeAttendance['location']['entry'] = $value['location'];
+                    $employeeAttendance['location']['image'] = $value['image'];
                 }
-
+                
                 // Blacklist
                 if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
                     if (strtotime($employeeAttendance['start_time']) < strtotime($latestAttendance)) {

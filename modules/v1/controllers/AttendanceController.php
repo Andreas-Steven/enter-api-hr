@@ -61,12 +61,10 @@ class AttendanceController extends CoreController
 		}
 
 		$existingModel = CoreController::findModel($model, ['date' => $params['date'], 'status' => Constants::STATUS_ACTIVE]);
-		// $existingModel = CoreController::findModel($model, $params);
 
 		// Update last date to Status Completed
 		if ($existingModel === null) {
 			$lastAttendance = CoreController::findModel($model, ['status' => Constants::STATUS_ACTIVE]);
-			// $lastAttendance = CoreController::findModel($model, $params);
 
 			if ($lastAttendance !== null) {
 				$params['status'] = Constants::STATUS_COMPLETED;
