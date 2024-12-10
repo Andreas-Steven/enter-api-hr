@@ -29,7 +29,7 @@ class GeneralAffairProductSearch extends GeneralAffairProduct
     {
         return array_merge(
             [
-                [['id'], 'integer'],
+                [['id', 'status'], 'integer'],
                 [['name'], 'string'],
                 [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
