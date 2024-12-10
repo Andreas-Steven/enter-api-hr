@@ -36,8 +36,8 @@ class AttendanceController extends CoreController
 		$searchModel = new AttendanceSearch();
 		$dataProvider = $searchModel->search($params);
 		
-		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider, $searchModel)) {
-			return $coreValidateParams;
+		if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
+			return $coreValidateProvider;
 		}
 		
 		return CoreController::coreData($dataProvider);

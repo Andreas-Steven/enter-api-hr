@@ -27,11 +27,12 @@ class CoreAPI
         return !in_array('superadmin', $roles, true);
     }
 
-	public function unavailableParams(?array $rules, ?array $params): object|false
+	public function unavailableParams($model, ?array $params): object|bool
 	{
-		$errors = [];
 		$allowedParams = [];
 		unset($params['id']);
+
+        $rules = $model->rules();
 
 		foreach ($rules as $rule) {
 			$allowedParams = array_merge($allowedParams, $rule[0]);
@@ -40,8 +41,6 @@ class CoreAPI
 		$unsupportedParams = array_diff_key($params, array_flip($allowedParams));
 		
 		if (!empty($unsupportedParams)) {
-			$model = new \yii\base\DynamicModel();
-			
 			foreach ($unsupportedParams as $key => $value) {
 				$model->addError($key, Yii::t('core', 'invalidField', ['field' => $key]));
 			}

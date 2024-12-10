@@ -36,8 +36,8 @@ class BaseSalaryController extends CoreController
 		$searchModel = new BaseSalarySearch();
 		$dataProvider = $searchModel->search($params);
 
-		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider, $searchModel)) {
-			return $coreValidateParams;
+		if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
+			return $coreValidateProvider;
 		}
 
 		return CoreController::coreData($dataProvider);
@@ -48,8 +48,8 @@ class BaseSalaryController extends CoreController
 		$model = new BaseSalary();
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
-			return CoreController::coreValidateParams($unavailableParams);
+        if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
+			return $coreUnavailableParams;
         }
 
 		$params['status'] = Constants::STATUS_DRAFT;
@@ -68,8 +68,8 @@ class BaseSalaryController extends CoreController
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_UPDATE)) {
-			return $coreBadRequest;
+		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_UPDATE)) {
+			return $coreValidateParams;
 		}
 		
 		$model = CoreController::findModel(new BaseSalary(), $params);
@@ -78,8 +78,8 @@ class BaseSalaryController extends CoreController
 			return CoreController::coreDataNotFound();
 		}
 
-		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
-			return CoreController::coreValidateParams($unavailableParams);
+		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
+			return $coreUnavailableParams;
         }
 
 		$model->scenario = Constants::SCENARIO_UPDATE;
@@ -105,8 +105,8 @@ class BaseSalaryController extends CoreController
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_DELETE)) {
-			return $coreBadRequest;
+		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_DELETE)) {
+			return $coreValidateParams;
 		}
 
 		$model = CoreController::findModel(new BaseSalary(), $params);

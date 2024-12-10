@@ -53,7 +53,7 @@ class BaseSalarySearch extends BaseSalary
     {
         $this->load([CoreModel::getModelClassName($this) => $params]);
 
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this->rules(), $params)) {
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this, $params)) {
             return $unavailableParams;
         }
 

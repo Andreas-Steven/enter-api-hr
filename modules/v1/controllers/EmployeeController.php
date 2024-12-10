@@ -36,8 +36,8 @@ class EmployeeController extends CoreController
 		$searchModel = new EmployeeSearch();
 		$dataProvider = $searchModel->search($params);
 
-		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider, $searchModel)) {
-			return $coreValidateParams;
+		if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
+			return $coreValidateProvider;
 		}
 
 		return CoreController::coreData($dataProvider);
@@ -49,8 +49,8 @@ class EmployeeController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 
 
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
-			return CoreController::coreValidateParams($unavailableParams);
+        if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
+			return $coreUnavailableParams;
         }
 
 		$params['status'] = Constants::STATUS_DRAFT;
@@ -70,8 +70,8 @@ class EmployeeController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$params['system_date'] = date('Y-m-d');
 
-		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_UPDATE)) {
-			return $coreBadRequest;
+		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_UPDATE)) {
+			return $coreValidateParams;
 		}
 		
 		$model = CoreController::findModel(new Employee(), $params);
@@ -80,8 +80,8 @@ class EmployeeController extends CoreController
 			return CoreController::coreDataNotFound();
 		}
 
-		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
-			return CoreController::coreValidateParams($unavailableParams);
+		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
+			return $coreUnavailableParams;
         }
 
 		$model->scenario = Constants::SCENARIO_UPDATE;
@@ -107,8 +107,8 @@ class EmployeeController extends CoreController
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_DELETE)) {
-			return $coreBadRequest;
+		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_DELETE)) {
+			return $coreValidateParams;
 		}
 
 		$model = CoreController::findModel(new Employee(), $params);

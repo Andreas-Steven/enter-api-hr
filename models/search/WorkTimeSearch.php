@@ -49,7 +49,7 @@ class WorkTimeSearch extends WorkTime
     {
         $this->load([CoreModel::getModelClassName($this) => $params]);
         
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this->rules(), $params)) {
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this, $params)) {
             return $unavailableParams;
         }
 
