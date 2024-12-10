@@ -26,6 +26,8 @@ class Employee extends \yii\db\ActiveRecord
     public $change_log;
     public $system_date;
     public $division;
+    public $position;
+    public $employee_type;
     public $username;
     public $sso;
     
@@ -38,14 +40,14 @@ class Employee extends \yii\db\ActiveRecord
     {  
         return array_merge(
             [
-                [['contact', 'detail_info'], 'safe'],
-                [['name', 'nik', 'image'], 'string', 'max' => 255],
-                [['sso_id', 'division_id', 'status'], 'integer'],
-
                 [['nik', 'sso_id'], 'unique'],
-                [['sso_id', 'division_id'], 'filter', 'filter' => 'intval'],
-                [['division_id'], 'default', 'value' => 1],
-                [['nik', 'iamge', 'birth_date', 'date_start', 'date_resign', 'contact'], 'default', 'value' => null],
+                [['contact', 'detail_info'], 'safe'],
+                [['sso_id', 'division_id', 'status'], 'integer'],
+                [['name', 'nik', 'email', 'image'], 'string', 'max' => 255],
+                [['sso_id', 'division_id', 'position_id', 'employee_type_id'], 'filter', 'filter' => 'intval'],
+
+                [['division_id', 'position_id', 'employee_type_id'], 'default', 'value' => 1],
+                [['nik', 'iamge', 'birth_date', 'date_start', 'date_resign', 'contact', 'email'], 'default', 'value' => null],
 
                 [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
                     return $value === "" ? null : $value; }],
@@ -55,6 +57,8 @@ class Employee extends \yii\db\ActiveRecord
                 [['contact'], 'validateContact'],
                 [['sso_id', 'username'], 'validateSSO'],
                 [['division_id'], 'validateDivision'], 
+                [['position_id'], 'validatePosition'], 
+                [['employee_type_id'], 'validateEmployeeType'], 
                 [['date_resign'], 'validateResignDate'],
             ],
             CoreModel::getStatusRules($this)
@@ -64,8 +68,8 @@ class Employee extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['nik', 'name', 'division_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'sso_id', 'status','detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'sso_id', 'status','detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
         return $scenarios;
     }
@@ -82,6 +86,8 @@ class Employee extends \yii\db\ActiveRecord
             'date_resign' => 'Date Resign',
             'sso_id' => 'Sso ID',
             'division_id' => 'Division ID',
+            'postion_id' => 'Postion ID',
+            'employee_type_id' => 'Employee Type ID',
             'username' => 'Username',
             'status' => 'Status',
             'detail_info' => 'Detail Info',
@@ -127,6 +133,60 @@ class Employee extends \yii\db\ActiveRecord
         }
         
         $this->division = ['id' => $division['id'], 'name' => $division['name']];
+    }
+
+    public function validatePosition($attribute, $params, $validator)
+    {
+        if ($this->isAttributeChanged($attribute)) {
+            $position = null;
+            $this->$attribute = ($this->$attribute === 0) ? 1 : $this->$attribute;
+
+            if ($this->isAttributeChanged($attribute)) {
+                $position = EmployeePosition::find()->where([
+                    'id' => $this->$attribute,
+                    'status' => Constants::STATUS_ACTIVE
+                ])->one();
+            }
+
+            if ($position === null) {
+                $this->addError($attribute, 'Employee Potition data not found');
+                return;
+            }
+            
+        } else { 
+            if (isset($this->detail_info['division'])) {
+                $position = $this->detail_info['division'];
+            }
+        }
+        
+        $this->position = ['id' => $position['id'], 'name' => $position['name']];
+    }
+
+    public function validateEmployeeType($attribute, $params, $validator)
+    {
+        if ($this->isAttributeChanged($attribute)) {
+            $employee_type = null;
+            $this->$attribute = ($this->$attribute === 0) ? 1 : $this->$attribute;
+
+            if ($this->isAttributeChanged($attribute)) {
+                $employee_type = EmployeeType::find()->where([
+                    'id' => $this->$attribute,
+                    'status' => Constants::STATUS_ACTIVE
+                ])->one();
+            }
+
+            if ($employee_type === null) {
+                $this->addError($attribute, 'Employee Type data not found');
+                return;
+            }
+            
+        } else { 
+            if (isset($this->detail_info['division'])) {
+                $employee_type = $this->detail_info['division'];
+            }
+        }
+        
+        $this->employee_type = ['id' => $employee_type['id'], 'name' => $employee_type['name']];
     }
 
     public function validateContact($attribute, $params, $validator)
@@ -180,8 +240,10 @@ class Employee extends \yii\db\ActiveRecord
             
             $this->detail_info = [
                 'change_log' => $this->change_log,
+                'sso' => $this->sso !== null ? $this->sso : $this->detail_info['sso'],
                 'division' => $this->division,
-                'sso' => $this->sso !== null ? $this->sso : $this->detail_info['sso']
+                'position' => $this->position,
+                'employee_type' => $this->employee_type
             ];
 
             return true;
