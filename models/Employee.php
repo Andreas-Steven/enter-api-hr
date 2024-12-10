@@ -50,16 +50,18 @@ class Employee extends \yii\db\ActiveRecord
                 [['nik', 'iamge', 'birth_date', 'date_start', 'date_resign', 'contact', 'email'], 'default', 'value' => null],
 
                 [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
-                    return $value === "" ? null : $value; }],
+                    return $value === "" ? null : $value; }
+                ],
                 [['birth_date', 'date_start', 'date_resign', 'system_date'], 'date', 'format' => 'php:Y-m-d', 'when' => function($model, $attribute) { 
-                    return $model->$attribute !== null && isset($model->$attribute); }],
+                    return $model->$attribute !== null && isset($model->$attribute); }
+                ],
                 
                 [['contact'], 'validateContact'],
-                [['sso_id', 'username'], 'validateSSO'],
                 [['division_id'], 'validateDivision'], 
                 [['position_id'], 'validatePosition'], 
-                [['employee_type_id'], 'validateEmployeeType'], 
+                [['sso_id', 'username'], 'validateSSO'],
                 [['date_resign'], 'validateResignDate'],
+                [['employee_type_id'], 'validateEmployeeType'], 
             ],
             CoreModel::getStatusRules($this)
         );
