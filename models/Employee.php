@@ -154,8 +154,8 @@ class Employee extends \yii\db\ActiveRecord
             }
             
         } else { 
-            if (isset($this->detail_info['division'])) {
-                $position = $this->detail_info['division'];
+            if (isset($this->detail_info['position'])) {
+                $position = $this->detail_info['position'];
             }
         }
         
@@ -181,8 +181,8 @@ class Employee extends \yii\db\ActiveRecord
             }
             
         } else { 
-            if (isset($this->detail_info['division'])) {
-                $employee_type = $this->detail_info['division'];
+            if (isset($this->detail_info['employee_type'])) {
+                $employee_type = $this->detail_info['employee_type'];
             }
         }
         
