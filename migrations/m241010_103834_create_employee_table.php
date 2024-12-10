@@ -33,47 +33,93 @@ class m241010_103834_create_employee_table extends Migration
             ])),
         ]);
 
-        $this->insert('{{%employee}}', [
-            'name' => 'Employee',
-            'nik' => '3523419001010001',
-            'email' => 'employee@gmail.com',
-            'contact' => ["08444444444", "08555555555"],
-            'birth_date' => '1998-08-25',
-            'date_start' => '2022-09-17',
-            'date_resign' => null,
-            'sso_id' => 1,
-            'division_id' => 2,
-            'position_id' => 2,
-            'employee_type_id' => 2,
-            'image' => 'https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg',
-            'status' => 1,
-            'detail_info' => [
-                'sso' => [
-                    'sso_id' => 1,
-                    'username' => null,
+        $this->batchInsert('{{%employee}}', 
+            ['name', 'nik', 'email', 'contact', 'birth_date', 'date_start', 'date_resign', 'sso_id', 'division_id', 'position_id', 'employee_type_id', 'image', 'status', 'detail_info'], 
+            [
+                [
+                    'Employee 1',
+                    '3523419001010001',
+                    'employee.1@gmail.com',
+                    ["08444444444", "08555555555", "08666666666"],
+                    '1998-08-25',
+                    '2022-09-17',
+                    null,
+                    1,
+                    2,
+                    2,
+                    2,
+                    'https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg',
+                    1,
+                    [
+                        'sso' => [
+                            'sso_id' => 1,
+                            'username' => null,
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'position' => [
+                            'id' => 2,
+                            'name' => 'Owner',
+                        ],
+                        'employee_type' => [
+                            'id' => 2,
+                            'name' => 'Karyawan Tetap',
+                        ],
+                        'change_log' => [
+                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_by' => 'system',
+                            'deleted_at' => null,
+                            'deleted_by' => null,
+                            'updated_at' => null,
+                            'updated_by' => null,
+                        ],
+                    ]
                 ],
-                'division' => [
-                    'id' => 2,
-                    'name' => 'Teknologi Informasi',
-                ],
-                'position' => [
-                    'id' => 2,
-                    'name' => 'Owner',
-                ],
-                'employee_type' => [
-                    'id' => 2,
-                    'name' => 'Karyawan Tetap',
-                ],
-                'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
-                    'created_by' => 'system',
-                    'deleted_at' => null,
-                    'deleted_by' => null,
-                    'updated_at' => null,
-                    'updated_by' => null,
-                ],
-            ],
-        ]);
+                [
+                    'Employee 2',
+                    '3523419001010002',
+                    'employee.2@gmail.com',
+                    ["08444444444"],
+                    '1998-08-25',
+                    '2022-09-17',
+                    null,
+                    1,
+                    2,
+                    6,
+                    1,
+                    'https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg',
+                    1,
+                    [
+                        'sso' => [
+                            'sso_id' => 2,
+                            'username' => null,
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'position' => [
+                            'id' => 6,
+                            'name' => 'Staff',
+                        ],
+                        'employee_type' => [
+                            'id' => 1,
+                            'name' => 'Karyawan Percobaan',
+                        ],
+                        'change_log' => [
+                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_by' => 'system',
+                            'deleted_at' => null,
+                            'deleted_by' => null,
+                            'updated_at' => null,
+                            'updated_by' => null,
+                        ],
+                    ]
+                ]
+            ]
+        );
     }
 
     public function safeDown()

@@ -26,39 +26,78 @@ class m241108_100511_create_user_attendance_table extends Migration
             ])),
         ]);
 
-        $this->insert('{{%user_attendance}}', [
-            'id' => 1,
-            'employee_id' => 1,
-            'work_time_id' => 1,
-            'status' => 1,
-            'detail_info' => [
-                'employee' => [
-                    'id' => 1,
-                    'name' => 'Employee',
+        $this->batchInsert('{{%user_attendance}}', 
+            ['employee_id', 'work_time_id', 'status', 'detail_info'], 
+            [
+                [
+                    1,
+                    1,
+                    1,
+                    [
+                        'employee' => [
+                            'id' => 1,
+                            'name' => 'Employee 1',
+                        ],
+                        'work_time' => [
+                            'id' => 1,
+                            'name' => 'Package A',
+                            'entry_time' => '09:45:59',
+                            'home_time' => '18:30:00',
+                            'working_days' => [
+                                'Monday',
+                                'Tuesday',
+                                'Wednesday',
+                                'Thursday',
+                                'Friday',
+                            ],
+                        ],
+                        'change_log' => [
+                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_by' => 'system',
+                            'deleted_at' => null,
+                            'deleted_by' => null,
+                            'updated_at' => null,
+                            'updated_by' => null,
+                        ],
+                    ]
                 ],
-                'work_time' => [
-                    'id' => 1,
-                    'name' => 'Package A',
-                    'home_time' => '18:30:00',
-                    'entry_time' => '10:30:59',
-                    'working_days' => [
-                        'Monday',
-                        'Tuesday',
-                        'Wednesday',
-                        'Thursday',
-                        'Friday',
-                    ],
-                ],
-                'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
-                    'created_by' => 'system',
-                    'deleted_at' => null,
-                    'deleted_by' => null,
-                    'updated_at' => null,
-                    'updated_by' => null,
-                ],
-            ],
-        ]);
+                [
+                    2,
+                    2,
+                    1,
+                    [
+                        'employee' => [
+                            'id' => 2,
+                            'name' => 'Employee 2',
+                        ],
+                        'work_time' => [
+                            'id' => 1,
+                            'name' => 'Package B',
+                            'entry_time' => '10:45:59',
+                            'home_time' => '19:00:00',
+                            'working_days' => [
+                                'Monday',
+                                'Tuesday',
+                                'Wednesday',
+                                'Thursday',
+                                'Friday',
+                                'Saturday',
+                                'Sunday',
+                            ],
+                        ],
+                        'change_log' => [
+                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_by' => 'system',
+                            'deleted_at' => null,
+                            'deleted_by' => null,
+                            'updated_at' => null,
+                            'updated_by' => null,
+                        ],
+                    ]
+                ]
+              
+            ]
+        );
     }
 
     public function safeDown()

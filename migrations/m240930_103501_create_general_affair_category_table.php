@@ -28,20 +28,39 @@ class m240930_103501_create_general_affair_category_table extends Migration
             ])),
         ]);
 
-        $this->insert('{{%general_affair_category}}', [
-            'name' => 'Elektronik',
-            'status' => 1,
-            'detail_info' => [
-                'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
-                    'created_by' => 'system',
-                    'deleted_at' => null,
-                    'deleted_by' => null,
-                    'updated_at' => null,
-                    'updated_by' => null,
+        $this->batchInsert('{{%general_affair_category}}', 
+            ['name', 'status', 'detail_info'], 
+            [
+                [
+                    'Peripheral Komputer',
+                    1,
+                    [
+                        'change_log' => [
+                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_by' => 'system',
+                            'deleted_at' => null,
+                            'deleted_by' => null,
+                            'updated_at' => null,
+                            'updated_by' => null,
+                        ]
+                    ]
                 ],
-            ],
-        ]);
+                [
+                    'Elektronik', 
+                    1, 
+                    [
+                        'change_log' => [
+                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_by' => 'system',
+                            'deleted_at' => null,
+                            'deleted_by' => null,
+                            'updated_at' => null,
+                            'updated_by' => null,
+                        ]
+                    ]
+                ]
+            ]
+        );
     }
 
     /**

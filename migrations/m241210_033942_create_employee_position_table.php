@@ -28,20 +28,95 @@ class m241210_033942_create_employee_position_table extends Migration
             ])),
         ]);
 
-        $this->insert('{{%employee_position}}', [
-            'name' => 'Unassign',
-            'status' => 1,
-            'detail_info' => [
-                'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
-                    'created_by' => 'system',
-                    'deleted_at' => null,
-                    'deleted_by' => null,
-                    'updated_at' => null,
-                    'updated_by' => null,
-                ],
+    $this->batchInsert('{{%employee_position}}', 
+        ['name', 'status', 'detail_info'], 
+        [
+            [
+                'Unassign',
+                1,
+                [
+                    'change_log' => [
+                        'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                        'created_by' => 'system',
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ]
             ],
-        ]);
+            [
+                'Owner',
+                1,
+                [
+                    'change_log' => [
+                        'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                        'created_by' => 'system',
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ]
+            ],
+            [
+                'Director',
+                1,
+                [
+                    'change_log' => [
+                        'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                        'created_by' => 'system',
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ]
+            ],
+            [
+                'Manager',
+                1,
+                [
+                    'change_log' => [
+                        'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                        'created_by' => 'system',
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ]
+            ],
+            [
+                'Supervisor',
+                1,
+                [
+                    'change_log' => [
+                        'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                        'created_by' => 'system',
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ]
+            ],
+            [
+                'Staff',
+                1,
+                [
+                    'change_log' => [
+                        'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                        'created_by' => 'system',
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ]
+            ],
+        ]
+    );
     }
 
     /**

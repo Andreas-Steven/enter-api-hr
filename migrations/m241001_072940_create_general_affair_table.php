@@ -31,27 +31,78 @@ class m241001_072940_create_general_affair_table extends Migration
             ])),
         ]);
 
-        $this->insert('{{%general_affair}}', [
-            'id' => 1,
-            'product_id' => 1,
-            'category_id' => 1,
-            'location_id' => 1,
-            'asset' => [
-                'items' => [
-                    'KAT1LOC1ABC' => [
-                        'code' => 'KAT1LOC1ABC',
-                        'image' => [],
-                        'price' => 75000,
-                        'division' => [
-                            'id' => 2,
-                            'name' => 'Teknologi Informasi',
+        $this->batchInsert('{{%general_affair}}', 
+            ['product_id', 'category_id', 'location_id', 'asset', 'status', 'detail_info'], 
+            [
+                [
+                    1,
+                    1,
+                    1,
+                    [
+                        'items' => [
+                            'KAT1LOC1ABC' => [
+                                'code' => 'KAT1LOC1ABC',
+                                'image' => [],
+                                'price' => 75000,
+                                'division' => [
+                                    'id' => 2,
+                                    'name' => 'Teknologi Informasi',
+                                ],
+                                'tax_date' => null,
+                                'condition' => 4,
+                                'buying_date' => '2024-11-20',
+                                'description' => null,
+                                'inspection_date' => null,
+                                'items_change_log' => [
+                                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                                    'created_by' => 'system',
+                                    'deleted_at' => null,
+                                    'deleted_by' => null,
+                                    'updated_at' => null,
+                                    'updated_by' => null,
+                                ],
+                            ],
+                            'KAT1LOC1DEF' => [
+                                'code' => 'KAT1LOC1DEF',
+                                'image' => [],
+                                'price' => 75000,
+                                'division' => [
+                                    'id' => 2,
+                                    'name' => 'Teknologi Informasi',
+                                ],
+                                'tax_date' => null,
+                                'condition' => 4,
+                                'buying_date' => '2024-11-20',
+                                'description' => null,
+                                'inspection_date' => null,
+                                'items_change_log' => [
+                                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                                    'created_by' => 'system',
+                                    'deleted_at' => null,
+                                    'deleted_by' => null,
+                                    'updated_at' => null,
+                                    'updated_by' => null,
+                                ],
+                            ]
                         ],
-                        'tax_date' => null,
-                        'condition' => 4,
-                        'buying_date' => '2024-11-20',
-                        'description' => null,
-                        'inspection_date' => null,
-                        'items_change_log' => [
+                        'quantity' => 2,
+                        'total_price' => 150000, // Adjusted based on the sum of prices of both items
+                    ],
+                    1,
+                    [
+                        'product' => [
+                            'id' => 1,
+                            'name' => 'Logitech B100',
+                        ],
+                        'category' => [
+                            'id' => 1,
+                            'name' => 'Peripheral Komputer',
+                        ],
+                        'location' => [
+                            'id' => 1,
+                            'name' => 'Toko',
+                        ],
+                        'change_log' => [
                             'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
                             'created_by' => 'system',
                             'deleted_at' => null,
@@ -61,33 +112,64 @@ class m241001_072940_create_general_affair_table extends Migration
                         ],
                     ]
                 ],
-                'quantity' => 1,
-                'total_price' => 75000,
-            ],
-            'status' => 1,
-            'detail_info' => [
-                'product' => [
-                    'id' => 1,
-                    'name' => 'Logitech B100',
+                [
+                    2,
+                    2,
+                    2,
+                    [
+                        'items' => [
+                            'KAT2LOC2ZXC' => [
+                                'code' => 'KAT2LOC2ZXC',
+                                'image' => [],
+                                'price' => 1850000,
+                                'division' => [
+                                    'id' => 2,
+                                    'name' => 'Teknologi Informasi',
+                                ],
+                                'tax_date' => null,
+                                'condition' => 4,
+                                'buying_date' => '2024-11-20',
+                                'description' => null,
+                                'inspection_date' => null,
+                                'items_change_log' => [
+                                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                                    'created_by' => 'system',
+                                    'deleted_at' => null,
+                                    'deleted_by' => null,
+                                    'updated_at' => null,
+                                    'updated_by' => null,
+                                ],
+                            ]
+                        ],
+                        'quantity' => 1,
+                        'total_price' => 1850000,
+                    ],
+                    1,
+                    [
+                        'product' => [
+                            'id' => 2,
+                            'name' => 'Canon LBP6030',
+                        ],
+                        'category' => [
+                            'id' => 2,
+                            'name' => 'Elektronik',
+                        ],
+                        'location' => [
+                            'id' => 2,
+                            'name' => 'Ruko',
+                        ],
+                        'change_log' => [
+                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_by' => 'system',
+                            'deleted_at' => null,
+                            'deleted_by' => null,
+                            'updated_at' => null,
+                            'updated_by' => null,
+                        ],
+                    ]
                 ],
-                'category' => [
-                    'id' => 1,
-                    'name' => 'Elektronik',
-                ],
-                'location' => [
-                    'id' => 1,
-                    'name' => 'Toko',
-                ],
-                'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
-                    'created_by' => 'system',
-                    'deleted_at' => null,
-                    'deleted_by' => null,
-                    'updated_at' => null,
-                    'updated_by' => null,
-                ],
-            ],
-        ]);
+            ]
+        );
     }
 
     /**

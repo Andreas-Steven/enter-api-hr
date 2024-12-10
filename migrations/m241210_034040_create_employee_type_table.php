@@ -28,20 +28,39 @@ class m241210_034040_create_employee_type_table extends Migration
             ])),
         ]);
 
-        $this->insert('{{%employee_type}}', [
-            'name' => 'Karyawan Percobaan',
-            'status' => 1,
-            'detail_info' => [
-                'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
-                    'created_by' => 'system',
-                    'deleted_at' => null,
-                    'deleted_by' => null,
-                    'updated_at' => null,
-                    'updated_by' => null,
+        $this->batchInsert('{{%employee_type}}', 
+            ['name', 'status', 'detail_info'], 
+            [
+                [
+                    'Karyawan Percobaan',
+                    1,
+                    json_encode([
+                        'change_log' => [
+                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_by' => 'system',
+                            'deleted_at' => null,
+                            'deleted_by' => null,
+                            'updated_at' => null,
+                            'updated_by' => null,
+                        ],
+                    ])
                 ],
-            ],
-        ]);
+                [
+                    'Karyawan Tetap',
+                    1,
+                    json_encode([
+                        'change_log' => [
+                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_by' => 'system',
+                            'deleted_at' => null,
+                            'deleted_by' => null,
+                            'updated_at' => null,
+                            'updated_by' => null,
+                        ],
+                    ])
+                ],
+            ]
+        );
     }
 
     /**
