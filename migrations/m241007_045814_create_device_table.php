@@ -31,6 +31,28 @@ class m241007_045814_create_device_table extends Migration
                 ],
             ])),
         ]);
+
+        $this->insert('{{%device}}', [
+            'device_code' => 'MK1',
+            'device_name' => 'Ruko',
+            'device_address' => 'Kawasan Ruko Mall Mangga Dua No. 33 (Kawasan Mall Mangga Dua)',
+            'device_ip' => '192.168.100.18',
+            'device_location' => [
+                'lat' => -6.137281, 
+                'lng' => 106.8236611,
+            ],
+            'status' => 1,
+            'detail_info' => [
+                'change_log' => [
+                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_by' => 'system',
+                    'deleted_at' => null,
+                    'deleted_by' => null,
+                    'updated_at' => null,
+                    'updated_by' => null,
+                ],
+            ],
+        ]);
     }
 
     /**

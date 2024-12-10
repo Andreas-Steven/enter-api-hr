@@ -29,6 +29,57 @@ class m241129_064928_create_payroll_table extends Migration
                 ],
             ])),
         ]);
+
+        $this->insert('{{%payroll}}', [
+            'pay_period' => 'Desember 2024',
+            'pay_date' => '2024-12-31',
+            'salary_detail' => [
+                    '1' => [
+                        'summary' => [
+                            'net_salary' => 9780000,
+                            'base_salary' => 10000000,
+                            'gross_salary' => 10000000,
+                            'total_earnings' => 0,
+                            'total_deductions' => 220000,
+                        ],
+                        'absences' => [
+                            'sick' => null,
+                            'leave' => null,
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'earnings' => [
+                            'bonuses' => 0,
+                            'allowances' => 0,
+                            'overtime_pay' => 0,
+                            'reimbursements' => 0,
+                        ],
+                        'deductions' => [
+                            'tax' => 125000,
+                            'late' => 0,
+                            'loan' => 0,
+                            'absent' => 0,
+                            'insurance' => 95000,
+                            'early_leave' => 0,
+                        ],
+                        'employee_id' => 1,
+                        'employee_name' => 'Employee',
+                    ],
+                ],
+            'status' => 1,
+            'detail_info' => [
+                'change_log' => [
+                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_by' => 'system',
+                    'deleted_at' => null,
+                    'deleted_by' => null,
+                    'updated_at' => null,
+                    'updated_by' => null,
+                ],
+            ],
+        ]);
     }
 
     /**

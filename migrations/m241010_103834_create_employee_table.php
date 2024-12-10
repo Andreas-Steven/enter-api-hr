@@ -32,6 +32,48 @@ class m241010_103834_create_employee_table extends Migration
                 ],
             ])),
         ]);
+
+        $this->insert('{{%employee}}', [
+            'name' => 'Employee',
+            'nik' => '3523419001010001',
+            'email' => 'employee@gmail.com',
+            'contact' => ["08444444444", "08555555555"],
+            'birth_date' => '1998-08-25',
+            'date_start' => '2022-09-17',
+            'date_resign' => null,
+            'sso_id' => 1,
+            'division_id' => 2,
+            'position_id' => 2,
+            'employee_type_id' => 2,
+            'image' => 'https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg',
+            'status' => 1,
+            'detail_info' => [
+                'sso' => [
+                    'sso_id' => 1,
+                    'username' => null,
+                ],
+                'division' => [
+                    'id' => 2,
+                    'name' => 'Teknologi Informasi',
+                ],
+                'position' => [
+                    'id' => 2,
+                    'name' => 'Owner',
+                ],
+                'employee_type' => [
+                    'id' => 2,
+                    'name' => 'Karyawan Tetap',
+                ],
+                'change_log' => [
+                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_by' => 'system',
+                    'deleted_at' => null,
+                    'deleted_by' => null,
+                    'updated_at' => null,
+                    'updated_by' => null,
+                ],
+            ],
+        ]);
     }
 
     public function safeDown()

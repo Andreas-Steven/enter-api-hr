@@ -22,6 +22,22 @@ class m241001_054554_create_division_table extends Migration
                 ],
             ])),
         ]);
+
+        $this->insert('{{%division}}', [
+            'code' => 'UNASSIGN',
+            'name' => 'Unassign',
+            'status' => 1,
+            'detail_info' => [
+                'change_log' => [
+                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_by' => 'system',
+                    'deleted_at' => null,
+                    'deleted_by' => null,
+                    'updated_at' => null,
+                    'updated_by' => null,
+                ],
+            ],
+        ]);
     }
 
     public function safeDown()

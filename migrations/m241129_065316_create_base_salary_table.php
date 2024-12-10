@@ -29,6 +29,28 @@ class m241129_065316_create_base_salary_table extends Migration
                 ],
             ])),
         ]);
+
+        $this->insert('{{%base_salary}}', [
+            'id' => 1,
+            'employee_id' => 1,
+            'base_salary' => 10000000,
+            'efective_date' => '2024-11-29',
+            'status' => 1,
+            'detail_info' => [
+                'employee' => [
+                    'id' => 1,
+                    'name' => 'Employee',
+                ],
+                'change_log' => [
+                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_by' => 'system',
+                    'deleted_at' => null,
+                    'deleted_by' => null,
+                    'updated_at' => null,
+                    'updated_by' => null,
+                ],
+            ],
+        ]);
     }
 
     /**

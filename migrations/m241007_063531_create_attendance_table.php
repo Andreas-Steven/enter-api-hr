@@ -28,6 +28,51 @@ class m241007_063531_create_attendance_table extends Migration
                 ],
             ])),
         ]);
+
+        $this->insert('{{%attendance}}', [
+            'date' => '2024-12-10',
+            'attendance' => [
+                '1' => [
+                    'info' => [
+                        'in' => true,
+                        'out' => null,
+                        'detail' => [],
+                    ],
+                    'device' => [
+                        'id' => 1,
+                        'device_code' => 'MK1',
+                        'device_name' => 'Ruko',
+                    ],
+                    'division' => [
+                        'id' => 2,
+                        'name' => 'Teknologi Informasi',
+                    ],
+                    'end_time' => null,
+                    'location' => null,
+                    'work_time' => [
+                        'id' => 1,
+                        'home_time' => '18:30:00',
+                        'entry_time' => '10:30:59',
+                    ],
+                    'start_time' => '10:30:00',
+                    'employee_id' => 1,
+                    'employee_name' => 'Employee',
+                ],
+            ],
+            'status' => 1,
+            'detail_info' => [
+                'dayoff' => false,
+                'blacklist' => [],
+                'change_log' => [
+                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_by' => 'system',
+                    'deleted_at' => null,
+                    'deleted_by' => null,
+                    'updated_at' => null,
+                    'updated_by' => null,
+                ],
+            ],
+        ]);
     }
 
     /**
