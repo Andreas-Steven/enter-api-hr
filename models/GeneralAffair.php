@@ -41,6 +41,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['asset', 'code'], 'safe'],
+                [['name'], 'string', 'max' => 255],
                 [['product_id', 'category_id', 'location_id'], 'integer'],
                 [['product_id', 'category_id', 'location_id'], 'required'],
                 [['detail_info', 'asset'], 'safe', 'skipOnEmpty' => true],
@@ -59,8 +60,8 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['product_id', 'category_id', 'location_id', 'asset', 'status', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['product_id', 'category_id', 'location_id', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['product_id', 'name', 'category_id', 'location_id', 'asset', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['product_id', 'name', 'category_id', 'location_id', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['code', 'status'];
         return $scenarios;
     }
@@ -99,6 +100,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         }
 
         $this->product = ['id' => $product['id'], 'name' => $product['name']];
+        $this->name = $product['name'];
     }
 
     public function validateCategory($attribute, $params, $validator)
@@ -168,13 +170,13 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $generalAffairItems['items_change_log']['created_at'] = $timestamp;
                 $generalAffairItems['items_change_log']['created_by'] = $username;
             }
-
+            
             $generalAffairItems['price'] = floatval($generalAffairItems['price']);  
             if (empty($generalAffairItems['price']) || $generalAffairItems['price'] < 0) {
                 $this->addError($attribute.'['.$key.'].price', 'Price value must be a float and greater than or equal to 0');
                 return;
             } 
-    
+            
             $generalAffairItems['condition'] = intval($generalAffairItems['condition']);
             if (empty($generalAffairItems['condition']) || $generalAffairItems['condition'] < 1) {
                 $this->addError($attribute.'['.$key.'].condition', 'Condition value must be an integer greater than 0');
@@ -271,6 +273,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
+            $this->name = CoreModel::htmlPurifier($this->name);
             $this->asset = $this->calculateItems($this->asset);
             $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->detail_info = [
