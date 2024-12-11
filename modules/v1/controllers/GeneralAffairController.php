@@ -57,8 +57,8 @@ class GeneralAffairController extends CoreController
 		$model = new GeneralAffair();
 		$params = Yii::$app->getRequest()->getBodyParams();
         
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
-            return CoreController::coreValidateParams($unavailableParams);
+		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
+			return $coreUnavailableParams;
         }
 
 		$existingModel = $model::findOne([

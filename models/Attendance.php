@@ -271,10 +271,10 @@ class Attendance extends \yii\db\ActiveRecord
                     $employeeAttendance['start_time'] = $value['start_time'];
                 }
             }
-            // var_dump('employeeAttendance - location: ', $employeeAttendance['location']); exit;
+            var_dump('employeeAttendance - location: ', $employeeAttendance['location']);
             $entryLocation = $employeeAttendance['location']['entry'] ?? null;
             $homeLocation = $employeeAttendance['location']['home'] ?? null;
-            // var_dump('homeLocation: ', $homeLocation);
+            var_dump('homeLocation: ', isset($homeLocation) ? $homeLocation : null);
             $temp_location = [
                 'entry' => $entryLocation,
                 'home' => $homeLocation,
