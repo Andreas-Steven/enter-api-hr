@@ -50,14 +50,18 @@ class AttendanceController extends CoreController
 		$params['system_date'] = date('Y-m-d');
 		$params['dateMismatch'] = null;
 		
+		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
+			return $coreUnavailableParams;
+        }
+		
 		if (!isset($params['date']) || empty($params['date'])) {
-			$model->addError('date', 'dateCannotBlank');
-			return CoreController::coreError($model, Yii::t('app', 'dateCannotBlank'));
+			$model->addError('date', 'Date cannot be blank.');
+			return CoreController::coreError($model);
 		}
 
 		if (!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $params['date'])) {
-			$model->addError('date', 'invalidDatetimeFormat');
-			return CoreController::coreError($model, Yii::t('app', 'invalidDatetimeFormat'));
+			$model->addError('date', 'Date format must be YYYY-MM-DD.');
+			return CoreController::coreError($model);
 		}
 
 		$existingModel = $model::findOne([
@@ -84,17 +88,18 @@ class AttendanceController extends CoreController
 			$model = $existingModel;
 		}
 
-		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
-			return CoreController::coreValidateParams($unavailableParams);
-		}
-
 		$params['status'] = Constants::STATUS_ACTIVE;
 		$model->scenario = Constants::SCENARIO_CREATE;
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($model->save()) {
+			// Temporary fix
+			if ($model->save(false)) {
 				return CoreController::coreSuccess($model);
 			}
+
+			// if ($model->save()) {
+			// 	return CoreController::coreSuccess($model);
+			// }
 		}
 
 		return CoreController::coreError($model);

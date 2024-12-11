@@ -210,10 +210,6 @@ class Attendance extends \yii\db\ActiveRecord
                         }
                     }
                 }
-
-                if (!empty($employeeAttendance['location']['image'])) {
-                    $employeeAttendance['location']['image'] = $employeeAttendance['location']['image'];
-                }
                 
                 // Blacklist
                 if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
@@ -275,20 +271,21 @@ class Attendance extends \yii\db\ActiveRecord
                     $employeeAttendance['start_time'] = $value['start_time'];
                 }
             }
-
+            // var_dump('employeeAttendance - location: ', $employeeAttendance['location']); exit;
             $entryLocation = $employeeAttendance['location']['entry'] ?? null;
             $homeLocation = $employeeAttendance['location']['home'] ?? null;
-
+            // var_dump('homeLocation: ', $homeLocation);
             $temp_location = [
                 'entry' => $entryLocation,
                 'home' => $homeLocation,
             ];
-
+            
             if (isset($value['location']) || !empty($value['location'])) {
                 $temp_location['entry'] = $entryLocation;
                 $temp_location['home'] = $homeLocation;
 
                 if ($entryLocation === null && !empty($value['start_time'])) {
+                    var_dump('Masuk');
                     $temp_location['entry'] = $value['location'] ?? null;
                 }
                 
@@ -323,26 +320,6 @@ class Attendance extends \yii\db\ActiveRecord
         $this->$attribute = $lastAttendance;
     }
 
-    public function addBlacklist($detail_info, $employee_id, $name, $date, $start_time, $description = null)
-    {
-        $blacklist = [
-            'employee_id' => $employee_id,
-            'employee_name' => $name,
-            'date' => $date,
-            'start_time' => $start_time,
-            'time' => date('H:i:s')
-        ];
-        $exsistingBlacklist = $detail_info['blacklist'] ?? [];
-        
-        if (!empty($exsistingBlacklist)) {
-            array_push($exsistingBlacklist, $blacklist);
-        } else {
-            $exsistingBlacklist[] = $blacklist;
-        }
-
-        $this->setAttribute('detail_info', array_merge($detail_info ?? [], ['blacklist' => $exsistingBlacklist]));
-    }
-
     public function beforeValidate()
     {
         if (parent::beforeValidate()) {
@@ -366,7 +343,6 @@ class Attendance extends \yii\db\ActiveRecord
                 'blacklist' => $this->detail_info['blacklist'] ?? [],
             ]);
 
-            // var_dump('beforesave');exit;
             return true;
         }
     
