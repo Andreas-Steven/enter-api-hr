@@ -93,13 +93,13 @@ class AttendanceController extends CoreController
 
 		if ($model->load($params, '') && $model->validate()) {
 			// Temporary fix
-			// if ($model->save(false)) {
-			// 	return CoreController::coreSuccess($model);
-			// }
-
-			if ($model->save()) {
+			if ($model->save(false)) {
 				return CoreController::coreSuccess($model);
 			}
+
+			// if ($model->save()) {
+			// 	return CoreController::coreSuccess($model);
+			// }
 		}
 
 		return CoreController::coreError($model);

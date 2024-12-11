@@ -142,7 +142,6 @@ class Attendance extends \yii\db\ActiveRecord
                 $employeeAttendance['device'] = ['id' => $device->id, 'device_code' => $device->device_code, 'device_name' => $device->device_name];
             }
 
-
             $employeeAttendance['employee_id'] = intval($employeeAttendance['employee_id']);
             $employee = Employee::find()->where(['id' => $employeeAttendance['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
             if ($employee === null) {
@@ -203,10 +202,19 @@ class Attendance extends \yii\db\ActiveRecord
                 if (!empty($employeeAttendance['start_time']) && !empty($employeeAttendance['work_time']['entry_time'])) {
                     $startTime = strtotime($employeeAttendance['start_time']);
                     $entryTime = strtotime($employeeAttendance['work_time']['entry_time']);
+                    $workingDays = $workTime->working_days;
+                    $dayNow = date('l', strtotime($this->date));
                     
                     if ($startTime > $entryTime) {
                         if (!in_array("Telat Masuk", $employeeAttendance['info']['detail'])) {
                             $employeeAttendance['info']['detail'][] = "Telat Masuk";
+                        }
+                    }
+
+                    if (!in_array($dayNow, $workingDays)) {
+                        if (!in_array("Lembur", $employeeAttendance['info']['detail'])) {
+                            // $employeeAttendance['info']['detail'][] = "Masuk di hari libur";
+                            $employeeAttendance['info']['detail'][] = "Lembur";
                         }
                     }
                 }
@@ -271,10 +279,10 @@ class Attendance extends \yii\db\ActiveRecord
                     $employeeAttendance['start_time'] = $value['start_time'];
                 }
             }
-            var_dump('employeeAttendance - location: ', $employeeAttendance['location']);
+            // var_dump('employeeAttendance - location: ', $employeeAttendance['location']);
             $entryLocation = $employeeAttendance['location']['entry'] ?? null;
             $homeLocation = $employeeAttendance['location']['home'] ?? null;
-            var_dump('homeLocation: ', isset($homeLocation) ? $homeLocation : null);
+            // var_dump('homeLocation: ', isset($homeLocation) ? $homeLocation : null);
             $temp_location = [
                 'entry' => $entryLocation,
                 'home' => $homeLocation,
@@ -285,20 +293,20 @@ class Attendance extends \yii\db\ActiveRecord
                 $temp_location['home'] = $homeLocation;
 
                 if ($entryLocation === null && !empty($value['start_time'])) {
-                    var_dump('Masuk');
                     $temp_location['entry'] = $value['location'] ?? null;
                 }
                 
                 if ($homeLocation === null && !empty($value['end_time'])) {
                     $temp_location['home'] = $value['location'] ?? null;
                 }
-
+                // var_dump('Masuk | temp home: ', $temp_location['home']);
                 $employeeAttendance['location'] = $temp_location;
             } else {
                 $employeeAttendance['location'] = null;
             }
 
             $oldAttendance[$key] = $employeeAttendance;
+            // var_dump('OldAttendance - location: ', $oldAttendance[$key]['location']);
         }
                
         $this->$attribute = $oldAttendance;
@@ -342,7 +350,7 @@ class Attendance extends \yii\db\ActiveRecord
                 'dayoff' => $this->detail_info['dayoff'] ?? false,
                 'blacklist' => $this->detail_info['blacklist'] ?? [],
             ]);
-
+            var_dump('beforeSave');
             return true;
         }
     
