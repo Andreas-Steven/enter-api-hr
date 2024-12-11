@@ -178,8 +178,8 @@ class m241001_072940_create_general_affair_table extends Migration
     /**
      * {@inheritdoc}
      */
-    // public function safeDown()
-    // {
-    //     $this->dropTable('{{%general_affair}}');
-    // }
+    public function safeDown()
+    {
+        $this->dropTable('{{%general_affair}}');
+    }
 }
