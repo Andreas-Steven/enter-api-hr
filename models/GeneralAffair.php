@@ -90,12 +90,13 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 'id' => $this->$attribute,
                 'status' => Constants::STATUS_ACTIVE
             ])->one();
+
+            if ($product === null) {
+                $this->addError($attribute, 'Product not found');
+                return;
+            }
         }
 
-        if ($product === null) {
-            $this->addError($attribute, 'Product not found');
-            return;
-        }
 
         $this->product = ['id' => $product['id'], 'name' => $product['name']];
         $this->name = $product['name'];
@@ -110,12 +111,13 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 'id' => $this->$attribute,
                 'status' => Constants::STATUS_ACTIVE
             ])->one();
+
+            if ($category === null) {
+                $this->addError($attribute, 'Category not found');
+                return;
+            }
         }
 
-        if ($category === null) {
-            $this->addError($attribute, 'Category not found');
-            return;
-        }
 
         $this->category = ['id' => $category['id'], 'name' => $category['name']];
     }
@@ -129,12 +131,13 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 'id' => $this->$attribute,
                 'status' => Constants::STATUS_ACTIVE
             ])->one();
+            
+            if ($location === null) {
+                $this->addError($attribute, 'Location not found');
+                return;
+            }
         }
 
-        if ($location === null) {
-            $this->addError($attribute, 'Location not found');
-            return;
-        }
 
         $this->location = ['id' => $location['id'], 'name' => $location['name']];
     }
