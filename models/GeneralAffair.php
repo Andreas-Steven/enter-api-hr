@@ -29,13 +29,11 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public $category;
     public $location;
 
-
     public static function tableName()
     {
         return 'general_affair';
     }
     
-
     public function rules()
     {
         return array_merge(
@@ -50,8 +48,8 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 [['asset'], 'validateItem', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'status'], 'validateDeleted', 'on' => Constants::SCENARIO_DELETE],
                 [['product_id'], 'validateProduct'],
-                [['category_id'], 'validateCategory'],
-                [['location_id'], 'validateLocation'],
+                [['category_id'], 'validateCategory', 'skipOnEmpty' => true],
+                [['location_id'], 'validateLocation', 'skipOnEmpty' => true],
             ],
             CoreModel::getStatusRules($this)
         );
