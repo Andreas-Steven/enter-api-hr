@@ -97,7 +97,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
             }
         }
 
-
         $this->product = ['id' => $product['id'], 'name' => $product['name']];
         $this->name = $product['name'];
     }
@@ -117,7 +116,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 return;
             }
         }
-
 
         $this->category = ['id' => $category['id'], 'name' => $category['name']];
     }
