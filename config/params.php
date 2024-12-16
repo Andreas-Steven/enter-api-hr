@@ -22,10 +22,14 @@ return [
         'audience' => 'https://sso.dev-enterkomputer.com',
         'id' => 'sso-auth-v1',
         'request_time' => '+5 seconds',
-        'except' => YII_ENV_DEV ? '*' : ['index'],
+        // DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
+        // 'except' => YII_ENV_DEV ? ['*'] : ['index'],
+        'except' => YII_ENV_DEV ? ['*'] : ['*'],
     ],
     'request' => [
-        'enableCsrfValidation' => !YII_ENV_DEV,
+        // DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
+        // 'enableCsrfValidation' => !YII_ENV_DEV,
+        'enableCsrfValidation' => false,
     ],
     'cors' => [
         'requestMethods' => ['GET', 'POST', 'PUT', 'DELETE'],

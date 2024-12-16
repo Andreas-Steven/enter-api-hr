@@ -23,9 +23,7 @@ class GeneralAffairProductController extends CoreController
 			[
 				'authenticator' => [
 					'class' => 'app\components\JwtBearerAuth',
-					'except' => [
-						Yii::$app->params['jwt']['except'],
-					],
+					'except' => Yii::$app->params['jwt']['except'],
 					'role' => Yii::$app->params['codeApp'],
 				],
 			],
