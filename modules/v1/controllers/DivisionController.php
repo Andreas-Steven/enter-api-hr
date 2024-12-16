@@ -7,7 +7,7 @@ use yii\web\Response;
 use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
-use app\controllers\CoreController;
+use app\core\CoreController;
 use app\models\search\DivisionSearch;
 use app\models\Division;
 
@@ -21,7 +21,7 @@ class DivisionController extends CoreController
 				'authenticator' => [
 					'class' => 'app\components\JwtBearerAuth',
 					'except' => [
-						Yii::$app->params['jwt']['authException'],
+						Yii::$app->params['jwt']['except'],
 					],
 					'role' => Yii::$app->params['codeApp'],
 				],
@@ -77,7 +77,7 @@ class DivisionController extends CoreController
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::findModel(new Division(), $params);
+		$model = CoreController::coreFindModel(new Division(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -114,7 +114,7 @@ class DivisionController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$model = CoreController::findModel(new Division(), $params);
+		$model = CoreController::coreFindModel(new Division(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();

@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models;
+namespace app\core;
 
 use Yii;
 use app\helpers\Constants;
@@ -117,7 +117,7 @@ class CoreModel
     {
         if (!$model->isNewRecord) {
             $changedAttributes = [];
-            $fields = Yii::$app->params['restrictFieldUpdate'][$model->tableName()];
+            $fields = Yii::$app->params['restrictUpdate'][$model->tableName()];
             $disallowedStatusUpdate = Constants::disallowedStatusUpdate();
 
             foreach ($fields as $field) {

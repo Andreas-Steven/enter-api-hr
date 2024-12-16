@@ -78,7 +78,7 @@ class m241010_103834_create_employee_table extends Migration
                     'name' => 'Karyawan Tetap',
                 ],
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
@@ -120,7 +120,7 @@ class m241010_103834_create_employee_table extends Migration
                     'name' => 'Karyawan Percobaan',
                 ],
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,

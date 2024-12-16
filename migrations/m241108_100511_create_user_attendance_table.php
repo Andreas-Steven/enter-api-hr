@@ -43,7 +43,7 @@ class m241108_100511_create_user_attendance_table extends Migration
             'employee_id' => 1,
             'work_time_id' => 1,
             'status' => 1,
-            'detail_info' => json_encode([
+            'detail_info' => [
                 'employee' => [
                     'id' => 1,
                     'name' => 'Employee 1',
@@ -62,21 +62,21 @@ class m241108_100511_create_user_attendance_table extends Migration
                     ],
                 ],
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
                     'updated_by' => null,
                 ],
-            ]),
+            ],
         ]);
 
         $this->insert('{{%user_attendance}}', [
             'employee_id' => 2,
             'work_time_id' => 2,
             'status' => 1,
-            'detail_info' => json_encode([
+            'detail_info' => [
                 'employee' => [
                     'id' => 2,
                     'name' => 'Employee 2',
@@ -97,14 +97,14 @@ class m241108_100511_create_user_attendance_table extends Migration
                     ],
                 ],
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
                     'updated_by' => null,
                 ],
-            ]),
+            ],
         ]);
     }
 

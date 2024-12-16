@@ -1,6 +1,6 @@
 <?php
 
-namespace app\components;
+namespace app\core;
 
 use Yii;
 use yii\rest\Controller;
@@ -13,7 +13,7 @@ class CoreAPI
 {
 	public function getTimestamp(): string
 	{
-		return gmdate('Y-m-d\TH:i:s\Z');
+		return gmdate(Yii::$app->params['UTC']);
 	}
 
 	public function getUsername(): string

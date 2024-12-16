@@ -4,7 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
-use app\models\CoreModel;
+use app\core\CoreModel;
 use app\models\Device;
 use app\models\Employee;
 use app\models\Division;
@@ -102,7 +102,7 @@ class Attendance extends \yii\db\ActiveRecord
         $latestAttendance = !empty($lastStartTime) ? end($lastStartTime) : null;
 
         foreach ($attendanceData as $key => $value) {
-            $employeeAttendance = array_merge(Yii::$app->params['attendance'], $value);
+            $employeeAttendance = array_merge(Yii::$app->params['defaultValue']['attendance'], $value);
             if (empty($employeeAttendance['employee_id'])) {
                 $this->addError($attribute, 'Employee Id must be filled');
                 return;

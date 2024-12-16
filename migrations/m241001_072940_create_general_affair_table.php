@@ -66,7 +66,7 @@ class m241001_072940_create_general_affair_table extends Migration
                         'description' => null,
                         'inspection_date' => null,
                         'items_change_log' => [
-                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_at' => gmdate(Yii::$app->params['UTC']),
                             'created_by' => 'system',
                             'deleted_at' => null,
                             'deleted_by' => null,
@@ -88,7 +88,7 @@ class m241001_072940_create_general_affair_table extends Migration
                         'description' => null,
                         'inspection_date' => null,
                         'items_change_log' => [
-                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_at' => gmdate(Yii::$app->params['UTC']),
                             'created_by' => 'system',
                             'deleted_at' => null,
                             'deleted_by' => null,
@@ -115,7 +115,7 @@ class m241001_072940_create_general_affair_table extends Migration
                     'name' => 'Toko',
                 ],
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
@@ -146,7 +146,7 @@ class m241001_072940_create_general_affair_table extends Migration
                         'description' => null,
                         'inspection_date' => null,
                         'items_change_log' => [
-                            'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                            'created_at' => gmdate(Yii::$app->params['UTC']),
                             'created_by' => 'system',
                             'deleted_at' => null,
                             'deleted_by' => null,
@@ -173,7 +173,7 @@ class m241001_072940_create_general_affair_table extends Migration
                     'name' => 'Ruko',
                 ],
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,

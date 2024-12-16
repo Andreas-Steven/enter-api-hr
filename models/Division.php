@@ -4,7 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
-use app\models\CoreModel;
+use app\core\CoreModel;
 
 /**
  * This is the model class for table "division".

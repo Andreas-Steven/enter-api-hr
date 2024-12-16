@@ -7,7 +7,7 @@ use yii\web\Response;
 use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
-use app\controllers\CoreController;
+use app\core\CoreController;
 use app\models\search\PayrollSearch;
 use app\models\Payroll;
 
@@ -21,7 +21,7 @@ class PayrollController extends CoreController
 				'authenticator' => [
 					'class' => 'app\components\JwtBearerAuth',
 					'except' => [
-						Yii::$app->params['jwt']['authException'],
+						Yii::$app->params['jwt']['except'],
 					],
 					'role' => Yii::$app->params['codeApp'],
 				],
@@ -52,7 +52,7 @@ class PayrollController extends CoreController
 			return $coreUnavailableParams;
         }
 
-		$existingModel = CoreController::findModel($model, $params);
+		$existingModel = CoreController::coreFindModel($model, $params);
 
 		if ($existingModel !== null) {
 			$model = $existingModel;
@@ -78,7 +78,7 @@ class PayrollController extends CoreController
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::findModel(new Payroll(), $params);
+		$model = CoreController::coreFindModel(new Payroll(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -115,7 +115,7 @@ class PayrollController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$model = CoreController::findModel(new Payroll(), $params);
+		$model = CoreController::coreFindModel(new Payroll(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();

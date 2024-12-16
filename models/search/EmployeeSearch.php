@@ -6,7 +6,7 @@ use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\helpers\Constants;
-use app\models\CoreModel;
+use app\core\CoreModel;
 use app\models\Employee;
 
 class EmployeeSearch extends Employee

@@ -7,7 +7,7 @@ use yii\web\Response;
 use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
-use app\controllers\CoreController;
+use app\core\CoreController;
 use app\models\search\GeneralAffairProductSearch;
 use app\models\GeneralAffairProduct;
 
@@ -24,7 +24,7 @@ class GeneralAffairProductController extends CoreController
 				'authenticator' => [
 					'class' => 'app\components\JwtBearerAuth',
 					'except' => [
-						Yii::$app->params['jwt']['authException'],
+						Yii::$app->params['jwt']['except'],
 					],
 					'role' => Yii::$app->params['codeApp'],
 				],
@@ -75,7 +75,7 @@ class GeneralAffairProductController extends CoreController
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::findModel(new GeneralAffairProduct(), $params);
+		$model = CoreController::coreFindModel(new GeneralAffairProduct(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -112,7 +112,7 @@ class GeneralAffairProductController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$model = CoreController::findModel(new GeneralAffairProduct(), $params);
+		$model = CoreController::coreFindModel(new GeneralAffairProduct(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();

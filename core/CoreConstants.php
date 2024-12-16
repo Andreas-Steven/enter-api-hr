@@ -1,6 +1,6 @@
 <?php
 
-namespace app\helpers;
+namespace app\core;
 
 /**
  * DO NOT CHANGE VALUES OF THIS CoreConstants
@@ -23,8 +23,6 @@ class CoreConstants
     const SCENARIO_VIEW = 'view';
     const SCENARIO_COMPLETE = 'complete';
     const SCENARIO_RECEIVE = 'receive';
-
-    const DEVICE_APP = 'APP';
 
     const STATUS_NOT_DELETED = [
         '<>', 'status', self::STATUS_DELETED

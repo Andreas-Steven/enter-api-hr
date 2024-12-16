@@ -44,31 +44,31 @@ class m241206_083203_create_general_affair_product_table extends Migration
         $this->insert('{{%general_affair_product}}', [
             'name' => 'Logitech B100',
             'status' => 1,
-            'detail_info' => json_encode([
+            'detail_info' => [
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
                     'updated_by' => null,
                 ],
-            ]),
+            ],
         ]);
 
         $this->insert('{{%general_affair_product}}', [
             'name' => 'Canon LBP6030',
             'status' => 1,
-            'detail_info' => json_encode([
+            'detail_info' => [
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
                     'updated_by' => null,
                 ],
-            ]),
+            ],
         ]);
     }
 

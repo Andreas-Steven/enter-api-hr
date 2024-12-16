@@ -46,7 +46,7 @@ class m240930_103519_create_general_affair_location_table extends Migration
             'status' => 1,
             'detail_info' => [
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
@@ -62,7 +62,7 @@ class m240930_103519_create_general_affair_location_table extends Migration
             'status' => 1,
             'detail_info' => [
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,

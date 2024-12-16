@@ -7,7 +7,7 @@ use yii\web\Response;
 use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
-use app\controllers\CoreController;
+use app\core\CoreController;
 use app\models\search\DeviceSearch;
 use app\models\Device;
 
@@ -21,7 +21,7 @@ class DeviceController extends CoreController
 				'authenticator' => [
 					'class' => 'app\components\JwtBearerAuth',
 					'except' => [
-						Yii::$app->params['jwt']['authException'],
+						Yii::$app->params['jwt']['except'],
 					],
 					'role' => Yii::$app->params['codeApp'],
 				],
@@ -73,7 +73,7 @@ class DeviceController extends CoreController
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::findModel(new Device(), $params);
+		$model = CoreController::coreFindModel(new Device(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -110,7 +110,7 @@ class DeviceController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$model = CoreController::findModel(new Device(), $params);
+		$model = CoreController::coreFindModel(new Device(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();

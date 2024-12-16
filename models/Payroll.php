@@ -4,7 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
-use app\models\CoreModel;
+use app\core\CoreModel;
 
 /**
  * This is the model class for table "payroll".
@@ -81,14 +81,14 @@ class Payroll extends \yii\db\ActiveRecord
         foreach ($salaryDetailData as $key => $value) {
             if (isset($oldSalaryDetail[$value['employee_id']])) {
                 $salaryDetail = array_merge($oldSalaryDetail[$value['employee_id']], $value);
-                $salaryDetail['deductions'] = array_merge(Yii::$app->params['salary_detail']['deductions'], $oldSalaryDetail[$value['employee_id']]['deductions']);
-                $salaryDetail['earnings'] = array_merge(Yii::$app->params['salary_detail']['earnings'], $oldSalaryDetail[$value['employee_id']]['earnings']);
-                $salaryDetail['absences'] = array_merge(Yii::$app->params['salary_detail']['absences'], $oldSalaryDetail[$value['employee_id']]['absences']);
+                $salaryDetail['deductions'] = array_merge(Yii::$app->params['defaultValue']['salary_detail']['deductions'], $oldSalaryDetail[$value['employee_id']]['deductions']);
+                $salaryDetail['earnings'] = array_merge(Yii::$app->params['defaultValue']['salary_detail']['earnings'], $oldSalaryDetail[$value['employee_id']]['earnings']);
+                $salaryDetail['absences'] = array_merge(Yii::$app->params['defaultValue']['salary_detail']['absences'], $oldSalaryDetail[$value['employee_id']]['absences']);
             } else {
-                $salaryDetail = array_merge(Yii::$app->params['salary_detail'], $value);
-                $salaryDetail['deductions'] = array_merge(Yii::$app->params['salary_detail']['deductions'], $salaryDetail['deductions']);
-                $salaryDetail['earnings'] = array_merge(Yii::$app->params['salary_detail']['earnings'], $salaryDetail['earnings']);
-                $salaryDetail['absences'] = array_merge(Yii::$app->params['salary_detail']['absences'], $salaryDetail['absences']);
+                $salaryDetail = array_merge(Yii::$app->params['defaultValue']['salary_detail'], $value);
+                $salaryDetail['deductions'] = array_merge(Yii::$app->params['defaultValue']['salary_detail']['deductions'], $salaryDetail['deductions']);
+                $salaryDetail['earnings'] = array_merge(Yii::$app->params['defaultValue']['salary_detail']['earnings'], $salaryDetail['earnings']);
+                $salaryDetail['absences'] = array_merge(Yii::$app->params['defaultValue']['salary_detail']['absences'], $salaryDetail['absences']);
             }
 
             $salaryDetail['employee_id'] = intval($salaryDetail['employee_id']);

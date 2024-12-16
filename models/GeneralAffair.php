@@ -4,7 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
-use app\models\CoreModel;
+use app\core\CoreModel;
 
 /**
  * This is the model class for table "general_affair".
@@ -165,7 +165,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $generalAffairItems['items_change_log']['updated_at'] = $timestamp;
                 $generalAffairItems['items_change_log']['updated_by'] = $username;
             } else {
-                $generalAffairItems = array_merge(Yii::$app->params['items'], $value);
+                $generalAffairItems = array_merge(Yii::$app->params['defaultValue']['items'], $value);
                 $generalAffairItems['items_change_log']['created_at'] = $timestamp;
                 $generalAffairItems['items_change_log']['created_by'] = $username;
             }

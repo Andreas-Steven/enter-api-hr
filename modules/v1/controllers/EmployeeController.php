@@ -7,7 +7,7 @@ use yii\web\Response;
 use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
-use app\controllers\CoreController;
+use app\core\CoreController;
 use app\models\Employee;
 use app\models\search\EmployeeSearch;
 
@@ -21,7 +21,7 @@ class EmployeeController extends CoreController
 				'authenticator' => [
 					'class' => 'app\components\JwtBearerAuth',
 					'except' => [
-						Yii::$app->params['jwt']['authException'],
+						Yii::$app->params['jwt']['except'],
 					],
 					'role' => Yii::$app->params['codeApp'],
 				],
@@ -74,7 +74,7 @@ class EmployeeController extends CoreController
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::findModel(new Employee(), $params);
+		$model = CoreController::coreFindModel(new Employee(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -111,7 +111,7 @@ class EmployeeController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$model = CoreController::findModel(new Employee(), $params);
+		$model = CoreController::coreFindModel(new Employee(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();

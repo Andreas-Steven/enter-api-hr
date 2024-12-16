@@ -48,20 +48,20 @@ class m241129_065316_create_base_salary_table extends Migration
             'base_salary' => 5000000,
             'efective_date' => '2024-01-01',
             'status' => 1,
-            'detail_info' => json_encode([
+            'detail_info' => [
                 'employee' => [
                     'id' => 1,
                     'name' => 'Employee 1',
                 ],
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
                     'updated_by' => null,
                 ],
-            ]),
+            ],
         ]);
 
         $this->insert('{{%base_salary}}', [
@@ -69,20 +69,20 @@ class m241129_065316_create_base_salary_table extends Migration
             'base_salary' => 10000000,
             'efective_date' => '2024-01-01',
             'status' => 1,
-            'detail_info' => json_encode([
+            'detail_info' => [
                 'employee' => [
                     'id' => 2,
                     'name' => 'Employee 2',
                 ],
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
                     'updated_by' => null,
                 ],
-            ]),
+            ],
         ]);
     }
 

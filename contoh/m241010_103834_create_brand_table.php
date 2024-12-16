@@ -41,7 +41,7 @@ class m241010_103834_create_brand_table extends Migration
             'status' => 1,
             'detail_info' => json_encode([
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
@@ -57,7 +57,7 @@ class m241010_103834_create_brand_table extends Migration
             'status' => 1,
             'detail_info' => json_encode([
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,

@@ -54,16 +54,16 @@ class m241210_033942_create_employee_position_table extends Migration
             $this->insert('{{%employee_position}}', [
                 'name' => $position,
                 'status' => 1,
-                'detail_info' => json_encode([
+                'detail_info' => [
                     'change_log' => [
-                        'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                        'created_at' => gmdate(Yii::$app->params['UTC']),
                         'created_by' => 'system',
                         'deleted_at' => null,
                         'deleted_by' => null,
                         'updated_at' => null,
                         'updated_by' => null,
                     ],
-                ]),
+                ],
             ]);
         }
     }

@@ -99,18 +99,18 @@ class m241007_063531_create_attendance_table extends Migration
                 ],
             ],
             'status' => 3,
-            'detail_info' => json_encode([
+            'detail_info' => [
                 'dayoff' => false,
                 'blacklist' => [],
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
                     'updated_by' => null,
                 ],
-            ]),
+            ],
         ]);
 
         $this->insert('{{%attendance}}', [
@@ -170,18 +170,18 @@ class m241007_063531_create_attendance_table extends Migration
                 ],
             ],
             'status' => 1,
-            'detail_info' => json_encode([
+            'detail_info' => [
                 'dayoff' => false,
                 'blacklist' => [],
                 'change_log' => [
-                    'created_at' => gmdate('Y-m-d\TH:i:s\Z'),
+                    'created_at' => gmdate(Yii::$app->params['UTC']),
                     'created_by' => 'system',
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
                     'updated_by' => null,
                 ],
-            ]),
+            ],
         ]);
     }
 

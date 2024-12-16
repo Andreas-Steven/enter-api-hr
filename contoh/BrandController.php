@@ -7,7 +7,7 @@ use yii\web\Response;
 use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
-use app\controllers\CoreController;
+use app\core\CoreController;
 use app\models\search\BrandSearch;
 use app\models\Brand;
 
@@ -24,7 +24,7 @@ class BrandController extends CoreController
 				'authenticator' => [
 					'class' => 'app\components\JwtBearerAuth',
 					'except' => [
-						Yii::$app->params['jwt']['authException'],
+						Yii::$app->params['jwt']['except'],
 					],
 					'role' => Yii::$app->params['codeApp'],
 				],
@@ -75,7 +75,7 @@ class BrandController extends CoreController
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::findModel(new Brand(), $params);
+		$model = CoreController::coreFindModel(new Brand(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -112,7 +112,7 @@ class BrandController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$model = CoreController::findModel(new Brand(), $params);
+		$model = CoreController::coreFindModel(new Brand(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();

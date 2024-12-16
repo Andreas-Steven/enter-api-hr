@@ -7,7 +7,7 @@ use yii\web\Response;
 use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
-use app\controllers\CoreController;
+use app\core\CoreController;
 use app\models\EmployeePosition;
 use app\models\search\EmployeePositionSearch;
 
@@ -24,7 +24,7 @@ class EmployeePositionController extends CoreController
 				'authenticator' => [
 					'class' => 'app\components\JwtBearerAuth',
 					'except' => [
-						Yii::$app->params['jwt']['authException'],
+						Yii::$app->params['jwt']['except'],
 					],
 					'role' => Yii::$app->params['codeApp'],
 				],
@@ -75,7 +75,7 @@ class EmployeePositionController extends CoreController
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::findModel(new EmployeePosition(), $params);
+		$model = CoreController::coreFindModel(new EmployeePosition(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -112,7 +112,7 @@ class EmployeePositionController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$model = CoreController::findModel(new EmployeePosition(), $params);
+		$model = CoreController::coreFindModel(new EmployeePosition(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();

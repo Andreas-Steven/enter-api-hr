@@ -1,7 +1,11 @@
 <?php
 
 $params = require __DIR__ . '/params.php';
+$params_json = require __DIR__ . '/params_json.php';
 $db = require __DIR__ . '/db.php';
+// $mongodb = require __DIR__ . '/mongodb.php';
+
+$params = array_merge($params, $params_json);
 
 $config = [
     'id' => 'basic'.$params['extraCookies'],
@@ -17,13 +21,15 @@ $config = [
     'params' => $params,
     'components' => [
         'db' => $db,
+        // 'mongodb' => $mongodb,
         'coreAPI' => [
-            'class' => 'app\components\CoreAPI',
+            'class' => 'app\core\CoreAPI',
         ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'rHaRkLSi4OMU-_Gi8LBn0Fh8IcqrYJP7'.$params['extraCookies'],
-            'enableCookieValidation' => !YII_ENV_DEV,
+            // 'cookieValidationKey' => 'rHaRkLSi4OMU-_Gi8LBn0Fh8IcqrYJP7'.$params['extraCookies'],
+            'enableCsrfValidation' => $params['request']['enableCsrfValidation'],
+            'enableCookieValidation' => false,
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
             ]

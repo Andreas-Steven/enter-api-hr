@@ -23,8 +23,16 @@ class CustomErrorHandler extends ErrorHandler
                 'errors' => [],
             ];
 
-            if ($exception instanceof NotFoundHttpException) {
-                $response['message'] = 'The requested resource was not found.';
+            if (YII_ENV_DEV) {
+                $response['exception'] = get_class($exception);
+                $response['trace'] = $exception->getTraceAsString();
+                $response['previous'] = [
+                    'class' => $exception->getPrevious() ? get_class($exception->getPrevious()) : null,
+                    'message' => $exception->getPrevious() ? $exception->getPrevious()->getMessage() : null,
+                    'trace' => $exception->getPrevious() ? $exception->getPrevious()->getTraceAsString() : null,
+                    'code' => $exception->getPrevious() ? $exception->getPrevious()->getCode() : null,
+                    'file' => $exception->getPrevious() ? $exception->getPrevious()->getFile() : null,
+                ];
             }
 
             Yii::$app->response->data = $response;
@@ -34,7 +42,6 @@ class CustomErrorHandler extends ErrorHandler
                 'code' => 500,
                 'success' => false,
                 'message' => 'An unknown error occurred.',
-                'errors' => [],
             ];
             Yii::$app->response->statusCode = 500;
         }
