@@ -1,6 +1,8 @@
 <?php
 
-return [
+$params_json = require __DIR__ . '/params_json.php';
+
+return array_merge([
     'titleService' => 'enterkomputer-human-resource',
     'serviceVersion' => 'V1',
     'timeZone' => 'Asia/Jakarta',
@@ -51,4 +53,4 @@ return [
         'senderEmail' => 'noreply@example.com',
         'senderName' => 'Example.com mailer',
     ],
-];
+], $params_json);

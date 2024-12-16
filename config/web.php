@@ -1,11 +1,8 @@
 <?php
 
 $params = require __DIR__ . '/params.php';
-$params_json = require __DIR__ . '/params_json.php';
 $db = require __DIR__ . '/db.php';
 // $mongodb = require __DIR__ . '/mongodb.php';
-
-$params = array_merge($params, $params_json);
 
 $config = [
     'id' => 'basic'.$params['extraCookies'],
