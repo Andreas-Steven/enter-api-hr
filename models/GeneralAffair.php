@@ -214,6 +214,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 return;
             }
 
+            if (isset($generalAffairItems['image'])) {
+                $generalAffairItems['image'] = array_values($generalAffairItems['image']);
+            }
+
             $oldItem['items'][$generalAffairItems['code']] = $generalAffairItems;
         }
         
