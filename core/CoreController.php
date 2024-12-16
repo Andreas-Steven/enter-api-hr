@@ -7,7 +7,7 @@ use yii\rest\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\components\CustomException;
-use app\core\Constants;
+use app\helpers\Constants;
 
 class CoreController extends Controller
 {
@@ -94,8 +94,8 @@ class CoreController extends Controller
         return $response;
     }
 
-    public function corecoreFindModel($model, ?array $params): ?object
-    {
+    public function coreFindModel($model, ?array $params): ?object
+	{
         $where = $params;
         $id = isset($params['id']) ? $params['id'] : null;
 
@@ -103,15 +103,15 @@ class CoreController extends Controller
             $where = ['id' => $id];
         }
 
-        if (!empty($where)) {
-            $query = $model::find()->where($where);
-            if (($modelInstance = $query->one()) !== null) {
-                return $modelInstance;
-            }
-        }
+		if (!empty($where)) {
+			$query = $model::find()->where($where);
+			if (($modelInstance = $query->one()) !== null) {
+				return $modelInstance;
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 
     public function coreData($dataProvider): array
     {

@@ -5,8 +5,8 @@ return [
     'serviceVersion' => 'V1',
     'timeZone' => 'Asia/Jakarta',
     'extraCookies' => 'name-cookie-01',
+    // DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
     'codeApp' => 'enterHR',
-    'appRoles' => ['enterHR'],
     'defaultLanguage' => 'en',
     'UTC' => 'Y-m-d\TH:i:s\Z',
     'localTimestamp' => 'Y-m-d H:i:s',
@@ -23,8 +23,7 @@ return [
         'id' => 'sso-auth-v1',
         'request_time' => '+5 seconds',
         // DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
-        // 'except' => YII_ENV_DEV ? ['*'] : ['index'],
-        'except' => YII_ENV_DEV ? ['*'] : ['*'],
+        'except' => YII_ENV_DEV ? ['*'] : ['index'],
     ],
     'request' => [
         // DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
