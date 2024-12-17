@@ -73,28 +73,6 @@ class m241001_072940_create_general_affair_table extends Migration
                             'updated_at' => null,
                             'updated_by' => null,
                         ],
-                    ],
-                    'CAT1.LOC1.IJKLMNOP' => [
-                        'code' => 'CAT1.LOC1.IJKLMNOP',
-                        'image' => [],
-                        'price' => 75000,
-                        'division' => [
-                            'id' => 2,
-                            'name' => 'Teknologi Informasi',
-                        ],
-                        'tax_date' => null,
-                        'condition' => 4,
-                        'buying_date' => '2024-12-15',
-                        'description' => null,
-                        'inspection_date' => null,
-                        'items_change_log' => [
-                            'created_at' => gmdate(Yii::$app->params['UTC']),
-                            'created_by' => 'system',
-                            'deleted_at' => null,
-                            'deleted_by' => null,
-                            'updated_at' => null,
-                            'updated_by' => null,
-                        ]
                     ]
                 ],
                 'quantity' => 2,
