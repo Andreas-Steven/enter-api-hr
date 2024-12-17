@@ -162,6 +162,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 return;
             }
             
+            
             if (isset($oldItem['items'][$value['code']])) {
                 $generalAffairItems = array_merge($oldItem['items'][$value['code']], $value);
                 $generalAffairItems['items_change_log']['updated_at'] = $timestamp;
@@ -199,7 +200,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 return;
             }
             $generalAffairItems['division'] = ['id' => $division->id, 'name' => $division->name];
-    
+            
             $dateValidator = new \yii\validators\DateValidator(['format' => 'php:Y-m-d']);
             if (isset($generalAffairItems['buying_date']) && !$dateValidator->validate($generalAffairItems['buying_date'], $error)) {
                 $this->addError($attribute.'['.$key.'].items.buying_date', $error);
@@ -219,11 +220,12 @@ class GeneralAffair extends \yii\db\ActiveRecord
             if (isset($generalAffairItems['image'])) {
                 $generalAffairItems['image'] = array_values($generalAffairItems['image']);
             }
-
+            
             $oldItem['items'][$generalAffairItems['code']] = $generalAffairItems;
         }
         
         $this->$attribute = ['items' => $oldItem['items']];
+        var_dump('Masuk'); exit;
     }
     
     public function validateDeleted($attribute, $params, $validator)
@@ -259,6 +261,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function calculateItems($asset)
     {
+        
         $totalPrice = 0;
         $quantity = 0;
 
@@ -268,15 +271,17 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $quantity++;
             }
         }
-
+        
         $asset['quantity'] = $quantity;
         $asset['total_price'] = $totalPrice;
+        
 
         return $asset;
     }
 
     public function beforeSave($insert)
     {
+        
         if (parent::beforeSave($insert)) {
             $this->name = CoreModel::htmlPurifier($this->name);
             $this->asset = $this->calculateItems($this->asset);
