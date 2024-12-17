@@ -216,7 +216,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 return;
             }
 
-            if (isset($generalAffairItems['image'])) {
+            if (isset($generalAffairItems['image']) && is_array($generalAffairItems['image'])) {
+                $generalAffairItems['image'] = array_filter($generalAffairItems['image'], function($value) {
+                    return $value !== '[]';
+                });
                 $generalAffairItems['image'] = array_values($generalAffairItems['image']);
             }
             

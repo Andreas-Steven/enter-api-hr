@@ -52,8 +52,8 @@ class m241001_072940_create_general_affair_table extends Migration
             'location_id' => 1,
             'asset' => [
                 'items' => [
-                    'CAT1.LOC1.ABCD' => [
-                        'code' => 'CAT1.LOC1.ABCD',
+                    'CAT1.LOC1.ABCDEFGH' => [
+                        'code' => 'CAT1.LOC1.ABCDEFGH',
                         'image' => [],
                         'price' => 75000,
                         'division' => [
@@ -74,8 +74,8 @@ class m241001_072940_create_general_affair_table extends Migration
                             'updated_by' => null,
                         ],
                     ],
-                    'CAT1.LOC1.EFGH' => [
-                        'code' => 'CAT1.LOC1.EFGH',
+                    'CAT1.LOC1.IJKLMNOP' => [
+                        'code' => 'CAT1.LOC1.IJKLMNOP',
                         'image' => [],
                         'price' => 75000,
                         'division' => [
@@ -125,63 +125,63 @@ class m241001_072940_create_general_affair_table extends Migration
             ],
         ]);
 
-        $this->insert('{{%general_affair}}', [
-            'name' => 'Canon LBP6030',
-            'product_id' => 2,
-            'category_id' => 2,
-            'location_id' => 2,
-            'asset' => [
-                'items' => [
-                    'CAT2.LOC2.QWER' => [
-                        'code' => 'CAT2.LOC2.QWER',
-                        'image' => [],
-                        'price' => 1850000,
-                        'division' => [
-                            'id' => 2,
-                            'name' => 'Teknologi Informasi',
-                        ],
-                        'tax_date' => null,
-                        'condition' => 4,
-                        'buying_date' => '2024-11-20',
-                        'description' => null,
-                        'inspection_date' => null,
-                        'items_change_log' => [
-                            'created_at' => gmdate(Yii::$app->params['UTC']),
-                            'created_by' => 'system',
-                            'deleted_at' => null,
-                            'deleted_by' => null,
-                            'updated_at' => null,
-                            'updated_by' => null,
-                        ],
-                    ]
-                ],
-                'quantity' => 1,
-                'total_price' => 1850000,
-            ],
-            'status' => 1,
-            'detail_info' => [
-                'product' => [
-                    'id' => 2,
-                    'name' => 'Canon LBP6030',
-                ],
-                'category' => [
-                    'id' => 2,
-                    'name' => 'Elektronik',
-                ],
-                'location' => [
-                    'id' => 2,
-                    'name' => 'Ruko',
-                ],
-                'change_log' => [
-                    'created_at' => gmdate(Yii::$app->params['UTC']),
-                    'created_by' => 'system',
-                    'deleted_at' => null,
-                    'deleted_by' => null,
-                    'updated_at' => null,
-                    'updated_by' => null,
-                ],
-            ],
-        ]);
+        // $this->insert('{{%general_affair}}', [
+        //     'name' => 'Canon LBP6030',
+        //     'product_id' => 2,
+        //     'category_id' => 2,
+        //     'location_id' => 2,
+        //     'asset' => [
+        //         'items' => [
+        //             'CAT2.LOC2.QWER' => [
+        //                 'code' => 'CAT2.LOC2.QWERTYUI',
+        //                 'image' => [],
+        //                 'price' => 1850000,
+        //                 'division' => [
+        //                     'id' => 2,
+        //                     'name' => 'Teknologi Informasi',
+        //                 ],
+        //                 'tax_date' => null,
+        //                 'condition' => 4,
+        //                 'buying_date' => '2024-11-20',
+        //                 'description' => null,
+        //                 'inspection_date' => null,
+        //                 'items_change_log' => [
+        //                     'created_at' => gmdate(Yii::$app->params['UTC']),
+        //                     'created_by' => 'system',
+        //                     'deleted_at' => null,
+        //                     'deleted_by' => null,
+        //                     'updated_at' => null,
+        //                     'updated_by' => null,
+        //                 ],
+        //             ]
+        //         ],
+        //         'quantity' => 1,
+        //         'total_price' => 1850000,
+        //     ],
+        //     'status' => 1,
+        //     'detail_info' => [
+        //         'product' => [
+        //             'id' => 2,
+        //             'name' => 'Canon LBP6030',
+        //         ],
+        //         'category' => [
+        //             'id' => 2,
+        //             'name' => 'Elektronik',
+        //         ],
+        //         'location' => [
+        //             'id' => 2,
+        //             'name' => 'Ruko',
+        //         ],
+        //         'change_log' => [
+        //             'created_at' => gmdate(Yii::$app->params['UTC']),
+        //             'created_by' => 'system',
+        //             'deleted_at' => null,
+        //             'deleted_by' => null,
+        //             'updated_at' => null,
+        //             'updated_by' => null,
+        //         ],
+        //     ],
+        // ]);
     }
 
     /**
