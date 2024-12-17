@@ -259,7 +259,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function calculateItems($asset)
     {
-        var_dump('Masuk'); exit;
+        
         $totalPrice = 0;
         $quantity = 0;
 
@@ -269,7 +269,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $quantity++;
             }
         }
-        var_dump('Masuk'); exit;
+        
         $asset['quantity'] = $quantity;
         $asset['total_price'] = $totalPrice;
         
@@ -279,7 +279,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function beforeSave($insert)
     {
-        var_dump('Masuk'); exit;
+        
         if (parent::beforeSave($insert)) {
             $this->name = CoreModel::htmlPurifier($this->name);
             $this->asset = $this->calculateItems($this->asset);
