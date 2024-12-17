@@ -37,7 +37,7 @@ class GeneralAffairSearch extends GeneralAffair
         return array_merge(
             [
                 [['code', 'name'], 'string'],
-                [['id', 'category_id', 'location_id', 'status'], 'integer'],
+                [['id', 'product_id', 'category_id', 'location_id', 'status'], 'integer'],
                 [['date_min', 'date_max'], 'date', 'format' => 'php:Y-m-d'],
                 [['min_price', 'max_price'], 'filter', 'filter' => 'floatval'],
                 [['asset', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
@@ -86,6 +86,7 @@ class GeneralAffairSearch extends GeneralAffair
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
+            'product_id' => $this->product_id,
             'category_id' => $this->category_id,
             'location_id' => $this->location_id,
         ]);
