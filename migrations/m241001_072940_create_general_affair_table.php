@@ -75,8 +75,8 @@ class m241001_072940_create_general_affair_table extends Migration
                         ],
                     ]
                 ],
-                'quantity' => 2,
-                'total_price' => 150000,
+                'quantity' => 1,
+                'total_price' => 75000,
             ],
             'status' => 1,
             'detail_info' => [
