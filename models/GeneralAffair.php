@@ -131,7 +131,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 'id' => $this->$attribute,
                 'status' => Constants::STATUS_ACTIVE
             ])->one();
-            
         }
         
         if ($location === null) {
@@ -225,7 +224,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
         }
         
         $this->$attribute = ['items' => $oldItem['items']];
-        var_dump('Masuk'); exit;
     }
     
     public function validateDeleted($attribute, $params, $validator)
@@ -261,7 +259,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function calculateItems($asset)
     {
-        
         $totalPrice = 0;
         $quantity = 0;
 
@@ -275,13 +272,11 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $asset['quantity'] = $quantity;
         $asset['total_price'] = $totalPrice;
         
-
         return $asset;
     }
 
     public function beforeSave($insert)
     {
-        
         if (parent::beforeSave($insert)) {
             $this->name = CoreModel::htmlPurifier($this->name);
             $this->asset = $this->calculateItems($this->asset);
