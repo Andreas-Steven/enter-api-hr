@@ -28,12 +28,8 @@ class GeneralAffairSearch extends GeneralAffair
     // Filtering variables
     public $name;
     public $code;
+    public $price;
     public $buying_date;
-
-    // public $min_price;
-    // public $max_price;
-    // public $date_min;
-    // public $date_max;
 
     public function rules()
     {
@@ -41,10 +37,7 @@ class GeneralAffairSearch extends GeneralAffair
             [
                 [['code', 'name'], 'string'],
                 [['id', 'product_id', 'category_id', 'location_id', 'status'], 'integer'],
-                [['asset', 'buying_date', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
-                
-                // [['date_min', 'date_max'], 'date', 'format' => 'php:Y-m-d'],
-                // [['min_price', 'max_price'], 'filter', 'filter' => 'floatval'],
+                [['asset', 'buying_date', 'price', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -119,61 +112,49 @@ class GeneralAffairSearch extends GeneralAffair
                     FROM jsonb_each(general_affair.asset->'items') AS items_record(key, value)
                     WHERE value->'items_change_log'->>'deleted_at' IS NULL
                 )")
-            ]);
+            ]); 
         }
 
         // Date range filtering
+        $dateConditions = [];
         if (isset($this->buying_date) && !empty($this->buying_date)) {
             if (strpos($this->buying_date, ',') !== false) {
                 list($startDate, $endDate) = array_map('trim', explode(',', $this->buying_date));
-    
-                $query->andWhere(new \yii\db\Expression("
-                    EXISTS (
-                        SELECT 1
-                        FROM jsonb_each(asset->'items') AS item(key, value)
-                        WHERE (value->>'buying_date')::date BETWEEN :start_date AND :end_date
-                    )
-                ", [':start_date' => $startDate, ':end_date' => $endDate]));
+                !empty($startDate) ? $dateConditions[] = "(value->>'buying_date')::date >= :startDate" : null;
+                !empty($endDate) ? $dateConditions[] = "(value->>'buying_date')::date <= :endDate" : null;
+                !empty($startDate) ? $query->addParams([':startDate' => $startDate]) : null;
+                !empty($endDate) ? $query->addParams([':endDate' => $endDate]) : null;
             } else {
-                $query->andWhere(new \yii\db\Expression("
-                    EXISTS (
-                        SELECT 1
-                        FROM jsonb_each(asset->'items') AS item(key, value)
-                        WHERE (value->>'buying_date')::date = :buying_date
-                    )
-                ", [':buying_date' => $this->buying_date]));
+                $dateConditions[] = "(value->>'buying_date')::date = :buying_date";
+                $query->addParams([':buying_date' => $this->buying_date]);
             }
         }
 
-        // Filter for price range
-        // $priceConditions = [];
-        // !empty($this->min_price) ? $priceConditions[] = "(value->>'price')::numeric >= :min_price" : null;
-        // !empty($this->max_price) ? $priceConditions[] = "(value->>'price')::numeric <= :max_price" : null;
-        // if ($priceConditions) {
-        //     $query->andWhere(new \yii\db\Expression("(
-        //         SELECT COUNT(*)
-        //         FROM jsonb_each(general_affair.asset->'items') AS items_record(key, value)
-        //         WHERE " . implode(' AND ', $priceConditions) . "
-        //         AND value->'items_change_log'->>'deleted_at' IS NULL
-        //     ) > 0"));
-        //     !empty($this->min_price) ? $query->addParams([':min_price' => $this->min_price]) : null;
-        //     !empty($this->max_price) ? $query->addParams([':max_price' => $this->max_price]) : null;
-        // }
+        // Price range filtering
+        $priceConditions = [];
+        if (isset($this->price) && !empty($this->price)) {
+            if (strpos($this->price, ',') !== false) {
+                list($priceMin, $priceMax) = array_map('trim', explode(',', $this->price));
+                !empty($priceMin) ? $priceConditions[] = "(value->>'price')::numeric >= :priceMin" : null;
+                !empty($priceMax) ? $priceConditions[] = "(value->>'price')::numeric <= :priceMax" : null;
+                !empty($priceMin) ? $query->addParams([':priceMin' => $priceMin]) : null;
+                !empty($priceMax) ? $query->addParams([':priceMax' => $priceMax]) : null;
+            } else {
+                $priceConditions[] = "(value->>'price')::numeric = :price";
+                $query->addParams([':price' => $this->price]);
+            }
+        }
 
-        // Filter for date range
-        // $dateConditions = [];
-        // !empty($this->date_min) ? $dateConditions[] = "(value->>'buying_date')::date >= :date_min" : null;
-        // !empty($this->date_max) ? $dateConditions[] = "(value->>'buying_date')::date <= :date_max" : null;
-        // if ($dateConditions) {
-        //     $query->andWhere(new \yii\db\Expression("(
-        //         SELECT COUNT(*)
-        //         FROM jsonb_each(general_affair.asset->'items') AS items_record(key, value)
-        //         WHERE " . implode(' AND ', $dateConditions) . "
-        //         AND value->'items_change_log'->>'deleted_at' IS NULL
-        //     ) > 0"));
-        //     !empty($this->date_min) ? $query->addParams([':date_min' => $this->date_min]) : null;
-        //     !empty($this->date_max) ? $query->addParams([':date_max' => $this->date_max]) : null;
-        // }
+        $conditions = array_merge($dateConditions, $priceConditions);
+
+        if ($conditions) {
+            $query->andWhere(new \yii\db\Expression("(
+                SELECT COUNT(*)
+                FROM jsonb_each(general_affair.asset->'items') AS items_record(key, value)
+                WHERE " . implode(' AND ', $conditions) . "
+                AND value->'items_change_log'->>'deleted_at' IS NULL
+            ) > 0"));
+        }
 
         $dataProvider->setPagination(
             CoreModel::setPagination($params, $dataProvider)
