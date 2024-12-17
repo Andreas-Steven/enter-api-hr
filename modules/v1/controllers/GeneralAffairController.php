@@ -146,10 +146,10 @@ class GeneralAffairController extends CoreController
 		}
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
+			if ($coreEmptyParams = CoreController::coreEmptyParams($model) && isset($params['status'])) {
                 return $coreEmptyParams;
             }
-
+ 
 			if ($model->save()) {
 				return CoreController::coreSuccess($model);
 			}

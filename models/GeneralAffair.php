@@ -237,10 +237,9 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
         if (!empty($this->code) && is_array($oldData['asset']) && array_key_exists('items', $oldData['asset'])) {
             if (in_array($this->code, $itemCodes, true)) {
-                var_dump($this->code, $itemCodes); exit;
                 $oldData['asset']['items'][$this->code]['items_change_log']['deleted_at'] = $timestamp;
-                $oldData['asset']['items'][$this->code]['items_change_log']['deleted_by'] = $username ?? 'Admin';
-
+                $oldData['asset']['items'][$this->code]['items_change_log']['deleted_by'] = $username ?? 'system';
+                
                 $this->setAttribute('asset', $oldData['asset']);
                 return true;
             }

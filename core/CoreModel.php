@@ -114,7 +114,7 @@ class CoreModel
     }
 
     public static function validateDependencies($attribute, $params, $validator, $model, array $dependencies): void
-    {
+    {	
         if (!$model->isNewRecord) {
             $changedAttributes = [];
             $fields = Yii::$app->params['restrictUpdate'][$model->tableName()];
