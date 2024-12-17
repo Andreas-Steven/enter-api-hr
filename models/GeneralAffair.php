@@ -262,16 +262,16 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function calculateItems($asset)
     {
-        $totalPrice = 0;
-        $quantity = 0;
+        $filteredItems = array_filter($asset['items'], function($value) {
+            return is_array($value) && array_key_exists('price', $value) && $value['items_change_log']['deleted_at'] === null;
+        });
 
-        foreach ($asset['items'] as $key => $value) {
-            if (is_array($value) && array_key_exists('price', $value) && $value['items_change_log']['deleted_at'] === null) {
-                $totalPrice += $value['price'];
-                $quantity++;
-            }
-        }
-        
+        $totalPrice = array_sum(array_map(function($value) {
+            return $value['price'];
+        }, $filteredItems));
+
+        $quantity = count($filteredItems);
+
         $asset['quantity'] = $quantity;
         $asset['total_price'] = $totalPrice;
         

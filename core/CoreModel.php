@@ -117,7 +117,7 @@ class CoreModel
     {	
         if (!$model->isNewRecord) {
             $changedAttributes = [];
-            $fields = Yii::$app->params['restrictUpdate'][$model->tableName()];
+            $fields = Yii::$app->params['dependenciesUpdate'][$model->tableName()];
             $disallowedStatusUpdate = Constants::disallowedStatusUpdate();
 
             foreach ($fields as $field) {

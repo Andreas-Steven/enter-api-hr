@@ -94,7 +94,7 @@ $params['allowedFields'] = [
 /**
  * checking table field if already used in another table for update action.
  */
-$params['restrictUpdate'] = [
+$params['dependenciesUpdate'] = [
     // 'vendor' => ['name', 'status'],
     'general_affair_product' => ['name', 'status'],
     'general_affair_location' => ['name', 'status'],
