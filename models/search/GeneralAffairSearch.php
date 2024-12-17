@@ -101,6 +101,41 @@ class GeneralAffairSearch extends GeneralAffair
                 ->andWhere(new \yii\db\Expression("value->'items_change_log'->>'deleted_at' IS NULL"))
                 ->groupBy(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info']);
         } else {
+            // Date range filtering
+            $dateConditions = [];
+
+            if (isset($this->buying_date) && !empty($this->buying_date)) {
+                if (strpos($this->buying_date, ',') !== false) {
+                    list($startDate, $endDate) = array_map('trim', explode(',', $this->buying_date));
+                    !empty($startDate) ? $dateConditions[] = "(value->>'buying_date')::date >= :startDate" : null;
+                    !empty($endDate) ? $dateConditions[] = "(value->>'buying_date')::date <= :endDate" : null;
+                    !empty($startDate) ? $query->addParams([':startDate' => $startDate]) : null;
+                    !empty($endDate) ? $query->addParams([':endDate' => $endDate]) : null;
+                } else {
+                    $dateConditions[] = "(value->>'buying_date')::date = :buying_date";
+                    $query->addParams([':buying_date' => $this->buying_date]);
+                }
+            }
+
+            // Price range filtering
+            $priceConditions = [];
+
+            if (isset($this->price) && !empty($this->price)) {
+                if (strpos($this->price, ',') !== false) {
+                    list($priceMin, $priceMax) = array_map('trim', explode(',', $this->price));
+                    !empty($priceMin) ? $priceConditions[] = "(value->>'price')::numeric >= :priceMin" : null;
+                    !empty($priceMax) ? $priceConditions[] = "(value->>'price')::numeric <= :priceMax" : null;
+                    !empty($priceMin) ? $query->addParams([':priceMin' => $priceMin]) : null;
+                    !empty($priceMax) ? $query->addParams([':priceMax' => $priceMax]) : null;
+                } else {
+                    $priceConditions[] = "(value->>'price')::numeric = :price";
+                    $query->addParams([':price' => $this->price]);
+                }
+            }
+
+            // Combine date and price conditions
+            $conditions = array_merge($dateConditions, $priceConditions);
+
             $query->addSelect([
                 '*',
                 'asset' => new \yii\db\Expression("(
@@ -110,50 +145,9 @@ class GeneralAffairSearch extends GeneralAffair
                         'total_price', (general_affair.asset->>'total_price')::numeric
                     )
                     FROM jsonb_each(general_affair.asset->'items') AS items_record(key, value)
-                    WHERE value->'items_change_log'->>'deleted_at' IS NULL
+                    WHERE " . (count($conditions) ? implode(' AND ', $conditions) . ' AND ' : '') . "value->'items_change_log'->>'deleted_at' IS NULL
                 )")
-            ]); 
-        }
-
-        // Date range filtering
-        $dateConditions = [];
-        if (isset($this->buying_date) && !empty($this->buying_date)) {
-            if (strpos($this->buying_date, ',') !== false) {
-                list($startDate, $endDate) = array_map('trim', explode(',', $this->buying_date));
-                !empty($startDate) ? $dateConditions[] = "(value->>'buying_date')::date >= :startDate" : null;
-                !empty($endDate) ? $dateConditions[] = "(value->>'buying_date')::date <= :endDate" : null;
-                !empty($startDate) ? $query->addParams([':startDate' => $startDate]) : null;
-                !empty($endDate) ? $query->addParams([':endDate' => $endDate]) : null;
-            } else {
-                $dateConditions[] = "(value->>'buying_date')::date = :buying_date";
-                $query->addParams([':buying_date' => $this->buying_date]);
-            }
-        }
-
-        // Price range filtering
-        $priceConditions = [];
-        if (isset($this->price) && !empty($this->price)) {
-            if (strpos($this->price, ',') !== false) {
-                list($priceMin, $priceMax) = array_map('trim', explode(',', $this->price));
-                !empty($priceMin) ? $priceConditions[] = "(value->>'price')::numeric >= :priceMin" : null;
-                !empty($priceMax) ? $priceConditions[] = "(value->>'price')::numeric <= :priceMax" : null;
-                !empty($priceMin) ? $query->addParams([':priceMin' => $priceMin]) : null;
-                !empty($priceMax) ? $query->addParams([':priceMax' => $priceMax]) : null;
-            } else {
-                $priceConditions[] = "(value->>'price')::numeric = :price";
-                $query->addParams([':price' => $this->price]);
-            }
-        }
-
-        $conditions = array_merge($dateConditions, $priceConditions);
-
-        if ($conditions) {
-            $query->andWhere(new \yii\db\Expression("(
-                SELECT COUNT(*)
-                FROM jsonb_each(general_affair.asset->'items') AS items_record(key, value)
-                WHERE " . implode(' AND ', $conditions) . "
-                AND value->'items_change_log'->>'deleted_at' IS NULL
-            ) > 0"));
+            ]);
         }
 
         $dataProvider->setPagination(

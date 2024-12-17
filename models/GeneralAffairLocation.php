@@ -27,9 +27,15 @@ class GeneralAffairLocation extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
-                [['name'], 'string', 'max' => 255],
-                [['detail_info'], 'safe'],
                 [['name'], 'required'],
+                [['detail_info'], 'safe'],
+                [['name'], 'string', 'max' => 255],
+
+                [['name', 'status'], function ($attribute, $params, $validator) {
+                    CoreModel::validateDependencies($attribute, $params, $validator, $this, [
+                        ['className' => 'GeneralAffair', 'field' => ['location_id']],
+                    ]);
+                }, 'on' => Constants::scenarioUpdate()],
             ],
             CoreModel::getStatusRules($this)
         );

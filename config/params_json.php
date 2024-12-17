@@ -96,6 +96,9 @@ $params['allowedFields'] = [
  */
 $params['restrictUpdate'] = [
     // 'vendor' => ['name', 'status'],
+    'general_affair_product' => ['name', 'status'],
+    'general_affair_location' => ['name', 'status'],
+    'general_affair_category' => ['name', 'status'],
 
 ];
 

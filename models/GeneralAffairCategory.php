@@ -30,7 +30,12 @@ class GeneralAffairCategory extends \yii\db\ActiveRecord
                 [['name'], 'required'],
                 [['detail_info'], 'safe'],
                 [['name'], 'string', 'max' => 255],
-                [['status'], 'default', 'value' => 2],
+
+                [['name', 'status'], function ($attribute, $params, $validator) {
+                    CoreModel::validateDependencies($attribute, $params, $validator, $this, [
+                        ['className' => 'GeneralAffair', 'field' => ['category_id']],
+                    ]);
+                }, 'on' => Constants::scenarioUpdate()],
             ],
             CoreModel::getStatusRules($this)
         );
