@@ -40,16 +40,17 @@ class GeneralAffair extends \yii\db\ActiveRecord
             [
                 [['asset', 'code'], 'safe'],
                 [['name'], 'string', 'max' => 255],
+                [['detail_info', 'asset'], 'safe'],
+
                 [['product_id', 'category_id', 'location_id'], 'integer'],
                 [['product_id', 'category_id', 'location_id'], 'required'],
-                [['detail_info', 'asset'], 'safe', 'skipOnEmpty' => true],
                 [['product_id', 'category_id', 'location_id'], 'filter', 'filter' => 'intval'],
                 
+                [['product_id'], 'validateProduct'],
+                [['category_id'], 'validateCategory'],
+                [['location_id'], 'validateLocation'],
                 [['asset'], 'validateItem', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'status'], 'validateDeleted', 'on' => Constants::SCENARIO_DELETE],
-                [['product_id'], 'validateProduct'],
-                [['category_id'], 'validateCategory', 'skipOnEmpty' => true],
-                [['location_id'], 'validateLocation', 'skipOnEmpty' => true],
             ],
             CoreModel::getStatusRules($this)
         );
@@ -91,10 +92,11 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 'status' => Constants::STATUS_ACTIVE
             ])->one();
 
-            if ($product === null) {
-                $this->addError($attribute, 'Product not found');
-                return;
-            }
+        }
+        
+        if ($product === null) {
+            $this->addError($attribute, 'Product not found');
+            return;
         }
 
         $this->product = ['id' => $product['id'], 'name' => $product['name']];
@@ -110,11 +112,11 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 'id' => $this->$attribute,
                 'status' => Constants::STATUS_ACTIVE
             ])->one();
+        }
 
-            if ($category === null) {
-                $this->addError($attribute, 'Category not found');
-                return;
-            }
+        if ($category === null) {
+            $this->addError($attribute, 'Category not found');
+            return;
         }
 
         $this->category = ['id' => $category['id'], 'name' => $category['name']];
@@ -130,12 +132,12 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 'status' => Constants::STATUS_ACTIVE
             ])->one();
             
-            if ($location === null) {
-                $this->addError($attribute, 'Location not found');
-                return;
-            }
         }
-
+        
+        if ($location === null) {
+            $this->addError($attribute, 'Location not found');
+            return;
+        }
 
         $this->location = ['id' => $location['id'], 'name' => $location['name']];
     }
