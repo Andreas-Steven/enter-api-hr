@@ -98,29 +98,29 @@ class GeneralAffairSearch extends GeneralAffair
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
 
         // Filter for code and deleted_at
-        // if (!empty($this->code)) {
-        //     $query->select([
-        //             'id', 'name', 'category_id', 'location_id', 'status', 'detail_info',
-        //             'asset' => new \yii\db\Expression("jsonb_build_object('items', jsonb_object_agg(key, value))")
-        //         ])
-        //         ->from(['general_affair', new \yii\db\Expression("jsonb_each(asset->'items') AS items_record(key, value)")])
-        //         ->andWhere(['key' => $this->code])
-        //         ->andWhere(new \yii\db\Expression("value->'items_change_log'->>'deleted_at' IS NULL"))
-        //         ->groupBy(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info']);
-        // } else {
-        //     $query->addSelect([
-        //         '*',
-        //         'asset' => new \yii\db\Expression("(
-        //             SELECT jsonb_build_object(
-        //                 'items', jsonb_object_agg(key, value),
-        //                 'quantity', (general_affair.asset->>'quantity')::integer,
-        //                 'total_price', (general_affair.asset->>'total_price')::numeric
-        //             )
-        //             FROM jsonb_each(general_affair.asset->'items') AS items_record(key, value)
-        //             WHERE value->'items_change_log'->>'deleted_at' IS NULL
-        //         )")
-        //     ]);
-        // }
+        if (!empty($this->code)) {
+            $query->select([
+                    'id', 'name', 'category_id', 'location_id', 'status', 'detail_info',
+                    'asset' => new \yii\db\Expression("jsonb_build_object('items', jsonb_object_agg(key, value))")
+                ])
+                ->from(['general_affair', new \yii\db\Expression("jsonb_each(asset->'items') AS items_record(key, value)")])
+                ->andWhere(['key' => $this->code])
+                ->andWhere(new \yii\db\Expression("value->'items_change_log'->>'deleted_at' IS NULL"))
+                ->groupBy(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info']);
+        } else {
+            $query->addSelect([
+                '*',
+                'asset' => new \yii\db\Expression("(
+                    SELECT jsonb_build_object(
+                        'items', jsonb_object_agg(key, value),
+                        'quantity', (general_affair.asset->>'quantity')::integer,
+                        'total_price', (general_affair.asset->>'total_price')::numeric
+                    )
+                    FROM jsonb_each(general_affair.asset->'items') AS items_record(key, value)
+                    WHERE value->'items_change_log'->>'deleted_at' IS NULL
+                )")
+            ]);
+        }
 
         // Date range filtering
         if (isset($this->buying_date) && !empty($this->buying_date)) {
