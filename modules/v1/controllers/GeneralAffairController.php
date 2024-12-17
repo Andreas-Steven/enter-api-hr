@@ -62,7 +62,7 @@ class GeneralAffairController extends CoreController
 		$existingModel = $model::findOne([
 			'product_id' => $params['product_id'],
 			'location_id' => $params['location_id'],
-			// 'status' => Constants::STATUS_ACTIVE,
+			'status' => [Constants::STATUS_ACTIVE, Constants::STATUS_DRAFT],
 		]);
 
 		if ($existingModel !== null) {
