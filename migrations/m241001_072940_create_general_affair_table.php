@@ -52,8 +52,8 @@ class m241001_072940_create_general_affair_table extends Migration
             'location_id' => 1,
             'asset' => [
                 'items' => [
-                    'KAT1LOC1ABC' => [
-                        'code' => 'KAT1LOC1ABC',
+                    'CAT1.LOC1.ABCD' => [
+                        'code' => 'CAT1.LOC1.ABCD',
                         'image' => [],
                         'price' => 75000,
                         'division' => [
@@ -62,7 +62,7 @@ class m241001_072940_create_general_affair_table extends Migration
                         ],
                         'tax_date' => null,
                         'condition' => 4,
-                        'buying_date' => '2024-11-20',
+                        'buying_date' => '2024-11-15',
                         'description' => null,
                         'inspection_date' => null,
                         'items_change_log' => [
@@ -74,8 +74,8 @@ class m241001_072940_create_general_affair_table extends Migration
                             'updated_by' => null,
                         ],
                     ],
-                    'KAT1LOC1DEF' => [
-                        'code' => 'KAT1LOC1DEF',
+                    'CAT1.LOC1.EFGH' => [
+                        'code' => 'CAT1.LOC1.EFGH',
                         'image' => [],
                         'price' => 75000,
                         'division' => [
@@ -84,7 +84,7 @@ class m241001_072940_create_general_affair_table extends Migration
                         ],
                         'tax_date' => null,
                         'condition' => 4,
-                        'buying_date' => '2024-11-20',
+                        'buying_date' => '2024-12-15',
                         'description' => null,
                         'inspection_date' => null,
                         'items_change_log' => [
@@ -94,7 +94,7 @@ class m241001_072940_create_general_affair_table extends Migration
                             'deleted_by' => null,
                             'updated_at' => null,
                             'updated_by' => null,
-                        ],
+                        ]
                     ]
                 ],
                 'quantity' => 2,
@@ -132,8 +132,8 @@ class m241001_072940_create_general_affair_table extends Migration
             'location_id' => 2,
             'asset' => [
                 'items' => [
-                    'KAT2LOC2ZXC' => [
-                        'code' => 'KAT2LOC2ZXC',
+                    'CAT2.LOC2.QWER' => [
+                        'code' => 'CAT2.LOC2.QWER',
                         'image' => [],
                         'price' => 1850000,
                         'division' => [
