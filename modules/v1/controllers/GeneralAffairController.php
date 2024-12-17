@@ -68,8 +68,11 @@ class GeneralAffairController extends CoreController
 		if ($existingModel !== null) {
 			$model = $existingModel;
 		}
+		
+		if ($existingModel === null) {
+			$params['status'] = Constants::STATUS_DRAFT;
+		}
 
-		$params['status'] = Constants::STATUS_DRAFT;
 		$model->scenario = Constants::SCENARIO_CREATE;
 
 		if ($model->load($params, '') && $model->validate()) {
