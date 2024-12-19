@@ -24,6 +24,7 @@ class AttendanceSearch extends Attendance
     
     public $employee_name;
     public $employee_id;
+    // public $date;
 
     public function rules()
     {
@@ -31,7 +32,9 @@ class AttendanceSearch extends Attendance
             [
                 [['id', 'status','employee_id'], 'integer'],
                 [['employee_name'], 'string'],
-                [['date'], 'date', 'format' => 'Y-m-d'],
+                [['date'], 'safe'],
+                // [['date'], 'date'],
+                // [['date'], 'date', 'format' => 'php:Y-m-d'],
                 [['attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
@@ -69,40 +72,37 @@ class AttendanceSearch extends Attendance
             // $query->where('0=1');
             return $dataProvider;
         }
-
+        
         // add conditions that should always apply here
         // grid filtering conditions
-
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
             'date' => $this->date,
         ]);
-
+        
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
       
-        /* Employee name or id filtering */
-        /*
-        if ($this->employee_name || $this->employee_id) {
-            $query->addSelect([
-                '*',
-                'attendance' => new \yii\db\Expression( "(
-                    WITH attendance_elements AS (
-                        SELECT key, value
-                        FROM jsonb_each(attendance)
-                        WHERE (value->>'employee_id')::int = :employee_id 
-                        OR (value->>'employee_name')::text ILIKE :employee_name
-                    )
-                    SELECT jsonb_object_agg(key, value)
-                    FROM attendance_elements)",
-                    [
-                        ':employee_id' => $this->employee_id,
-                        ':employee_name' => $this->employee_name,
-                    ]
-                )
-            ]);
-        }
-        */
+        /* EMPLOYEE NAME OR ID FILTERING */
+        // if ($this->employee_name || $this->employee_id) {
+        //     $query->addSelect([
+        //         '*',
+        //         'attendance' => new \yii\db\Expression( "(
+        //             WITH attendance_elements AS (
+        //                 SELECT key, value
+        //                 FROM jsonb_each(attendance)
+        //                 WHERE (value->>'employee_id')::int = :employee_id 
+        //                 OR (value->>'employee_name')::text ILIKE :employee_name
+        //             )
+        //             SELECT jsonb_object_agg(key, value)
+        //             FROM attendance_elements)",
+        //             [
+        //                 ':employee_id' => $this->employee_id,
+        //                 ':employee_name' => $this->employee_name,
+        //             ]
+        //         )
+        //     ]);
+        // }
 
         $dataProvider->setPagination(
             CoreModel::setPagination($params, $dataProvider)
