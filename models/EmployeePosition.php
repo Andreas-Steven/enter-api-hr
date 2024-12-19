@@ -30,6 +30,12 @@ class EmployeePosition extends \yii\db\ActiveRecord
                 [['name'], 'required'],
                 [['detail_info'], 'safe'],
                 [['name'], 'string', 'max' => 255],
+
+                [['name', 'status'], function ($attribute, $params, $validator) {
+                    CoreModel::validateDependencies($attribute, $params, $validator, $this, [
+                        ['className' => 'Employee', 'field' => ['position_id']],
+                    ]);
+                }, 'on' => Constants::scenarioUpdate()],
             ], 
             CoreModel::getStatusRules($this)
         );
