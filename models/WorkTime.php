@@ -30,9 +30,9 @@ class WorkTime extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['name'], 'string', 'max' => 255],
-                [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
-                [['name', 'entry_time', 'home_time'], 'required'],
                 [['working_days', 'detail_info'], 'safe'],
+                [['name', 'entry_time', 'home_time'], 'required'],
+                [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
             ],
             CoreModel::getStatusRules($this)
         );

@@ -80,6 +80,29 @@ class AttendanceSearch extends Attendance
         ]);
 
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
+      
+        /* Employee name or id filtering */
+        /*
+        if ($this->employee_name || $this->employee_id) {
+            $query->addSelect([
+                '*',
+                'attendance' => new \yii\db\Expression( "(
+                    WITH attendance_elements AS (
+                        SELECT key, value
+                        FROM jsonb_each(attendance)
+                        WHERE (value->>'employee_id')::int = :employee_id 
+                        OR (value->>'employee_name')::text ILIKE :employee_name
+                    )
+                    SELECT jsonb_object_agg(key, value)
+                    FROM attendance_elements)",
+                    [
+                        ':employee_id' => $this->employee_id,
+                        ':employee_name' => $this->employee_name,
+                    ]
+                )
+            ]);
+        }
+        */
 
         $dataProvider->setPagination(
             CoreModel::setPagination($params, $dataProvider)
