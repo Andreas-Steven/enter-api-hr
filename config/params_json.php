@@ -4,6 +4,7 @@
  * is default value for json fields in model
  */
 $params['defaultValue'] = [
+    /* Example */
     // 'vendor' => [
     //     'address' => null,
     //     'pic' => [
@@ -95,17 +96,29 @@ $params['allowedFields'] = [
  * checking table field if already used in another table for update action.
  */
 $params['dependenciesUpdate'] = [
+    /* Example */
     // 'vendor' => ['name', 'status'],
+
+    /* Employee Module */
+    'division' => ['code', 'name', 'status'],
+    'employee_position' => ['name', 'status'],
+    'employee_type' => ['name', 'status'],
+
+    /* General Affair Module */
     'general_affair_product' => ['name', 'status'],
     'general_affair_location' => ['name', 'status'],
     'general_affair_category' => ['name', 'status'],
 
+    /* Attendance Module */
+    'work_time' => ['entry_time', 'home_time', 'status'],
+    'employee' => ['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'sso_id', 'status'],
 ];
 
 /**
  * any prefix for table field unique data.
  */
 $params['prefix'] = [
+    /* Example */
     // 'purchase' => "PO",
 ];
 

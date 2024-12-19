@@ -55,6 +55,12 @@ class Employee extends \yii\db\ActiveRecord
                 [['birth_date', 'date_start', 'date_resign', 'system_date'], 'date', 'format' => 'php:Y-m-d', 'when' => function($model, $attribute) { 
                     return $model->$attribute !== null && isset($model->$attribute); }
                 ],
+
+                [['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'sso_id', 'status'], function ($attribute, $params, $validator) {
+                    CoreModel::validateDependencies($attribute, $params, $validator, $this, [
+                        ['className' => 'UserAttendance', 'field' => ['employee_id']],
+                    ]);
+                }, 'on' => Constants::scenarioUpdate()],
                 
                 [['contact'], 'validateContact'],
                 [['division_id'], 'validateDivision'], 
