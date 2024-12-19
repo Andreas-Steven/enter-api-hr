@@ -28,6 +28,8 @@ class CoreConstants
         '<>', 'status', self::STATUS_DELETED
     ];
 
+    const DEVICE_APP = 'APP';
+
     public static function scenarioUpdate() {
         return [
             self::SCENARIO_UPDATE, self::SCENARIO_DELETE

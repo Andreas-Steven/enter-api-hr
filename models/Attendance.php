@@ -279,14 +279,17 @@ class Attendance extends \yii\db\ActiveRecord
                 }
             }
 
-            // var_dump('employeeAttendance[location]: ', $employeeAttendance['location']);
             $entryLocation = $employeeAttendance['location']['entry'] ?? null;
             $homeLocation = $employeeAttendance['location']['home'] ?? null;
-            // var_dump('homeLocation: ', $homeLocation);
+            
+            /* UNCOMMENT THIS IF LOCATION IMAGE IS ARRAY */
+            // if (isset($employeeAttendance['location']['image']) && !empty($employeeAttendance['location']['image'])) {
+            //     $employeeAttendance['location']['image'] = array_values($employeeAttendance['location']['image']);
+            // }
 
             $temp_location = [
                 'entry' => $entryLocation,
-                'home' => $homeLocation,
+                'home' => $homeLocation
             ];
             
             if (isset($value['location']) || !empty($value['location'])) {
@@ -301,7 +304,6 @@ class Attendance extends \yii\db\ActiveRecord
                     $temp_location['home'] = $value['location'] ?? null;
                 }
         
-                // var_dump('temp_location: ', $temp_location);
                 $employeeAttendance['location'] = $temp_location;
             } else {
                 $employeeAttendance['location'] = null;
@@ -352,7 +354,6 @@ class Attendance extends \yii\db\ActiveRecord
                 'blacklist' => $this->detail_info['blacklist'] ?? [],
             ]);
 
-            // var_dump('beforeSave');
             return true;
         }
     
