@@ -2,133 +2,138 @@
 
 namespace app\modules\v1\controllers;
 
+use Yii;
+use yii\web\Response;
+use yii\rest\Controller;
+use app\helpers\Constants;
+use yii\filters\VerbFilter;
+use app\controllers\CoreController;
+use app\components\CustomException;
+
 use app\models\UserAttendance;
 use app\models\search\UserAttendanceSearch;
-use yii\web\Controller;
-use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
 
-/**
- * UserAttendanceController implements the CRUD actions for UserAttendance model.
- */
-class UserAttendanceController extends Controller
+class UserAttendanceController extends CoreController
 {
-    /**
-     * @inheritDoc
-     */
-    public function behaviors()
-    {
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
-                    ],
-                ],
-            ]
-        );
-    }
+	public $enableCsrfValidation = false;
+	
+	public function behaviors()
+	{
+		return parent::behaviors() + [
+			'authenticator' => [
+				'class' => 'app\components\JwtBearerAuth',
+				'except' => [
+					Constants::AUTH_EXCEPTION,
+				],
+				'role' => Yii::$app->params['codeApp'],
+			],
+			'verbs' => [
+				'class' => VerbFilter::className(),
+				'actions' => Constants::verbsAction(),
+			],
+		];
+	}
 
-    /**
-     * Lists all UserAttendance models.
-     *
-     * @return string
-     */
-    public function actionIndex()
-    {
-        $searchModel = new UserAttendanceSearch();
-        $dataProvider = $searchModel->search($this->request->queryParams);
+	public function actionIndex()
+	{
+		return CoreController::coreActionIndex();
+	}
 
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
+	public function actionData()
+	{
+		$params = Yii::$app->getRequest()->getBodyParams();
 
-    /**
-     * Displays a single UserAttendance model.
-     * @param int $id ID
-     * @return string
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionView($id)
-    {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
-    }
+		$searchModel = new UserAttendanceSearch();
+		$dataProvider = $searchModel->search($params);
 
-    /**
-     * Creates a new UserAttendance model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
-    public function actionCreate()
-    {
-        $model = new UserAttendance();
+		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider, $searchModel)) {
+			return $coreValidateParams;
+		}
 
-        if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-        } else {
-            $model->loadDefaultValues();
+		return CoreController::coreData($dataProvider);
+	}
+
+	public function actionCreate()
+	{
+		$model = new UserAttendance();
+		$params = Yii::$app->getRequest()->getBodyParams();
+
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
+			return CoreController::coreValidateParams($unavailableParams);
         }
 
-        return $this->render('create', [
-            'model' => $model,
-        ]);
-    }
+		$params['status'] = Constants::STATUS_DRAFT;
+		$model->scenario = Constants::SCENARIO_CREATE;
 
-    /**
-     * Updates an existing UserAttendance model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param int $id ID
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
+		if ($model->load($params, '') && $model->validate()) {
+			if ($model->save()) {
+				return CoreController::coreSuccess($model, 'insertRecordSuccess');
+			}
+		}
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+		return CoreController::coreValidationFailed($model, 'insertRecordFailed');
+	}
+
+	public function actionUpdate()
+	{
+		$params = Yii::$app->getRequest()->getBodyParams();
+
+		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_UPDATE)) {
+			return $coreBadRequest;
+		}
+		
+		$model = Yii::$app->coreAPI->findModel(new UserAttendance(), $params);
+		
+		if ($model === null) {
+			return CoreController::coreDataNotFound();
+		}
+
+		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
+			return CoreController::coreValidateParams($unavailableParams);
         }
 
-        return $this->render('update', [
-            'model' => $model,
-        ]);
-    }
+		$model->scenario = Constants::SCENARIO_UPDATE;
 
-    /**
-     * Deletes an existing UserAttendance model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
+		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
+			return $coreSuperadmin;
+		}
 
-        return $this->redirect(['index']);
-    }
+		if ($model->load($params, '') && $model->validate()) {
+			if ($model->save()) {
+				return CoreController::coreSuccess($model, 'updateRecordSuccess');
+			}
+		}
 
-    /**
-     * Finds the UserAttendance model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param int $id ID
-     * @return UserAttendance the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    protected function findModel($id)
-    {
-        if (($model = UserAttendance::findOne(['id' => $id])) !== null) {
-            return $model;
-        }
+		return CoreController::coreValidationFailed($model, 'updateRecordFailed');
+	}
 
-        throw new NotFoundHttpException('The requested page does not exist.');
-    }
+	public function actionDelete()
+	{
+		$params = Yii::$app->getRequest()->getBodyParams();
+
+		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_DELETE)) {
+			return $coreBadRequest;
+		}
+
+		$model = Yii::$app->coreAPI->findModel(new UserAttendance(), $params);
+
+		if ($model === null) {
+			return CoreController::coreDataNotFound();
+		}
+
+		$params['status'] = Constants::STATUS_DELETED;
+		$model->scenario = Constants::SCENARIO_DELETE;
+
+		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
+			return $coreSuperadmin;
+		}
+
+		if ($model->load($params, '') && $model->validate()) {
+			if ($model->save()) {
+				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
+			}
+		}
+
+		return CoreController::coreValidationFailed($model, 'deleteRecordFailed');;
+	}
 }

@@ -7,8 +7,8 @@ use yii\web\Response;
 use yii\rest\Controller;
 use app\helpers\Constants;
 use yii\filters\VerbFilter;
-use app\components\CustomException;
 use app\controllers\CoreController;
+use app\components\CustomException;
 
 use app\models\Employee;
 use app\models\search\EmployeeSearch;

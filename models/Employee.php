@@ -81,18 +81,6 @@ class Employee extends \yii\db\ActiveRecord
         return new \app\models\query\EmployeeQuery(get_called_class());
     }
 
-    public function validateStatusChange($attribute, $params, $validator)
-    {
-        if (!$this->isNewRecord && $this->isAttributeChanged($attribute)) {
-            $oldStatus = $this->getOldAttribute($attribute);
-            $newStatus = $this->$attribute;
-
-            if ($oldStatus == Constants::STATUS_DELETED && $newStatus != Constants::STATUS_DELETED && !Yii::$app->coreAPI->superAdmin()) {
-                $this->addError($attribute, Yii::t('app', 'deletedStatusChange', ['status' => Constants::statusList()[Constants::STATUS_DELETED]]));
-            }
-        }
-    }
-
     public function validateContact($attribute, $params, $validator)
     {
         $oldContact = $this->getOldAttribute($attribute);

@@ -28,7 +28,10 @@ class UserAttendance extends \yii\db\ActiveRecord
             [
                 [['detail_info'], 'safe'],
                 [['work_time_id', 'employee_id'], 'integer'],
+                [['work_time_id', 'employee_id'], 'filter', 'filter' => 'intval'],
                 [['work_time_id', 'employee_id'], 'required' , 'on' => Constants::SCENARIO_CREATE],
+                [['work_time_id', 'employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>'],
+
             ],
             Yii::$app->coreAPI->statusRules($this)
         );
@@ -37,9 +40,9 @@ class UserAttendance extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'status', 'detail_info', 'sync'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'status', 'detail_info', 'sync'];
-        $scenarios[Constants::SCENARIO_DELETE] = ['status', 'sync'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['employee_id', 'work_time_id', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['employee_id', 'work_time_id', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_DELETE] = ['status', 'detail_info'];
 
         return $scenarios;
     }
@@ -58,5 +61,19 @@ class UserAttendance extends \yii\db\ActiveRecord
     public static function find()
     {
         return new \app\models\query\UserAttendanceQuery(get_called_class());
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+            $this->detail_info = [
+                'change_log' => $this->change_log,
+            ];
+
+            return true;
+        }
+
+        return false;
     }
 }

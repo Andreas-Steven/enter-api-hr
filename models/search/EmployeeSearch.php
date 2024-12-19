@@ -30,10 +30,10 @@ class EmployeeSearch extends Employee
             
             [['sort', 'sort_by'], 'string'],
             [['page', 'page_size'], 'integer'],
-            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             [['page'], function ($attribute, $params, $validator) {
                 Yii::$app->coreAPI->validatePage($attribute, $params, $this);
             }],
+            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
         ];
     }
 

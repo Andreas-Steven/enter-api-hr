@@ -4,10 +4,12 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+
+use app\models\Device;
 use app\models\Employee;
 use app\models\Division;
 use app\models\WorkTime;
-use app\models\Device;
+use app\models\UserAttendance;
 
 /**
  * This is the model class for table "absensi".
@@ -157,8 +159,17 @@ class Attendance extends \yii\db\ActiveRecord
                     return;
                 }
                 
-                // $work_time_id = $employee->employee_detail['work_time']['id']; 
-                $work_time_id = rand(1, 3);
+                $userAttendance = UserAttendance::find()->where([
+                    'employee_id' => $employeeAttendance['employee_id'], 
+                    'status' => Constants::STATUS_ACTIVE
+                ])->one();
+                
+                if ($userAttendance === null) {
+                    $this->addError($attribute.'['.$key.'].employee_id', 'Attendance Time not found');
+                    return;
+                }
+                
+                $work_time_id = $userAttendance->work_time_id;
                 $workTime = WorkTime::find()->where([
                     'id' => $work_time_id, 
                     'status' => Constants::STATUS_ACTIVE
@@ -169,7 +180,11 @@ class Attendance extends \yii\db\ActiveRecord
                     return;
                 }
 
-                $employeeAttendance['work_time'] = ['id' => $workTime->id, 'entry_time' => $workTime->entry_time, 'home_time' => $workTime->home_time];
+                $employeeAttendance['work_time'] = [
+                    'id' => $workTime->id, 
+                    'entry_time' => $workTime->entry_time, 
+                    'home_time' => $workTime->home_time
+                ];
 
                 if (!empty($employeeAttendance['start_time']) && strtotime($employeeAttendance['start_time']) === false) {
                     $this->addError($attribute, 'Attendance start time value not valid');

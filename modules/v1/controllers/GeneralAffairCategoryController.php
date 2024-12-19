@@ -5,18 +5,18 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
-use yii\filters\VerbFilter;
 use app\helpers\Constants;
-
+use yii\filters\VerbFilter;
 use app\controllers\CoreController;
-use app\models\search\GeneralAffairCategorySearch;
-use app\models\GeneralAffairCategory; 
+use app\components\CustomException;
 
-/**
- * GeneralAffairCategoryController implements the CRUD actions for GeneralAffairCategory model.
- */
+use app\models\GeneralAffairCategory; 
+use app\models\search\GeneralAffairCategorySearch;
+
 class GeneralAffairCategoryController extends CoreController
 {
+	public $enableCsrfValidation = false;
+
 	public function behaviors()
 	{
 		return parent::behaviors() + [

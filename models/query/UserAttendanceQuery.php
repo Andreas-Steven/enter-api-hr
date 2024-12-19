@@ -3,30 +3,24 @@
 namespace app\models\query;
 
 /**
- * This is the ActiveQuery class for [[\app\models\UserAttendance]].
+ * This is the ActiveQuery class for [[\app\models\WorkTime]].
  *
- * @see \app\models\UserAttendance
+ * @see \app\models\WorkTime
  */
 class UserAttendanceQuery extends \yii\db\ActiveQuery
 {
-    /*public function active()
+    /*
+    public function active()
     {
         return $this->andWhere('[[status]]=1');
-    }*/
+    }
+    */
 
-    /**
-     * {@inheritdoc}
-     * @return \app\models\UserAttendance[]|array
-     */
     public function all($db = null)
     {
         return parent::all($db);
     }
 
-    /**
-     * {@inheritdoc}
-     * @return \app\models\UserAttendance|array|null
-     */
     public function one($db = null)
     {
         return parent::one($db);
