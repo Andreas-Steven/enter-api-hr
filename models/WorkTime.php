@@ -29,9 +29,9 @@ class WorkTime extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['name'], 'string', 'max' => 255],
-                [['detail_info'], 'safe'],
-                [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
+                [['working_days', 'detail_info'], 'safe'],
                 [['name', 'entry_time', 'home_time'], 'required'],
+                [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
             ],
             Yii::$app->coreAPI->statusRules($this)
         );
@@ -40,8 +40,8 @@ class WorkTime extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'entry_time', 'home_time'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'entry_time', 'home_time'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'entry_time', 'home_time', 'working_days','status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'entry_time', 'home_time', 'working_days','status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -54,7 +54,6 @@ class WorkTime extends \yii\db\ActiveRecord
             'entry_time' => 'Entry Time',
             'home_time' => 'Home Time',
             'working_days' => 'Working Days',
-            'flexible' => 'Flexible',
             'status' => 'Status',
             'detail_info' => 'Detail Info',
         ];

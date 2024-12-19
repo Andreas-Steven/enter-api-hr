@@ -5,9 +5,9 @@ namespace app\models\search;
 use Yii;
 use yii\base\Model;
 use yii\db\Expression;
+use yii\data\ActiveDataProvider;
 use app\helpers\Constants;
 use app\models\UserAttendance;
-use yii\data\ActiveDataProvider;
 
 class UserAttendanceSearch extends UserAttendance
 {

@@ -31,6 +31,7 @@ class UserAttendance extends \yii\db\ActiveRecord
                 [['work_time_id', 'employee_id'], 'filter', 'filter' => 'intval'],
                 [['work_time_id', 'employee_id'], 'required' , 'on' => Constants::SCENARIO_CREATE],
                 [['work_time_id', 'employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>'],
+
             ],
             Yii::$app->coreAPI->statusRules($this)
         );
