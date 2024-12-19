@@ -38,3 +38,47 @@ Stack trace:
 Stack trace:
 #0 {main}
   thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 7
+[06-Dec-2024 08:16:33 UTC] PHP Fatal error:  Uncaught Error: Class "Dotenv\Dotenv" not found in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 10
+[06-Dec-2024 08:16:37 UTC] PHP Fatal error:  Uncaught Error: Class "Dotenv\Dotenv" not found in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 10
+[06-Dec-2024 08:16:43 UTC] PHP Fatal error:  Uncaught Error: Class "Dotenv\Dotenv" not found in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 10
+[06-Dec-2024 08:17:37 UTC] PHP Fatal error:  Uncaught Error: Class "Dotenv\Dotenv" not found in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 10
+[06-Dec-2024 08:17:41 UTC] PHP Fatal error:  Uncaught Error: Class "Dotenv\Dotenv" not found in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 10
+[06-Dec-2024 08:18:14 UTC] PHP Fatal error:  Uncaught Error: Class "Dotenv\Dotenv" not found in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 10
+[06-Dec-2024 08:19:22 UTC] PHP Fatal error:  Uncaught Error: Class "Dotenv\Dotenv" not found in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 10
+[06-Dec-2024 08:22:25 UTC] PHP Fatal error:  Uncaught Error: Class "Dotenv\Dotenv" not found in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 10
+[06-Dec-2024 08:22:27 UTC] PHP Fatal error:  Uncaught Error: Class "Dotenv\Dotenv" not found in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 10
+[06-Dec-2024 08:22:30 UTC] PHP Fatal error:  Uncaught Error: Class "Dotenv\Dotenv" not found in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 10
+[06-Dec-2024 08:22:54 UTC] PHP Fatal error:  Uncaught Error: Class "Dotenv\Dotenv" not found in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/dev/public_html/api-hr.dev-enterkomputer.com/index.php on line 10

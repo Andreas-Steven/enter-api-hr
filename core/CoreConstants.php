@@ -1,6 +1,6 @@
 <?php
 
-namespace app\helpers;
+namespace app\core;
 
 /**
  * DO NOT CHANGE VALUES OF THIS CoreConstants
@@ -24,27 +24,9 @@ class CoreConstants
     const SCENARIO_COMPLETE = 'complete';
     const SCENARIO_RECEIVE = 'receive';
 
-    const AUTH_EXCEPTION = '*';
     const STATUS_NOT_DELETED = [
         '<>', 'status', self::STATUS_DELETED
     ];
-    const DEFAULT_ORDER = SORT_DESC;
-    const DEFAULT_PAGE_SIZE = 10;
-    const ENABLE_CSRF_VALIDATION = false;
-
-    const DEVICE_APP = 'APP';
-
-    public static function verbsAction() {
-        return [
-            'index' => ['get'],
-            'data' => ['post'],
-            'create' => ['post'],
-            'update' => ['put'],
-            'delete' => ['delete'],
-            'receive' => ['put'],
-            'list' => ['post'],
-        ];
-    }
 
     public static function scenarioUpdate() {
         return [
@@ -94,7 +76,6 @@ class CoreConstants
 			],
 		];
     }
-
 
     public static function disallowedStatusUpdate() {
         return [

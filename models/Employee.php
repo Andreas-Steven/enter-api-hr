@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\core\CoreModel;
 
 /**
  * This is the model class for table "employee".
@@ -23,6 +24,12 @@ use app\helpers\Constants;
 class Employee extends \yii\db\ActiveRecord
 {
     public $change_log;
+    public $system_date;
+    public $division;
+    public $position;
+    public $employee_type;
+    public $username;
+    public $sso;
     
     public static function tableName()
     {
@@ -33,28 +40,38 @@ class Employee extends \yii\db\ActiveRecord
     {  
         return array_merge(
             [
-                [['contact', 'detail_info'], 'safe'],
-                [['name', 'nik'], 'string', 'max' => 255],
-                [['sso_id', 'division_id', 'status'], 'integer'],
-
                 [['nik', 'sso_id'], 'unique'],
-                [['nik', 'name', 'sso_id', 'division_id'], 'required'],
-                [['contact'], 'validateContact', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE]],
+                [['contact', 'detail_info'], 'safe'],
+                [['sso_id', 'division_id', 'status'], 'integer'],
+                [['name', 'nik', 'email', 'image'], 'string', 'max' => 255],
+                [['sso_id', 'division_id', 'position_id', 'employee_type_id'], 'filter', 'filter' => 'intval'],
+
+                [['division_id', 'position_id', 'employee_type_id'], 'default', 'value' => 1],
+                [['nik', 'iamge', 'birth_date', 'date_start', 'date_resign', 'contact', 'email'], 'default', 'value' => null],
 
                 [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
-                    return $value === "" ? null : $value; }],
-                [['birth_date', 'date_start', 'date_resign'], 'date', 'format' => 'php:Y-m-d', 'when' => function($model, $attribute) { 
-                    return $model->$attribute !== null && isset($model->$attribute); }],
+                    return $value === "" ? null : $value; }
+                ],
+                [['birth_date', 'date_start', 'date_resign', 'system_date'], 'date', 'format' => 'php:Y-m-d', 'when' => function($model, $attribute) { 
+                    return $model->$attribute !== null && isset($model->$attribute); }
+                ],
+                
+                [['contact'], 'validateContact'],
+                [['division_id'], 'validateDivision'], 
+                [['position_id'], 'validatePosition'], 
+                [['sso_id', 'username'], 'validateSSO'],
+                [['date_resign'], 'validateResignDate'],
+                [['employee_type_id'], 'validateEmployeeType'], 
             ],
-            Yii::$app->coreAPI->statusRules($this)
+            CoreModel::getStatusRules($this)
         );
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['nik', 'name', 'sso_id', 'division_id', 'birth_date', 'contact', 'status', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'sso_id', 'division_id', 'birth_date', 'date_start', 'date_resign', 'contact', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'sso_id', 'status','detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
         return $scenarios;
     }
@@ -71,6 +88,9 @@ class Employee extends \yii\db\ActiveRecord
             'date_resign' => 'Date Resign',
             'sso_id' => 'Sso ID',
             'division_id' => 'Division ID',
+            'postion_id' => 'Postion ID',
+            'employee_type_id' => 'Employee Type ID',
+            'username' => 'Username',
             'status' => 'Status',
             'detail_info' => 'Detail Info',
         ];
@@ -81,6 +101,96 @@ class Employee extends \yii\db\ActiveRecord
         return new \app\models\query\EmployeeQuery(get_called_class());
     }
 
+    public function validateSSO($attribute, $params, $validator)
+    {
+        if (isset($this->detail_info['sso'])) {
+            $this->sso = $this->detail_info['sso'];
+        } else {
+            $this->sso = ['sso_id' => $this->sso_id, 'username' => $this->username];
+        }
+    }
+
+    public function validateDivision($attribute, $params, $validator)
+    {
+        if ($this->isAttributeChanged($attribute)) {
+            $division = null;
+            $this->$attribute = ($this->$attribute === 0) ? 1 : $this->$attribute;
+
+            if ($this->isAttributeChanged($attribute)) {
+                $division = Division::find()->where([
+                    'id' => $this->$attribute,
+                    'status' => Constants::STATUS_ACTIVE
+                ])->one();
+            }
+
+            if ($division === null) {
+                $this->addError($attribute, 'Division data not found');
+                return;
+            }
+            
+        } else { 
+            if (isset($this->detail_info['division'])) {
+                $division = $this->detail_info['division'];
+            }
+        }
+        
+        $this->division = ['id' => $division['id'], 'name' => $division['name']];
+    }
+
+    public function validatePosition($attribute, $params, $validator)
+    {
+        if ($this->isAttributeChanged($attribute)) {
+            $position = null;
+            $this->$attribute = ($this->$attribute === 0) ? 1 : $this->$attribute;
+
+            if ($this->isAttributeChanged($attribute)) {
+                $position = EmployeePosition::find()->where([
+                    'id' => $this->$attribute,
+                    'status' => Constants::STATUS_ACTIVE
+                ])->one();
+            }
+
+            if ($position === null) {
+                $this->addError($attribute, 'Employee Potition data not found');
+                return;
+            }
+            
+        } else { 
+            if (isset($this->detail_info['position'])) {
+                $position = $this->detail_info['position'];
+            }
+        }
+        
+        $this->position = ['id' => $position['id'], 'name' => $position['name']];
+    }
+
+    public function validateEmployeeType($attribute, $params, $validator)
+    {
+        if ($this->isAttributeChanged($attribute)) {
+            $employee_type = null;
+            $this->$attribute = ($this->$attribute === 0) ? 1 : $this->$attribute;
+
+            if ($this->isAttributeChanged($attribute)) {
+                $employee_type = EmployeeType::find()->where([
+                    'id' => $this->$attribute,
+                    'status' => Constants::STATUS_ACTIVE
+                ])->one();
+            }
+
+            if ($employee_type === null) {
+                $this->addError($attribute, 'Employee Type data not found');
+                return;
+            }
+            
+        } else { 
+            if (isset($this->detail_info['employee_type'])) {
+                $employee_type = $this->detail_info['employee_type'];
+            }
+        }
+        
+        $this->employee_type = ['id' => $employee_type['id'], 'name' => $employee_type['name']];
+    }
+
     public function validateContact($attribute, $params, $validator)
     {
         $oldContact = $this->getOldAttribute($attribute);
@@ -88,11 +198,18 @@ class Employee extends \yii\db\ActiveRecord
         if ($this->$attribute !== null && is_array($this->$attribute)) {
             if (is_array($oldContact)) {
                 foreach ($this->$attribute as $index => $newContact) {
+                    $newContact = CoreModel::nullSafe($newContact);
+                    if ($newContact === null) {
+                        $this->addError($attribute, 'Contact can not be null');
+                return;
+                    }
+
                     if (array_key_exists($index, $oldContact)) {
                         if ($newContact != $oldContact[$index]) {
                             $oldContact[$index] = $newContact;
                         }
                     } else {
+                        
                         $oldContact[] = $newContact;
                     }
                 }
@@ -103,13 +220,32 @@ class Employee extends \yii\db\ActiveRecord
         }
     }
 
+    public function validateResignDate($attribute, $params, $validator)
+    {
+        // Status 5 for one month notice
+        if (!empty($this->date_resign) ) {
+            $this->status = Constants::STATUS_MAINTENANCE;
+        }
+
+        // Status 3 for resign
+        if ($this->$attribute < $this->system_date) {
+            $this->status = Constants::STATUS_COMPLETED;
+        }
+    }
+
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+            $this->name = CoreModel::htmlPurifier($this->name);
+            $this->change_log = CoreModel::getChangeLog($this, $insert);
+            $this->image = CoreModel::nullSafe($this->image);
+            
             $this->detail_info = [
-                'change_log' => $this->change_log ?: null,
+                'change_log' => $this->change_log,
+                'sso' => $this->sso !== null ? $this->sso : $this->detail_info['sso'],
+                'division' => $this->division,
+                'position' => $this->position,
+                'employee_type' => $this->employee_type
             ];
 
             return true;

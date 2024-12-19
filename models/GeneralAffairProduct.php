@@ -4,31 +4,25 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\core\CoreModel;
 
 /**
- * This is the model class for table "brand".
+ * This is the model class for table "general_affair_product".
  *
  * @property int $id
  * @property string $name
  * @property int $status 0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance
  * @property string $detail_info
- * @property int|null $sync
  */
-class Brand extends \yii\db\ActiveRecord
+class GeneralAffairProduct extends \yii\db\ActiveRecord
 {
     public $change_log;
 
-    /**
-     * {@inheritdoc}
-     */
     public static function tableName()
     {
-        return 'brand';
+        return 'general_affair_product';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return array_merge(
@@ -36,30 +30,27 @@ class Brand extends \yii\db\ActiveRecord
                 [['detail_info'], 'safe'],
                 [['name'], 'string', 'max' => 255],
                 [['name'], 'required', 'on' => Constants::SCENARIO_CREATE],
+
                 [['name', 'status'], function ($attribute, $params, $validator) {
-                    Yii::$app->coreAPI->validateDependencies($attribute, $params, $validator, $this, [
-                        ['class' => 'app\models\Product', 'field' => ['brand_id']],
+                    CoreModel::validateDependencies($attribute, $params, $validator, $this, [
+                        ['className' => 'GeneralAffair', 'field' => ['product_id']],
                     ]);
                 }, 'on' => Constants::scenarioUpdate()],
-                [['sync'], 'default', 'value' => null],
-            ],
-            Yii::$app->coreAPI->statusRules($this)
+            ], 
+            CoreModel::getStatusRules($this)
         );
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'status', 'detail_info', 'sync'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'status', 'detail_info', 'sync'];
-        $scenarios[Constants::SCENARIO_DELETE] = ['status', 'sync'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels()
     {
         return [
@@ -67,30 +58,26 @@ class Brand extends \yii\db\ActiveRecord
             'name' => 'Name',
             'status' => 'Status',
             'detail_info' => 'Detail Info',
-            'sync' => 'Sync',
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     * @return \app\models\query\BrandQuery the active query used by this AR class.
-     */
     public static function find()
     {
-        return new \app\models\query\BrandQuery(get_called_class());
+        return new \app\models\query\GeneralAffairProductQuery(get_called_class());
     }
 
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
-            $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
-
+            $this->name = CoreModel::htmlPurifier($this->name);
+            $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->detail_info = [
                 'change_log' => $this->change_log,
             ];
+
             return true;
         }
+
         return false;
     }
 }

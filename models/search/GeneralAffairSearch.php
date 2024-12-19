@@ -4,8 +4,9 @@ namespace app\models\search;
 
 use Yii;
 use yii\base\Model;
-use app\helpers\Constants;
 use yii\data\ActiveDataProvider;
+use app\helpers\Constants;
+use app\core\CoreModel;
 use app\models\GeneralAffair;
 
 /**
@@ -24,29 +25,22 @@ class GeneralAffairSearch extends GeneralAffair
     public $deleted_at;
     public $deleted_by;
 
+    // Filtering variables
     public $name;
-    public $code; 
-    public $min_price;
-    public $max_price;
-    public $date_min;
-    public $date_max;
+    public $code;
+    public $price;
+    public $buying_date;
 
     public function rules()
     {
-        return [
-            [['code', 'name'], 'string'],
-            [['detail_info', 'item', 'test'], 'safe'],
-            [['id', 'category_id', 'location_id', 'status'], 'integer'],
-            [['date_min', 'date_max'], 'date', 'format' => 'php:Y-m-d'],
-            [['min_price', 'max_price'], 'filter', 'filter' => 'floatval'],
-            
-            [['sort', 'sort_by'], 'string'],
-            [['page', 'page_size'], 'integer'],
-            [['page'], function ($attribute, $params, $validator) {
-                Yii::$app->coreAPI->validatePage($attribute, $params, $this);
-            }],
-            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
-        ];
+        return array_merge(
+            [
+                [['code', 'name'], 'string'],
+                [['id', 'product_id', 'category_id', 'location_id', 'status'], 'integer'],
+                [['asset', 'price', 'buying_date', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+            ], 
+            CoreModel::getPaginationRules($this)
+        );
     }
 
     public function scenarios()
@@ -57,15 +51,15 @@ class GeneralAffairSearch extends GeneralAffair
 
     public function getErrors($attribute = null)
     {
-        return Yii::$app->coreAPI->searchGetErrors(parent::getErrors());
+        return CoreModel::getErrors(parent::getErrors());
     }
 
     public function search($params)
     {
 
-        $this->load([Yii::$app->coreAPI->modelClassName($this) => $params]);
+        $this->load([CoreModel::getModelClassName($this) => $params]);
 
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this->rules(), $params)) {
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this, $params)) {
             return $unavailableParams;
         }
         
@@ -84,78 +78,101 @@ class GeneralAffairSearch extends GeneralAffair
         
         // add conditions that should always apply here
         // grid filtering conditions
-        $query->andFilterWhere(Yii::$app->coreAPI->nameFilter($this->name));
+        $query->andFilterWhere(CoreModel::setLikeFilter($this->name, 'name'));
+        
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
+            'product_id' => $this->product_id,
             'category_id' => $this->category_id,
             'location_id' => $this->location_id,
         ]);
 
-        $query->andFilterWhere(Yii::$app->coreAPI->changelogDateFilters($this));
-        $query->andFilterWhere(Yii::$app->coreAPI->changelogFilters($this));
+        $query->andFilterWhere(CoreModel::setChangelogFilters($this));
 
         // Filter for code and deleted_at
         if (!empty($this->code)) {
             $query->select([
                     'id', 'name', 'category_id', 'location_id', 'status', 'detail_info',
-                    'item' => new \yii\db\Expression("jsonb_build_object('items', jsonb_object_agg(key, value))")
+                    'asset' => new \yii\db\Expression("jsonb_build_object('items', jsonb_object_agg(key, value))")
                 ])
-                ->from(['general_affair', new \yii\db\Expression("jsonb_each(item->'items') AS items_record(key, value)")])
+                ->from(['general_affair', new \yii\db\Expression("jsonb_each(asset->'items') AS items_record(key, value)")])
                 ->andWhere(['key' => $this->code])
                 ->andWhere(new \yii\db\Expression("value->'items_change_log'->>'deleted_at' IS NULL"))
                 ->groupBy(['id', 'name', 'category_id', 'location_id', 'status', 'detail_info']);
         } else {
             $query->addSelect([
                 '*',
-                'item' => new \yii\db\Expression("(
+                'asset' => new \yii\db\Expression("(
                     SELECT jsonb_build_object(
                         'items', jsonb_object_agg(key, value),
-                        'quantity', (general_affair.item->>'quantity')::integer,
-                        'total_price', (general_affair.item->>'total_price')::numeric
+                        'quantity', (general_affair.asset->>'quantity')::integer,
+                        'total_price', (general_affair.asset->>'total_price')::numeric
                     )
-                    FROM jsonb_each(general_affair.item->'items') AS items_record(key, value)
+                    FROM jsonb_each(general_affair.asset->'items') AS items_record(key, value)
                     WHERE value->'items_change_log'->>'deleted_at' IS NULL
                 )")
             ]);
         }
 
-        // Filter for price range
-        $priceConditions = [];
-        !empty($this->min_price) ? $priceConditions[] = "(value->>'price')::numeric >= :min_price" : null;
-        !empty($this->max_price) ? $priceConditions[] = "(value->>'price')::numeric <= :max_price" : null;
-        if ($priceConditions) {
-            $query->andWhere(new \yii\db\Expression("(
-                SELECT COUNT(*)
-                FROM jsonb_each(general_affair.item->'items') AS items_record(key, value)
-                WHERE " . implode(' AND ', $priceConditions) . "
-                AND value->'items_change_log'->>'deleted_at' IS NULL
-            ) > 0"));
-            !empty($this->min_price) ? $query->addParams([':min_price' => $this->min_price]) : null;
-            !empty($this->max_price) ? $query->addParams([':max_price' => $this->max_price]) : null;
-        }
-
-        // Filter for date range
         $dateConditions = [];
-        !empty($this->date_min) ? $dateConditions[] = "(value->>'buying_date')::date >= :date_min" : null;
-        !empty($this->date_max) ? $dateConditions[] = "(value->>'buying_date')::date <= :date_max" : null;
-        if ($dateConditions) {
+        $priceConditions = [];
+        
+        // Date range filtering
+        if (!empty($this->buying_date)) {
+            if (strpos($this->buying_date, ',') !== false) {
+                list($startDate, $endDate) = array_map('trim', explode(',', $this->buying_date));
+                $dateConditions[] = "(value->>'buying_date')::date >= :start_date";
+                $dateConditions[] = "(value->>'buying_date')::date <= :end_date";
+            } else {
+                $dateConditions[] = "(value->>'buying_date')::date = :single_date";
+            }
+        }
+        
+        // Price range filtering
+        if (!empty($this->price)) {
+            if (strpos($this->price, ',') !== false) {
+                list($minPrice, $maxPrice) = array_map('trim', explode(',', $this->price));
+                $priceConditions[] = "(value->>'price')::numeric >= :min_price";
+                $priceConditions[] = "(value->>'price')::numeric <= :max_price";
+            } else {
+                $priceConditions[] = "(value->>'price')::numeric = :single_price";
+            }
+        }
+        
+        $conditions = array_merge($dateConditions, $priceConditions);
+        
+        if ($conditions) {
             $query->andWhere(new \yii\db\Expression("(
                 SELECT COUNT(*)
-                FROM jsonb_each(general_affair.item->'items') AS items_record(key, value)
-                WHERE " . implode(' AND ', $dateConditions) . "
+                FROM jsonb_each(general_affair.asset->'items') AS items_record(key, value)
+                WHERE " . implode(' AND ', $conditions) . "
                 AND value->'items_change_log'->>'deleted_at' IS NULL
             ) > 0"));
-            !empty($this->date_min) ? $query->addParams([':date_min' => $this->date_min]) : null;
-            !empty($this->date_max) ? $query->addParams([':date_max' => $this->date_max]) : null;
+        
+            if (!empty($this->buying_date)) {
+                if (strpos($this->buying_date, ',') !== false) {
+                    $query->addParams([':start_date' => $startDate, ':end_date' => $endDate]);
+                } else {
+                    $query->addParams([':single_date' => $this->buying_date]);
+                }
+            }
+        
+            if (!empty($this->price)) {
+                if (strpos($this->price, ',') !== false) {
+                    $query->addParams([':min_price' => $minPrice, ':max_price' => $maxPrice]);
+                } else {
+                    $query->addParams([':single_price' => $this->price]);
+                }
+            }
         }
 
         $dataProvider->setPagination(
-            Yii::$app->coreAPI->setPagination($params, $dataProvider)
+            CoreModel::setPagination($params, $dataProvider)
         );
 
         $dataProvider->setSort(
-            Yii::$app->coreAPI->setSort($params)
+            CoreModel::setSort($params)
         );
 
         return $dataProvider;

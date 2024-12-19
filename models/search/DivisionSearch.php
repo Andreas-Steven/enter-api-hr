@@ -4,36 +4,34 @@ namespace app\models\search;
 
 use Yii;
 use yii\base\Model;
-use app\models\Division;
-use app\helpers\Constants;
 use yii\data\ActiveDataProvider;
+use app\helpers\Constants;
+use app\core\CoreModel;
+use app\models\Division;
 
 class DivisionSearch extends Division
 {
+    public $page;
+    public $page_size;
+    public $sort;
+    public $sort_by;
     public $created_at;
     public $created_by;
     public $updated_at;
     public $updated_by;
     public $deleted_at;
     public $deleted_by;
-    public $sort;
-    public $sort_by;
-    public $page;
-    public $page_size;
 
     public function rules()
     {
-        return [
-            [['id', 'status'], 'integer'],
-            [['code', 'name', 'detail_info'], 'safe'],
-
-            [['sort', 'sort_by'], 'string'],
-            [['page', 'page_size'], 'integer'],
-            [['page'], function ($attribute, $params, $validator) {
-                Yii::$app->coreAPI->validatePage($attribute, $params, $this);
-            }],
-            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
-        ];
+        return array_merge(
+            [
+                [['id', 'status'], 'integer'],
+                [['code', 'name'], 'string'],
+                [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+            ], 
+            CoreModel::getPaginationRules($this)
+        );
     }
 
     public function scenarios()
@@ -44,14 +42,14 @@ class DivisionSearch extends Division
 
     public function getErrors($attribute = null)
     {
-        return Yii::$app->coreAPI->searchGetErrors(parent::getErrors());
+        return CoreModel::getErrors(parent::getErrors());
     }
 
     public function search($params)
     {
-        $this->load([Yii::$app->coreAPI->modelClassName($this) => $params]);
+        $this->load([CoreModel::getModelClassName($this) => $params]);
 
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this->rules(), $params)) {
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this, $params)) {
             return $unavailableParams;
         }
 
@@ -70,20 +68,21 @@ class DivisionSearch extends Division
 
         // add conditions that should always apply here
         // grid filtering conditions
+        $query->andFilterWhere(CoreModel::setLikeFilter($this->name, 'name'));
+        
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
         ]);
 
-        $query->andFilterWhere(Yii::$app->coreAPI->changelogDateFilters($this));
-        $query->andFilterWhere(Yii::$app->coreAPI->changelogFilters($this));
+        $query->andFilterWhere(CoreModel::setChangelogFilters($this));
         
         $dataProvider->setPagination(
-            Yii::$app->coreAPI->setPagination($params, $dataProvider)
+            CoreModel::setPagination($params, $dataProvider)
         );
 
         $dataProvider->setSort(
-            Yii::$app->coreAPI->setSort($params)
+            CoreModel::setSort($params)
         );
 
         return $dataProvider;

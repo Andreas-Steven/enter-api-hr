@@ -5,33 +5,26 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\web\Response;
 use yii\rest\Controller;
-use app\helpers\Constants;
 use yii\filters\VerbFilter;
-use app\controllers\CoreController;
-use app\components\CustomException;
-
-use app\models\GeneralAffairCategory; 
+use app\helpers\Constants;
+use app\core\CoreController;
 use app\models\search\GeneralAffairCategorySearch;
+use app\models\GeneralAffairCategory; 
 
 class GeneralAffairCategoryController extends CoreController
 {
-	public $enableCsrfValidation = false;
-
 	public function behaviors()
 	{
-		return parent::behaviors() + [
-		   'authenticator' => [
-				'class' => 'app\components\JwtBearerAuth',
-				'except' => [
-					Constants::AUTH_EXCEPTION,
+		return array_merge(
+			parent::behaviors(),
+			[
+				'authenticator' => [
+					'class' => 'app\components\JwtBearerAuth',
+					'except' => Yii::$app->params['jwt']['except'],
+					'role' => Yii::$app->params['codeApp'],
 				],
-				'role' => Yii::$app->params['codeApp'],
 			],
-			'verbs' => [
-				'class' => VerbFilter::className(),
-				'actions' => Constants::verbsAction(),
-			],
-		];
+		);
 	}
 
 	public function actionIndex()
@@ -46,8 +39,8 @@ class GeneralAffairCategoryController extends CoreController
 		$searchModel = new GeneralAffairCategorySearch();
 		$dataProvider = $searchModel->search($params);
 
-		if ($coreValidateParams = CoreController::coreValidateParams($dataProvider)) {
-			return $coreValidateParams;
+		if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
+			return $coreValidateProvider;
 		}
 
 		return CoreController::coreData($dataProvider);
@@ -58,8 +51,8 @@ class GeneralAffairCategoryController extends CoreController
 		$model = new GeneralAffairCategory();
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model->rules(), $params)) {
-			return CoreController::coreValidateParams($unavailableParams);
+        if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
+			return $coreUnavailableParams;
         }
 
 		$params['status'] = Constants::STATUS_DRAFT;
@@ -67,60 +60,59 @@ class GeneralAffairCategoryController extends CoreController
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'insertRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'insertRecordFailed');
+		return CoreController::coreError($model);
 	}
 
 	public function actionUpdate()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		if ($coreBadRequestNoParams = CoreController::coreBadRequestNoParams($params, Constants::SCENARIO_UPDATE)) {
-			return $coreBadRequestNoParams;
+		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_UPDATE)) {
+			return $coreValidateParams;
 		}
 		
-		$model = Yii::$app->coreAPI->findModel(GeneralAffairCategory::className(), $params);
-		$rules = $model->rules();
+		$model = CoreController::coreFindModel(new GeneralAffairCategory(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
 
-		if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
-			return CoreController::coreValidateParams($unavailableParams);
+		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
+			return $coreUnavailableParams;
         }
-
-		if (isset($params['name'])) {
-			$params['category_id'] = $model->id;
-		}
-
-		// if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-		// 	return $coreSuperadmin;
-		// }
 
 		$model->scenario = Constants::SCENARIO_UPDATE;
 
+		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
+			return $coreSuperadmin;
+		}
+
 		if ($model->load($params, '') && $model->validate()) {
+			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
+                return $coreEmptyParams;
+            }
+
 			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'updateRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreBadRequest($model, Yii::t('app', 'updateRecordFailed'));
+		return CoreController::coreError($model);
 	}
 
 	public function actionDelete()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 
-		if ($coreBadRequest = CoreController::coreBadRequest($params, Constants::SCENARIO_DELETE)) {
-			return $coreBadRequest;
+		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_DELETE)) {
+			return $coreValidateParams;
 		}
 
-		$model = Yii::$app->coreAPI->findModel(new GeneralAffairCategory(), $params);
+		$model = CoreController::coreFindModel(new GeneralAffairCategory(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -134,11 +126,15 @@ class GeneralAffairCategoryController extends CoreController
 		}
 
 		if ($model->load($params, '') && $model->validate()) {
+			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
+                return $coreEmptyParams;
+            }
+
 			if ($model->save()) {
-				return CoreController::coreSuccess($model, 'deleteRecordSuccess');
+				return CoreController::coreSuccess($model);
 			}
 		}
 
-		return CoreController::coreValidationFailed($model, 'deleteRecordFailed');
+		return CoreController::coreError($model);
 	}
 }

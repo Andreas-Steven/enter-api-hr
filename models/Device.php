@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\core\CoreModel;
 
 /**
  * This is the model class for table "device".
@@ -31,18 +32,17 @@ class Device extends \yii\db\ActiveRecord
             [
                 [['detail_info', 'device_location'], 'safe'],
                 [['device_code', 'device_name', 'device_address', 'device_ip'], 'string', 'max' => 255],
-
                 [['device_code', 'device_name', 'device_address', 'device_ip'], 'required'],
             ],
-            Yii::$app->coreAPI->statusRules($this)
+            CoreModel::getStatusRules($this)
         );
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'device_location', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'device_location', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'device_location', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'device_location', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -70,10 +70,10 @@ class Device extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->device_name = Yii::$app->coreAPI->htmlPurifier($this->device_name);
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+            $this->device_name = CoreModel::htmlPurifier($this->device_name);
+            $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->detail_info = [
-                'change_log' => $this->change_log ?: null,
+                'change_log' => $this->change_log,
             ];
             
             return true;

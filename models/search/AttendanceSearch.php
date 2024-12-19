@@ -4,40 +4,38 @@ namespace app\models\search;
 
 use Yii;
 use yii\base\Model;
-use app\models\Attendance;
-use app\helpers\Constants;
 use yii\data\ActiveDataProvider;
+use app\helpers\Constants;
+use app\core\CoreModel;
+use app\models\Attendance;
 
 class AttendanceSearch extends Attendance
 {
+    public $page;
+    public $page_size;
+    public $sort;
+    public $sort_by;
     public $created_at;
     public $created_by;
     public $updated_at;
     public $updated_by;
     public $deleted_at;
     public $deleted_by;
+    
     public $employee_name;
     public $employee_id;
-    public $sort;
-    public $sort_by;
-    public $page;
-    public $page_size;
 
     public function rules()
     {
-        return [
-            [['employee_name'], 'string'],
-            [['attendance', 'detail_info'], 'safe'],
-            [['date'], 'date', 'format' => 'Y-m-d'],
-            [['id', 'status','employee_id'], 'integer'],
-            
-            [['sort', 'sort_by'], 'string'],
-            [['page', 'page_size'], 'integer'],
-            [['page'], function ($attribute, $params, $validator) {
-                Yii::$app->coreAPI->validatePage($attribute, $params, $this);
-            }],
-            [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
-        ];
+        return array_merge(
+            [
+                [['id', 'status','employee_id'], 'integer'],
+                [['employee_name'], 'string'],
+                [['date'], 'date', 'format' => 'Y-m-d'],
+                [['attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+            ], 
+            CoreModel::getPaginationRules($this)
+        );
     }
 
     public function scenarios()
@@ -48,14 +46,14 @@ class AttendanceSearch extends Attendance
 
     public function getErrors($attribute = null)
     {
-        return Yii::$app->coreAPI->searchGetErrors(parent::getErrors());
+        return CoreModel::getErrors(parent::getErrors());
     }
 
     public function search($params)
     {
-        $this->load([Yii::$app->coreAPI->modelClassName($this) => $params]);
+        $this->load([CoreModel::getModelClassName($this) => $params]);
 
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this->rules(), $params)) {
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this, $params)) {
             return $unavailableParams;
         }
 
@@ -74,29 +72,17 @@ class AttendanceSearch extends Attendance
 
         // add conditions that should always apply here
         // grid filtering conditions
+
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
             'date' => $this->date,
         ]);
 
-        $query->andFilterWhere(Yii::$app->coreAPI->changelogDateFilters($this));
-        $query->andFilterWhere(Yii::$app->coreAPI->changelogFilters($this));
-
-        /* Attendance DESC sorting by start_time */
-        $query->addSelect([
-            '*',
-            'ordered_attendance' => new \yii\db\Expression("(
-                SELECT jsonb_agg(ordered_data) AS ordered_attendance
-                FROM (
-                    SELECT jsonb_build_object(key, value) AS ordered_data
-                    FROM attendance, jsonb_each(attendance)
-                    ORDER BY (value->>'start_time')::TIME DESC
-                ) ordered_data
-            )")
-        ]);
-
-        /* Attendance search by employee name or id */
+        $query->andFilterWhere(CoreModel::setChangelogFilters($this));
+      
+        /* Employee name or id filtering */
+        /*
         if ($this->employee_name || $this->employee_id) {
             $query->addSelect([
                 '*',
@@ -116,13 +102,14 @@ class AttendanceSearch extends Attendance
                 )
             ]);
         }
+        */
 
         $dataProvider->setPagination(
-            Yii::$app->coreAPI->setPagination($params, $dataProvider)
+            CoreModel::setPagination($params, $dataProvider)
         );
 
         $dataProvider->setSort(
-            Yii::$app->coreAPI->setSort($params)
+            CoreModel::setSort($params)
         );
 
         return $dataProvider;

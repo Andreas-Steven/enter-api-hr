@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\helpers\Constants;
+use app\core\CoreModel;
 
 /**
  * This is the model class for table "general_affair".
@@ -14,7 +15,7 @@ use app\helpers\Constants;
  * @property int $location_id
  * @property int $status
  * @property string $detail_info
- * @property string $item
+ * @property string $asset
  *
  * @property GeneralAffairCategory $category
  * @property GeneralAffairLocation $location
@@ -24,6 +25,9 @@ class GeneralAffair extends \yii\db\ActiveRecord
 {
     public $change_log;
     public $code;
+    public $product;
+    public $category;
+    public $location;
 
     public static function tableName()
     {
@@ -34,25 +38,29 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
-                [['item', 'code'], 'safe'],
+                [['asset', 'code'], 'safe'],
                 [['name'], 'string', 'max' => 255],
-                [['category_id', 'location_id'], 'integer'],
-                [['name', 'category_id', 'location_id'], 'required'],
-                [['detail_info', 'item'], 'safe', 'skipOnEmpty' => true],
-                [['category_id', 'location_id'], 'filter', 'filter' => 'intval'],
+                [['detail_info', 'asset'], 'safe'],
+
+                [['product_id', 'category_id', 'location_id'], 'integer'],
+                [['product_id', 'category_id', 'location_id'], 'required'],
+                [['product_id', 'category_id', 'location_id'], 'filter', 'filter' => 'intval'],
                 
-                [['item'], 'validateItem', 'on' => Constants::SCENARIO_CREATE],
+                [['product_id'], 'validateProduct'],
+                [['category_id'], 'validateCategory'],
+                [['location_id'], 'validateLocation'],
+                [['asset'], 'validateItem', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'status'], 'validateDeleted', 'on' => Constants::SCENARIO_DELETE],
             ],
-            Yii::$app->coreAPI->statusRules($this)
+            CoreModel::getStatusRules($this)
         );
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'category_id', 'location_id', 'item', 'status',  'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['id', 'name', 'category_id', 'location_id', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['product_id', 'name', 'category_id', 'location_id', 'asset', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['product_id', 'name', 'category_id', 'location_id', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['code', 'status'];
         return $scenarios;
     }
@@ -61,11 +69,11 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
+            'product_id' => 'Product ID',
             'category_id' => 'Category ID',
             'location_id' => 'Location ID',
             'detail_info' => 'Detail Info',
-            'item' => 'Item',
+            'asset' => 'Asset',
         ];
     }
 
@@ -74,10 +82,69 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return new \app\models\query\GeneralAffairQuery(get_called_class());
     }
 
+    public function validateProduct($attribute, $params, $validator)
+    {
+        $product = isset($this->detail_info['product']) ? $this->detail_info['product'] : null;
+
+        if ($this->isAttributeChanged($attribute)) {
+            $product = GeneralAffairProduct::find()->where([
+                'id' => $this->$attribute,
+                'status' => Constants::STATUS_ACTIVE
+            ])->one();
+
+        }
+        
+        if ($product === null) {
+            $this->addError($attribute, 'Product not found');
+            return;
+        }
+
+        $this->product = ['id' => $product['id'], 'name' => $product['name']];
+        $this->name = $product['name'];
+    }
+
+    public function validateCategory($attribute, $params, $validator)
+    {
+        $category = isset($this->detail_info['category']) ? $this->detail_info['category'] : null;
+
+        if ($this->isAttributeChanged($attribute)) {
+            $category = GeneralAffairCategory::find()->where([
+                'id' => $this->$attribute,
+                'status' => Constants::STATUS_ACTIVE
+            ])->one();
+        }
+
+        if ($category === null) {
+            $this->addError($attribute, 'Category not found');
+            return;
+        }
+
+        $this->category = ['id' => $category['id'], 'name' => $category['name']];
+    }
+
+    public function validateLocation($attribute, $params, $validator)
+    {
+        $location = isset($this->detail_info['location']) ? $this->detail_info['location'] : null;
+
+        if ($this->isAttributeChanged($attribute)) {
+            $location = GeneralAffairLocation::find()->where([
+                'id' => $this->$attribute,
+                'status' => Constants::STATUS_ACTIVE
+            ])->one();
+        }
+        
+        if ($location === null) {
+            $this->addError($attribute, 'Location not found');
+            return;
+        }
+
+        $this->location = ['id' => $location['id'], 'name' => $location['name']];
+    }
+
     public function validateItem($attribute, $params, $validator)
     {
         if (!is_array($this->$attribute)) {
-            $this->addError($attribute, 'Item must be an array');
+            $this->addError($attribute, 'Asset must be an array');
             return;
         }
 
@@ -86,30 +153,31 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $oldItem = $this->getOldAttribute($attribute);
     
         foreach ($itemData['items'] as $key => $value) {
-            $timestamp = Yii::$app->coreAPI->timestamp();
-            $username = Yii::$app->session->get('username') ?? 'Admin';
+            $timestamp = Yii::$app->coreAPI->getTimestamp();
+            $username = Yii::$app->session->get('username') ?? 'system';
 
             if (empty($value['code'])) {
-                $this->addError($attribute.'['.$key.'].code', 'Item code cannot be empty');
+                $this->addError($attribute.'['.$key.'].code', 'Asset code cannot be empty');
                 return;
             }
+            
             
             if (isset($oldItem['items'][$value['code']])) {
                 $generalAffairItems = array_merge($oldItem['items'][$value['code']], $value);
                 $generalAffairItems['items_change_log']['updated_at'] = $timestamp;
                 $generalAffairItems['items_change_log']['updated_by'] = $username;
             } else {
-                $generalAffairItems = array_merge(Yii::$app->params['items'], $value);
+                $generalAffairItems = array_merge(Yii::$app->params['defaultValue']['items'], $value);
                 $generalAffairItems['items_change_log']['created_at'] = $timestamp;
                 $generalAffairItems['items_change_log']['created_by'] = $username;
             }
-
-            $generalAffairItems['price'] = floatval($generalAffairItems['price']);
+            
+            $generalAffairItems['price'] = floatval($generalAffairItems['price']);  
             if (empty($generalAffairItems['price']) || $generalAffairItems['price'] < 0) {
                 $this->addError($attribute.'['.$key.'].price', 'Price value must be a float and greater than or equal to 0');
                 return;
             } 
-    
+            
             $generalAffairItems['condition'] = intval($generalAffairItems['condition']);
             if (empty($generalAffairItems['condition']) || $generalAffairItems['condition'] < 1) {
                 $this->addError($attribute.'['.$key.'].condition', 'Condition value must be an integer greater than 0');
@@ -131,7 +199,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 return;
             }
             $generalAffairItems['division'] = ['id' => $division->id, 'name' => $division->name];
-    
+            
             $dateValidator = new \yii\validators\DateValidator(['format' => 'php:Y-m-d']);
             if (isset($generalAffairItems['buying_date']) && !$dateValidator->validate($generalAffairItems['buying_date'], $error)) {
                 $this->addError($attribute.'['.$key.'].items.buying_date', $error);
@@ -147,25 +215,32 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $this->addError($attribute.'['.$key.'].items.inspection_date', $error);
                 return;
             }
+
+            if (isset($generalAffairItems['image']) && is_array($generalAffairItems['image'])) {
+                $generalAffairItems['image'] = array_filter($generalAffairItems['image'], function($value) {
+                    return $value !== '[]';
+                });
+                $generalAffairItems['image'] = array_values($generalAffairItems['image']);
+            }
             
             $oldItem['items'][$generalAffairItems['code']] = $generalAffairItems;
         }
-
+        
         $this->$attribute = ['items' => $oldItem['items']];
     }
     
     public function validateDeleted($attribute, $params, $validator)
     {
         $oldData = $this->getAttributes();
-        $itemCodes = array_column($oldData['item']['items'], 'code') ?? [];
-        $timestamp = Yii::$app->coreAPI->timestamp();
+        $itemCodes = array_column($oldData['asset']['items'], 'code') ?? [];
+        $timestamp = Yii::$app->coreAPI->getTimestamp();
 
-        if (!empty($this->code) && is_array($oldData['item']) && array_key_exists('items', $oldData['item'])) {
+        if (!empty($this->code) && is_array($oldData['asset']) && array_key_exists('items', $oldData['asset'])) {
             if (in_array($this->code, $itemCodes, true)) {
-                $oldData['item']['items'][$this->code]['items_change_log']['deleted_at'] = $timestamp;
-                $oldData['item']['items'][$this->code]['items_change_log']['deleted_by'] = $username ?? 'Admin';
-
-                $this->setAttribute('item', $oldData['item']);
+                $oldData['asset']['items'][$this->code]['items_change_log']['deleted_at'] = $timestamp;
+                $oldData['asset']['items'][$this->code]['items_change_log']['deleted_by'] = $username ?? 'system';
+                
+                $this->setAttribute('asset', $oldData['asset']);
                 return true;
             }
         } elseif (isset($this->status) && $this->status === Constants::STATUS_DELETED) {
@@ -185,32 +260,35 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return false;
     }
 
-    public function calculateItems($item)
+    public function calculateItems($asset)
     {
-        $totalPrice = 0;
-        $quantity = 0;
+        $filteredItems = array_filter($asset['items'], function($value) {
+            return is_array($value) && array_key_exists('price', $value) && $value['items_change_log']['deleted_at'] === null;
+        });
 
-        foreach ($item['items'] as $key => $value) {
-            if (is_array($value) && array_key_exists('price', $value) && $value['items_change_log']['deleted_at'] === null) {
-                $totalPrice += $value['price'];
-                $quantity++;
-            }
-        }
+        $totalPrice = array_sum(array_map(function($value) {
+            return $value['price'];
+        }, $filteredItems));
 
-        $item['quantity'] = $quantity;
-        $item['total_price'] = $totalPrice;
+        $quantity = count($filteredItems);
 
-        return $item;
+        $asset['quantity'] = $quantity;
+        $asset['total_price'] = $totalPrice;
+        
+        return $asset;
     }
 
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->name = Yii::$app->coreAPI->htmlPurifier($this->name);
-            $this->item = $this->calculateItems($this->item);
-            $this->change_log = Yii::$app->coreAPI->changeLog($this, $insert);
+            $this->name = CoreModel::htmlPurifier($this->name);
+            $this->asset = $this->calculateItems($this->asset);
+            $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->detail_info = [
                 'change_log' => $this->change_log,
+                'product' => $this->product,
+                'category' => $this->category,
+                'location' => $this->location,
             ];
 
             return true;
