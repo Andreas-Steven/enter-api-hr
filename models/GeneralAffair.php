@@ -91,7 +91,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 'id' => $this->$attribute,
                 'status' => Constants::STATUS_ACTIVE
             ])->one();
-
         }
         
         if ($product === null) {
@@ -160,7 +159,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $this->addError($attribute.'['.$key.'].code', 'Asset code cannot be empty');
                 return;
             }
-            
             
             if (isset($oldItem['items'][$value['code']])) {
                 $generalAffairItems = array_merge($oldItem['items'][$value['code']], $value);
