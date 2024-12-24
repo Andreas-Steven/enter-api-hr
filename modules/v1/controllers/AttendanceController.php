@@ -57,7 +57,8 @@ class AttendanceController extends CoreController
 			return CoreController::coreError($model);
 		}
 
-		if (!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $params['date'])) {
+		$date = \DateTime::createFromFormat('Y-m-d', $params['date']);
+		if (!$date || $date->format('Y-m-d') !== $params['date']) {
 			$model->addError('date', 'Date format must be YYYY-MM-DD.');
 			return CoreController::coreError($model);
 		}
