@@ -220,26 +220,32 @@ class Attendance extends \yii\db\ActiveRecord
                 
                 // Blacklist
                 if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
-                    $blacklist = [
-                        'employee_id' => $employeeAttendance['employee_id'],
-                        'employee_name' => $employee->name,
-                        'date' => $this->date,
-                        'start_time' => $employeeAttendance['start_time'],
-                        'time' => date('H:i:s')
-                    ];
+                    $blacklist = [];
 
                     if (strtotime($employeeAttendance['start_time']) < strtotime($latestAttendance)) {
-                        $blacklist['start_time'] = date('H:i:s');
+                        $blacklist = [
+                            'employee_id' => $employeeAttendance['employee_id'],
+                            'employee_name' => $employee->name,
+                            'date' => $this->date,
+                            'start_time' => $employeeAttendance['start_time'],
+                            'time' => date('H:i:s')
+                        ];
+                        $employeeAttendance['start_time'] = date('H:i:s');
                     } elseif (!empty($this->dateMismatch)) {
-                        $blacklist['date'] = $this->dateMismatch;
+                        $blacklist = [
+                            'employee_id' => $employeeAttendance['employee_id'],
+                            'employee_name' => $employee->name,
+                            'date' => $this->dateMismatch,
+                            'start_time' => $employeeAttendance['start_time'],
+                            'time' => date('H:i:s')
+                        ];
+                        $employeeAttendance['start_time'] = date('H:i:s');
                         $this->dateMismatch = null;
                     }
                     
                     $exsistingBlacklist = $this->detail_info['blacklist'] ?? [];
                     
-                    if (!empty($exsistingBlacklist)) {
-                        array_push($exsistingBlacklist, $blacklist);
-                    } else {
+                    if (!empty($blacklist)) {
                         $exsistingBlacklist[] = $blacklist;
                     }
 
@@ -339,7 +345,9 @@ class Attendance extends \yii\db\ActiveRecord
     public function beforeValidate()
     {
         if (parent::beforeValidate()) {
+            var_dump($this->scenario);
             if ($this->scenario === Constants::SCENARIO_CREATE) {
+                var_dump('Masuk', $this->date, $this->system_date);
                 if ($this->date !== $this->system_date) {
                     $this->dateMismatch = $this->date;
                     $this->date = $this->system_date;
