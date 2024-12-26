@@ -74,6 +74,11 @@ class AttendanceController extends CoreController
 			]);
 
 			if (!empty($updateLastAttendance)) {
+				foreach ($updateLastAttendance as $attendanceModel) {
+					$attendanceModel->scenario = Constants::SCENARIO_UPDATE;
+					$attendanceModel->save();
+				}
+
 				Yii::$app->db->createCommand()
 					->update(
 						Attendance::tableName(), 
@@ -81,7 +86,7 @@ class AttendanceController extends CoreController
 						['and', ['status' => Constants::STATUS_ACTIVE], ['<>', 'date', $params['system_date']]]
 					)->execute();
 			}
-		}
+		}		
 
 		if ($existingModel !== null) {
 			$model = $existingModel;
@@ -91,14 +96,9 @@ class AttendanceController extends CoreController
 		$model->scenario = Constants::SCENARIO_CREATE;
 
 		if ($model->load($params, '') && $model->validate()) {
-			// Temporary fix
 			if ($model->save(false)) {
 				return CoreController::coreSuccess($model);
 			}
-
-			// if ($model->save()) {
-			// 	return CoreController::coreSuccess($model);
-			// }
 		}
 
 		return CoreController::coreError($model);

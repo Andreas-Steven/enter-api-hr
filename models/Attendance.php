@@ -321,16 +321,15 @@ class Attendance extends \yii\db\ActiveRecord
         $this->$attribute = $oldAttendance;
     }
 
-    public function validateAttendanceNotCheckout($attribute, $params)
+    public function validateAttendanceNotCheckout($attribute)
     {
         $lastAttendance = $this->getOldAttribute($attribute);
-        
         foreach ($lastAttendance as $key => $value) {
             if (empty($value['end_time'])) {
                 $value['info']['detail'][] = "Tidak Absen Pulang";
                 $value['info']['out'] = false;
             }
-
+            
             $lastAttendance[$key]['info'] = $value['info'];
         }
         
