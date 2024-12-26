@@ -297,11 +297,17 @@ class Attendance extends \yii\db\ActiveRecord
                 $temp_location['home'] = $homeLocation;
 
                 if ($entryLocation === null && !empty($value['start_time'])) {
-                    $temp_location['entry'] = $value['location'] ?? null;
+                    // $temp_location['entry'] = $value['location'] ?? null;
+                    $temp_location['entry']['lat'] = floatval($value['location']['lat']) ?? null;
+                    $temp_location['entry']['lng'] = floatval($value['location']['lng']) ?? null;
+                    $temp_location['entry']['image'] = $value['location']['image'] ?? null;
                 }
                 
                 if ($homeLocation === null && !empty($value['end_time'])) {
-                    $temp_location['home'] = $value['location'] ?? null;
+                    // $temp_location['home'] = $value['location'] ?? null;
+                    $temp_location['home']['lat'] = floatval($value['location']['lat']) ?? null;
+                    $temp_location['home']['lng'] = floatval($value['location']['lng']) ?? null;
+                    $temp_location['home']['image'] = $value['location']['image'] ?? null;
                 }
         
                 $employeeAttendance['location'] = $temp_location;
