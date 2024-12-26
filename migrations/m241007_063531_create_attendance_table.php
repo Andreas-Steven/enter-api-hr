@@ -42,79 +42,8 @@ class m241007_063531_create_attendance_table extends Migration
         }
 
         // Insert dummy data
-        // $this->insert('{{%attendance}}', [
-        //     'date' => '2024-12-09',
-        //     'attendance' => [
-        //         '1' => [
-        //             'info' => [
-        //                 'in' => true,
-        //                 'out' => null,
-        //                 'detail' => [],
-        //             ],
-        //             'device' => [
-        //                 'id' => 1,
-        //                 'device_code' => 'MK1',
-        //                 'device_name' => 'Ruko',
-        //             ],
-        //             'division' => [
-        //                 'id' => 2,
-        //                 'name' => 'Teknologi Informasi',
-        //             ],
-        //             'end_time' => null,
-        //             'location' => null,
-        //             'work_time' => [
-        //                 'id' => 1,
-        //                 'entry_time' => '09:45:59',
-        //                 'home_time' => '18:30:00',
-        //             ],
-        //             'start_time' => '09:38:15',
-        //             'employee_id' => 1,
-        //             'employee_name' => 'Employee 1',
-        //         ],
-        //         '2' => [
-        //             'info' => [
-        //                 'in' => true,
-        //                 'out' => null,
-        //                 'detail' => [],
-        //             ],
-        //             'device' => [
-        //                 'id' => 2,
-        //                 'device_code' => 'MK2',
-        //                 'device_name' => 'Toko',
-        //             ],
-        //             'division' => [
-        //                 'id' => 2,
-        //                 'name' => 'Teknologi Informasi',
-        //             ],
-        //             'end_time' => null,
-        //             'location' => null,
-        //             'work_time' => [
-        //                 'id' => 2,
-        //                 'entry_time' => '10:45:59',
-        //                 'home_time' => '19:00:00',
-        //             ],
-        //             'start_time' => '10:32:52',
-        //             'employee_id' => 2,
-        //             'employee_name' => 'Employee 2',
-        //         ],
-        //     ],
-        //     'status' => 3,
-        //     'detail_info' => [
-        //         'dayoff' => false,
-        //         'blacklist' => [],
-        //         'change_log' => [
-        //             'created_at' => gmdate(Yii::$app->params['UTC']),
-        //             'created_by' => 'system',
-        //             'deleted_at' => null,
-        //             'deleted_by' => null,
-        //             'updated_at' => null,
-        //             'updated_by' => null,
-        //         ],
-        //     ],
-        // ]);
-
         $this->insert('{{%attendance}}', [
-            'date' => '2024-12-10',
+            'date' => '2024-12-12',
             'attendance' => [
                 '1' => [
                     'info' => [
@@ -141,9 +70,35 @@ class m241007_063531_create_attendance_table extends Migration
                     'start_time' => '09:38:15',
                     'employee_id' => 1,
                     'employee_name' => 'Employee 1',
-                ]
+                ],
+                '2' => [
+                    'info' => [
+                        'in' => true,
+                        'out' => null,
+                        'detail' => [],
+                    ],
+                    'device' => [
+                        'id' => 2,
+                        'device_code' => 'MK2',
+                        'device_name' => 'Toko',
+                    ],
+                    'division' => [
+                        'id' => 2,
+                        'name' => 'Teknologi Informasi',
+                    ],
+                    'end_time' => null,
+                    'location' => null,
+                    'work_time' => [
+                        'id' => 2,
+                        'entry_time' => '10:45:59',
+                        'home_time' => '19:00:00',
+                    ],
+                    'start_time' => '10:32:52',
+                    'employee_id' => 2,
+                    'employee_name' => 'Employee 2',
+                ],
             ],
-            'status' => 1,
+            'status' => 3,
             'detail_info' => [
                 'dayoff' => false,
                 'blacklist' => [],
@@ -157,6 +112,51 @@ class m241007_063531_create_attendance_table extends Migration
                 ],
             ],
         ]);
+
+        // $this->insert('{{%attendance}}', [
+        //     'date' => '2024-12-12',
+        //     'attendance' => [
+        //         '1' => [
+        //             'info' => [
+        //                 'in' => true,
+        //                 'out' => null,
+        //                 'detail' => [],
+        //             ],
+        //             'device' => [
+        //                 'id' => 1,
+        //                 'device_code' => 'MK1',
+        //                 'device_name' => 'Ruko',
+        //             ],
+        //             'division' => [
+        //                 'id' => 2,
+        //                 'name' => 'Teknologi Informasi',
+        //             ],
+        //             'end_time' => null,
+        //             'location' => null,
+        //             'work_time' => [
+        //                 'id' => 1,
+        //                 'entry_time' => '09:45:59',
+        //                 'home_time' => '18:30:00',
+        //             ],
+        //             'start_time' => '09:38:15',
+        //             'employee_id' => 1,
+        //             'employee_name' => 'Employee 1',
+        //         ]
+        //     ],
+        //     'status' => 1,
+        //     'detail_info' => [
+        //         'dayoff' => false,
+        //         'blacklist' => [],
+        //         'change_log' => [
+        //             'created_at' => gmdate(Yii::$app->params['UTC']),
+        //             'created_by' => 'system',
+        //             'deleted_at' => null,
+        //             'deleted_by' => null,
+        //             'updated_at' => null,
+        //             'updated_by' => null,
+        //         ],
+        //     ],
+        // ]);
     }
 
     /**
