@@ -345,9 +345,7 @@ class Attendance extends \yii\db\ActiveRecord
     public function beforeValidate()
     {
         if (parent::beforeValidate()) {
-            var_dump($this->scenario);
             if ($this->scenario === Constants::SCENARIO_CREATE) {
-                var_dump('Masuk', $this->date, $this->system_date);
                 if ($this->date !== $this->system_date) {
                     $this->dateMismatch = $this->date;
                     $this->date = $this->system_date;
