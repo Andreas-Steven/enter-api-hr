@@ -16,7 +16,7 @@ class GeneralAffairLocationSearch extends GeneralAffairLocation
 {
     public $page;
     public $page_size;
-    public $sort;
+    public $sort_dir;
     public $sort_by;
     public $created_at;
     public $created_by;

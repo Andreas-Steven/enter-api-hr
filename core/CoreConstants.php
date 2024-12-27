@@ -23,66 +23,59 @@ class CoreConstants
     const SCENARIO_VIEW = 'view';
     const SCENARIO_COMPLETE = 'complete';
     const SCENARIO_RECEIVE = 'receive';
+    const SCENARIO_REJECT = 'reject';
+    const SCENARIO_APPROVE = 'approve';
+    
+    const DEVICE_APP = 'APP';
 
     const STATUS_NOT_DELETED = [
         '<>', 'status', self::STATUS_DELETED
     ];
 
-    const DEVICE_APP = 'APP';
+    const STATUS_LIST = [
+        self::STATUS_INACTIVE => 'Inactive',
+        self::STATUS_ACTIVE => 'Active',
+        self::STATUS_DRAFT => 'Draft',
+        self::STATUS_COMPLETED => 'Completed',
+        self::STATUS_DELETED => 'Deleted',
+        self::STATUS_MAINTENANCE => 'Maintenance',
+    ];
 
-    public static function scenarioUpdate() {
-        return [
-            self::SCENARIO_UPDATE, self::SCENARIO_DELETE
-        ];
-    }
+    const RESTRICT_STATUS_LIST = [
+        self::STATUS_DELETED,
+        self::STATUS_COMPLETED,
+    ];
 
-    public static function restrictStatus() {
-        return [
+    const SCENARIO_UPDATE_LIST = [
+        self::SCENARIO_UPDATE, 
+        self::SCENARIO_DELETE,
+    ];
+
+    const ALLOWED_UPDATE_STATUS_LIST = [
+        self::STATUS_DRAFT => [
+            self::STATUS_INACTIVE,
+            self::STATUS_ACTIVE,
             self::STATUS_DELETED,
-            self::STATUS_COMPLETED,
-        ];
-    }
+            self::STATUS_MAINTENANCE
+        ],
+        self::STATUS_ACTIVE => [
+            self::STATUS_COMPLETED
+        ],
+        self::STATUS_INACTIVE => [
+            self::STATUS_ACTIVE,
+            self::STATUS_DRAFT,
+            self::STATUS_DELETED
+        ],
+        self::STATUS_MAINTENANCE => [
+            self::STATUS_INACTIVE,
+            self::STATUS_ACTIVE,
+            self::STATUS_DRAFT,
+            self::STATUS_DELETED
+        ],
+    ];
 
-    public static function statusList() {
-        return [
-            self::STATUS_INACTIVE => 'Inactive',
-            self::STATUS_ACTIVE => 'Active',
-            self::STATUS_DRAFT => 'Draft',
-            self::STATUS_COMPLETED => 'Completed',
-            self::STATUS_DELETED => 'Deleted',
-            self::STATUS_MAINTENANCE => 'Maintenance',
-        ];
-    }
-
-    public static function allowedStatusUpdate() {
-        return [
-			self::STATUS_DRAFT => [
-				self::STATUS_INACTIVE,
-				self::STATUS_ACTIVE,
-				self::STATUS_DELETED,
-				self::STATUS_MAINTENANCE
-			],
-			self::STATUS_ACTIVE => [
-				self::STATUS_COMPLETED
-			],
-			self::STATUS_INACTIVE => [
-				self::STATUS_ACTIVE,
-				self::STATUS_DRAFT,
-				self::STATUS_DELETED
-			],
-			self::STATUS_MAINTENANCE => [
-				self::STATUS_INACTIVE,
-				self::STATUS_ACTIVE,
-				self::STATUS_DRAFT,
-				self::STATUS_DELETED
-			],
-		];
-    }
-
-    public static function disallowedStatusUpdate() {
-        return [
-			self::STATUS_COMPLETED,
-			self::STATUS_DELETED
-		];
-    }
+    const DISALLOWED_UPDATE_STATUS_LIST = [
+        self::STATUS_COMPLETED, 
+        self::STATUS_DELETED,
+    ];
 }

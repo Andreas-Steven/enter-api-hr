@@ -60,13 +60,13 @@ class Employee extends \yii\db\ActiveRecord
                     CoreModel::validateDependencies($attribute, $params, $validator, $this, [
                         ['className' => 'UserAttendance', 'field' => ['employee_id']],
                     ]);
-                }, 'on' => Constants::scenarioUpdate()],
+                }, 'on' => Constants::SCENARIO_UPDATE_LIST],
 
                 [['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'sso_id', 'status'], function ($attribute, $params, $validator) {
                     CoreModel::validateDependencies($attribute, $params, $validator, $this, [
                         ['className' => 'BaseSalary', 'field' => ['employee_id']],
                     ]);
-                }, 'on' => Constants::scenarioUpdate()],
+                }, 'on' => Constants::SCENARIO_UPDATE_LIST],
                 
                 [['contact'], 'validateContact'],
                 [['division_id'], 'validateDivision'], 

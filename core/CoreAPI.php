@@ -8,6 +8,7 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
 use app\components\CustomException;
+use app\exceptions\ErrorMessage;
 
 class CoreAPI 
 {
@@ -53,22 +54,12 @@ class CoreAPI
 
 	public function unauthorizedAccess(?string $message = null): array
     {
-        return [
-            'code' => Yii::$app->response->statusCode = 401,
-            'success' => false,
-            'message' => Yii::t('rule', $message ?? 'unauthorizedAccess'),
-            'errors' => [],
-        ];
+		throw new ErrorMessage(null, Yii::t('core', 'unauthorizedAccess'), 401);
     }
 
 	public function serverError(?string $message = null): array
     {
-        return [
-            'code' => Yii::$app->response->statusCode = 500,
-            'success' => false,
-            'message' => Yii::t('rule', $message ?? 'serverError'),
-            'errors' => [],
-        ];
+		throw new ErrorMessage(null, Yii::t('core', 'serverError'), 500);
     }
 
 	public function setMongodbSyncFailed($model): void

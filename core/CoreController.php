@@ -18,12 +18,6 @@ class CoreController extends Controller
 		$this->enableCsrfValidation = Yii::$app->params['request']['enableCsrfValidation'];
         
         return [
-            'contentNegotiator' => [
-                'class' => 'yii\filters\ContentNegotiator',
-                'formats' => [
-                    'application/json' => Response::FORMAT_JSON,
-                ],
-            ],
             'corsFilter' => [
                 'class' => '\yii\filters\Cors',
                 'cors' => [
@@ -34,6 +28,16 @@ class CoreController extends Controller
                     'Access-Control-Request-Method' => Yii::$app->params['cors']['requestMethods'],
                     'Access-Control-Allow-Headers' => Yii::$app->params['cors']['allowHeaders'],
                 ],
+            ],
+            'contentNegotiator' => [
+                'class' => 'yii\filters\ContentNegotiator',
+                'formats' => [
+                    'application/json' => Response::FORMAT_JSON,
+                ],
+            ],
+            'authenticator' => [
+                'class' => 'app\components\JwtBearerAuth',
+                'except' => Yii::$app->params['jwt']['except'],
             ],
             'verbs' => [
 				'class' => 'yii\filters\VerbFilter',
@@ -89,7 +93,7 @@ class CoreController extends Controller
         $response->data = [
             'code' => $exception->getCode(),
             'success' => false,
-            'message' => 'Custom error message',
+            'message' => 'Error Message',
         ];
         return $response;
     }
@@ -146,7 +150,7 @@ class CoreController extends Controller
         return [
             'code' => Yii::$app->response->statusCode = 422,
             'success' => false,
-            'message' => Yii::t('core', $message ?? "{$model->scenario}RecordFailed"),
+            'message' => $message ?? Yii::t('core', "{$model->scenario}RecordFailed"),
             'errors' => isset($model->errors) ? $model : [],
         ];
     }
@@ -188,11 +192,11 @@ class CoreController extends Controller
     public function coreValidateProvider($dataProvider, $searchModel = null): array|bool
     {
         if (isset($dataProvider->errors)) {
-            return $this->coreError($dataProvider, 'validationFailed');
+            return $this->coreError($dataProvider, Yii::t('core', 'validationFailed'));
         }
 
         if ($searchModel !== null && !$searchModel->validate()) {
-            return $this->coreError($searchModel, 'badRequest');
+            return $this->coreError($searchModel, Yii::t('core', 'badRequest'));
         }
 
         return false;
@@ -277,7 +281,7 @@ class CoreController extends Controller
     public function coreSuperadmin(?array $params): array|bool
     {
         $status = (int)($params['status'] ?? null);
-        $restrictStatus = Constants::restrictStatus();
+        $restrictStatus = Constants::RESTRICT_STATUS_LIST;
 
         if (
             !$this->superAdmin()

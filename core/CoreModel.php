@@ -24,12 +24,42 @@ class CoreModel
 		return (is_null($value) || (is_string($value) && strtolower($value) === 'null'));
 	}
 
+	public static function htmlPurifier(?string $value): ?string
+	{
+		return $value === null ? null : self::nullSafe(strip_tags(HtmlPurifier::process($value)));
+	}
+
+	public static function contentPurifier(?string $value): ?string
+	{
+		return $value === null ? null : self::nullSafe(HtmlPurifier::process($value));
+	}
+
+	public static function purifyArray($array)
+	{
+		return is_array($array) ? array_map([__CLASS__, 'purifyObject'], $array) : null;
+	}
+	
+	public static function purifyObject($object)
+	{
+		return is_null($object) ? null : array_map([__CLASS__, 'htmlPurifier'], $object);
+	}
+
+    public static function setLikeFilter(?string $value = null, ?string $field = 'name'): array
+	{
+		return ['ilike', $field, $value ? '%' . str_replace(' ', '%', trim($value)) . '%' : null, false];
+	}
+
+    public static function isRestrictedStatus(int $status): bool
+    {
+        return in_array($status, Constants::RESTRICT_STATUS_LIST, true);
+    }
+
     public static function getStatusRules($model): array
     {
         return [
             [['status'], 'default', 'value' => Constants::STATUS_DRAFT],
             [['status'], 'integer'],
-            [['status'], 'in', 'range' => array_keys(Constants::statusList())],
+            [['status'], 'in', 'range' => array_keys(Constants::STATUS_LIST)],
             [['status'], 'filter', 'filter' => 'intval'],
             [
                 ['status'],
@@ -43,7 +73,7 @@ class CoreModel
 	public static function getPaginationRules($model): array
     {
         return [
-            [['sort', 'sort_by'], 'string'],
+            [['sort_dir', 'sort_by'], 'string'],
             [['page', 'page_size'], 'integer'],
             [['page'], function ($attribute, $params) use ($model) {
 				if ($model->$attribute <= 0) {
@@ -65,9 +95,17 @@ class CoreModel
 
 	public static function setSort(?array $params): array
 	{
+		$sortBy = $params['sort_by'] ?? 'id';
+		$sort = $params['sort_dir'] ?? 'desc';
+		$sortDir = match ($sort) {
+			'asc' => SORT_ASC,
+			'desc' => SORT_DESC,
+			default => SORT_DESC,
+		};
+
 		return [
 			'defaultOrder' => [
-				$params['sort_by'] ?? 'id' => $params['sort_dir'] ?? SORT_DESC === 'asc' ? SORT_ASC : SORT_DESC,
+				$sortBy => $sortDir,
 			],
 		];
 	}
@@ -76,9 +114,9 @@ class CoreModel
     {
         $newStatus = $model->$attribute;
         $oldStatus = $model->getOldAttribute($attribute);
-        $statusList = Constants::statusList();
-        $allowedStatusUpdate = Constants::allowedStatusUpdate();
-        $disallowedStatusUpdate = Constants::disallowedStatusUpdate();
+        $statusList = Constants::STATUS_LIST;
+        $allowedStatusUpdate = Constants::ALLOWED_UPDATE_STATUS_LIST;
+        $disallowedStatusUpdate = Constants::DISALLOWED_UPDATE_STATUS_LIST;
 
 
         if ($model->isAttributeChanged($attribute)) {
@@ -114,11 +152,11 @@ class CoreModel
     }
 
     public static function validateDependencies($attribute, $params, $validator, $model, array $dependencies): void
-    {	
+    {
         if (!$model->isNewRecord) {
             $changedAttributes = [];
             $fields = Yii::$app->params['dependenciesUpdate'][$model->tableName()];
-            $disallowedStatusUpdate = Constants::disallowedStatusUpdate();
+            $disallowedStatusUpdate = Constants::DISALLOWED_UPDATE_STATUS_LIST;
 
             foreach ($fields as $field) {
                 if ($model->isAttributeChanged($field)) {
@@ -151,36 +189,6 @@ class CoreModel
                 }
             }
         }
-    }
-
-    public static function htmlPurifier(?string $value): ?string
-	{
-		return $value === null ? null : self::nullSafe(strip_tags(HtmlPurifier::process($value)));
-	}
-
-	public static function contentPurifier(?string $value): ?string
-	{
-		return $value === null ? null : self::nullSafe(HtmlPurifier::process($value));
-	}
-
-	public static function purifyArray($array)
-	{
-		return is_array($array) ? array_map([__CLASS__, 'purifyObject'], $array) : null;
-	}
-	
-	public static function purifyObject($object)
-	{
-		return is_null($object) ? null : array_map([__CLASS__, 'htmlPurifier'], $object);
-	}
-
-    public static function setLikeFilter(?string $value = null, ?string $field = 'name'): array
-	{
-		return ['ilike', $field, $value ? '%' . str_replace(' ', '%', trim($value)) . '%' : null, false];
-	}
-
-    public static function isRestrictedStatus(int $status): bool
-    {
-        return in_array($status, Constants::restrictStatus(), true);
     }
 
     public static function setChangelogFilters($model, array $logDates = [], array $logUsers = []): array
@@ -277,8 +285,6 @@ class CoreModel
 				'deleted_at' => null,
 				'deleted_by' => null,
 			];
-
-			$changeLog = self::addDetailInfo($model, $changeLog, null, null);
 		} else {
 			$changeLog = $model->detail_info['change_log'] ?? [];
 
@@ -290,29 +296,9 @@ class CoreModel
 					if ($model->getDirtyAttributes()) {
 						$changeLog['updated_at'] = $timestamp;
 						$changeLog['updated_by'] = $username;
-
-						$changeLog = self::addDetailInfo($model, $changeLog);
 					}
 				}
 			}
-		}
-
-		return $changeLog;
-	}
-
-    public static function addDetailInfo($model, ?array $changeLog, ?string $timestamp = null, ?string $username = null): array
-	{
-		$tableName = $model->tableName();
-
-		switch ($tableName) {
-			case 'delivery_order':
-				$changeLog['received_at'] = $timestamp;
-				$changeLog['received_by'] = $username;
-				break;
-			case 'purchase':
-				$changeLog['approved_at'] = $timestamp;
-				$changeLog['approved_by'] = $username;
-				break;
 		}
 
 		return $changeLog;
