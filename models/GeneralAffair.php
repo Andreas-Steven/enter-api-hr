@@ -241,21 +241,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $this->setAttribute('asset', $oldData['asset']);
                 return true;
             }
-        } elseif (isset($this->status) && $this->status === Constants::STATUS_DELETED) {
-            if (!$this->isNewRecord && $this->isAttributeChanged($attribute)) {
-                $oldStatus = $this->getOldAttribute($attribute);
-                $newStatus = $this->$attribute;
-
-                if ($oldStatus == Constants::STATUS_DELETED && $newStatus != Constants::STATUS_DELETED && !Yii::$app->coreAPI->superAdmin()) {
-                    $this->addError($attribute, Yii::t('app', 'deletedStatusChange', ['status' => Constants::statusList()[Constants::STATUS_DELETED]]));
-                }
-            }
-
-            return true;
         }
-
-        $this->addError($attribute, Yii::t('app', 'deleteRecordFailed'));
-        return false;
     }
 
     public function calculateItems($asset)
