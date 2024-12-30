@@ -25,6 +25,14 @@ class UserAttendance extends \yii\db\ActiveRecord
         return 'user_attendance';
     }
 
+    /**
+     * {@inheritdoc}
+     * @return string the column name for optimistic locking of $lockVersion.
+     */
+    public function optimisticLock() {
+        // return Constants::OPTIMISTIC_LOCK;
+    }
+
     public function rules()
     {
         return array_merge(

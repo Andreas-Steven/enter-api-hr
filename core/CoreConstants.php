@@ -26,6 +26,7 @@ class CoreConstants
     const SCENARIO_REJECT = 'reject';
     const SCENARIO_APPROVE = 'approve';
     
+    const OPTIMISTIC_LOCK = 'lock_version';
     const DEVICE_APP = 'APP';
 
     const STATUS_NOT_DELETED = [

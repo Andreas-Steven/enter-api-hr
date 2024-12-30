@@ -31,6 +31,7 @@ class m241108_100511_create_user_attendance_table extends Migration
                     'updated_by' => null,
                 ],
             ])),
+            'lock_version' => $this->integer()->notNull()->defaultValue(1)->comment('Optimistic Locking'),
         ]);
 
         if (YII_ENV !== 'dev') {
