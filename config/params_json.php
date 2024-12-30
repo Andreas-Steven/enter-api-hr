@@ -111,7 +111,7 @@ $params['dependenciesUpdate'] = [
 
     /* Attendance Module */
     'work_time' => ['entry_time', 'home_time', 'status'],
-    'employee' => ['name'],
+    'employee' => ['name', 'status'],
 ];
 
 /**
