@@ -23,6 +23,14 @@ class EmployeePosition extends \yii\db\ActiveRecord
         return 'employee_position';
     }
 
+    /**
+     * {@inheritdoc}
+     * @return string the column name for optimistic locking of $lockVersion.
+     */
+    public function optimisticLock() {
+        // return Constants::OPTIMISTIC_LOCK;
+    }
+
     public function rules()
     {
         return array_merge(

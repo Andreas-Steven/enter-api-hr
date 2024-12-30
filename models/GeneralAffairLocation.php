@@ -23,6 +23,14 @@ class GeneralAffairLocation extends \yii\db\ActiveRecord
         return 'general_affair_location';
     }
 
+     /**
+     * {@inheritdoc}
+     * @return string the column name for optimistic locking of $lockVersion.
+     */
+    public function optimisticLock() {
+        // return Constants::OPTIMISTIC_LOCK;
+    }
+
     public function rules()
     {
         return array_merge(

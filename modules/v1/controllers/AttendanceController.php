@@ -103,4 +103,21 @@ class AttendanceController extends CoreController
 
 		return CoreController::coreError($model);
 	}
+	
+	public function actionResign()
+	{
+		$model = new Employee();
+		$system_date = date('Y-m-d');
+
+		$employees = $model::find()
+			->where(['<', 'date_resign', $system_date])
+			->andWhere(['status' => Constants::STATUS_MAINTENANCE])
+			->all();
+	
+		foreach ($employees as $employee) {
+			$employee->scenario = Constants::SCENARIO_UPDATE;
+			$employee->status = Constants::STATUS_COMPLETED;
+			$employee->save(false);
+		}
+	}
 }
