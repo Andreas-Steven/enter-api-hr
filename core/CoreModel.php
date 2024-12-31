@@ -118,7 +118,6 @@ class CoreModel
         $allowedStatusUpdate = Constants::ALLOWED_UPDATE_STATUS_LIST;
         $disallowedStatusUpdate = Constants::DISALLOWED_UPDATE_STATUS_LIST;
 
-
         if ($model->isAttributeChanged($attribute)) {
             if (!$model->isNewRecord) {
                 if ($oldStatus == Constants::STATUS_DELETED && $newStatus != Constants::STATUS_DELETED && Yii::$app->coreAPI->superAdmin()) {

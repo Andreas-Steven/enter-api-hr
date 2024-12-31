@@ -9,6 +9,9 @@ namespace app\core;
 
 class CoreConstants
 {
+    const OPTIMISTIC_LOCK = 'lock_version';
+    const DEVICE_APP = 'app';
+
     const STATUS_INACTIVE = 0;
     const STATUS_ACTIVE = 1;
     const STATUS_DRAFT = 2;
@@ -25,9 +28,6 @@ class CoreConstants
     const SCENARIO_RECEIVE = 'receive';
     const SCENARIO_REJECT = 'reject';
     const SCENARIO_APPROVE = 'approve';
-    
-    const OPTIMISTIC_LOCK = 'lock_version';
-    const DEVICE_APP = 'APP';
 
     const STATUS_NOT_DELETED = [
         '<>', 'status', self::STATUS_DELETED
@@ -42,7 +42,7 @@ class CoreConstants
         self::STATUS_MAINTENANCE => 'Maintenance',
     ];
 
-    const RESTRICT_STATUS_LIST = [
+    const RESTRICT_STATUS_LIST = [ 
         self::STATUS_DELETED,
         self::STATUS_COMPLETED,
     ];

@@ -7,31 +7,40 @@ use yii\web\ErrorHandler;
 use yii\web\Response;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
+use app\exceptions\ErrorMessage;
 
 class CustomErrorHandler extends ErrorHandler
 {
     protected function renderException($exception)
     {
+        $errors = [];
         Yii::$app->response->format = Response::FORMAT_JSON;
         $statusCode = $exception instanceof HttpException ? $exception->statusCode : 500;
 
         if ($exception !== null) {
+            if ($exception instanceof ErrorMessage) {
+                $statusCode = $exception->getStatusCode();
+                $errors = $exception->getErrors();
+            }
+
             $response = [
                 'code' => $statusCode,
                 'success' => false,
                 'message' => $exception->getMessage(),
-                'errors' => [],
+                'errors' => $errors,
             ];
 
-            if (YII_ENV_DEV) {
-                $response['exception'] = get_class($exception);
-                $response['trace'] = $exception->getTraceAsString();
-                $response['previous'] = [
-                    'class' => $exception->getPrevious() ? get_class($exception->getPrevious()) : null,
-                    'message' => $exception->getPrevious() ? $exception->getPrevious()->getMessage() : null,
-                    'trace' => $exception->getPrevious() ? $exception->getPrevious()->getTraceAsString() : null,
-                    'code' => $exception->getPrevious() ? $exception->getPrevious()->getCode() : null,
-                    'file' => $exception->getPrevious() ? $exception->getPrevious()->getFile() : null,
+            if (YII_ENV_DEV && !($exception instanceof ErrorMessage)) {
+                $response['trace_for_dev'] = [
+                    'exception' => get_class($exception),
+                    'trace' => $exception->getTraceAsString(),
+                    'previous' => [
+                        'class' => $exception->getPrevious() ? get_class($exception->getPrevious()) : null,
+                        'message' => $exception->getPrevious() ? $exception->getPrevious()->getMessage() : null,
+                        'trace' => $exception->getPrevious() ? $exception->getPrevious()->getTraceAsString() : null,
+                        'code' => $exception->getPrevious() ? $exception->getPrevious()->getCode() : null,
+                        'file' => $exception->getPrevious() ? $exception->getPrevious()->getFile() : null,
+                    ],
                 ];
             }
 
