@@ -16,8 +16,6 @@ use app\core\CoreModel;
  */
 class GeneralAffairCategory extends \yii\db\ActiveRecord
 {
-    public $change_log;
-
     public static function tableName()
     {
         return 'general_affair_category';

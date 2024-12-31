@@ -17,8 +17,6 @@ use app\core\CoreModel;
  */
 class Division extends \yii\db\ActiveRecord
 {
-    public $change_log;
-
     public static function tableName()
     {
         return 'division';

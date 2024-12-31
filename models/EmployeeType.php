@@ -16,8 +16,6 @@ use app\core\CoreModel;
  */
 class EmployeeType extends \yii\db\ActiveRecord
 {
-    public $change_log;
-
     public static function tableName()
     {
         return 'employee_type';

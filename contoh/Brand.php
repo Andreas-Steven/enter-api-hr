@@ -16,8 +16,6 @@ use app\core\CoreModel;
  */
 class Brand extends \yii\db\ActiveRecord
 {
-    public $change_log;
-
     /**
      * {@inheritdoc}
      */
@@ -82,7 +80,6 @@ class Brand extends \yii\db\ActiveRecord
     {
         if (parent::beforeSave($insert)) {
             $this->name = CoreModel::htmlPurifier($this->name);
-
             $this->detail_info = [
                 'change_log' => CoreModel::getChangeLog($this, $insert),
             ];

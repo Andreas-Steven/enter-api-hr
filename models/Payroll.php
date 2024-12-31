@@ -18,8 +18,6 @@ use app\core\CoreModel;
  */
 class Payroll extends \yii\db\ActiveRecord
 {
-    public $change_log;
-
     public static function tableName()
     {
         return 'payroll';

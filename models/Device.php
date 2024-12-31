@@ -19,8 +19,6 @@ use app\core\CoreModel;
  */
 class Device extends \yii\db\ActiveRecord
 {
-    public $change_log;
-
     public static function tableName()
     {
         return 'device';

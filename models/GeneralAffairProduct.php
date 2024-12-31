@@ -16,8 +16,6 @@ use app\core\CoreModel;
  */
 class GeneralAffairProduct extends \yii\db\ActiveRecord
 {
-    public $change_log;
-
     public static function tableName()
     {
         return 'general_affair_product';

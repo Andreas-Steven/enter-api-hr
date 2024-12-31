@@ -16,8 +16,6 @@ use app\core\CoreModel;
  */
 class GeneralAffairLocation extends \yii\db\ActiveRecord
 {
-    public $change_log;
-
     public static function tableName()
     {
         return 'general_affair_location';
