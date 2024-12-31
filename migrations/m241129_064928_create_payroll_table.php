@@ -220,11 +220,10 @@ class m241129_064928_create_payroll_table extends Migration
      */
     public function safeDown()
     {
-        if (YII_ENV_DEV) {
+               if (!YII_ENV_DEV) {
             echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
-
         $this->dropTable('{{%payroll}}');
     }
 }

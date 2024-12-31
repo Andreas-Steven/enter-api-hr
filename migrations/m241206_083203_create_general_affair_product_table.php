@@ -80,11 +80,10 @@ class m241206_083203_create_general_affair_product_table extends Migration
      */
     public function safeDown()
     {
-        if (YII_ENV_DEV) {
+               if (!YII_ENV_DEV) {
             echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
-
         $this->dropTable('{{%general_affair_product}}');
     }
 }

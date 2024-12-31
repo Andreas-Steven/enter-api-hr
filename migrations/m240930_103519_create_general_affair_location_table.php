@@ -81,11 +81,10 @@ class m240930_103519_create_general_affair_location_table extends Migration
      */
     public function safeDown()
     {
-        if (YII_ENV_DEV) {
+               if (!YII_ENV_DEV) {
             echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
-
         $this->dropTable('{{%general_affair_location}}');
     }
 }

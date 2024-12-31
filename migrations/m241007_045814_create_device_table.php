@@ -98,11 +98,10 @@ class m241007_045814_create_device_table extends Migration
      */
     public function safeDown()
     {
-        if (YII_ENV_DEV) {
+               if (!YII_ENV_DEV) {
             echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
-
         $this->dropTable('{{%device}}');
     }
 }

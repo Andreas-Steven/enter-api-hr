@@ -113,11 +113,10 @@ class m241108_100511_create_user_attendance_table extends Migration
 
     public function safeDown()
     {
-        if (YII_ENV_DEV) {
+               if (!YII_ENV_DEV) {
             echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
-
         $this->dropTable('{{%user_attendance}}');
     }
 }

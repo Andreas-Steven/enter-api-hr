@@ -94,11 +94,10 @@ class m241129_065316_create_base_salary_table extends Migration
      */
     public function safeDown()
     {
-        if (YII_ENV_DEV) {
+               if (!YII_ENV_DEV) {
             echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
-
         $this->dropTable('{{%base_salary}}');
     }
 }

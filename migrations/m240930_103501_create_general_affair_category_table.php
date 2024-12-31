@@ -39,11 +39,10 @@ class m240930_103501_create_general_affair_category_table extends Migration
             'lock_version' => $this->integer()->notNull()->defaultValue(1)->comment('Optimistic Locking'),
         ]);
         
-        if (YII_ENV_DEV) {
+               if (!YII_ENV_DEV) {
             echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
-
         // Insert dummy data
         $this->insert('{{%general_affair_category}}', [
             'name' => 'Peripheral Komputer',
