@@ -36,18 +36,18 @@ $config = [
             'on beforeSend' => function ($event) {
                 $response = $event->sender;
 
-                if (!YII_ENV_DEV){
-                    if ($response->data !== null && Yii::$app->request->get('suppress_response_code')) {
-                        $response->data = [
-                            'success' => $response->isSuccessful,
-                            'data' => $response->data,
-                        ];
-                        $response->statusCode = 200;
-                    } else {
-                        $response->data['success'] = $response->isSuccessful;
-                        unset($response->data['type']);
-                    }
-                }
+                // if (!YII_ENV_DEV){
+                //     if ($response->data !== null && Yii::$app->request->get('suppress_response_code')) {
+                //         $response->data = [
+                //             'success' => $response->isSuccessful,
+                //             'data' => $response->data,
+                //         ];
+                //         $response->statusCode = 200;
+                //     } else {
+                //         $response->data['success'] = $response->isSuccessful;
+                //         unset($response->data['type']);
+                //     }
+                // }
             },
         ],
         'errorHandler' => [
