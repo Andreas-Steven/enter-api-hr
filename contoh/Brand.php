@@ -42,7 +42,7 @@ class Brand extends \yii\db\ActiveRecord
                     ]);
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],
             ], 
-            CoreModel::getStatusRules($this)
+            CoreModel::getStatusRules($this),
         );
     }
 
@@ -81,11 +81,10 @@ class Brand extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->name = CoreModel::htmlPurifier($this->name);
 
             $this->detail_info = [
-                'change_log' => $this->change_log,
+                'change_log' => CoreModel::getChangeLog($this, $insert),
             ];
             return true;
         }

@@ -10,9 +10,11 @@ class m241007_032424_create_work_time_table extends Migration
     public function safeUp()
     {
         $params = require(__DIR__ . '/../config/params.php');
+        $UTCTimestamp = gmdate(Yii::$app->params['timestamp']['UTC']);
+        $createdBy = 'system';
         
-        if (YII_ENV !== 'dev') {
-            echo "Skipping migration/fresh for non-dev environment.";
+        if (!YII_ENV_DEV) {
+            echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
         
@@ -36,8 +38,8 @@ class m241007_032424_create_work_time_table extends Migration
             'lock_version' => $this->integer()->notNull()->defaultValue(1)->comment('Optimistic Locking'),
         ]);
 
-        if (YII_ENV !== 'dev') {
-            echo "Skipping migration/fresh for non-dev environment.";
+        if (!YII_ENV_DEV) {
+            echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
 
@@ -56,8 +58,8 @@ class m241007_032424_create_work_time_table extends Migration
             'status' => 1,
             'detail_info' => [
                 'change_log' => [
-                    'created_at' => gmdate(Yii::$app->params['UTC']),
-                    'created_by' => 'system',
+                    'created_at' => $UTCTimestamp,
+                    'created_by' => $createdBy,
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
@@ -82,8 +84,8 @@ class m241007_032424_create_work_time_table extends Migration
             'status' => 1,
             'detail_info' => [
                 'change_log' => [
-                    'created_at' => gmdate(Yii::$app->params['UTC']),
-                    'created_by' => 'system',
+                    'created_at' => $UTCTimestamp,
+                    'created_by' => $createdBy,
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
@@ -95,6 +97,11 @@ class m241007_032424_create_work_time_table extends Migration
 
     public function safeDown()
     {
+        if (YII_ENV_DEV) {
+            echo "Skipping migration/fresh for non-dev environment.\n";
+            return true;
+        }
+
         $this->dropTable('{{%work_time}}');
     }
 }

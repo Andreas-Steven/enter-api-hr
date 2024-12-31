@@ -24,7 +24,6 @@ use app\models\UserAttendance;
  */
 class Attendance extends \yii\db\ActiveRecord
 {
-    public $change_log;
     public $employee_id;
     public $start_time;
     public $end_time;
@@ -32,7 +31,6 @@ class Attendance extends \yii\db\ActiveRecord
     public $division;
     public $work_time;
     public $device;
-    public $device_code;
     public $system_date;
     public $dateMismatch;
 
@@ -65,7 +63,7 @@ class Attendance extends \yii\db\ActiveRecord
                 [['attendance'], 'validateAttendance', 'on' => Constants::SCENARIO_CREATE],
                 [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],
             ],
-            CoreModel::getStatusRules($this)
+            CoreModel::getStatusRules($this),
         );
     }
 
@@ -94,6 +92,50 @@ class Attendance extends \yii\db\ActiveRecord
     public static function find()
     {
         return new \app\models\query\AttendanceQuery(get_called_class());
+    }
+
+    /**
+     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
+     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
+     */
+    public function fields()
+    {
+        $fields = parent::fields();
+
+        return $fields;
+    }
+
+    public function beforeValidate()
+    {
+        if (parent::beforeValidate()) {
+            if ($this->scenario === Constants::SCENARIO_CREATE) {
+                if ($this->date !== $this->system_date) {
+                    $this->dateMismatch = $this->date;
+                    $this->date = $this->system_date;
+                }
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            $this->detail_info = array_merge(
+                $this->detail_info ?? [], 
+                [
+                    'change_log' => CoreModel::getChangeLog($this, $insert),
+                    'dayoff' => $this->detail_info['dayoff'] ?? false,
+                    'blacklist' => $this->detail_info['blacklist'] ?? [],
+                ]
+            );
+
+            return true;
+        }
+    
+        return false;
     }
 
     public function validateAttendance($attribute, $params)
@@ -128,17 +170,17 @@ class Attendance extends \yii\db\ActiveRecord
                 }
             }
             
-            if (!isset($employeeAttendance['device']['device_code'])) {
-                $employeeAttendance['device']['device_code'] = Constants::DEVICE_APP;
+            if (!isset($employeeAttendance['device']['code'])) {
+                $employeeAttendance['device']['code'] = Constants::DEVICE_APP;
                 if (empty($value['location'])) {
                     $this->addError($attribute.'['.$key.'].location', 'Location must be set for device app');
                     return;
                 }
             }
             
-            if ($employeeAttendance['device']['device_code'] !== Constants::DEVICE_APP) {
+            if ($employeeAttendance['device']['code'] !== Constants::DEVICE_APP) {
                 $device = Device::find()->where([
-                    'device_code' => $employeeAttendance['device']['device_code'], 
+                    'code' => $employeeAttendance['device']['code'], 
                     'status' => Constants::STATUS_ACTIVE
                 ])->one();
                 
@@ -147,7 +189,7 @@ class Attendance extends \yii\db\ActiveRecord
                     return;
                 }
 
-                $employeeAttendance['device'] = ['id' => $device->id, 'device_code' => $device->device_code, 'device_name' => $device->device_name];
+                $employeeAttendance['device'] = ['id' => $device->id, 'code' => $device->code, 'name' => $device->name];
             }
 
             $employeeAttendance['employee_id'] = intval($employeeAttendance['employee_id']);
@@ -348,36 +390,5 @@ class Attendance extends \yii\db\ActiveRecord
         }
         
         $this->$attribute = $lastAttendance;
-    }
-
-    public function beforeValidate()
-    {
-        if (parent::beforeValidate()) {
-            if ($this->scenario === Constants::SCENARIO_CREATE) {
-                if ($this->date !== $this->system_date) {
-                    $this->dateMismatch = $this->date;
-                    $this->date = $this->system_date;
-                }
-            }
-
-            return true;
-        }
-        return false;
-    }
-
-    public function beforeSave($insert)
-    {
-        if (parent::beforeSave($insert)) {
-            $this->change_log = CoreModel::getChangeLog($this, $insert);
-            $this->detail_info = array_merge($this->detail_info ?? [], [
-                'change_log' => $this->change_log,
-                'dayoff' => $this->detail_info['dayoff'] ?? false,
-                'blacklist' => $this->detail_info['blacklist'] ?? [],
-            ]);
-
-            return true;
-        }
-    
-        return false;
     }
 }

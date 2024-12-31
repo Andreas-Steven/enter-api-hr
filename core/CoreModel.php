@@ -70,6 +70,15 @@ class CoreModel
         ];
     }
 
+	public static function getLockVersionRules(): array
+    {
+        return [
+            [[Constants::OPTIMISTIC_LOCK], 'required'],
+            [[Constants::OPTIMISTIC_LOCK], 'integer'],
+            [[Constants::OPTIMISTIC_LOCK], 'default', 'value' => 1],
+        ];
+    }
+
 	public static function getPaginationRules($model): array
     {
         return [
@@ -117,6 +126,7 @@ class CoreModel
         $statusList = Constants::STATUS_LIST;
         $allowedStatusUpdate = Constants::ALLOWED_UPDATE_STATUS_LIST;
         $disallowedStatusUpdate = Constants::DISALLOWED_UPDATE_STATUS_LIST;
+
 
         if ($model->isAttributeChanged($attribute)) {
             if (!$model->isNewRecord) {
@@ -271,7 +281,7 @@ class CoreModel
 
     public static function getChangeLog($model, bool $insert): array
 	{
-		$timestamp = Yii::$app->coreAPI->getTimestamp();
+		$timestamp = Yii::$app->coreAPI->UTCTimestamp();
 		$username = Yii::$app->coreAPI->getUsername();
 		$changeLog = [];
 

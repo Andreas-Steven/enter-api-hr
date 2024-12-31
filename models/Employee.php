@@ -23,7 +23,6 @@ use app\core\CoreModel;
  */
 class Employee extends \yii\db\ActiveRecord
 {
-    public $change_log;
     public $system_date;
     public $division;
     public $position;
@@ -78,7 +77,7 @@ class Employee extends \yii\db\ActiveRecord
                 [['date_resign'], 'validateResignDate'],
                 [['employee_type_id'], 'validateEmployeeType'], 
             ],
-            CoreModel::getStatusRules($this)
+            CoreModel::getStatusRules($this),
         );
     }
 
@@ -114,6 +113,47 @@ class Employee extends \yii\db\ActiveRecord
     public static function find()
     {
         return new \app\models\query\EmployeeQuery(get_called_class());
+    }
+
+    /**
+     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
+     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
+     */
+    public function fields()
+    {
+        $fields = parent::fields();
+
+        return $fields;
+    }
+
+    public function beforeValidate()
+    {
+        if (parent::beforeValidate()) {
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            $this->name = CoreModel::htmlPurifier($this->name);
+            $this->image = CoreModel::nullSafe($this->image);
+            
+            $this->detail_info = [
+                'change_log' => CoreModel::getChangeLog($this, $insert),
+                'sso' => $this->sso !== null ? $this->sso : $this->detail_info['sso'],
+                'division' => $this->division,
+                'position' => $this->position,
+                'employee_type' => $this->employee_type
+            ];
+
+            return true;
+        }
+
+        return false;
     }
 
     public function validateSSO($attribute, $params, $validator)
@@ -246,26 +286,5 @@ class Employee extends \yii\db\ActiveRecord
         if ($this->$attribute < $this->system_date) {
             $this->status = Constants::STATUS_COMPLETED;
         }
-    }
-
-    public function beforeSave($insert)
-    {
-        if (parent::beforeSave($insert)) {
-            $this->name = CoreModel::htmlPurifier($this->name);
-            $this->change_log = CoreModel::getChangeLog($this, $insert);
-            $this->image = CoreModel::nullSafe($this->image);
-            
-            $this->detail_info = [
-                'change_log' => $this->change_log,
-                'sso' => $this->sso !== null ? $this->sso : $this->detail_info['sso'],
-                'division' => $this->division,
-                'position' => $this->position,
-                'employee_type' => $this->employee_type
-            ];
-
-            return true;
-        }
-
-        return false;
     }
 }

@@ -44,7 +44,7 @@ class Payroll extends \yii\db\ActiveRecord
 
                 [['salary_detail'], 'validateSalaryDetail'],
             ],
-            CoreModel::getStatusRules($this)
+            CoreModel::getStatusRules($this),
         );
     }
 
@@ -73,6 +73,40 @@ class Payroll extends \yii\db\ActiveRecord
     public static function find()
     {
         return new \app\models\query\PayrollQuery(get_called_class());
+    }
+
+    /**
+     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
+     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
+     */
+    public function fields()
+    {
+        $fields = parent::fields();
+
+        return $fields;
+    }
+
+    public function beforeValidate()
+    {
+        if (parent::beforeValidate()) {
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            $this->pay_period = CoreModel::htmlPurifier($this->pay_period);
+
+            $this->detail_info = [
+                'change_log' => CoreModel::getChangeLog($this, $insert),
+            ];
+            return true;
+        }
+        return false;
     }
 
     public function validateSalaryDetail($attribute, $params, $validator)
@@ -165,19 +199,5 @@ class Payroll extends \yii\db\ActiveRecord
         }
 
         $this->$attribute = $oldSalaryDetail;
-    }
-
-    public function beforeSave($insert)
-    {
-        if (parent::beforeSave($insert)) {
-            $this->change_log = CoreModel::getChangeLog($this, $insert);
-            $this->pay_period = CoreModel::htmlPurifier($this->pay_period);
-
-            $this->detail_info = [
-                'change_log' => $this->change_log,
-            ];
-            return true;
-        }
-        return false;
     }
 }

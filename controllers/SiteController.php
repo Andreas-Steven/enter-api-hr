@@ -28,7 +28,7 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        // \Yii::$app->language = Yii::$app->params['defaultLanguage']; // set language output
+        // \Yii::$app->language = Yii::$app->params['language']['default']; // set language output
         $data = [
             'code' => 200,
             'success' => true,

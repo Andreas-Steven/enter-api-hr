@@ -18,7 +18,6 @@ use app\core\CoreModel;
  */
 class BaseSalary extends \yii\db\ActiveRecord
 {
-    public $change_log;
     public $employee;
 
     public static function tableName()
@@ -48,7 +47,7 @@ class BaseSalary extends \yii\db\ActiveRecord
 
                 [['employee_id'], 'validateEmployee'],
             ],
-            CoreModel::getStatusRules($this)
+            CoreModel::getStatusRules($this),
         );
     }
 
@@ -79,9 +78,45 @@ class BaseSalary extends \yii\db\ActiveRecord
         return new \app\models\query\BaseSalaryQuery(get_called_class());
     }
 
+    /**
+     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
+     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
+     */
+    public function fields()
+    {
+        $fields = parent::fields();
+
+        return $fields;
+    }
+
+    public function beforeValidate()
+    {
+        if (parent::beforeValidate()) {
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            $this->base_salary = floatval($this->base_salary);
+            $this->detail_info = [
+                'change_log' => CoreModel::getChangeLog($this, $insert),
+                'employee' => $this->employee
+            ];
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function validateEmployee($attribute, $params, $validator)
     {
-        $employee = isset($this->detail_info['employee']) ? $this->detail_info['employee'] : null;
+        $employee = $this->detail_info['employee'] ?? null;
 
         if ($this->isAttributeChanged($attribute)) {
             $employee = Employee::find()->where([
@@ -96,22 +131,5 @@ class BaseSalary extends \yii\db\ActiveRecord
         }
 
         $this->employee = ['id' => $employee['id'], 'name' => $employee['name']];
-    }
-
-
-    public function beforeSave($insert)
-    {
-        if (parent::beforeSave($insert)) {
-            $this->base_salary = floatval($this->base_salary);
-            $this->change_log = CoreModel::getChangeLog($this, $insert);
-            $this->detail_info = [
-                'change_log' => $this->change_log,
-                'employee' => $this->employee
-            ];
-
-            return true;
-        }
-
-        return false;
     }
 }

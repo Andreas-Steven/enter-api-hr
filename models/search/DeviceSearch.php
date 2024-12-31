@@ -30,7 +30,7 @@ class DeviceSearch extends Device
         return array_merge(
             [
                 [['id', 'status'], 'integer'],
-                [['device_code', 'device_name', 'device_address', 'device_ip'], 'string'],
+                [['code', 'name', 'address', 'ip_address'], 'string'],
                 [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
@@ -71,14 +71,14 @@ class DeviceSearch extends Device
 
         // add conditions that should always apply here
         // grid filtering conditions
-        $query->andFilterWhere(CoreModel::setLikeFilter($this->device_name, 'device_name'));
+        $query->andFilterWhere(CoreModel::setLikeFilter($this->name, 'name'));
         
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
-            'device_code' => $this->device_code,
-            'device_address' => $this->device_address,
-            'device_ip'  => $this->device_ip,
+            'code' => $this->code,
+            'address' => $this->address,
+            'ip_address'  => $this->ip_address,
         ]);
 
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));

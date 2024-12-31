@@ -12,9 +12,14 @@ use app\exceptions\ErrorMessage;
 
 class CoreAPI 
 {
-	public function getTimestamp(): string
+	public function UTCTimestamp(): string
 	{
-		return gmdate(Yii::$app->params['UTC']);
+		return gmdate(Yii::$app->params['timestamp']['UTC']);
+	}
+
+	public function timestamp(): string
+	{
+		return gmdate(Yii::$app->params['timestamp']['UTC']);
 	}
 
 	public function getUsername(): string
@@ -69,4 +74,11 @@ class CoreAPI
 			$model->save(false);
 		}
 	}
+
+	public function generateUniqueString($length = 8) {
+        $microtime = microtime(true);
+        $timeString = substr(base_convert($microtime, 10, 36), -4);
+        $randomString = substr(bin2hex(random_bytes($length)), 0, $length - 4);
+        return $timeString . $randomString;
+    }
 }

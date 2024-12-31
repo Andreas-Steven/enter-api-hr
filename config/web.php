@@ -9,8 +9,8 @@ $config = [
     'name' => $params['titleService'],
     'timeZone' => $params['timeZone'],
     'basePath' => dirname(__DIR__),
+    'language' => $params['language']['default'],
     'bootstrap' => ['log'],
-    'language' => $params['defaultLanguage'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
@@ -127,17 +127,18 @@ $config = [
         $req = Yii::$app->request->getBodyParams();
         if (isset($req['language'])) {
             Yii::$app->language = $req['language'];
-            if(!in_array(Yii::$app->language, $params['languages'])) {
-                Yii::$app->language = $params['defaultLanguage'];
+            if(!in_array(Yii::$app->language, $params['language']['list'])) {
+                Yii::$app->language = $params['language']['default'];
             }
         }
     },
     'on beforeRequest' => function ($event) use ($params) {
+        $defaultLang = $params['language']['default'];
         $lang = Yii::$app->request->getHeaders()->get('Accept-Language');
 
-        Yii::$app->language = $lang ?? $params['defaultLanguage'];
-        if(!in_array(Yii::$app->language, $params['languages'])) {
-            Yii::$app->language = $params['defaultLanguage'];
+        Yii::$app->language = $lang ?? $defaultLang;
+        if(!in_array(Yii::$app->language, $params['language']['list'])) {
+            Yii::$app->language = $defaultLang;
         }
     },
 ];

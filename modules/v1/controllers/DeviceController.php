@@ -45,10 +45,9 @@ class DeviceController extends CoreController
 	{
 		$model = new Device();
 		$params = Yii::$app->getRequest()->getBodyParams();
-		$rules = $model->rules();
 
-        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($rules, $params)) {
-			return CoreController::coreValidateParams($unavailableParams);
+        if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
+			return $coreUnavailableParams;
         }
 		
 		$params['status'] = Constants::STATUS_DRAFT;

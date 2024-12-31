@@ -7,9 +7,11 @@ class m241010_103834_create_brand_table extends Migration
     public function safeUp()
     {
         $params = require(__DIR__ . '/../config/params.php');
+        $UTCTimestamp = gmdate(Yii::$app->params['timestamp']['UTC']);
+        $createdBy = 'system';
         
-        if (YII_ENV !== 'dev') {
-            echo "Skipping migration/fresh for non-dev environment.";
+        if (!YII_ENV_DEV) {
+            echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
 
@@ -30,8 +32,8 @@ class m241010_103834_create_brand_table extends Migration
             'sync' => $this->smallInteger()->defaultValue(null)->comment('1: unsync, null: synced'),
         ]);
 
-        if (YII_ENV !== 'dev') {
-            echo "Skipping migration/fresh for non-dev environment.";
+        if (!YII_ENV_DEV) {
+            echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
 
@@ -41,8 +43,8 @@ class m241010_103834_create_brand_table extends Migration
             'status' => 1,
             'detail_info' => json_encode([
                 'change_log' => [
-                    'created_at' => gmdate(Yii::$app->params['UTC']),
-                    'created_by' => 'system',
+                    'created_at' => $UTCTimestamp,
+                    'created_by' => $createdBy,
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
@@ -57,8 +59,8 @@ class m241010_103834_create_brand_table extends Migration
             'status' => 1,
             'detail_info' => json_encode([
                 'change_log' => [
-                    'created_at' => gmdate(Yii::$app->params['UTC']),
-                    'created_by' => 'system',
+                    'created_at' => $UTCTimestamp,
+                    'created_by' => $createdBy,
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
@@ -71,6 +73,11 @@ class m241010_103834_create_brand_table extends Migration
 
     public function safeDown()
     {
+        if (YII_ENV_DEV) {
+            echo "Skipping migration/fresh for non-dev environment.\n";
+            return true;
+        }
+
         $this->dropTable('{{%brand}}');
     }
 }

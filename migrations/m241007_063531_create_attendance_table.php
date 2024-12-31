@@ -13,9 +13,11 @@ class m241007_063531_create_attendance_table extends Migration
     public function safeUp()
     {
         $params = require(__DIR__ . '/../config/params.php');
+        $UTCTimestamp = gmdate(Yii::$app->params['timestamp']['UTC']);
+        $createdBy = 'system';
         
-        if (YII_ENV !== 'dev') {
-            echo "Skipping migration/fresh for non-dev environment.";
+        if (!YII_ENV_DEV) {
+            echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
         
@@ -37,8 +39,8 @@ class m241007_063531_create_attendance_table extends Migration
             'lock_version' => $this->integer()->notNull()->defaultValue(1)->comment('Optimistic Locking'),
         ]);
 
-        if (YII_ENV !== 'dev') {
-            echo "Skipping migration/fresh for non-dev environment.";
+        if (!YII_ENV_DEV) {
+            echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
 
@@ -54,8 +56,8 @@ class m241007_063531_create_attendance_table extends Migration
                     ],
                     'device' => [
                         'id' => 1,
-                        'device_code' => 'MK1',
-                        'device_name' => 'Ruko',
+                        'code' => 'MK1',
+                        'name' => 'Ruko',
                     ],
                     'division' => [
                         'id' => 2,
@@ -80,8 +82,8 @@ class m241007_063531_create_attendance_table extends Migration
                     ],
                     'device' => [
                         'id' => 2,
-                        'device_code' => 'MK2',
-                        'device_name' => 'Toko',
+                        'code' => 'MK2',
+                        'name' => 'Toko',
                     ],
                     'division' => [
                         'id' => 2,
@@ -104,8 +106,8 @@ class m241007_063531_create_attendance_table extends Migration
                 'dayoff' => false,
                 'blacklist' => [],
                 'change_log' => [
-                    'created_at' => gmdate(Yii::$app->params['UTC']),
-                    'created_by' => 'system',
+                    'created_at' => $UTCTimestamp,
+                    'created_by' => $createdBy,
                     'deleted_at' => null,
                     'deleted_by' => null,
                     'updated_at' => null,
@@ -125,8 +127,8 @@ class m241007_063531_create_attendance_table extends Migration
         //             ],
         //             'device' => [
         //                 'id' => 1,
-        //                 'device_code' => 'MK1',
-        //                 'device_name' => 'Ruko',
+        //                 'code' => 'MK1',
+        //                 'name' => 'Ruko',
         //             ],
         //             'division' => [
         //                 'id' => 2,
@@ -149,8 +151,8 @@ class m241007_063531_create_attendance_table extends Migration
         //         'dayoff' => false,
         //         'blacklist' => [],
         //         'change_log' => [
-        //             'created_at' => gmdate(Yii::$app->params['UTC']),
-        //             'created_by' => 'system',
+        //             'created_at' => $UTCTimestamp,
+        //             'created_by' => $createdBy,
         //             'deleted_at' => null,
         //             'deleted_by' => null,
         //             'updated_at' => null,
@@ -165,6 +167,11 @@ class m241007_063531_create_attendance_table extends Migration
      */
     public function safeDown()
     {
+        if (YII_ENV_DEV) {
+            echo "Skipping migration/fresh for non-dev environment.\n";
+            return true;
+        }
+
         $this->dropTable('{{%attendance}}');
     }
 }

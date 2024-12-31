@@ -23,7 +23,6 @@ use app\core\CoreModel;
  */
 class GeneralAffair extends \yii\db\ActiveRecord
 {
-    public $change_log;
     public $code;
     public $product;
     public $category;
@@ -60,7 +59,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 [['asset'], 'validateItem', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'status'], 'validateDeleted', 'on' => Constants::SCENARIO_DELETE],
             ],
-            CoreModel::getStatusRules($this)
+            CoreModel::getStatusRules($this),
         );
     }
 
@@ -90,9 +89,48 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return new \app\models\query\GeneralAffairQuery(get_called_class());
     }
 
+    /**
+     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
+     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
+     */
+    public function fields()
+    {
+        $fields = parent::fields();
+
+        return $fields;
+    }
+
+    public function beforeValidate()
+    {
+        if (parent::beforeValidate()) {
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            $this->name = CoreModel::htmlPurifier($this->name);
+            $this->asset = $this->calculateItems($this->asset);
+            $this->detail_info = [
+                'change_log' => CoreModel::getChangeLog($this, $insert),
+                'product' => $this->product,
+                'category' => $this->category,
+                'location' => $this->location,
+            ];
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function validateProduct($attribute, $params, $validator)
     {
-        $product = isset($this->detail_info['product']) ? $this->detail_info['product'] : null;
+        $product = $this->detail_info['product'] ?? null;
 
         if ($this->isAttributeChanged($attribute)) {
             $product = GeneralAffairProduct::find()->where([
@@ -112,7 +150,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function validateCategory($attribute, $params, $validator)
     {
-        $category = isset($this->detail_info['category']) ? $this->detail_info['category'] : null;
+        $category = $this->detail_info['category'] ?? null;
 
         if ($this->isAttributeChanged($attribute)) {
             $category = GeneralAffairCategory::find()->where([
@@ -160,7 +198,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $oldItem = $this->getOldAttribute($attribute);
     
         foreach ($itemData['items'] as $key => $value) {
-            $timestamp = Yii::$app->coreAPI->getTimestamp();
+            $timestamp = Yii::$app->coreAPI->UTCTimestamp();
             $username = Yii::$app->session->get('username') ?? 'system';
 
             if (empty($value['code'])) {
@@ -239,7 +277,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         $oldData = $this->getAttributes();
         $itemCodes = array_column($oldData['asset']['items'], 'code') ?? [];
-        $timestamp = Yii::$app->coreAPI->getTimestamp();
+        $timestamp = Yii::$app->coreAPI->UTCTimestamp();
 
         if (!empty($this->code) && is_array($oldData['asset']) && array_key_exists('items', $oldData['asset'])) {
             if (in_array($this->code, $itemCodes, true)) {
@@ -268,24 +306,5 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $asset['total_price'] = $totalPrice;
         
         return $asset;
-    }
-
-    public function beforeSave($insert)
-    {
-        if (parent::beforeSave($insert)) {
-            $this->name = CoreModel::htmlPurifier($this->name);
-            $this->asset = $this->calculateItems($this->asset);
-            $this->change_log = CoreModel::getChangeLog($this, $insert);
-            $this->detail_info = [
-                'change_log' => $this->change_log,
-                'product' => $this->product,
-                'category' => $this->category,
-                'location' => $this->location,
-            ];
-
-            return true;
-        }
-
-        return false;
     }
 }

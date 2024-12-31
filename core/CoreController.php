@@ -63,17 +63,7 @@ class CoreController extends Controller
 
     public function coreActionIndex()
 	{
-		return [
-			'code' => Yii::$app->response->statusCode = 200,
-			'success' => true,
-			'message' => Yii::$app->params['titleService'].' '.Yii::$app->params['serviceVersion'],
-            'data' => [
-                [
-                    'language' => Yii::$app->language,
-                    'version' => Yii::$app->params['serviceVersion'],
-                ]
-            ],
-		];
+		self::actionIndex();
 	}
 
     public function actionError()
@@ -86,22 +76,10 @@ class CoreController extends Controller
         ];
     }
 
-    public function errorHandler($exception)
-    {
-        $response = new Response();
-        $response->setStatusCode($exception->getCode());
-        $response->data = [
-            'code' => $exception->getCode(),
-            'success' => false,
-            'message' => 'Error Message',
-        ];
-        return $response;
-    }
-
     public function coreFindModel($model, ?array $params): ?object
 	{
         $where = $params;
-        $id = isset($params['id']) ? $params['id'] : null;
+        $id = $params['id'] ?? null;
 
         if ($id){
             $where = ['id' => $id];
@@ -120,7 +98,7 @@ class CoreController extends Controller
     public function coreData($dataProvider): array
     {
         return [
-            'code' => 200,
+            'code' => Yii::$app->response->statusCode = 200,
             'success' => true,
             'message' => Yii::t('app', 'success'),
             'pagination' => [
@@ -133,10 +111,11 @@ class CoreController extends Controller
         ];
     }
 
-    public function coreSuccess($model, ?array $data=null, ?string $message = null): array
+    public function coreSuccess($model=[], ?string $message = null, ?array $data=null): array
     {
-        $response[] = $data ?? $model;
+        $response[] = $model ?? [];
         $message = $message ?? Yii::t('core', "{$model->scenario}RecordSuccess");
+
         return [
             'code' => Yii::$app->response->statusCode = 200,
             'success' => true,
@@ -176,16 +155,6 @@ class CoreController extends Controller
             'success' => false,
             'message' => $message ?? Yii::t('core', 'badRequest'),
             'errors' => $model ?? [],
-        ];
-    }
-    
-    public function coreException($model, ?string $message = null): array 
-    {
-        return [
-            'code' => Yii::$app->response->statusCode = 422,
-            'success' => false,
-            'message' => $message ?? Yii::t('core', 'exceptionOccured'),
-            'errors' => $model->errors ?? [],
         ];
     }
 
@@ -245,18 +214,18 @@ class CoreController extends Controller
 		$message = null;
 
         if (empty($model->getDirtyAttributes()) && $scenario === Constants::SCENARIO_UPDATE) {
-            $message = 'noRecordUpdated';
+            $message = Yii::t('core', 'noRecordUpdated');
         }
 
         if ($scenario === Constants::SCENARIO_DELETE && $model->status === $model->getOldAttribute('status')) {
-            $message = 'noRecordDeleted';
+            $message = Yii::t('core', 'noRecordDeleted');
         }
 
 		if ($message){
 			return [
 				'code' => Yii::$app->response->statusCode = 422,
 				'success' => false,
-				'message' => Yii::t('core', $message),
+				'message' => $message,
 				'errors' => $model->errors ?? [],
 			];
 		}

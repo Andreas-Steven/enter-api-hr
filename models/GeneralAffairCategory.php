@@ -45,7 +45,7 @@ class GeneralAffairCategory extends \yii\db\ActiveRecord
                     ]);
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],
             ],
-            CoreModel::getStatusRules($this)
+            CoreModel::getStatusRules($this),
         );
     }
 
@@ -74,14 +74,34 @@ class GeneralAffairCategory extends \yii\db\ActiveRecord
         return new \app\models\query\GeneralAffairCategoryQuery(get_called_class());
     }
 
+    /**
+     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
+     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
+     */
+    public function fields()
+    {
+        $fields = parent::fields();
+
+        return $fields;
+    }
+
+    public function beforeValidate()
+    {
+        if (parent::beforeValidate()) {
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->change_log = CoreModel::getChangeLog($this, $insert);
             $this->name = CoreModel::htmlPurifier($this->name);
 
             $this->detail_info = [
-                'change_log' => $this->change_log,
+                'change_log' => CoreModel::getChangeLog($this, $insert),
             ];
             return true;
         }

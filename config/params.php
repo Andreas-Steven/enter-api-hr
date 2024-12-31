@@ -9,12 +9,24 @@ return array_merge([
     'extraCookies' => 'name-cookie-01',
     // DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
     'codeApp' => 'enterHR',
-    'defaultLanguage' => 'en',
-    'UTC' => 'Y-m-d\TH:i:s\Z',
-    'localTimestamp' => 'Y-m-d H:i:s',
-    'languages' => [
-        'en', 
-        'id'
+    // 'defaultLanguage' => 'en',
+    // 'UTC' => 'Y-m-d\TH:i:s\Z',
+    // 'localTimestamp' => 'Y-m-d H:i:s',
+    // 'languages' => [
+        // 'en', 
+        // 'id'
+    // ],
+    'timestamp' => [
+        'timeZone' => 'Asia/Jakarta',
+        'UTC' => 'Y-m-d\TH:i:s\Z',
+        'local' => 'Y-m-d H:i:s'
+    ],
+    'language' => [
+        'default' => 'en',
+        'list' => [
+            'en', 
+            'id',
+        ],
     ],
     'jwt' => [
         'key' => 'secret-key-harus-panjang-256-bit',

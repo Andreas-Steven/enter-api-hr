@@ -13,7 +13,7 @@ use app\core\CoreModel;
  * @property string $name
  * @property string $address
  * @property string $location
- * @property string $device_ip
+ * @property string $ip_address
  * @property int $status
  * @property string $detail_info
  */
@@ -38,19 +38,22 @@ class Device extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
-                [['detail_info', 'device_location'], 'safe'],
-                [['device_code', 'device_name', 'device_address', 'device_ip'], 'string', 'max' => 255],
-                [['device_code', 'device_name', 'device_address', 'device_ip'], 'required'],
+                [['detail_info', 'location'], 'safe'],
+                [['code', 'name', 'address', 'ip_address'], 'required'],
+                [['code', 'name', 'address', 'ip_address'], 'string', 'max' => 255],
+
+                [['code'], 'unique', 'on' => Constants::SCENARIO_CREATE],
+                [['location'], 'validateLocation'],
             ],
-            CoreModel::getStatusRules($this)
+            CoreModel::getStatusRules($this),
         );
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'device_location', 'status', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['device_code', 'device_name', 'device_address', 'device_ip', 'device_location', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['code', 'name', 'address', 'ip_address', 'location', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['code', 'name', 'address', 'ip_address', 'location', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -60,11 +63,11 @@ class Device extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'device_code' => 'Device Code',
-            'device_name' => 'Device Name',
-            'device_address' => 'Device Address',
-            'device_ip' => 'Device IP',
-            'device_location' => 'Device Location',
+            'code' => 'Code',
+            'name' => 'Name',
+            'address' => 'Address',
+            'ip_address' => 'IP Address',
+            'location' => 'Location',
             'status' => 'Status',
             'detail_info' => 'Detail Info',
         ];
@@ -75,18 +78,48 @@ class Device extends \yii\db\ActiveRecord
         return new \app\models\query\DeviceQuery(get_called_class());
     }
 
+    /**
+     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
+     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
+     */
+    public function fields()
+    {
+        $fields = parent::fields();
+
+        return $fields;
+    }
+
+    public function beforeValidate()
+    {
+        if (parent::beforeValidate()) {
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->device_name = CoreModel::htmlPurifier($this->device_name);
-            $this->change_log = CoreModel::getChangeLog($this, $insert);
+            $this->name = CoreModel::htmlPurifier($this->name);
             $this->detail_info = [
-                'change_log' => $this->change_log,
+                'change_log' => CoreModel::getChangeLog($this, $insert),
             ];
             
             return true;
         }
         
         return false;
+    }
+
+    public function validateLocation($attribute, $params)
+    {
+        if (!empty($this->location)) {
+            $location = $this->location;
+            $location['lat'] = floatval($location['lat']);
+            $location['long'] = floatval($location['long']);
+            $this->location = $location;
+        }
     }
 }
