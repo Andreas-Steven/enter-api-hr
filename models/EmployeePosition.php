@@ -99,7 +99,6 @@ class EmployeePosition extends \yii\db\ActiveRecord
     {
         if (parent::beforeSave($insert)) {
             $this->name = CoreModel::htmlPurifier($this->name);
-
             $this->detail_info = [
                 'change_log' => CoreModel::getChangeLog($this, $insert),
             ];

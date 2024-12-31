@@ -141,7 +141,6 @@ class Employee extends \yii\db\ActiveRecord
         if (parent::beforeSave($insert)) {
             $this->name = CoreModel::htmlPurifier($this->name);
             $this->image = CoreModel::nullSafe($this->image);
-            
             $this->detail_info = [
                 'change_log' => CoreModel::getChangeLog($this, $insert),
                 'sso' => $this->sso !== null ? $this->sso : $this->detail_info['sso'],

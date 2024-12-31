@@ -100,7 +100,6 @@ class Payroll extends \yii\db\ActiveRecord
     {
         if (parent::beforeSave($insert)) {
             $this->pay_period = CoreModel::htmlPurifier($this->pay_period);
-
             $this->detail_info = [
                 'change_log' => CoreModel::getChangeLog($this, $insert),
             ];
