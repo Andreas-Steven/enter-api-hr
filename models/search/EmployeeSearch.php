@@ -29,7 +29,7 @@ class EmployeeSearch extends Employee
                 [['nik', 'name'], 'string'],
                 [['id', 'status', 'sso_id', 'division_id'], 'integer'],
                 [['birth_date', 'date_start', 'date_resign'], 'date', 'format' => 'php:Y-m-d'],
-                [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+                [['contact', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -74,6 +74,7 @@ class EmployeeSearch extends Employee
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
+            'nik' => $this->nik,
             'sso_id' => $this->sso_id,
             'division_id' => $this->division_id,
             'birth_date' => $this->birth_date,
@@ -82,7 +83,11 @@ class EmployeeSearch extends Employee
         ]);
         
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
-        
+
+        if (!empty($this->contact)) {
+            $query->andWhere("contact @> :contact", [':contact' => json_encode($this->contact)]);
+        }
+
         $dataProvider->setPagination(
             CoreModel::setPagination($params, $dataProvider)
         );
