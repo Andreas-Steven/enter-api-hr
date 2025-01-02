@@ -64,6 +64,7 @@ class Attendance extends \yii\db\ActiveRecord
                 [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],
             ],
             CoreModel::getStatusRules($this),
+            // CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -141,7 +142,7 @@ class Attendance extends \yii\db\ActiveRecord
     public function validateAttendance($attribute, $params)
     {
         if (!is_array($this->$attribute)) {
-            $this->addError($attribute, 'Attendance must be an array');
+            $this->addError($attribute, Yii::t('app', 'mustArray', ['field' => $this->getAttributeLabel('Attendance')]));
             return;
         }
 
@@ -154,18 +155,18 @@ class Attendance extends \yii\db\ActiveRecord
         foreach ($attendanceData as $key => $value) {
             $employeeAttendance = array_merge(Yii::$app->params['defaultValue']['attendance'], $value);
             if (empty($employeeAttendance['employee_id'])) {
-                $this->addError($attribute, 'Employee Id must be filled');
+                $this->addError($attribute, Yii::t('core', 'required', ['field' => $this->getAttributeLabel('employee_id')]));
                 return;
             }
             
             if (empty($employeeAttendance['start_time']) && empty($employeeAttendance['end_time'])) {
-                $this->addError($attribute, 'Start time or end time must be filled');
+                $this->addError($attribute, Yii::t('app', 'emptyStartTimeEndTime'));
                 return;
             }
             
             if (isset($value['end_time'])) {
                 if (!empty($value['end_time']) && strtotime($value['end_time']) === false) {
-                    $this->addError($attribute, 'Attendance end time value not valid');
+                    $this->addError($attribute,  Yii::t('app', 'endTimeNotValid'));
                     return;
                 }
             }
@@ -173,7 +174,7 @@ class Attendance extends \yii\db\ActiveRecord
             if (!isset($employeeAttendance['device']['code'])) {
                 $employeeAttendance['device']['code'] = Constants::DEVICE_APP;
                 if (empty($value['location'])) {
-                    $this->addError($attribute.'['.$key.'].location', 'Location must be set for device app');
+                    $this->addError($attribute, Yii::t('app', 'locationRequired'));
                     return;
                 }
             }
@@ -185,7 +186,7 @@ class Attendance extends \yii\db\ActiveRecord
                 ])->one();
                 
                 if ($device === null) {
-                    $this->addError($attribute.'.device_code', 'Device not found');
+                    $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('Device')]));
                     return;
                 }
 
@@ -195,7 +196,7 @@ class Attendance extends \yii\db\ActiveRecord
             $employeeAttendance['employee_id'] = intval($employeeAttendance['employee_id']);
             $employee = Employee::find()->where(['id' => $employeeAttendance['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
             if ($employee === null) {
-                $this->addError($attribute.'['.$key.'].employee_id', 'Employee not found');
+                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('Employee')]));
                 return;
             }
 
@@ -207,7 +208,7 @@ class Attendance extends \yii\db\ActiveRecord
                 ])->one();
                 
                 if ($division === null) {
-                    $this->addError($attribute.'['.$key.'].employee_id', 'Division not found');
+                    $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('Division')]));
                     return;
                 }
                 
@@ -217,7 +218,7 @@ class Attendance extends \yii\db\ActiveRecord
                 ])->one();
                 
                 if ($userAttendance === null) {
-                    $this->addError($attribute.'['.$key.'].employee_id', 'Attendance Time not found');
+                    $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('UserAttendance')]));
                     return;
                 }
                 
@@ -228,7 +229,7 @@ class Attendance extends \yii\db\ActiveRecord
                 ])->one();
 
                 if ($workTime === null) {
-                    $this->addError($attribute.'['.$key.'].employee_id', 'Work Time not found');
+                    $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('WorkTime')]));
                     return;
                 }
 
@@ -239,12 +240,12 @@ class Attendance extends \yii\db\ActiveRecord
                 ];
 
                 if (!empty($employeeAttendance['start_time']) && strtotime($employeeAttendance['start_time']) === false) {
-                    $this->addError($attribute, 'Attendance start time value not valid');
+                    $this->addError($attribute, Yii::t('app', 'startTimeNotValid'));
                     return;
                 }
 
                 if (!empty($employeeAttendance['end_time']) && strtotime($employeeAttendance['end_time']) === false) {
-                    $this->addError($attribute, 'Attendance end time value not valid');
+                    $this->addError($attribute, Yii::t('app', 'endTimeNotValid'));
                     return;
                 }
 
@@ -262,7 +263,6 @@ class Attendance extends \yii\db\ActiveRecord
 
                     if (!in_array($dayNow, $workingDays)) {
                         if (!in_array("Lembur", $employeeAttendance['info']['detail'])) {
-                            // $employeeAttendance['info']['detail'][] = "Masuk di hari libur";
                             $employeeAttendance['info']['detail'][] = "Lembur";
                         }
                     }

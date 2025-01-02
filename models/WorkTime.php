@@ -40,6 +40,7 @@ class WorkTime extends \yii\db\ActiveRecord
                 [['name', 'entry_time', 'home_time'], 'required'],
                 [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
 
+                [['working_days'], 'validateWorkingDays'],
                 [['entry_time', 'home_time', 'status'], function ($attribute, $params, $validator) {
                     CoreModel::validateDependencies($attribute, $params, $validator, $this, [
                         ['className' => 'UserAttendance', 'field' => ['work_time_id']],
@@ -47,6 +48,7 @@ class WorkTime extends \yii\db\ActiveRecord
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],
             ],
             CoreModel::getStatusRules($this),
+            // CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -110,5 +112,13 @@ class WorkTime extends \yii\db\ActiveRecord
         }
 
         return false;
+    }
+
+    public function validateWorkingDays($attribute, $params) 
+    {
+        $this->working_days = array_filter($this->working_days, function($value) {
+            return $value !== '[]' && $value !== 'null';
+        });
+        $this->working_days = array_values($this->working_days);
     }
 }

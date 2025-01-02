@@ -28,7 +28,7 @@ class WorkTimeSearch extends WorkTime
             [
                 [['id', 'status'], 'integer'],
                 [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
-                [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+                [['working_days', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -74,6 +74,10 @@ class WorkTimeSearch extends WorkTime
         ]);
 
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
+
+        if (!empty($this->working_days)) {
+            $query->andWhere("working_days @> :working_days", [':working_days' => json_encode($this->working_days)]);
+        }
 
         $dataProvider->setPagination(
             CoreModel::setPagination($params, $dataProvider)

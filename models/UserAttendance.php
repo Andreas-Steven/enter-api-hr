@@ -41,10 +41,12 @@ class UserAttendance extends \yii\db\ActiveRecord
                 [['work_time_id', 'employee_id'], 'filter', 'filter' => 'intval'],
                 [['work_time_id', 'employee_id'], 'required' , 'on' => Constants::SCENARIO_CREATE],
                 [['work_time_id', 'employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>'],
+                
                 [['employee_id'], 'validateEmployee'],
                 [['work_time_id'], 'validateWorkTime'],
             ],
             CoreModel::getStatusRules($this),
+            // CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -123,7 +125,7 @@ class UserAttendance extends \yii\db\ActiveRecord
         }
 
         if ($employee === null) {
-            $this->addError($attribute, 'Employee not found');
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('Employee')]));
             return;
         }
 
@@ -142,7 +144,7 @@ class UserAttendance extends \yii\db\ActiveRecord
         }
 
         if ($work_time === null) {
-            $this->addError($attribute, 'Work Time not found');
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('WorkTime')]));
             return;
         }
 

@@ -44,6 +44,7 @@ class GeneralAffairLocation extends \yii\db\ActiveRecord
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],
             ],
             CoreModel::getStatusRules($this),
+            // CoreModel::getLockVersionRules($this),
         );
     }
 

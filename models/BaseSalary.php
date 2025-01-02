@@ -48,6 +48,7 @@ class BaseSalary extends \yii\db\ActiveRecord
                 [['employee_id'], 'validateEmployee'],
             ],
             CoreModel::getStatusRules($this),
+            // CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -126,7 +127,7 @@ class BaseSalary extends \yii\db\ActiveRecord
         }
 
         if ($employee === null) {
-            $this->addError($attribute, 'Employee not found');
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('Employee')]));
             return;
         }
 

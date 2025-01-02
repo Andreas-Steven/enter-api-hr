@@ -72,12 +72,12 @@ class DeviceSearch extends Device
         // add conditions that should always apply here
         // grid filtering conditions
         $query->andFilterWhere(CoreModel::setLikeFilter($this->name, 'name'));
+        $query->andFilterWhere(CoreModel::setLikeFilter($this->address, 'address'));
         
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
             'code' => $this->code,
-            'address' => $this->address,
             'ip_address'  => $this->ip_address,
         ]);
 

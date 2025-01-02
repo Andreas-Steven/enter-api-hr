@@ -27,4 +27,14 @@ return [
     'superadminOnly' => 'You do not have permission to perform this action.',
     'updatePermission' => 'You do not have permission to update the {label} of this {tableName} because it is referenced in other data.',
     'mustLogin' => 'You must login to perform this action.',
+    'mustArray' => '{field} must be an array.',
+
+    // Attendance custom error messages
+    'emptyStartTimeEndTime' => 'Start time or end time must be filled.',
+    'startTimeNotValid' => 'Attendance start time value not valid.',
+    'endTimeNotValid' => 'Attendance end time value not valid.',
+    'locationRequired' => 'Location must be set for device app.',
+
+    // General Affair custom error messages
+    'dateInvalid' => '{field} format invalid.',
 ];

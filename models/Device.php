@@ -44,6 +44,7 @@ class Device extends \yii\db\ActiveRecord
                 [['location'], 'validateLocation'],
             ],
             CoreModel::getStatusRules($this),
+            // CoreModel::getLockVersionRules($this),
         );
     }
 

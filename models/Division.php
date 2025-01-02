@@ -45,6 +45,7 @@ class Division extends \yii\db\ActiveRecord
                 
             ], 
             CoreModel::getStatusRules($this),
+            // CoreModel::getLockVersionRules($this),
         );
             
     }

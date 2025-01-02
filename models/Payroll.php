@@ -43,6 +43,7 @@ class Payroll extends \yii\db\ActiveRecord
                 [['salary_detail'], 'validateSalaryDetail'],
             ],
             CoreModel::getStatusRules($this),
+            // CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -109,7 +110,7 @@ class Payroll extends \yii\db\ActiveRecord
     public function validateSalaryDetail($attribute, $params, $validator)
     {
         if (!is_array($this->$attribute)) {
-            $this->addError($attribute, 'Attendance must be an array');
+            $this->addError($attribute, Yii::t('app', 'mustArray', ['field' => $this->getAttributeLabel('Salary')]));
             return;
         }
 
@@ -133,20 +134,20 @@ class Payroll extends \yii\db\ActiveRecord
             $salaryDetail['employee_id'] = intval($salaryDetail['employee_id']);
             $employee = Employee::find()->where(['id' => $salaryDetail['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
             if ($employee === null) {
-                $this->addError($attribute.'['.$key.'].employee_id', 'Employee not found');
+                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('Employee')]));
                 return;
             }
 
             $baseSalary = BaseSalary::find()->where(['employee_id' => $salaryDetail['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
             if ($baseSalary === null) {
-                $this->addError($attribute.'['.$key.'].employee_id.base_salary', 'Base salary not found');
+                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('BaseSalary')]));
                 return;
             }
 
             $convertAndValidateFloat = function(&$item, $key) use ($attribute) {
                 if (!is_numeric($item) || floatval($item) < 0) {
-                    $this->addError($attribute.'['.$key.'].' . $key, 'Value must be a valid number and greater than or equal to 0');
-                    $item = 0;
+                    $this->addError($attribute, Yii::t('core', 'float', ['field' => $this->getAttributeLabel($key)]));
+                    return;
                 } else {
                     $item = floatval($item);
                 }
@@ -155,8 +156,8 @@ class Payroll extends \yii\db\ActiveRecord
             $convertAndValidateInt = function(&$item, $key) use ($attribute) {
                 if ($item !== null) {
                     if (!is_numeric($item) || intval($item) < 0) {
-                        $this->addError($attribute.'['.$key.'].' . $key, 'Value must be a valid integer and greater than or equal to 0');
-                        $item = 0;
+                        $this->addError($attribute, Yii::t('core', 'integer', ['field' => $this->getAttributeLabel($key)]));
+                        return;
                     } else {
                         $item = intval($item);
                     }
@@ -165,7 +166,7 @@ class Payroll extends \yii\db\ActiveRecord
             
             $division = Division::find()->where(['id' => $employee->division_id, 'status' => Constants::STATUS_ACTIVE])->one();
             if ($division === null) {
-                $this->addError($attribute.'['.$key.'].division_id', 'Division not found');
+                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('Division')]));
                 return;
             }
     

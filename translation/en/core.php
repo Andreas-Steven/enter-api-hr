@@ -8,6 +8,8 @@ return [
     'exceptionOccured' => 'An exception has occurred.',
     'unauthorizedAccess' => 'Unauthorized access.',
     'serverError' => 'Server error.',
+    'lockVersionOutdated' => 'The data being updated is outdated. Please refresh the page and try again.',
+    'unknownError' => 'An unknown error occurred.',
 
     // General Records Rules
     'createRecordSuccess' => 'Data has been saved successfully.',
@@ -22,6 +24,7 @@ return [
     // Field Validation Rules
     'required' => 'Field {field} cannot be blank.',
     'integer' => 'Field {field} must be an integer.',
+    'float' => 'Field {field} must be an float.',
     'validationFailed' => 'Field validation failed.',
     'invalidField' => 'Field {field} not a valid request parameter.',
     'fieldDataNotFound' => '{field} data not found.',
@@ -41,6 +44,5 @@ return [
     // Superadmin Rights Rules
     'superadminOnly' => 'You do not have permission to perform this action.',
     'updatePermission' => 'You do not have permission to update the {label} of this {tableName} because it is referenced in other data.',
-
 ];
 

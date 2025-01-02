@@ -78,6 +78,7 @@ class Employee extends \yii\db\ActiveRecord
                 [['employee_type_id'], 'validateEmployeeType'], 
             ],
             CoreModel::getStatusRules($this),
+            // CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -178,7 +179,7 @@ class Employee extends \yii\db\ActiveRecord
             }
 
             if ($division === null) {
-                $this->addError($attribute, 'Division data not found');
+                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('Division')]));
                 return;
             }
             
@@ -205,7 +206,7 @@ class Employee extends \yii\db\ActiveRecord
             }
 
             if ($position === null) {
-                $this->addError($attribute, 'Employee Potition data not found');
+                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('EmployeePosition')]));
                 return;
             }
             
@@ -232,7 +233,7 @@ class Employee extends \yii\db\ActiveRecord
             }
 
             if ($employee_type === null) {
-                $this->addError($attribute, 'Employee Type data not found');
+                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('EmployeeType')]));
                 return;
             }
             
@@ -254,8 +255,8 @@ class Employee extends \yii\db\ActiveRecord
                 foreach ($this->$attribute as $index => $newContact) {
                     $newContact = CoreModel::nullSafe($newContact);
                     if ($newContact === null) {
-                        $this->addError($attribute, 'Contact can not be null');
-                return;
+                        $this->addError($attribute, Yii::t('core', 'nullField', ['label' => $this->getAttributeLabel('contact'), 'fields' => $this->getAttributeLabel('Contact')]));
+                        return;
                     }
 
                     if (array_key_exists($index, $oldContact)) {

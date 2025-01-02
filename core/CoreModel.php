@@ -70,12 +70,12 @@ class CoreModel
         ];
     }
 
-	public static function getLockVersionRules(): array
+	public static function getLockVersionRules($model=null, $requiredOn=null): array
     {
         return [
-            [[Constants::OPTIMISTIC_LOCK], 'required'],
             [[Constants::OPTIMISTIC_LOCK], 'integer'],
-            [[Constants::OPTIMISTIC_LOCK], 'default', 'value' => 1],
+            [[Constants::OPTIMISTIC_LOCK], 'required', 'on' => $requiredOn ?? Constants::SCENARIO_UPDATE_LIST],
+            [[Constants::OPTIMISTIC_LOCK], 'default', 'value' => 1, 'on' => [Constants::SCENARIO_CREATE]],
         ];
     }
 

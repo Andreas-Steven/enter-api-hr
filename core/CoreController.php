@@ -79,7 +79,7 @@ class CoreController extends Controller
     public function coreFindModel($model, ?array $params): ?object
 	{
         $where = $params;
-        $id = $params['id'] ?? null;
+        $id = isset($params['id']) ? $params['id'] : null;
 
         if ($id){
             $where = ['id' => $id];
@@ -88,6 +88,13 @@ class CoreController extends Controller
 		if (!empty($where)) {
 			$query = $model::find()->where($where);
 			if (($modelInstance = $query->one()) !== null) {
+                $lockVersion = Constants::OPTIMISTIC_LOCK;
+
+                if (isset($modelInstance->$lockVersion)) {
+                    // Hide lock_version on result data for update/delete.
+                    unset($modelInstance->$lockVersion); 
+                }
+
 				return $modelInstance;
 			}
 		}
