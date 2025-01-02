@@ -116,7 +116,7 @@ class Device extends \yii\db\ActiveRecord
         if (!empty($this->location)) {
             $location = $this->location;
             $location['lat'] = floatval($location['lat']);
-            $location['long'] = floatval($location['long']);
+            $location['lng'] = floatval($location['lng']);
             $this->location = $location;
         }
     }
