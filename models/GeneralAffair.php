@@ -203,7 +203,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
             $username = Yii::$app->session->get('username') ?? 'system';
 
             if (empty($value['code'])) {
-                $this->addError($attribute, Yii::t('core', 'nullField', ['label' => $this->getAttributeLabel('asset[items][0][code]'),'fields' => $this->getAttributeLabel('Asset Code')]));
+                $this->addError($attribute, Yii::t('core', 'nullField', ['label' => $this->getAttributeLabel('Asset Code'),'fields' => $this->getAttributeLabel('Asset Code')]));
                 return;
             }
             
