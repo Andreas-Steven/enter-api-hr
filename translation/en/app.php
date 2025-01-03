@@ -36,5 +36,5 @@ return [
     'locationRequired' => 'Location must be set for device app.',
 
     // General Affair custom error messages
-    'dateInvalid' => '{field} format invalid.',
+    'dateInvalid' => '{field} format must be YYYY-MM-DD.',
 ];
