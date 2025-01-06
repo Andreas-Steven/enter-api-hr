@@ -338,10 +338,9 @@ class Attendance extends \yii\db\ActiveRecord
             $entryLocation = $employeeAttendance['location']['entry'] ?? null;
             $homeLocation = $employeeAttendance['location']['home'] ?? null;
             
-            /* UNCOMMENT THIS IF LOCATION.IMAGE IS ARRAY */
-            // if (isset($employeeAttendance['location']['image']) && !empty($employeeAttendance['location']['image'])) {
-            //     $employeeAttendance['location']['image'] = array_values($employeeAttendance['location']['image']);
-            // }
+            if (isset($employeeAttendance['location']['image']) && !empty($employeeAttendance['location']['image'])) {
+                $employeeAttendance['location']['image'] = array_values($employeeAttendance['location']['image']);
+            }
 
             $temp_location = [
                 'entry' => $entryLocation,
