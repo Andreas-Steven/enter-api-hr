@@ -9,8 +9,8 @@ namespace app\core;
 
 class CoreConstants
 {
-    const DEVICE_APP = 'app';
     const OPTIMISTIC_LOCK = 'lock_version';
+    const DEVICE_APP = 'app';
 
     const STATUS_INACTIVE = 0;
     const STATUS_ACTIVE = 1;

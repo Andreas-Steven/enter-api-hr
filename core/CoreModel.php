@@ -73,9 +73,16 @@ class CoreModel
 	public static function getLockVersionRules($model=null, $requiredOn=null): array
     {
         return [
-            [[Constants::OPTIMISTIC_LOCK], 'integer'],
             [[Constants::OPTIMISTIC_LOCK], 'required', 'on' => $requiredOn ?? Constants::SCENARIO_UPDATE_LIST],
+            [[Constants::OPTIMISTIC_LOCK], 'integer'],
             [[Constants::OPTIMISTIC_LOCK], 'default', 'value' => 1, 'on' => [Constants::SCENARIO_CREATE]],
+        ];
+    }
+
+	public static function getLockVersionRulesOnly($model=null, $requiredOn=null): array
+    {
+        return [
+            [[Constants::OPTIMISTIC_LOCK], 'integer'],
         ];
     }
 
@@ -126,7 +133,6 @@ class CoreModel
         $statusList = Constants::STATUS_LIST;
         $allowedStatusUpdate = Constants::ALLOWED_UPDATE_STATUS_LIST;
         $disallowedStatusUpdate = Constants::DISALLOWED_UPDATE_STATUS_LIST;
-
 
         if ($model->isAttributeChanged($attribute)) {
             if (!$model->isNewRecord) {
@@ -337,6 +343,14 @@ class CoreModel
 	{
 		return [
 			'$regex' => str_replace(' ', '.*', $value ?? ''),
+			'$options' => 'i',
+		];
+	}
+
+	public static function mongodbEqualFilter(?string $value): array
+	{
+		return [
+			'$regex' => '^' . $value . '$',
 			'$options' => 'i',
 		];
 	}

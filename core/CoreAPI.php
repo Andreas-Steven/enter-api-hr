@@ -19,7 +19,7 @@ class CoreAPI
 
 	public function timestamp(): string
 	{
-		return gmdate(Yii::$app->params['timestamp']['UTC']);
+		return gmdate(Yii::$app->params['timestamp']['local']);
 	}
 
 	public function getUsername(): string
