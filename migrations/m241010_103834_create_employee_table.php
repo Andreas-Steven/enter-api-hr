@@ -8,7 +8,7 @@ class m241010_103834_create_employee_table extends Migration
     {
         $params = require(__DIR__ . '/../config/params.php');
         $UTCTimestamp = gmdate(Yii::$app->params['timestamp']['UTC']);
-        $createdBy = 'system';
+        $createdBy = 'testid';
         
         if (!YII_ENV_DEV) {
             echo "Skipping migration/fresh for non-dev environment.\n";
@@ -136,11 +136,10 @@ class m241010_103834_create_employee_table extends Migration
 
     public function safeDown()
     {
-        if (!YII_ENV_DEV) {
+               if (!YII_ENV_DEV) {
             echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
-        
         $this->dropTable('{{%employee}}');
     }
 }
