@@ -85,7 +85,7 @@ class Employee extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'sso_id', 'status','detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['nik', 'name', 'username', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'sso_id', 'status','detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
         return $scenarios;
