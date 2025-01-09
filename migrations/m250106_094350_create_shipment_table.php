@@ -204,29 +204,29 @@ class m250106_094350_create_shipment_table extends Migration
                 ],
                 'log_tracking' => [
                     [
-                        'code' => Yii::$app->params['defaultValue']['shipment']['WAITING']['code'],
-                        'remark' => Yii::$app->params['defaultValue']['shipment']['WAITING']['remark'],
+                        'code' => 'WAITING',
+                        'remark' => 'Menunggu Penjadwalan',
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
                     ],
                     [
-                        'code' => Yii::$app->params['defaultValue']['shipment']['SCHEDULED']['code'],
-                        'remark' => Yii::$app->params['defaultValue']['shipment']['SCHEDULED']['remark'],
+                        'code' => 'SCHEDULED',
+                        'remark' => 'Pengiriman Dijadwalkan',
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
                     ],
                     [
-                        'code' => Yii::$app->params['defaultValue']['shipment']['DEPARTED']['code'],
-                        'remark' => Yii::$app->params['defaultValue']['shipment']['DEPARTED']['remark'],
+                        'code' => 'DEPARTED',
+                        'remark' => 'Sedang Dikirim',
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
                     ],
                     [
-                        'code' => Yii::$app->params['defaultValue']['shipment']['DELIVERED']['code'],
-                        'remark' => Yii::$app->params['defaultValue']['shipment']['DELIVERED']['remark'],
+                        'code' => 'DELIVERED',
+                        'remark' => 'Telah Diterima',
                         'image' => ['https://apikurirtoko.ruko3233.com/uploads/1730277206430-173027717289512116172814826962.jpg'],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
