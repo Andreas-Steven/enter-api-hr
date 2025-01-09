@@ -273,7 +273,7 @@ class m250106_094350_create_shipment_table extends Migration
         ];
 
         foreach ($dummyData as $key => $value) {
-            // $this->insert('{{%' . $this->tableName . '}}', $value);
+            $this->insert('{{%' . $this->tableName . '}}', $value);
         }
     }
 
