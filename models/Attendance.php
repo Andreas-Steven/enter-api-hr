@@ -39,11 +39,8 @@ class Attendance extends \yii\db\ActiveRecord
         return 'attendance';
     }
 
-    /**
-     * {@inheritdoc}
-     * @return string the column name for optimistic locking of $lockVersion.
-     */
-    public function optimisticLock() {
+    public function optimisticLock() 
+    {
         // return Constants::OPTIMISTIC_LOCK;
     }
 
@@ -95,10 +92,6 @@ class Attendance extends \yii\db\ActiveRecord
         return new \app\models\query\AttendanceQuery(get_called_class());
     }
 
-    /**
-     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
-     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
-     */
     public function fields()
     {
         $fields = parent::fields();
@@ -153,7 +146,7 @@ class Attendance extends \yii\db\ActiveRecord
         $latestAttendance = !empty($lastStartTime) ? end($lastStartTime) : null;
 
         foreach ($attendanceData as $key => $value) {
-            $employeeAttendance = array_merge(Yii::$app->params['defaultValue']['attendance'], $value);
+            $employeeAttendance = array_merge(Yii::$app->params['defaultValue']['attendance']['attendance_field'], $value);
             if (empty($employeeAttendance['employee_id'])) {
                 $this->addError($attribute, Yii::t('core', 'required', ['field' => $this->getAttributeLabel('employee_id')]));
                 return;
@@ -256,14 +249,14 @@ class Attendance extends \yii\db\ActiveRecord
                     $dayNow = date('l', strtotime($this->date));
                   
                     if ($startTime > $entryTime) {
-                        if (!in_array("Telat Masuk", $employeeAttendance['info']['detail'])) {
-                            $employeeAttendance['info']['detail'][] = "Telat Masuk";
+                        if (!in_array(Yii::$app->params['defaultValue']['attendance']['info']['LT'], $employeeAttendance['info']['detail'])) {
+                            $employeeAttendance['info']['detail'][] = Yii::$app->params['defaultValue']['attendance']['info']['LT'];
                         }
                     }
 
                     if (!in_array($dayNow, $workingDays)) {
-                        if (!in_array("Lembur", $employeeAttendance['info']['detail'])) {
-                            $employeeAttendance['info']['detail'][] = "Lembur";
+                        if (!in_array(Yii::$app->params['defaultValue']['attendance']['info']['WH'], $employeeAttendance['info']['detail'])) {
+                            $employeeAttendance['info']['detail'][] = Yii::$app->params['defaultValue']['attendance']['info']['WH'];
                         }
                     }
                 }
@@ -320,11 +313,11 @@ class Attendance extends \yii\db\ActiveRecord
                     $homeTime = strtotime($employeeAttendance['work_time']['home_time']);
 
                     if ($endTime < $homeTime) {
-                        if (!in_array("Pulang Cepat", $employeeAttendance['info']['detail'])) {
-                            $employeeAttendance['info']['detail'][] = "Pulang Cepat";
+                        if (!in_array(Yii::$app->params['defaultValue']['attendance']['info']['LE'], $employeeAttendance['info']['detail'])) {
+                            $employeeAttendance['info']['detail'][] = Yii::$app->params['defaultValue']['attendance']['info']['LE'];
                         }
                     } else {
-                        if (($index = array_search("Pulang Cepat", $employeeAttendance['info']['detail'])) !== false) {
+                        if (($index = array_search(Yii::$app->params['defaultValue']['attendance']['info']['LE'], $employeeAttendance['info']['detail'])) !== false) {
                             unset($employeeAttendance['info']['detail'][$index]);
                         }
                     }
@@ -381,7 +374,7 @@ class Attendance extends \yii\db\ActiveRecord
         $lastAttendance = $this->getOldAttribute($attribute);
         foreach ($lastAttendance as $key => $value) {
             if (empty($value['end_time'])) {
-                $value['info']['detail'][] = "Tidak Absen Pulang";
+                $value['info']['detail'][] = Yii::$app->params['defaultValue']['attendance']['info']['ICC'];
                 $value['info']['out'] = false;
             }
             
