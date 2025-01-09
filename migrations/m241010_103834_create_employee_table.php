@@ -66,7 +66,7 @@ class m241010_103834_create_employee_table extends Migration
             'detail_info' => [
                 'sso' => [
                     'sso_id' => 1,
-                    'username' => null,
+                    'username' => 'Employee_1',
                 ],
                 'division' => [
                     'id' => 2,
@@ -108,7 +108,7 @@ class m241010_103834_create_employee_table extends Migration
             'detail_info' => [
                 'sso' => [
                     'sso_id' => 2,
-                    'username' => null,
+                    'username' => 'Employee_2',
                 ],
                 'division' => [
                     'id' => 2,
