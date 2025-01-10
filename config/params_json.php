@@ -129,6 +129,7 @@ $params['dependenciesUpdate'] = [
 $params['prefix'] = [
     /* Example */
     // 'purchase' => 'PO',
+    'phone_number' => "62",
 ];
 
 return $params;

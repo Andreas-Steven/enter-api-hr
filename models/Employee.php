@@ -259,6 +259,11 @@ class Employee extends \yii\db\ActiveRecord
                         return;
                     }
 
+                    if (!str_starts_with($newContact, Yii::$app->params['prefix']['phone_number'])) {
+                        $this->addError($attribute, Yii::t('app', 'phonePrefix'));
+                        return;
+                    }
+
                     if (array_key_exists($index, $oldContact)) {
                         if ($newContact != $oldContact[$index]) {
                             $oldContact[$index] = $newContact;
