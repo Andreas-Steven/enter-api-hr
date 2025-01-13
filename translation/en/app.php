@@ -37,4 +37,7 @@ return [
 
     // General Affair custom error messages
     'dateInvalid' => '{field} format must be YYYY-MM-DD.',
+
+    // Employee custom error messages
+    'phonePrefix' => 'The phone number must start with 62.',
 ];
