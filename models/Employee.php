@@ -56,12 +56,10 @@ class Employee extends \yii\db\ActiveRecord
                 [['division_id', 'position_id', 'employee_type_id'], 'default', 'value' => 1],
                 [['nik', 'iamge', 'birth_date', 'date_start', 'date_resign', 'contact', 'email'], 'default', 'value' => null],
 
-                [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
-                    return $value === "" ? null : $value; }
-                ],
-                [['birth_date', 'date_start', 'date_resign', 'system_date'], 'date', 'format' => 'php:Y-m-d', 'when' => function($model, $attribute) { 
-                    return $model->$attribute !== null && isset($model->$attribute); }
-                ],
+                // [['birth_date', 'date_start', 'date_resign', 'contact'], 'filter', 'skipOnEmpty' => true, 'filter' => function($value) {
+                //     return $value === "" ? null : $value; }
+                // ],
+                [['birth_date', 'date_start', 'date_resign', 'system_date'], 'date', 'format' => 'php:Y-m-d', 'skipOnEmpty' => true],
 
                 [['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'sso_id', 'status'], function ($attribute, $params, $validator) {
                     CoreModel::validateDependencies($attribute, $params, $validator, $this, [
@@ -86,7 +84,7 @@ class Employee extends \yii\db\ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios[Constants::SCENARIO_CREATE] = ['nik', 'name', 'username', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'sso_id', 'status','detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'system_date', 'contact', 'email', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
         return $scenarios;
     }
@@ -282,14 +280,14 @@ class Employee extends \yii\db\ActiveRecord
 
     public function validateResignDate($attribute, $params, $validator)
     {
-        // Status 5 for one month notice
-        if (!empty($this->date_resign) ) {
-            $this->status = Constants::STATUS_MAINTENANCE;
-        }
-
-        // Status 3 for resign
-        if ($this->$attribute < $this->system_date) {
-            $this->status = Constants::STATUS_COMPLETED;
+        if (!empty($this->$attribute)) {
+            if ($this->$attribute < $this->system_date) {
+                // Status 3 for resign
+                $this->status = Constants::STATUS_COMPLETED;
+            } else {
+                // Status 5 for one month notice
+                $this->status = Constants::STATUS_MAINTENANCE;
+            }
         }
     }
 }
