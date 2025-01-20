@@ -21,11 +21,8 @@ class GeneralAffairProduct extends \yii\db\ActiveRecord
         return 'general_affair_product';
     }
 
-     /**
-     * {@inheritdoc}
-     * @return string the column name for optimistic locking of $lockVersion.
-     */
-    public function optimisticLock() {
+    public function optimisticLock() 
+    {
         // return Constants::OPTIMISTIC_LOCK;
     }
 
@@ -44,7 +41,7 @@ class GeneralAffairProduct extends \yii\db\ActiveRecord
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],
             ], 
             CoreModel::getStatusRules($this),
-            // CoreModel::getLockVersionRules($this),
+            CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -73,10 +70,6 @@ class GeneralAffairProduct extends \yii\db\ActiveRecord
         return new \app\models\query\GeneralAffairProductQuery(get_called_class());
     }
 
-    /**
-     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
-     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
-     */
     public function fields()
     {
         $fields = parent::fields();

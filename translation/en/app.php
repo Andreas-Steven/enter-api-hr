@@ -34,6 +34,7 @@ return [
     'startTimeNotValid' => 'Attendance start time value not valid.',
     'endTimeNotValid' => 'Attendance end time value not valid.',
     'locationRequired' => 'Location must be set for device app.',
+    'attendanceFailed' => 'Attendance failed.',
 
     // General Affair custom error messages
     'dateInvalid' => '{field} format must be YYYY-MM-DD.',

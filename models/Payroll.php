@@ -23,11 +23,8 @@ class Payroll extends \yii\db\ActiveRecord
         return 'payroll';
     }
 
-     /**
-     * {@inheritdoc}
-     * @return string the column name for optimistic locking of $lockVersion.
-     */
-    public function optimisticLock() {
+    public function optimisticLock() 
+    {
         // return Constants::OPTIMISTIC_LOCK;
     }
 
@@ -43,7 +40,7 @@ class Payroll extends \yii\db\ActiveRecord
                 [['salary_detail'], 'validateSalaryDetail'],
             ],
             CoreModel::getStatusRules($this),
-            // CoreModel::getLockVersionRules($this),
+            CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -74,10 +71,6 @@ class Payroll extends \yii\db\ActiveRecord
         return new \app\models\query\PayrollQuery(get_called_class());
     }
 
-    /**
-     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
-     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
-     */
     public function fields()
     {
         $fields = parent::fields();
@@ -132,13 +125,13 @@ class Payroll extends \yii\db\ActiveRecord
             }
 
             $salaryDetail['employee_id'] = intval($salaryDetail['employee_id']);
-            $employee = Employee::find()->where(['id' => $salaryDetail['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
+            $employee = Employee::findOne(['id' => $salaryDetail['employee_id'], 'status' => Constants::STATUS_ACTIVE]);
             if ($employee === null) {
                 $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('Employee')]));
                 return;
             }
 
-            $baseSalary = BaseSalary::find()->where(['employee_id' => $salaryDetail['employee_id'], 'status' => Constants::STATUS_ACTIVE])->one();
+            $baseSalary = BaseSalary::findOne(['employee_id' => $salaryDetail['employee_id'], 'status' => Constants::STATUS_ACTIVE]);
             if ($baseSalary === null) {
                 $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('BaseSalary')]));
                 return;
@@ -164,7 +157,7 @@ class Payroll extends \yii\db\ActiveRecord
                 }
             };
             
-            $division = Division::find()->where(['id' => $employee->division_id, 'status' => Constants::STATUS_ACTIVE])->one();
+            $division = Division::findOne(['id' => $employee->division_id, 'status' => Constants::STATUS_ACTIVE]);
             if ($division === null) {
                 $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('Division')]));
                 return;

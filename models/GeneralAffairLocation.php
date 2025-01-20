@@ -21,11 +21,8 @@ class GeneralAffairLocation extends \yii\db\ActiveRecord
         return 'general_affair_location';
     }
 
-     /**
-     * {@inheritdoc}
-     * @return string the column name for optimistic locking of $lockVersion.
-     */
-    public function optimisticLock() {
+    public function optimisticLock() 
+    {
         // return Constants::OPTIMISTIC_LOCK;
     }
 
@@ -44,7 +41,7 @@ class GeneralAffairLocation extends \yii\db\ActiveRecord
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],
             ],
             CoreModel::getStatusRules($this),
-            // CoreModel::getLockVersionRules($this),
+            CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -73,10 +70,6 @@ class GeneralAffairLocation extends \yii\db\ActiveRecord
         return new \app\models\query\GeneralAffairLocationQuery(get_called_class());
     }
 
-    /**
-     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
-     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
-     */
     public function fields()
     {
         $fields = parent::fields();
@@ -101,8 +94,10 @@ class GeneralAffairLocation extends \yii\db\ActiveRecord
             $this->detail_info = [
                 'change_log' => CoreModel::getChangeLog($this, $insert),
             ];
+            
             return true;
         }
+
         return false;
     }
 }

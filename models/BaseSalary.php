@@ -25,11 +25,8 @@ class BaseSalary extends \yii\db\ActiveRecord
         return 'base_salary';
     }
 
-    /**
-     * {@inheritdoc}
-     * @return string the column name for optimistic locking of $lockVersion.
-     */
-    public function optimisticLock() {
+    public function optimisticLock() 
+    {
         // return Constants::OPTIMISTIC_LOCK;
     }
 
@@ -40,6 +37,7 @@ class BaseSalary extends \yii\db\ActiveRecord
                 [['detail_info'], 'safe'],
                 [['base_salary'], 'number'],
                 [['employee_id'], 'integer'],
+
                 [['employee_id'], 'filter', 'filter' => 'intval'],
                 [['base_salary'], 'filter', 'filter' => 'floatval'],
                 [['efective_date'], 'date' , 'format' => 'php:Y-m-d'],
@@ -48,7 +46,7 @@ class BaseSalary extends \yii\db\ActiveRecord
                 [['employee_id'], 'validateEmployee'],
             ],
             CoreModel::getStatusRules($this),
-            // CoreModel::getLockVersionRules($this),
+            CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -79,10 +77,6 @@ class BaseSalary extends \yii\db\ActiveRecord
         return new \app\models\query\BaseSalaryQuery(get_called_class());
     }
 
-    /**
-     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
-     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
-     */
     public function fields()
     {
         $fields = parent::fields();
@@ -105,8 +99,8 @@ class BaseSalary extends \yii\db\ActiveRecord
         if (parent::beforeSave($insert)) {
             $this->base_salary = floatval($this->base_salary);
             $this->detail_info = [
+                'employee' => $this->employee,
                 'change_log' => CoreModel::getChangeLog($this, $insert),
-                'employee' => $this->employee
             ];
 
             return true;
@@ -117,20 +111,13 @@ class BaseSalary extends \yii\db\ActiveRecord
 
     public function validateEmployee($attribute, $params, $validator)
     {
-        $employee = $this->detail_info['employee'] ?? null;
-
-        if ($this->isAttributeChanged($attribute)) {
-            $employee = Employee::find()->where([
-                'id' => $this->$attribute,
-                'status' => Constants::STATUS_ACTIVE
-            ])->one();
-        }
+        $employee = Employee::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($employee === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('Employee')]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
-        $this->employee = ['id' => $employee['id'], 'name' => $employee['name']];
+        $this->employee = ['id' => $employee->id, 'name' => $employee->name];
     }
 }

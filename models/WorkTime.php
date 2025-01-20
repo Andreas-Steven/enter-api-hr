@@ -23,11 +23,8 @@ class WorkTime extends \yii\db\ActiveRecord
         return 'work_time';
     }
 
-     /**
-     * {@inheritdoc}
-     * @return string the column name for optimistic locking of $lockVersion.
-     */
-    public function optimisticLock() {
+    public function optimisticLock() 
+    {
         // return Constants::OPTIMISTIC_LOCK;
     }
 
@@ -40,15 +37,17 @@ class WorkTime extends \yii\db\ActiveRecord
                 [['name', 'entry_time', 'home_time'], 'required'],
                 [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
 
-                [['working_days'], 'validateWorkingDays'],
+                [['working_days'], 'default', 'value' => [], 'on' => Constants::SCENARIO_CREATE],
                 [['entry_time', 'home_time', 'status'], function ($attribute, $params, $validator) {
                     CoreModel::validateDependencies($attribute, $params, $validator, $this, [
                         ['className' => 'UserAttendance', 'field' => ['work_time_id']],
                     ]);
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],
+                
+                [['working_days'], 'validateWorkingDays'],
             ],
             CoreModel::getStatusRules($this),
-            // CoreModel::getLockVersionRules($this),
+            CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -79,10 +78,6 @@ class WorkTime extends \yii\db\ActiveRecord
         return new \app\models\query\WorkTimeQuery(get_called_class());
     }
 
-    /**
-     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
-     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
-     */
     public function fields()
     {
         $fields = parent::fields();
@@ -116,9 +111,18 @@ class WorkTime extends \yii\db\ActiveRecord
 
     public function validateWorkingDays($attribute, $params) 
     {
-        $this->working_days = array_filter($this->working_days, function($value) {
-            return $value !== '[]' && $value !== 'null';
-        });
-        $this->working_days = array_values($this->working_days);
+        if (!is_array($this->$attribute)) {
+            $this->addError($attribute, Yii::t('app', 'mustArray', ['field' => $this->getAttributeLabel($attribute)]));
+            return;
+        }
+
+        $working_days = array_filter($this->$attribute, fn($item) => !in_array($item, ['[]', '', "", null], true));
+
+        if (empty($working_days)) {
+            $this->addError($attribute, Yii::t('core', 'required', ['field' => $this->getAttributeLabel($attribute)]));
+            return;
+        }
+
+        $this->$attribute = array_values($working_days);
     }
 }

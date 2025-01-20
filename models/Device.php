@@ -24,11 +24,8 @@ class Device extends \yii\db\ActiveRecord
         return 'device';
     }
 
-    /**
-     * {@inheritdoc}
-     * @return string the column name for optimistic locking of $lockVersion.
-     */
-    public function optimisticLock() {
+    public function optimisticLock() 
+    {
         // return Constants::OPTIMISTIC_LOCK;
     }
 
@@ -37,14 +34,15 @@ class Device extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['detail_info', 'location'], 'safe'],
-                [['code', 'name', 'address', 'ip_address'], 'required'],
                 [['code', 'name', 'address', 'ip_address'], 'string', 'max' => 255],
-
+                
+                [['code', 'name', 'address', 'ip_address'], 'required'],
                 [['code'], 'unique', 'on' => Constants::SCENARIO_CREATE],
+                
                 [['location'], 'validateLocation'],
             ],
             CoreModel::getStatusRules($this),
-            // CoreModel::getLockVersionRules($this),
+            CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -77,10 +75,6 @@ class Device extends \yii\db\ActiveRecord
         return new \app\models\query\DeviceQuery(get_called_class());
     }
 
-    /**
-     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
-     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
-     */
     public function fields()
     {
         $fields = parent::fields();

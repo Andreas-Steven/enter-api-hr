@@ -57,7 +57,7 @@ class m241001_054554_create_division_table extends Migration
 
         $this->insert('{{%division}}', [
             'code' => 'IT',
-            'name' => 'Unassign',
+            'name' => 'Teknologi Informasi',
             'status' => 1,
             'detail_info' => [
                 'change_log' => [

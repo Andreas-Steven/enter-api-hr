@@ -54,7 +54,7 @@ $params['defaultValue'] = [
             'LE' => 'Leave Early',
             'ICC' => 'Incomplate Check Clock',
             'WH' => 'Work Holiday',
-        ]
+        ],
     ],
     'salary_detail' => [
         'employee_id' => null,

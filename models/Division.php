@@ -22,11 +22,8 @@ class Division extends \yii\db\ActiveRecord
         return 'division';
     }
 
-    /**
-     * {@inheritdoc}
-     * @return string the column name for optimistic locking of $lockVersion.
-     */
-    public function optimisticLock() {
+    public function optimisticLock() 
+    {
         // return Constants::OPTIMISTIC_LOCK;
     }
 
@@ -37,6 +34,7 @@ class Division extends \yii\db\ActiveRecord
                 [['detail_info'], 'safe'],
                 [['code', 'name'], 'string', 'max' => 255],
                 [['code', 'name'], 'required', 'on' => Constants::SCENARIO_CREATE],
+
                 [['code', 'name', 'status'], function ($attribute, $params, $validator) {
                     CoreModel::validateDependencies($attribute, $params, $validator, $this, [
                         ['className' => 'Employee', 'field' => ['division_id']],
@@ -45,7 +43,7 @@ class Division extends \yii\db\ActiveRecord
                 
             ], 
             CoreModel::getStatusRules($this),
-            // CoreModel::getLockVersionRules($this),
+            CoreModel::getLockVersionRules($this),
         );
             
     }
@@ -76,10 +74,6 @@ class Division extends \yii\db\ActiveRecord
         return new \app\models\query\DivisionQuery(get_called_class());
     }
 
-    /**
-     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
-     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
-     */
     public function fields()
     {
         $fields = parent::fields();

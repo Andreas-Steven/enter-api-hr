@@ -33,11 +33,8 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return 'general_affair';
     }
 
-    /**
-     * {@inheritdoc}
-     * @return string the column name for optimistic locking of $lockVersion.
-     */
-    public function optimisticLock() {
+    public function optimisticLock() 
+    {
         // return Constants::OPTIMISTIC_LOCK;
     }
     
@@ -56,11 +53,11 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 [['product_id'], 'validateProduct'],
                 [['category_id'], 'validateCategory'],
                 [['location_id'], 'validateLocation'],
-                [['asset'], 'validateItem', 'on' => Constants::SCENARIO_CREATE],
-                [['code', 'status'], 'validateDeleted', 'on' => Constants::SCENARIO_DELETE],
+                [['asset'], 'validateAsset', 'on' => Constants::SCENARIO_CREATE],
+                [['code', 'status'], 'validateAssetDeleted', 'on' => Constants::SCENARIO_DELETE],
             ],
             CoreModel::getStatusRules($this),
-            // CoreModel::getLockVersionRules($this),
+            CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -90,10 +87,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return new \app\models\query\GeneralAffairQuery(get_called_class());
     }
 
-    /**
-     * Returns an array of fields that should be returned by default by `toArray()` when no specific fields are specified.
-     * @return array the list of fields that can be exported. Defaults to all attributes of the model.
-     */
     public function fields()
     {
         $fields = parent::fields();
@@ -115,12 +108,12 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         if (parent::beforeSave($insert)) {
             $this->name = CoreModel::htmlPurifier($this->name);
-            $this->asset = $this->calculateItems($this->asset);
+            $this->asset = $this->calculateAsset($this->asset);
             $this->detail_info = [
                 'change_log' => CoreModel::getChangeLog($this, $insert),
-                'product' => $this->product,
-                'category' => $this->category,
-                'location' => $this->location,
+                'product' => $this->detail_info['product'] ?? $this->product,
+                'category' => $this->detail_info['category'] ?? $this->category,
+                'location' => $this->detail_info['location'] ?? $this->location,
             ];
 
             return true;
@@ -129,65 +122,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return false;
     }
 
-    public function validateProduct($attribute, $params, $validator)
-    {
-        $product = $this->detail_info['product'] ?? null;
-
-        if ($this->isAttributeChanged($attribute)) {
-            $product = GeneralAffairProduct::find()->where([
-                'id' => $this->$attribute,
-                'status' => Constants::STATUS_ACTIVE
-            ])->one();
-        }
-        
-        if ($product === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('GeneralAffairProduct')]));
-            return;
-        }
-
-        $this->product = ['id' => $product['id'], 'name' => $product['name']];
-        $this->name = $product['name'];
-    }
-
-    public function validateCategory($attribute, $params, $validator)
-    {
-        $category = $this->detail_info['category'] ?? null;
-
-        if ($this->isAttributeChanged($attribute)) {
-            $category = GeneralAffairCategory::find()->where([
-                'id' => $this->$attribute,
-                'status' => Constants::STATUS_ACTIVE
-            ])->one();
-        }
-
-        if ($category === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('GeneralAffairCategory')]));
-            return;
-        }
-
-        $this->category = ['id' => $category['id'], 'name' => $category['name']];
-    }
-
-    public function validateLocation($attribute, $params, $validator)
-    {
-        $location = isset($this->detail_info['location']) ? $this->detail_info['location'] : null;
-
-        if ($this->isAttributeChanged($attribute)) {
-            $location = GeneralAffairLocation::find()->where([
-                'id' => $this->$attribute,
-                'status' => Constants::STATUS_ACTIVE
-            ])->one();
-        }
-        
-        if ($location === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('GeneralAffairLocation')]));
-            return;
-        }
-
-        $this->location = ['id' => $location['id'], 'name' => $location['name']];
-    }
-
-    public function validateItem($attribute, $params, $validator)
+    public function validateAsset($attribute, $params)
     {
         if (!is_array($this->$attribute)) {
             $this->addError($attribute, Yii::t('app', 'mustArray', ['field' => $this->getAttributeLabel('Asset')]));
@@ -200,10 +135,13 @@ class GeneralAffair extends \yii\db\ActiveRecord
     
         foreach ($itemData['items'] as $key => $value) {
             $timestamp = Yii::$app->coreAPI->UTCTimestamp();
-            $username = Yii::$app->session->get('username') ?? 'system';
+            $username = Yii::$app->coreAPI->getUsername();
 
             if (empty($value['code'])) {
-                $this->addError($attribute, Yii::t('core', 'nullField', ['label' => $this->getAttributeLabel('Asset Code'),'fields' => $this->getAttributeLabel('Asset Code')]));
+                $this->addError($attribute, Yii::t('core', 'nullField', [
+                    'label' => $this->getAttributeLabel($attribute.' Code'),
+                    'fields' => $this->getAttributeLabel($attribute.' Code'),
+                ]));
                 return;
             }
             
@@ -234,15 +172,12 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 return;
             }
     
-            $division = Division::find()->where([
-                'id' => $generalAffairItems['division']['id'], 
-                'status' => Constants::STATUS_ACTIVE
-            ])->one();
-            
-            if (!$division) {
+            $division = Division::findOne(['id' => $generalAffairItems['division']['id'], 'status' => Constants::STATUS_ACTIVE]);
+            if ($division === null) {
                 $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('division')]));
                 return;
             }
+
             $generalAffairItems['division'] = ['id' => $division->id, 'name' => $division->name];
             
             $dateValidator = new \yii\validators\DateValidator(['format' => 'php:Y-m-d']);
@@ -262,9 +197,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
             }
 
             if (isset($generalAffairItems['image']) && is_array($generalAffairItems['image'])) {
-                $generalAffairItems['image'] = array_filter($generalAffairItems['image'], function($value) {
-                    return $value !== '[]';
-                });
+                $generalAffairItems['image'] = array_filter($generalAffairItems['image'], fn($item) => !in_array($item, ['[]', '', null], true));
                 $generalAffairItems['image'] = array_values($generalAffairItems['image']);
             }
             
@@ -274,24 +207,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $this->$attribute = ['items' => $oldItem['items']];
     }
     
-    public function validateDeleted($attribute, $params, $validator)
-    {
-        $oldData = $this->getAttributes();
-        $itemCodes = array_column($oldData['asset']['items'], 'code') ?? [];
-        $timestamp = Yii::$app->coreAPI->UTCTimestamp();
-
-        if (!empty($this->code) && is_array($oldData['asset']) && array_key_exists('items', $oldData['asset'])) {
-            if (in_array($this->code, $itemCodes, true)) {
-                $oldData['asset']['items'][$this->code]['items_change_log']['deleted_at'] = $timestamp;
-                $oldData['asset']['items'][$this->code]['items_change_log']['deleted_by'] = $username ?? 'system';
-                
-                $this->setAttribute('asset', $oldData['asset']);
-                return true;
-            }
-        }
-    }
-
-    public function calculateItems($asset)
+    public function calculateAsset($asset)
     {
         $filteredItems = array_filter($asset['items'], function($value) {
             return is_array($value) && array_key_exists('price', $value) && $value['items_change_log']['deleted_at'] === null;
@@ -301,11 +217,63 @@ class GeneralAffair extends \yii\db\ActiveRecord
             return $value['price'];
         }, $filteredItems));
 
-        $quantity = count($filteredItems);
-
-        $asset['quantity'] = $quantity;
+        $asset['quantity'] = count($filteredItems);
         $asset['total_price'] = $totalPrice;
         
         return $asset;
+    }
+
+    public function validateAssetDeleted($attribute, $params)
+    {
+        $oldData = $this->getAttributes();
+        $itemCodes = array_column($oldData['asset']['items'], 'code') ?? [];
+        $timestamp = Yii::$app->coreAPI->UTCTimestamp();
+
+        if (!empty($this->code) && is_array($oldData['asset']) && array_key_exists('items', $oldData['asset'])) {
+            if (in_array($this->code, $itemCodes, true)) {
+                $oldData['asset']['items'][$this->code]['items_change_log']['deleted_at'] = $timestamp;
+                $oldData['asset']['items'][$this->code]['items_change_log']['deleted_by'] = $username;
+                $this->setAttribute('asset', $oldData['asset']);
+                
+                return true;
+            }
+        }
+    }
+
+    public function validateProduct($attribute, $params)
+    {
+        $product = GeneralAffairProduct::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
+
+        if ($product === null) {
+            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            return;
+        }
+
+        $this->product = ['id' => $product->id, 'name' => $product->name];
+        $this->name = $product->name;
+    }
+
+    public function validateCategory($attribute, $params)
+    {
+        $category = GeneralAffairCategory::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
+
+        if ($category === null) {
+            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            return;
+        }
+
+        $this->category = ['id' => $category->id, 'name' => $category->name];
+    }
+
+    public function validateLocation($attribute, $params)
+    {
+        $location = GeneralAffairLocation::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
+
+        if ($location === null) {
+            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            return;
+        }
+
+        $this->location = ['id' => $location->id, 'name' => $location->name];
     }
 }
