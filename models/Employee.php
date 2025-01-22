@@ -143,39 +143,46 @@ class Employee extends \yii\db\ActiveRecord
         return false;
     }
 
+
     public function validateContact($attribute, $params)
     {
+        $newContact = $this->$attribute;
         $oldContact = $this->getOldAttribute($attribute);
 
-        if ($this->$attribute !== null && is_array($this->$attribute)) {
-            if (is_array($oldContact)) {
-                foreach ($this->$attribute as $index => $newContact) {
-                    $newContact = CoreModel::nullSafe($newContact);
-                    if ($newContact === null) {
-                        $this->addError($attribute, Yii::t('core', 'nullField', [
-                            'label' => $this->getAttributeLabel('contact'), 
-                            'fields' => $this->getAttributeLabel('Contact')
-                        ]));
-                        return;
-                    }
+        if (!is_array($newContact)) {
+            $this->addError($attribute, Yii::t('app', 'mustArray', ['field' => $this->getAttributeLabel($attribute)]));
+            return;
+        }
 
-                    if (!str_starts_with($newContact, Yii::$app->params['prefix']['phone_number'])) {
-                        $this->addError($attribute, Yii::t('app', 'phonePrefix'));
-                        return;
-                    }
+        if (isset($newContact) && is_array($oldContact)) {
+            foreach ($newContact as $index => $contact) {
+                $contact = CoreModel::nullSafe($contact);
 
-                    if (array_key_exists($index, $oldContact)) {
-                        if ($newContact != $oldContact[$index]) {
-                            $oldContact[$index] = $newContact;
-                        }
-                    } else {
-                        $oldContact[] = $newContact;
-                    }
+                if ($contact === null) {
+                    $this->addError($attribute, Yii::t('core', 'nullField', [
+                        'label' => $this->getAttributeLabel($attribute), 
+                        'fields' => $this->getAttributeLabel($attribute)
+                    ]));
+                    return;
                 }
-                $this->$attribute = $oldContact;
-            } else {
-                $this->$attribute = array_values(array_unique($this->$attribute));
+
+                if (!str_starts_with($contact, Yii::$app->params['prefix']['phone_number'])) {
+                    $this->addError($attribute, Yii::t('app', 'phonePrefix'));
+                    return;
+                }
+
+                if (array_key_exists($index, $oldContact)) {
+                    if ($contact !== $oldContact[$index]) {
+                        $oldContact[$index] = $contact;
+                    }
+                } else {
+                    $oldContact[] = $contact;
+                }
             }
+
+            $this->$attribute = $oldContact;
+        } else {
+            $this->$attribute = array_values(array_unique($this->$attribute));
         }
     }
 
