@@ -24,7 +24,6 @@ return [
     // Field Validation Rules
     'required' => 'Field {field} cannot be blank.',
     'integer' => 'Field {field} must be an integer.',
-    'float' => 'Field {field} must be an float.',
     'validationFailed' => 'Field validation failed.',
     'invalidField' => 'Field {field} not a valid request parameter.',
     'fieldDataNotFound' => '{field} data not found.',

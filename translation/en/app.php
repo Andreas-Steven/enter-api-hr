@@ -24,17 +24,18 @@ return [
     'token expired.' => 'Token expired.',
 
     // custom error messages
+    'mustArray' => '{field} must be an array.',
+    'float' => 'Field {field} must be an float.',
+    'mustLogin' => 'You must login to perform this action.',
     'superadminOnly' => 'You do not have permission to perform this action.',
     'updatePermission' => 'You do not have permission to update the {label} of this {tableName} because it is referenced in other data.',
-    'mustLogin' => 'You must login to perform this action.',
-    'mustArray' => '{field} must be an array.',
 
     // Attendance custom error messages
-    'emptyStartTimeEndTime' => 'Start time or end time must be filled.',
-    'startTimeNotValid' => 'Attendance start time value not valid.',
+    'attendanceFailed' => 'Attendance failed.',
     'endTimeNotValid' => 'Attendance end time value not valid.',
     'locationRequired' => 'Location must be set for device app.',
-    'attendanceFailed' => 'Attendance failed.',
+    'startTimeNotValid' => 'Attendance start time value not valid.',
+    'emptyStartTimeEndTime' => 'Start time or end time must be filled.',
 
     // General Affair custom error messages
     'dateInvalid' => '{field} format must be YYYY-MM-DD.',

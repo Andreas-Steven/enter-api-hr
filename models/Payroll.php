@@ -139,7 +139,7 @@ class Payroll extends \yii\db\ActiveRecord
 
             $convertAndValidateFloat = function(&$item, $key) use ($attribute) {
                 if (!is_numeric($item) || floatval($item) < 0) {
-                    $this->addError($attribute, Yii::t('core', 'float', ['field' => $this->getAttributeLabel($key)]));
+                    $this->addError($attribute, Yii::t('app', 'float', ['field' => $this->getAttributeLabel($key)]));
                     return;
                 } else {
                     $item = floatval($item);

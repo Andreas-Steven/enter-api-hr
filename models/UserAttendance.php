@@ -16,8 +16,8 @@ use app\core\CoreModel;
  */
 class UserAttendance extends \yii\db\ActiveRecord
 {
-    public $work_time;
     public $employee;
+    public $work_time;
 
     public static function tableName()
     {
@@ -35,9 +35,10 @@ class UserAttendance extends \yii\db\ActiveRecord
             [
                 [['detail_info'], 'safe'],
                 [['work_time_id', 'employee_id'], 'integer'],
+
                 [['work_time_id', 'employee_id'], 'filter', 'filter' => 'intval'],
-                [['work_time_id', 'employee_id'], 'required' , 'on' => Constants::SCENARIO_CREATE],
                 [['work_time_id', 'employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>'],
+                [['work_time_id', 'employee_id'], 'required' , 'on' => Constants::SCENARIO_CREATE],
                 
                 [['employee_id'], 'validateEmployee'],
                 [['work_time_id'], 'validateWorkTime'],

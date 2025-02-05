@@ -48,16 +48,16 @@ class Attendance extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
-                [['date'], 'required'],
                 [['attendance', 'blacklist', 'detail_info'], 'safe'],
+                
+                [['employee_id'], 'filter', 'filter' => 'intval'],
                 [['end_time', 'start_time'], 'date', 'format' => 'php:H:i:s'],
                 [['date', 'system_date', 'dateMismatch'], 'date', 'format' => 'php:Y-m-d'],
-
-                [['employee_id'], 'filter', 'filter' => 'intval'],
                 [['date'], 'filter', 'filter' => function($value) {
                     return CoreModel::nullSafe($value);
                 }],
-                
+                [['date'], 'required'],
+
                 [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],
             ],
             CoreModel::getStatusRules($this),

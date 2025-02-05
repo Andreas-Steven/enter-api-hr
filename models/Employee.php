@@ -23,12 +23,12 @@ use app\core\CoreModel;
  */
 class Employee extends \yii\db\ActiveRecord
 {
-    public $system_date;
+    public $sso;
     public $division;
     public $position;
-    public $employee_type;
     public $username;
-    public $sso;
+    public $system_date;
+    public $employee_type;
     
     public static function tableName()
     {
@@ -50,11 +50,11 @@ class Employee extends \yii\db\ActiveRecord
                 [['name', 'nik', 'email', 'username', 'image'], 'string', 'max' => 255],
                 
                 [['division_id', 'position_id', 'employee_type_id'], 'default', 'value' => 1],
-                [['sso_id', 'division_id', 'position_id', 'employee_type_id'], 'filter', 'filter' => 'intval'],
                 [['nik', 'iamge', 'birth_date', 'date_start', 'date_resign', 'contact', 'email'], 'default', 'value' => null],
-                [['birth_date', 'date_start', 'date_resign', 'system_date'], 'date', 'format' => 'php:Y-m-d', 'skipOnEmpty' => true],
 
-                [['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'image', 'birth_date', 'date_start', 'date_resign', 'contact', 'email', 'sso_id', 'status'], function ($attribute, $params, $validator) {
+                [['sso_id', 'division_id', 'position_id', 'employee_type_id'], 'filter', 'filter' => 'intval'],
+                [['birth_date', 'date_start', 'date_resign', 'system_date'], 'date', 'format' => 'php:Y-m-d', 'skipOnEmpty' => true],
+                [['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'date_start', 'sso_id', 'status'], function ($attribute, $params, $validator) {
                     CoreModel::validateDependencies($attribute, $params, $validator, $this, [
                         ['className' => 'UserAttendance', 'field' => ['employee_id']],
                     ]);
@@ -166,7 +166,7 @@ class Employee extends \yii\db\ActiveRecord
                     return;
                 }
 
-                if (!str_starts_with($contact, Yii::$app->params['prefix']['phone_number'])) {
+                if (!preg_match('/^62[1-9]{1}[0-9]{7,13}$/', $contact)) {
                     $this->addError($attribute, Yii::t('app', 'phonePrefix'));
                     return;
                 }

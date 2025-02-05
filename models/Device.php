@@ -36,8 +36,8 @@ class Device extends \yii\db\ActiveRecord
                 [['detail_info', 'location'], 'safe'],
                 [['code', 'name', 'address', 'ip_address'], 'string', 'max' => 255],
                 
-                [['code', 'name', 'address', 'ip_address'], 'required'],
                 [['code'], 'unique', 'on' => Constants::SCENARIO_CREATE],
+                [['code', 'name', 'address', 'ip_address'], 'required'],
                 
                 [['location'], 'validateLocation'],
             ],

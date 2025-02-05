@@ -42,13 +42,12 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
-                [['asset', 'code'], 'safe'],
                 [['name'], 'string', 'max' => 255],
-                [['detail_info', 'asset'], 'safe'],
-
+                [['asset', 'code', 'detail_info'], 'safe'],
                 [['product_id', 'category_id', 'location_id'], 'integer'],
-                [['product_id', 'category_id', 'location_id'], 'required'],
+                
                 [['product_id', 'category_id', 'location_id'], 'filter', 'filter' => 'intval'],
+                [['product_id', 'category_id', 'location_id'], 'required'],
                 
                 [['product_id'], 'validateProduct'],
                 [['category_id'], 'validateCategory'],
@@ -157,7 +156,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
             
             $generalAffairItems['price'] = floatval($generalAffairItems['price']);  
             if (empty($generalAffairItems['price']) || $generalAffairItems['price'] < 0) {
-                $this->addError($attribute, Yii::t('core', 'float', ['field' => $this->getAttributeLabel('price')]));
+                $this->addError($attribute, Yii::t('app', 'float', ['field' => $this->getAttributeLabel('price')]));
                 return;
             } 
             
