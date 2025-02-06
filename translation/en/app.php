@@ -41,5 +41,6 @@ return [
     'dateInvalid' => '{field} format must be YYYY-MM-DD.',
 
     // Employee custom error messages
-    'phonePrefix' => 'The phone number must start with 62.',
+    'phonePrefix' => 'The Phone Number must start with 62 and max 15 digits.',
+    'invalidNik' => 'NIK must be 16 digits.',
 ];

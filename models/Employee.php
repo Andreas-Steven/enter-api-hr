@@ -50,10 +50,11 @@ class Employee extends \yii\db\ActiveRecord
                 
                 [['division_id', 'position_id', 'employee_type_id'], 'default', 'value' => 1],
                 [['nik', 'iamge', 'birth_date', 'date_start', 'date_resign', 'contact', 'email'], 'default', 'value' => null],
+                
+                [['email', 'nik', 'sso_id'], 'unique'],
+                [['email'], 'email', 'skipOnEmpty' => true],
 
-                [['email'], 'email'],
-                [['nik', 'sso_id'], 'unique'],
-
+                [['nik'], 'match', 'pattern' => '/^\d{16}$/', 'message' => Yii::t('app', 'invalidNik')],
                 [['sso_id', 'division_id', 'position_id', 'employee_type_id'], 'filter', 'filter' => 'intval'],
                 [['birth_date', 'date_start', 'date_resign', 'system_date'], 'date', 'format' => 'php:Y-m-d', 'skipOnEmpty' => true],
                 [['nik', 'name', 'division_id', 'position_id', 'employee_type_id', 'date_start', 'sso_id', 'status'], function ($attribute, $params, $validator) {
