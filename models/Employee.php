@@ -44,13 +44,15 @@ class Employee extends \yii\db\ActiveRecord
     {  
         return array_merge(
             [
-                [['nik', 'sso_id'], 'unique'],
                 [['contact', 'detail_info'], 'safe'],
                 [['sso_id', 'division_id', 'status'], 'integer'],
                 [['name', 'nik', 'email', 'username', 'image'], 'string', 'max' => 255],
                 
                 [['division_id', 'position_id', 'employee_type_id'], 'default', 'value' => 1],
                 [['nik', 'iamge', 'birth_date', 'date_start', 'date_resign', 'contact', 'email'], 'default', 'value' => null],
+
+                [['email'], 'email'],
+                [['nik', 'sso_id'], 'unique'],
 
                 [['sso_id', 'division_id', 'position_id', 'employee_type_id'], 'filter', 'filter' => 'intval'],
                 [['birth_date', 'date_start', 'date_resign', 'system_date'], 'date', 'format' => 'php:Y-m-d', 'skipOnEmpty' => true],
