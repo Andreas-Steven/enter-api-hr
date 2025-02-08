@@ -23,6 +23,11 @@ use app\core\CoreModel;
  */
 class GeneralAffair extends \yii\db\ActiveRecord
 {
+    /**
+     * TODO:
+     * [x] Add allowed filed validation for General Affair Items
+     */
+
     public $code;
     public $product;
     public $category;
@@ -131,10 +136,23 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $generalAffairItems = [];
         $itemData = $this->$attribute;
         $oldItem = $this->getOldAttribute($attribute);
-    
+
         foreach ($itemData['items'] as $key => $value) {
             $timestamp = Yii::$app->coreAPI->UTCTimestamp();
             $username = Yii::$app->coreAPI->getUsername();
+
+            $allowedFields = array_keys(Yii::$app->params['defaultValue']['items']);
+            $fields = array_keys($value);
+            
+            foreach ($fields as $fieldsValue) {
+                if (!in_array($fieldsValue, $allowedFields, true)) {
+                    $this->addError($attribute, Yii::t('core', 'allowedField', [
+                        'field' => $this->getAttributeLabel($attribute), 
+                        'value' => implode(', ', $allowedFields)
+                    ]));
+                    return;
+                }
+            }
 
             if (empty($value['code'])) {
                 $this->addError($attribute, Yii::t('core', 'nullField', [
@@ -153,7 +171,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $generalAffairItems['items_change_log']['created_at'] = $timestamp;
                 $generalAffairItems['items_change_log']['created_by'] = $username;
             }
-            
+
             $generalAffairItems['price'] = floatval($generalAffairItems['price']);  
             if (empty($generalAffairItems['price']) || $generalAffairItems['price'] < 0) {
                 $this->addError($attribute, Yii::t('app', 'float', ['field' => $this->getAttributeLabel('price')]));

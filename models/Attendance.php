@@ -11,6 +11,7 @@ use app\models\Division;
 use app\models\WorkTime;
 use app\models\UserAttendance;
 use app\exceptions\ErrorMessage;
+
 /**
  * This is the model class for table "absensi".
  *
@@ -24,6 +25,12 @@ use app\exceptions\ErrorMessage;
  */
 class Attendance extends \yii\db\ActiveRecord
 {
+    	 
+	/**
+     * TODO:
+     * [ ] Add allowed field validation for Attendance
+     */
+
     public $device;
     public $division;
     public $end_time;
@@ -150,6 +157,19 @@ class Attendance extends \yii\db\ActiveRecord
         $latestAttendance = !empty($lastStartTime) ? end($lastStartTime) : null;
 
         foreach ($attendanceData as $key => $value) {
+            $allowedFields = array_keys(Yii::$app->params['defaultValue']['attendance']['attendance_field']);
+            $fields = array_keys($value);
+            
+            foreach ($fields as $fieldsValue) {
+                if (!in_array($fieldsValue, $allowedFields, true)) {
+                    $this->addError($attribute, Yii::t('core', 'allowedField', [
+                        'field' => $this->getAttributeLabel($attribute), 
+                        'value' => implode(', ', $allowedFields)
+                    ]));
+                    return;
+                }
+            }
+
             $employeeAttendance = array_merge(Yii::$app->params['defaultValue']['attendance']['attendance_field'], $value);
 
             if (empty($employeeAttendance['employee_id'])) {
