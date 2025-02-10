@@ -169,7 +169,7 @@ class Employee extends \yii\db\ActiveRecord
                     return;
                 }
 
-                if (!preg_match('/^(62)8[1-9][0-9]{7,13}$/', $contact)) {
+                if (!preg_match('/^(62)[1-9][0-9]{7,13}$/', $contact)) {
                     $this->addError($attribute, Yii::t('app', 'phonePrefix'));
                     return;
                 }
