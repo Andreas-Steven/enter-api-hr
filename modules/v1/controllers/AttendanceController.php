@@ -10,6 +10,7 @@ use app\helpers\Constants;
 use app\core\CoreController;
 use app\models\search\AttendanceSearch;
 use app\models\Attendance;
+use yii\helpers\ArrayHelper;
 
 class AttendanceController extends CoreController
 {
@@ -37,16 +38,19 @@ class AttendanceController extends CoreController
 		if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
 			return $coreValidateProvider;
 		}
-		
+
 		return CoreController::coreData($dataProvider);
 	}
-
+	
 	public function actionCreate()
 	{
 		$model = new Attendance();
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$params['system_date'] = date('Y-m-d');
 		$params['dateMismatch'] = null;
+
+		// Uncomment this for testing
+		$params['system_date'] = $params['date'];
 		
 		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
 			return $coreUnavailableParams;
@@ -96,14 +100,44 @@ class AttendanceController extends CoreController
 		$model->scenario = Constants::SCENARIO_CREATE;
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($model->save(false)) {
+			if ($model->save()) {	
+				$this->updateMongoDB($model);
+
 				return CoreController::coreSuccess($model);
 			}
 		}
 
 		return CoreController::coreError($model);
 	}
-	
+
+	public function actionList()
+    {
+        $params = Yii::$app->getRequest()->getBodyParams();
+
+        $searchModel = new AttendanceSearch();
+        $searchModel->load($params);
+        $dataProvider = $searchModel->mongodbSearch($params);
+
+        if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
+            return $coreValidateProvider;
+        }
+
+        return CoreController::coreData($dataProvider);
+    }
+
+	public function updateMongoDB($model)
+    {
+        $data = $model->toArray();
+		$attendance = array_values($data['attendance']);
+        $mdbData = array_map(function ($item) use ($data) {
+            unset($data['attendance']);
+
+            return array_merge($data, $item);
+        }, $attendance);
+
+        Yii::$app->mongodb->upsertMany($model, ['id', 'employee_id', 'date'], $mdbData);
+    }
+
 	public function actionResign()
 	{
 		$model = new Employee();

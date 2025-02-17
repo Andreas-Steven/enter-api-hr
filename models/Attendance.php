@@ -17,6 +17,7 @@ use app\exceptions\ErrorMessage;
  *
  * @property int $id
  * @property string $date
+ * @property int $period
  * @property bool $dayoff
  * @property int $status
  * @property string $attendance
@@ -25,12 +26,6 @@ use app\exceptions\ErrorMessage;
  */
 class Attendance extends \yii\db\ActiveRecord
 {
-    	 
-	/**
-     * TODO:
-     * [ ] Add allowed field validation for Attendance
-     */
-
     public $device;
     public $division;
     public $end_time;
@@ -56,15 +51,14 @@ class Attendance extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['attendance', 'blacklist', 'detail_info'], 'safe'],
-                
-                [['employee_id'], 'filter', 'filter' => 'intval'],
                 [['end_time', 'start_time'], 'date', 'format' => 'php:H:i:s'],
                 [['date', 'system_date', 'dateMismatch'], 'date', 'format' => 'php:Y-m-d'],
+                
+                [['date'], 'required'],
                 [['date'], 'filter', 'filter' => function($value) {
                     return CoreModel::nullSafe($value);
                 }],
-                [['date'], 'required'],
-
+                
                 [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],
             ],
             CoreModel::getStatusRules($this),
@@ -87,9 +81,10 @@ class Attendance extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'date' => 'Date',
-            'status' => 'Status',
+            'period' => 'Period',
             'attendance' => 'Attendance',
             'blacklist' => 'Blacklist',
+            'status' => 'Status',
             'detail_info' => 'Detail Info',
         ];
     }
@@ -124,6 +119,12 @@ class Attendance extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
+            $date = new \DateTime($this->date);
+            if ((int) $date->format('d') >= Constants::LAST_DATE) {
+                $date->modify('+1 month');
+            }
+            $this->period = intval($date->format('Ym'));
+
             if ($this->scenario === Constants::SCENARIO_CREATE) {
                 $this->validateAttendance('attendance');
             }

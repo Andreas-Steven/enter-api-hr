@@ -3,7 +3,6 @@
 use yii\db\Migration;
 use MongoDB\Client;
 
-
 /**
  * Handles the creation of table `{{%shipment_vehicle}}`.
  */
@@ -29,6 +28,7 @@ class m250106_093826_create_shipment_vehicle_table extends Migration
             'warehouse_id' => $this->integer()->notNull(),
             'status' => $this->smallInteger()->notNull()->defaultValue(2)->comment('0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance'),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
+                'warehouse' => null,
                 'change_log' => [
                     'created_at' => null,
                     'created_by' => null,
@@ -56,9 +56,9 @@ class m250106_093826_create_shipment_vehicle_table extends Migration
                 'status' => 1,
                 'detail_info' => [
                     'warehouse' => [
-                        'id' => 1,
-                        'name' => 'Warehouse Mangga Dua',
-                        'address' => 'Mangga Dua Mall',
+                        'id' => 1, 
+                        'name' => 'Gudang Utama',
+                        'address' => 'Ruko Mall Mangga Dua, Jl. Mangga Dua Raya No. 33',
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
@@ -78,9 +78,9 @@ class m250106_093826_create_shipment_vehicle_table extends Migration
                 'status' => 1,
                 'detail_info' => [
                     'warehouse' => [
-                        'id' => 1,
-                        'name' => 'Warehouse Mangga Dua',
-                        'address' => 'Mangga Dua Mall',
+                        'id' => 1, 
+                        'name' => 'Gudang Utama',
+                        'address' => 'Ruko Mall Mangga Dua, Jl. Mangga Dua Raya No. 33',
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,

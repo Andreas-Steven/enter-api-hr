@@ -8,6 +8,7 @@ use yii\data\ActiveDataProvider;
 use app\helpers\Constants;
 use app\core\CoreModel;
 use app\models\Attendance;
+use app\core\CoreMongodb;
 
 class AttendanceSearch extends Attendance
 {
@@ -29,8 +30,9 @@ class AttendanceSearch extends Attendance
     {
         return array_merge(
             [
+                [['employee_id'], 'safe'],
+                [['id', 'status'], 'integer'],
                 [['employee_name'], 'string'],
-                [['id', 'status','employee_id'], 'integer'],
                 [['date'], 'date', 'format' => 'php:Y-m-d'],
                 [['attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
@@ -110,5 +112,30 @@ class AttendanceSearch extends Attendance
         );
 
         return $dataProvider;
+    }
+
+    public function mongodbSearch($params) 
+    {
+        $this->load([CoreMongodb::getModelClassName($this) => $params]);
+
+        if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($this, $params)) {
+            return $unavailableParams;
+        }
+
+        $where = [];
+        $orWhere = [];
+
+        CoreMongodb::mdbStatus('status', $this->status, $where);
+        CoreMongodb::mdbNumberEqual('id', $this->id, $where);
+        CoreMongodb::mdbStringEqual('detail_info.changelog.created_by', $this->created_by, $where);
+
+        CoreMongodb::mdbNumberMultiple('employee_id', $this->employee_id, $orWhere, 'or');
+        // CoreMongodb::mdbNumberMultiple('brand_id', $this->brand_id, $orWhere, 'or');
+        // CoreMongodb::mdbNumberMultiple('vendor_id', $this->vendor_id, $orWhere, 'or');
+
+        return Yii::$app->mongodb->search($this, [
+            'where' => $where,
+            'orWhere' => $orWhere,
+        ]);
     }
 }

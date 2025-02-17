@@ -6,8 +6,8 @@ class m241010_103834_create_brand_table extends Migration
 {
     public function safeUp()
     {
-        $params = require(__DIR__ . '/../config/params.php');
-        $UTCTimestamp = gmdate(Yii::$app->params['timestamp']['UTC']);
+        $params = require(\Yii::getAlias('@app/config/params.php'));
+        $UTCTimestamp = gmdate($params['timestamp']['UTC']);
         $createdBy = 'system';
         
         if (!YII_ENV_DEV) {

@@ -52,17 +52,17 @@ class m250106_091546_create_shipment_service_table extends Migration
 
         $dummyData = [
             [
-                'name' => 'Reguler',
-                'code' => 'REG',
-                'rate' => 3000,
-                'is_flat' => 0,
+                'name' => 'Free',
+                'code' => 'FR',
+                'rate' => 0,
+                'is_flat' => 1,
                 'distance' => [
                     'min' => 0,
-                    'max' => 1000
+                    'max' => 100
                 ],
                 'weight' => [
-                    'min' => 500,
-                    'divided_by' => 10000
+                    'max' => 50000,
+                    'divided_by' => 0
                 ],                
                 'status' => 1,
                 'detail_info' => [
@@ -78,17 +78,17 @@ class m250106_091546_create_shipment_service_table extends Migration
                 'sync' => null,
             ],
             [
-                'name' => 'Free',
-                'code' => 'FREE',
-                'rate' => 0,
-                'is_flat' => 1,
+                'name' => 'Reguler',
+                'code' => 'RG',
+                'rate' => 3000,
+                'is_flat' => 0,
                 'distance' => [
                     'min' => 0,
-                    'max' => 50
+                    'max' => 1000
                 ],
                 'weight' => [
-                    'min' => 500,
-                    'divided_by' => 0
+                    'max' => 50000,
+                    'divided_by' => 10000
                 ],                
                 'status' => 1,
                 'detail_info' => [
