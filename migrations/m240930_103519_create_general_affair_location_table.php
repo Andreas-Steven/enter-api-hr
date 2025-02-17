@@ -75,6 +75,21 @@ class m240930_103519_create_general_affair_location_table extends Migration
                 ],
                 'sync' => null,
             ],
+            [
+                'name' => 'Cabang Serpong',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
         ];
 
         foreach ($dummyData as $key => $value) {

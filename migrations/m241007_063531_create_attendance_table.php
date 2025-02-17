@@ -52,10 +52,16 @@ class m241007_063531_create_attendance_table extends Migration
             return true;
         }
 
+        $date = (new \DateTime('-1 days'))->format('Y-m-d');
+        if ((int) date('d', strtotime($date)) >= 26) {
+            $date = $date->modify('+1 month');
+        }
+        $period = intval(date('Ym', strtotime($date)));
+
         $dummyData = [
             [
-                'date' => date('Y-m-d', strtotime('-1 days')),
-                'period' => 202501,
+                'date' => $date,
+                'period' => $period,
                 'attendance' => [
                     '1' => [
                         'info' => [
@@ -101,13 +107,91 @@ class m241007_063531_create_attendance_table extends Migration
                         'end_time' => null,
                         'location' => null,
                         'work_time' => [
+                            'id' => 1,
+                            'entry_time' => '09:45:59',
+                            'home_time' => '18:30:00',
+                        ],
+                        'start_time' => '10:32:52',
+                        'employee_id' => 2,
+                        'employee_name' => 'Employee 2',
+                    ],
+                    '3' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => null,
+                            'detail' => [],
+                        ],
+                        'device' => [
+                            'id' => 2,
+                            'code' => 'MK2',
+                            'name' => 'Toko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => null,
+                        'location' => null,
+                        'work_time' => [
+                            'id' => 1,
+                            'entry_time' => '09:45:59',
+                            'home_time' => '18:30:00',
+                        ],
+                        'start_time' => '10:32:52',
+                        'employee_id' => 3,
+                        'employee_name' => 'Employee 3',
+                    ],
+                    '4' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => null,
+                            'detail' => [],
+                        ],
+                        'device' => [
+                            'id' => 2,
+                            'code' => 'MK2',
+                            'name' => 'Toko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => null,
+                        'location' => null,
+                        'work_time' => [
                             'id' => 2,
                             'entry_time' => '10:45:59',
                             'home_time' => '19:00:00',
                         ],
                         'start_time' => '10:32:52',
-                        'employee_id' => 2,
-                        'employee_name' => 'Employee 2',
+                        'employee_id' => 4,
+                        'employee_name' => 'Employee 4',
+                    ],
+                    '5' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => null,
+                            'detail' => [],
+                        ],
+                        'device' => [
+                            'id' => 2,
+                            'code' => 'MK2',
+                            'name' => 'Toko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => null,
+                        'location' => null,
+                        'work_time' => [
+                            'id' => 2,
+                            'entry_time' => '10:45:59',
+                            'home_time' => '19:00:00',
+                        ],
+                        'start_time' => '10:32:52',
+                        'employee_id' => 5,
+                        'employee_name' => 'Employee 5',
                     ],
                 ],
                 'status' => 3,

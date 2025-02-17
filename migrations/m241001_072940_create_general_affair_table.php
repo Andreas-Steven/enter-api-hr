@@ -52,7 +52,7 @@ class m241001_072940_create_general_affair_table extends Migration
             [
                 'name' => 'Logitech B100',
                 'product_id' => 1,
-                'category_id' => 1,
+                'category_id' => 7,
                 'location_id' => 1,
                 'asset' => [
                     'items' => [
@@ -89,7 +89,7 @@ class m241001_072940_create_general_affair_table extends Migration
                         'name' => 'Logitech B100',
                     ],
                     'category' => [
-                        'id' => 1,
+                        'id' => 7,
                         'name' => 'Peripheral Komputer',
                     ],
                     'location' => [
@@ -114,9 +114,6 @@ class m241001_072940_create_general_affair_table extends Migration
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function safeDown()
     {
         if (!YII_ENV_DEV) {

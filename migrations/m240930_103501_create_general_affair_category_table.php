@@ -47,7 +47,7 @@ class m240930_103501_create_general_affair_category_table extends Migration
 
         $dummyData = [
             [
-                'name' => 'Peripheral Komputer',
+                'name' => 'Elektronik',
                 'status' => 1,
                 'detail_info' => [
                     'change_log' => [
@@ -62,7 +62,82 @@ class m240930_103501_create_general_affair_category_table extends Migration
                 'sync' => null,
             ],
             [
-                'name' => 'Elektronik',
+                'name' => 'Kelistrikan',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'name' => 'Kendaraan',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'name' => 'Alat Tulis Kantor',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'name' => 'Furniture',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'name' => 'Alat Kebersihan',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'name' => 'Peripheral Komputer',
                 'status' => 1,
                 'detail_info' => [
                     'change_log' => [

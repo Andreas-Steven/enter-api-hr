@@ -60,6 +60,70 @@ class m241001_054554_create_division_table extends Migration
                 'sync' => null,
             ],
             [
+                'code' => 'UPDT',
+                'name' => 'Update',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'BRD',
+                'name' => 'Branding',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'GD',
+                'name' => 'Gudang',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'HRD',
+                'name' => 'Human Resource',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
                 'code' => 'IT',
                 'name' => 'Teknologi Informasi',
                 'status' => 1,
@@ -74,7 +138,199 @@ class m241001_054554_create_division_table extends Migration
                     ],
                 ],
                 'sync' => null,
-            ]
+            ],
+            [
+                'code' => 'KSR',
+                'name' => 'Kasir',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'MOF',
+                'name' => 'Marketing Offline',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'MON',
+                'name' => 'Marketing Online',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'RMA',
+                'name' => 'Return Merchandise Authorization',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'FAT',
+                'name' => 'Finance Accounting & Tax',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'TKS',
+                'name' => 'Teknisi',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'MKB',
+                'name' => 'Marketing Komunikasi & Branding',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'PU',
+                'name' => 'Pick Up',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'UI',
+                'name' => 'Ulasan Id',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'PKG',
+                'name' => 'Packing',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'KMN',
+                'name' => 'Keamanan',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'code' => 'CS',
+                'name' => 'Cleaning Service',
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
         ];
 
         foreach ($dummyData as $key => $value) {

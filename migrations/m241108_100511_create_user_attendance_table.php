@@ -78,6 +78,107 @@ class m241108_100511_create_user_attendance_table extends Migration
             ],
             [
                 'employee_id' => 2,
+                'work_time_id' => 1,
+                'status' => 1,
+                'detail_info' => [
+                    'employee' => [
+                        'id' => 1,
+                        'name' => 'Employee 1',
+                    ],
+                    'work_time' => [
+                        'id' => 1,
+                        'name' => 'Package A',
+                        'entry_time' => '09:45:59',
+                        'home_time' => '18:30:00',
+                        'working_days' => [
+                            'Monday',
+                            'Tuesday',
+                            'Wednesday',
+                            'Thursday',
+                            'Friday',
+                        ],
+                    ],
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'employee_id' => 3,
+                'work_time_id' => 1,
+                'status' => 1,
+                'detail_info' => [
+                    'employee' => [
+                        'id' => 1,
+                        'name' => 'Employee 1',
+                    ],
+                    'work_time' => [
+                        'id' => 1,
+                        'name' => 'Package A',
+                        'entry_time' => '09:45:59',
+                        'home_time' => '18:30:00',
+                        'working_days' => [
+                            'Monday',
+                            'Tuesday',
+                            'Wednesday',
+                            'Thursday',
+                            'Friday',
+                        ],
+                    ],
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'employee_id' => 4,
+                'work_time_id' => 2,
+                'status' => 1,
+                'detail_info' => [
+                    'employee' => [
+                        'id' => 2,
+                        'name' => 'Employee 2',
+                    ],
+                    'work_time' => [
+                        'id' => 1,
+                        'name' => 'Package B',
+                        'entry_time' => '10:45:59',
+                        'home_time' => '19:00:00',
+                        'working_days' => [
+                            'Monday',
+                            'Tuesday',
+                            'Wednesday',
+                            'Thursday',
+                            'Friday',
+                            'Saturday',
+                            'Sunday',
+                        ],
+                    ],
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'employee_id' => 5,
                 'work_time_id' => 2,
                 'status' => 1,
                 'detail_info' => [
