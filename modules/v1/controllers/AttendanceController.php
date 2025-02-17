@@ -151,7 +151,7 @@ class AttendanceController extends CoreController
 		foreach ($employees as $employee) {
 			$employee->scenario = Constants::SCENARIO_UPDATE;
 			$employee->status = Constants::STATUS_COMPLETED;
-			$employee->save(false);
+			$employee->save();
 		}
 	}
 }
