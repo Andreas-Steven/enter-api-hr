@@ -216,7 +216,6 @@ class m241007_063531_create_attendance_table extends Migration
             $this->insert('{{%' . $this->tableName . '}}', $value);
 
             $value['id'] = $index;
-            $value['period'] = intval((new \DateTime($value['date']))->format('Ym'));
 
             $attendance = array_values($value['attendance']);
             $mdbData = array_map(function ($item) use ($value) {
