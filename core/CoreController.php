@@ -76,31 +76,36 @@ class CoreController extends Controller
         ];
     }
 
-    public function coreFindModel($model, ?array $params): ?object
-	{
-        $where = $params;
-        $id = isset($params['id']) ? $params['id'] : null;
+    public function coreFindModel($model, ?array $paramsID, ?array $otherParams = []): ?object
+    {
+        $id = $paramsID['id'] ?? null;
+        $whereID = [];
 
-        if ($id){
-            $where = ['id' => $id];
+        if ($id) {
+            $whereID = ['id' => $id];
+            $where = $whereID;
         }
 
-		if (!empty($where)) {
-			$query = $model::find()->where($where);
-			if (($modelInstance = $query->one()) !== null) {
+        if ($otherParams) {
+            $where = array_merge($whereID, $otherParams);
+        }
+
+        if (!empty($where)) {
+            $query = $model::find()->where($where);
+            if (($modelInstance = $query->one()) !== null) {
                 $lockVersion = Constants::OPTIMISTIC_LOCK;
 
                 if (isset($modelInstance->$lockVersion)) {
                     // Hide lock_version on result data for update/delete.
-                    unset($modelInstance->$lockVersion); 
+                    unset($modelInstance->$lockVersion);
                 }
 
-				return $modelInstance;
-			}
-		}
+                return $modelInstance;
+            }
+        }
 
-		return null;
-	}
+        return null;
+    }
 
     public function coreData($dataProvider): array
     {

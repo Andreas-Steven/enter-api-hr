@@ -23,11 +23,6 @@ use app\core\CoreModel;
  */
 class GeneralAffair extends \yii\db\ActiveRecord
 {
-    /**
-     * TODO:
-     * [x] Add allowed filed validation for General Affair Items
-     */
-
     public $code;
     public $product;
     public $category;
@@ -262,7 +257,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $product = GeneralAffairProduct::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($product === null) {
-            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
@@ -275,7 +270,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $category = GeneralAffairCategory::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($category === null) {
-            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
@@ -287,7 +282,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $location = GeneralAffairLocation::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($location === null) {
-            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
             return;
         }
 

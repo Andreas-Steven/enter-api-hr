@@ -24,27 +24,23 @@ $params['defaultValue'] = [
         ]
     ],
     'attendance' => [
-        'attendance_field' => [
-            'employee_id' => null,
-            'employee_name' => null,
-            'start_time' => null,
-            'end_time' => null,
-            'device' => null,
-            'division' => null,
-            'work_time' => null,
-            'location' => null,
-            'info' => [
-                'in' => null,
-                'out' => null,
-                'detail' => [],
-            ]
-        ],
+        'employee_id' => null,
+        'employee_name' => null,
+        'start_time' => null,
+        'end_time' => null,
+        'device' => null,
+        'division' => null,
+        'work_time' => null,
+        'location' => null,
         'info' => [
-            'LT' => 'Late',
-            'LE' => 'Leave Early',
-            'ICC' => 'Incomplate Check Clock',
-            'WH' => 'Work Holiday',
+            'in' => null,
+            'out' => null,
+            'detail' => [],
         ],
+    ],
+    'revision' => [
+        'start_time' => null,
+        'end_time' => null,
     ],
 ];
 
@@ -52,7 +48,10 @@ $params['defaultValue'] = [
  * is allowed fields for json data in model
  */
 $params['allowedFields'] = [
-    
+    'attendance' => ['employee_id', 'start_time', 'end_time', 'device', 'location'],
+    'attendance_location' => ['lat', 'lng', 'image'],
+    'location' => ['lat', 'lng'],
+    'revision' => ['start_time', 'end_time'],
 ];
 
 /**

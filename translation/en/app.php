@@ -43,4 +43,16 @@ return [
     // Employee custom error messages
     'phonePrefix' => 'The Phone Number must start with 62 and max 15 digits.',
     'invalidNik' => 'NIK must be 16 digits.',
+
+    // Location Rules
+    'invalidLatFormat' => 'Latitude format invalid.',
+    'invalidLngFormat' => 'Langlitude format invalid.',
+    'invalidLat' => 'Latitude must be between -90 and 90',
+    'invalidLng' => 'Longitude must be between -180 and 180',
+
+    // Attendance Permission Rules
+    'attendancePermissionFailed' => 'Attendance Permission failed.',
+    'rivisionEmpty' => 'Rivision Start Time and End Time can not be empty at same time.',
+    'invalidTimeFormat' => 'The {field} must be in the format of HH:MM:SS.',
+    'revisionRestriction' => 'For Revision request, Permission Type can only be set for Late or Leave Early.',
 ];

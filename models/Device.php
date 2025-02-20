@@ -33,10 +33,12 @@ class Device extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
-                [['detail_info', 'location'], 'safe'],
-                [['code', 'name', 'address', 'ip_address'], 'string', 'max' => 255],
-                
-                [['code'], 'unique', 'on' => Constants::SCENARIO_CREATE],
+                [['ip_address'], 'ip'],
+                [['code'], 'string', 'max' => 5],
+                [['name', 'address'], 'string', 'max' => 255],
+                [['location', 'detail_info'], 'safe'],
+
+                [['code', 'ip_address'], 'unique', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'name', 'address', 'ip_address'], 'required'],
                 
                 [['location'], 'validateLocation'],
@@ -53,7 +55,7 @@ class Device extends \yii\db\ActiveRecord
         $scenarios[Constants::SCENARIO_UPDATE] = ['code', 'name', 'address', 'ip_address', 'location', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
-        return $scenarios;
+        return $scenarios; 
     }
 
     public function attributeLabels()
@@ -108,11 +110,40 @@ class Device extends \yii\db\ActiveRecord
 
     public function validateLocation($attribute, $params)
     {
-        if (!empty($this->location)) {
-            $location = $this->location;
-            $location['lat'] = floatval($location['lat']);
-            $location['lng'] = floatval($location['lng']);
-            $this->location = $location;
+        $location = $this->$attribute;
+        $allowedFields = Yii::$app->params['allowedFields']['location'];
+
+        if (empty($location)) {
+            $this->addError($attribute, Yii::t('core', 'required', ['field' => $this->getAttributeLabel($attribute)]));
+            return;
         }
+
+        CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $location);
+        
+        if (!filter_var($location['lat'], FILTER_VALIDATE_FLOAT)) {
+            $this->addError($attribute.'[lat]', Yii::t('app', 'invalidLatFormat'));
+            return;
+        }
+
+        if (!filter_var($location['lng'], FILTER_VALIDATE_FLOAT)) {
+            $this->addError($attribute.'[lng]', Yii::t('app', 'invalidLngFormat'));
+            return;
+        }
+
+        $latitude = (float) $location['lat'];
+        $longitude = (float) $location['lng'];
+
+        if ($latitude < -90 || $latitude > 90) {
+            $this->addError($attribute, Yii::t('app', 'invalidLat'));
+        }
+
+        if ($longitude < -180 || $longitude > 180) {
+            $this->addError($attribute, Yii::t('app', 'invalidLng'));
+        }
+
+        $this->$attribute = [
+            'lat' => $latitude,
+            'lng' => $longitude,
+        ];
     }
 }

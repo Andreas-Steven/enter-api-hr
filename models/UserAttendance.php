@@ -98,7 +98,6 @@ class UserAttendance extends \yii\db\ActiveRecord
                 'change_log' => CoreModel::getChangeLog($this, $insert),
                 'employee' => $this->detail_info['employee'] ?? $this->employee,
                 'work_time' => $this->detail_info['work_time'] ?? $this->work_time
-
             ];
 
             return true;
@@ -112,7 +111,7 @@ class UserAttendance extends \yii\db\ActiveRecord
         $employee = Employee::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($employee === null) {
-            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
@@ -124,10 +123,16 @@ class UserAttendance extends \yii\db\ActiveRecord
         $work_time = WorkTime::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($work_time === null) {
-            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
-        $this->work_time = ['id' => $work_time->id, 'name' => $work_time->name, 'entry_time' => $work_time->entry_time, 'home_time' => $work_time->home_time, 'working_days' => $work_time->working_days];
+        $this->work_time = [
+            'id' => $work_time->id, 
+            'name' => $work_time->name, 
+            'entry_time' => $work_time->entry_time, 
+            'home_time' => $work_time->home_time, 
+            'working_days' => $work_time->working_days
+        ];
     }
 }

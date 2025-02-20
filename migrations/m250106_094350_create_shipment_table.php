@@ -94,13 +94,13 @@ class m250106_094350_create_shipment_table extends Migration
                 ],
                 'detail_product' => [
                     [
-                        "id" => 1,
+                        "product_id" => 1,
                         "sku" => "NOTE000001",
                         "name" => "Asus Vivobook",
                         "quantity" => 10
                     ],
                     [
-                        "id" => 2,
+                        "product_id" => 2,
                         "sku" => "NOTE000002",
                         "name" => "Acer Aspire",
                         "quantity" => 10
@@ -120,6 +120,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'waiting',
                         'remark' => 'Menunggu Penjadwalan',
+                        'shipment_status' => 0,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
@@ -127,6 +128,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'scheduled',
                         'remark' => 'Pengiriman Dijadwalkan',
+                        'shipment_status' => 1,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
@@ -134,6 +136,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'departed',
                         'remark' => 'Sedang Dikirim',
+                        'shipment_status' => 3,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
@@ -141,6 +144,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'delivered',
                         'remark' => 'Telah Diterima',
+                        'shipment_status' => 4,
                         'image' => ['https://apikurirtoko.ruko3233.com/uploads/1730277206430-173027717289512116172814826962.jpg'],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
@@ -207,19 +211,19 @@ class m250106_094350_create_shipment_table extends Migration
                 ],
                 'detail_product' => [
                     [
-                        "id" => 3,
+                        "product_id" => 3,
                         "sku" => "PROC000001",
                         "name" => "Intel Core i7-14700F 2.1GHz Up To 5.4GHz - Cache 33MB [Tray] Socket LGA 1700 - Raptor Lake Refresh Series - NEW UNIT - 1 Years Warranty (Free!!! CUBE GAMING STORM V2 - SINGLE FAN 12CM ARGB - Universal Socket (AM5 Ready))",
                         "quantity" => 1
                     ],
                     [
-                        "id" => 8,
+                        "product_id" => 8,
                         "sku" => "MOBO000002",
                         "name" => "Asus ROG STRIX Z890-A GAMING WIFI (LGA1851, Z890, DDR5, USB3.2 Gen2x2 Type-C, SATA3)",
                         "quantity" => 1
                     ],
                     [
-                        "id" => 9,
+                        "product_id" => 9,
                         "sku" => "RAMZ000001",
                         "name" => "KLEVV CRAS XR5 RGB DDR5 PC64000 8000MHz 32GB (2X16GB) White Heat-Spreader - KD5AGUA80-80R380S",
                         "quantity" => 1
@@ -239,6 +243,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'waiting',
                         'remark' => 'Menunggu Penjadwalan',
+                        'shipment_status' => 0,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
@@ -246,6 +251,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'scheduled',
                         'remark' => 'Pengiriman Dijadwalkan',
+                        'shipment_status' => 1,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
@@ -253,6 +259,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'departed',
                         'remark' => 'Sedang Dikirim',
+                        'shipment_status' => 3,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
@@ -260,11 +267,13 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'delivered',
                         'remark' => 'Telah Diterima',
+                        'shipment_status' => 4,
                         'image' => ['https://apikurirtoko.ruko3233.com/uploads/1730277206430-173027717289512116172814826962.jpg'],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy
                     ],
                 ],
+                'shipment_status' => 4,
                 'status' => 3,
                 'detail_info' => [
                     "sale" => [
