@@ -59,8 +59,6 @@ class AttendancePermissionController extends CoreController
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
-				Yii::$app->mongodb->upsert($model);
-
 				return CoreController::coreSuccess($model);
 			}
 		}
@@ -101,7 +99,6 @@ class AttendancePermissionController extends CoreController
             }
 
 			if ($model->save()) {
-				Yii::$app->mongodb->upsert($model);
 				return CoreController::coreSuccess($model);
 			}
 		}
@@ -218,7 +215,6 @@ class AttendancePermissionController extends CoreController
             }
 
 			if ($model->save()) {
-				Yii::$app->mongodb->upsert($model);
 				return CoreController::coreSuccess($model);
 			}
 		}
