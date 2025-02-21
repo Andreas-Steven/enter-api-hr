@@ -130,8 +130,6 @@ class AttendanceSearch extends Attendance
         CoreMongodb::mdbStringEqual('detail_info.changelog.created_by', $this->created_by, $where);
 
         CoreMongodb::mdbNumberMultiple('employee_id', $this->employee_id, $orWhere, 'or');
-        // CoreMongodb::mdbNumberMultiple('brand_id', $this->brand_id, $orWhere, 'or');
-        // CoreMongodb::mdbNumberMultiple('vendor_id', $this->vendor_id, $orWhere, 'or');
 
         return Yii::$app->mongodb->search($this, [
             'where' => $where,

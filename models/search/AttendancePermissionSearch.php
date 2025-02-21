@@ -26,13 +26,14 @@ class AttendancePermissionSearch extends AttendancePermission
     public $deleted_by;
     public $approved_at;
     public $approved_by;
+    public $employee_name;
 
     public function rules()
     {
         return array_merge(
             [
-                [['date', 'note', 'approved_note', 'revision', 'detail_info'], 'safe'],
-                [['id', 'employee_id', 'permission_type', 'approved', 'status', 'sync'], 'integer'],
+                [['id', 'sync'], 'integer'],
+                [['employee_id', 'permission_type', 'approved', 'employee_name', 'date', 'note', 'approved_note', 'revision', 'status', 'detail_info'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -74,11 +75,13 @@ class AttendancePermissionSearch extends AttendancePermission
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'status' => $this->status,
-            'employee_id' => $this->employee_id,
-            'permission_type' => $this->permission_type,
-            'approved' => $this->approved,
         ]);
+
+        if ($this->employee_name) {
+            $conditions = ['and'];
+            $conditions[] = ['=', new \yii\db\Expression("(detail_info #>> '{employee,name}')"), $this->employee_name];
+            $query->andFilterWhere($conditions);
+        }
 
         if ($this->date) {
             $dateValue = $this->date;
@@ -98,6 +101,11 @@ class AttendancePermissionSearch extends AttendancePermission
             
             $query->andFilterWhere($conditions);
         }
+        
+        $query->andFilterWhere(['employee_id' => $this->employee_id ? explode(',', $this->employee_id) : $this->employee_id]);
+        $query->andFilterWhere(['permission_type' => $this->permission_type ? explode(',', $this->permission_type) : $this->permission_type]);
+        $query->andFilterWhere(['approved' => $this->approved ? explode(',', $this->approved) : $this->approved]);
+        $query->andFilterWhere(['status' => $this->status ? explode(',', $this->status) : $this->status]);
 
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
 
