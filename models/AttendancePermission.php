@@ -219,6 +219,11 @@ class AttendancePermission extends \yii\db\ActiveRecord
             }
     
             CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $revision);
+
+            if (empty($revision['start_time']) && empty($revision['end_time'])) {
+                $this->addError($attribute, Yii::t('app', 'rivisionEmpty'));
+                throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
+            }
             
             $revision['start_time'] = CoreModel::nullSafe($revision['start_time']);
             if (!empty($revision['start_time'])) {
@@ -236,11 +241,6 @@ class AttendancePermission extends \yii\db\ActiveRecord
                     $this->addError($attribute, Yii::t('app', 'invalidTimeFormat', ['field' => $this->getAttributeLabel($attribute."[end_time]")]));
                     throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
                 }
-            }
-
-            if (empty($revision['start_time']) && empty($revision['end_time'])) {
-                $this->addError($attribute, Yii::t('app', 'rivisionEmpty'));
-                throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
             }
         }
 
