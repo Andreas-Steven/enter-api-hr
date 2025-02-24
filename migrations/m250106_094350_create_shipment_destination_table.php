@@ -53,5 +53,11 @@ class m250106_094350_create_shipment_destination_table extends Migration
             echo "Skipping migration/fresh for non-dev environment.\n";
             return true;
         }
+
+        $mongodb_param = require(__DIR__ . '/../config/mongodb.php');
+        
+        $mongodb = new Client($mongodb_param['dsn']);
+        $collection = $mongodb->selectCollection($mongodb_param['database'], $this->tableName);
+        $collection->drop();
     }
 }
