@@ -63,7 +63,10 @@ class m250219_091711_create_attendance_permission_table extends Migration
                 'note' => 'Cuti tahunan',
                 'approved' => 1,
                 'approved_note' => 'Diizinkan',
-                'revision' => [],
+                'revision' => [
+                    'start_time' => null,
+                    'end_time' => null,
+                ],
                 'status' => 3,
                 'detail_info' => [
                     'employee' => [
