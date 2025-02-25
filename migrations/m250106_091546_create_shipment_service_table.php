@@ -103,6 +103,32 @@ class m250106_091546_create_shipment_service_table extends Migration
                 ],
                 'sync' => null,
             ],
+            [
+                'name' => 'Same Day',
+                'code' => 'SD',
+                'rate' => 2500,
+                'is_flat' => 0,
+                'distance' => [
+                    'min' => 10,
+                    'max' => 100
+                ],
+                'weight' => [
+                    'max' => 25000,
+                    'divided_by' => 10000
+                ],                
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
         ];
 
         foreach ($dummyData as $key => $value) {
