@@ -190,7 +190,7 @@ class CoreController extends Controller
 
         (!isset($params[$idKey])) ? $error[] = [
             'field' => $idKey,
-            'message' => Yii::t('core', 'required', ['field' => $idKey]),
+            'message' => Yii::t('core', 'required', ['label' => $idKey]),
         ] : null;
 
         if (isset($params[$idKey])) {
@@ -199,7 +199,7 @@ class CoreController extends Controller
 
             (!is_numeric($id) || intval($id) != $id) ? $error[] = [
                 'field' => $idKey,
-                'message' => Yii::t('core', 'integer', ['field' => $idKey]),
+                'message' => Yii::t('core', 'integer', ['label' => $idKey]),
             ] : null;
 
             ($scenario === Constants::SCENARIO_UPDATE && empty($params)) ? $error[] = [
@@ -212,7 +212,7 @@ class CoreController extends Controller
             return [
                 'code' => Yii::$app->response->statusCode = 400,
                 'success' => false,
-                'message' => Yii::t('core', 'invalidField', ['field' => $idKey]),
+                'message' => Yii::t('core', 'invalidField', ['label' => $idKey]),
                 'errors' => $error,
             ];
         }

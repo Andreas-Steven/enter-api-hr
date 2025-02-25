@@ -169,24 +169,24 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
             $generalAffairItems['price'] = floatval($generalAffairItems['price']);  
             if (empty($generalAffairItems['price']) || $generalAffairItems['price'] < 0) {
-                $this->addError($attribute, Yii::t('app', 'float', ['field' => $this->getAttributeLabel('price')]));
+                $this->addError($attribute, Yii::t('core', 'float', ['label' => $this->getAttributeLabel('price')]));
                 return;
             } 
             
             $generalAffairItems['condition'] = intval($generalAffairItems['condition']);
             if (empty($generalAffairItems['condition']) || $generalAffairItems['condition'] < 1) {
-                $this->addError($attribute, Yii::t('core', 'integer', ['field' => $this->getAttributeLabel('condition')]));
+                $this->addError($attribute, Yii::t('core', 'integer', ['label' => $this->getAttributeLabel('condition')]));
                 return;
             } 
     
             if (empty($generalAffairItems['division']['id'])) {
-                $this->addError($attribute, Yii::t('core', 'required', ['field' => $this->getAttributeLabel('division_id')]));
+                $this->addError($attribute, Yii::t('core', 'required', ['label' => $this->getAttributeLabel('division_id')]));
                 return;
             }
     
             $division = Division::findOne(['id' => $generalAffairItems['division']['id'], 'status' => Constants::STATUS_ACTIVE]);
             if ($division === null) {
-                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('division')]));
+                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('division')]));
                 return;
             }
 
@@ -257,7 +257,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $product = GeneralAffairProduct::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($product === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
@@ -270,7 +270,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $category = GeneralAffairCategory::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($category === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
@@ -282,7 +282,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
         $location = GeneralAffairLocation::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($location === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 

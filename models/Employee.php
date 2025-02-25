@@ -212,7 +212,7 @@ class Employee extends \yii\db\ActiveRecord
         $division = Division::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($division === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
@@ -224,7 +224,7 @@ class Employee extends \yii\db\ActiveRecord
         $position = EmployeePosition::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($position === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
@@ -236,7 +236,7 @@ class Employee extends \yii\db\ActiveRecord
         $employee_type = EmployeeType::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($employee_type === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 

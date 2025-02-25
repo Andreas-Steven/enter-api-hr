@@ -57,7 +57,7 @@ class AttendanceController extends CoreController
         }
 		
 		if (!isset($params['date']) || empty($params['date'])) {
-			$model->addError('date', Yii::t('core', 'required', ['field' => $model->getAttributeLabel('date')]));
+			$model->addError('date', Yii::t('core', 'required', ['label' => $model->getAttributeLabel('date')]));
 			return CoreController::coreError($model);
 		}
 

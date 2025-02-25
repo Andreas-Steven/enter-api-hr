@@ -111,7 +111,7 @@ class UserAttendance extends \yii\db\ActiveRecord
         $employee = Employee::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($employee === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
@@ -123,7 +123,7 @@ class UserAttendance extends \yii\db\ActiveRecord
         $work_time = WorkTime::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($work_time === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 

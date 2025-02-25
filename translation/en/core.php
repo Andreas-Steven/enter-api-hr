@@ -22,15 +22,19 @@ return [
     'noRecordUpdated' => 'Failed, no record updated.',
 
     // Field Validation Rules
-    'required' => 'Field {field} cannot be blank.',
-    'integer' => 'Field {field} must be an integer.',
+    'required' => '{label} cannot be blank.',
+    'integer' => '{label} must be an integer.',
+    'float' => '{label} must be an float.',
+    'array' => '{label} must be an array.',
     'validationFailed' => 'Field validation failed.',
-    'invalidField' => 'Field {field} not a valid request parameter.',
-    'fieldDataNotFound' => '{field} data not found.',
-    'extraFields' => 'Extra fields found in {label}: {fields}. Allowed fields: {allowed}.',
-    'missingFields' => 'Missing required fields: {fields}.',
-    'nullField' => '{label} field: {fields} is cannot be null or empty.',
-    'allowedField' => '{field} can only contain the fields {value}.',
+    'invalidField' => 'Field {label} not a valid request parameter.',
+    'fieldDataNotFound' => '{label} data not found.',
+    'extraField' => 'Extra field found in {label}: {field}. Allowed field: {value}.',
+    'extraFieldFound' => 'Extra field found in {label}.',
+    'missingField' => 'Missing required field: {field}.',
+    'missingFieldFound' => 'Missing required field in {label}.',
+    'nullField' => '{label} field: {field} is cannot be null or empty.',
+    'allowedField' => '{field} can only contain the field {value}.',
 
     // General Pagination Rules
     'pageMustBeGreaterThanZero' => 'Page must be greater than 0.',
@@ -44,4 +48,3 @@ return [
     'superadminOnly' => 'You do not have permission to perform this action.',
     'updatePermission' => 'You do not have permission to update the {label} of this {tableName} because it is referenced in other data.',
 ];
-

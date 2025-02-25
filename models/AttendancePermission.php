@@ -51,7 +51,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
                 
                 [['employee_id', 'permission_type'], 'filter', 'filter' => 'intval'],
                 [['employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>', 
-                    'message' => Yii::t('core', 'integer', ['field' => $this->getAttributeLabel('employee_id')])
+                    'message' => Yii::t('core', 'integer', ['label' => $this->getAttributeLabel('employee_id')])
                 ],
                 [['permission_type'], 'in', 'range' => array_keys(Constants::PERMISSION_LIST)],
                 
@@ -188,7 +188,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
             $attendanceData = $dataProvider->getModels();
     
             if (empty($attendanceData)) {
-                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel('attendance')]));
+                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('attendance')]));
                 throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
             }
     
@@ -252,7 +252,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
         $employee = Employee::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($employee === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 

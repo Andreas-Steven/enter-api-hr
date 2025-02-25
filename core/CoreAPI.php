@@ -48,7 +48,7 @@ class CoreAPI
 		
 		if (!empty($unsupportedParams)) {
 			foreach ($unsupportedParams as $key => $value) {
-				$model->addError($key, Yii::t('core', 'invalidField', ['field' => $key]));
+				$model->addError($key, Yii::t('core', 'invalidField', ['label' => $key]));
 			}
 
 			return $model;

@@ -120,7 +120,7 @@ class WorkTime extends \yii\db\ActiveRecord
         $working_days = array_filter($this->$attribute, fn($item) => !in_array($item, ['[]', '', "", null], true));
 
         if (empty($working_days)) {
-            $this->addError($attribute, Yii::t('core', 'required', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'required', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 

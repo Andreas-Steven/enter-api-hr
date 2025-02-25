@@ -114,7 +114,7 @@ class Device extends \yii\db\ActiveRecord
         $allowedFields = Yii::$app->params['allowedFields']['location'];
 
         if (empty($location)) {
-            $this->addError($attribute, Yii::t('core', 'required', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('core', 'required', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
