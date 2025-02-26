@@ -76,7 +76,9 @@ class AttendancePermissionController extends CoreController
 		
 		$model = CoreController::coreFindModel(new AttendancePermission(), $params, [
 			'status' => Constants::STATUS_DRAFT, 
-			'approved' => [Constants::APPROVED_DEFAULT],
+			'approved' => [
+				Constants::APPROVED_DEFAULT
+			],
 		]);
 		
 		if ($model === null) {
@@ -117,7 +119,9 @@ class AttendancePermissionController extends CoreController
 		
 		$model = CoreController::coreFindModel(new AttendancePermission(), $params, [
 			'status' => Constants::STATUS_ACTIVE, 
-			'approved' => [Constants::APPROVED_DEFAULT],
+			'approved' => [
+				Constants::APPROVED_DEFAULT
+			],
 		]);
 		
 		if ($model === null) {
@@ -158,7 +162,9 @@ class AttendancePermissionController extends CoreController
 		
 		$model = CoreController::coreFindModel(new AttendancePermission(), $params, [
 			'status' => Constants::STATUS_ACTIVE, 
-			'approved' => [Constants::APPROVED_DEFAULT],
+			'approved' => [
+				Constants::APPROVED_DEFAULT
+			],
 		]);
 		
 		if ($model === null) {

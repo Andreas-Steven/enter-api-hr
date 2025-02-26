@@ -101,7 +101,7 @@ class AttendancePermissionSearch extends AttendancePermission
             
             $query->andFilterWhere($conditions);
         }
-        
+
         $query->andFilterWhere(['employee_id' => $this->employee_id ? explode(',', $this->employee_id) : $this->employee_id]);
         $query->andFilterWhere(['permission_type' => $this->permission_type ? explode(',', $this->permission_type) : $this->permission_type]);
         $query->andFilterWhere(['approved' => $this->approved ? explode(',', $this->approved) : $this->approved]);

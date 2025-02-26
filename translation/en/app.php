@@ -55,4 +55,5 @@ return [
     'rivisionEmpty' => 'Rivision Start Time and End Time can not be empty at same time.',
     'invalidTimeFormat' => 'The {field} must be in the format of HH:MM:SS.',
     'revisionRestriction' => 'For Revision request, Permission Type can only be set for Late or Leave Early.',
+    'revisionRequired' => '{field} is required for {value} request.',
 ];

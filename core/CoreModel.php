@@ -6,6 +6,7 @@ use Yii;
 use app\helpers\Constants;
 use yii\helpers\HtmlPurifier;
 use yii\helpers\StringHelper;
+use app\exceptions\ErrorMessage;
 
 class CoreModel 
 {
@@ -245,30 +246,46 @@ class CoreModel
 		return $conditions;
 	}
 
-	public static function validateRequiredFields($model, string $attribute, ?array $requiredFields, ?array $item = null): bool
-	{
-		$fields = $item ?? $model->$attribute;
+	public static function validateRequiredFields($model, $attribute, $requiredFields, $item = null): bool
+    {
+        $fields = $item ?? $model->$attribute;
 
-		$extraFields = array_diff_key($fields, array_flip($requiredFields));
-		if ($extraFields) {
-			$model->addError($attribute, Yii::t('core', 'extraFields', [
-				'label' => $model->getAttributeLabel($attribute),
-				'fields' => implode(', ', array_keys($extraFields)),
-				'allowed' => implode(', ', $requiredFields),
-			]));
-			return true;
-		}
+        if (!is_array($fields)) {
+            $model->addError($attribute, Yii::t('core', 'array', [
+                'label' => $model->getAttributeLabel($attribute),
+            ]));
 
-		$missingFields = array_diff($requiredFields, array_keys($fields));
-		if ($missingFields) {
-			$model->addError($attribute, Yii::t('core', 'missingFields', [
-				'fields' => implode(', ', $missingFields),
-			]));
-			return true;
-		}
+            throw new ErrorMessage($model, Yii::t('core', 'array', [
+                'label' => $model->getAttributeLabel($attribute),
+            ]), 422);
+        }
 
-		return false;
-	}
+        $extraFields = array_diff_key($fields, array_flip($requiredFields));
+        if ($extraFields) {
+            $model->addError($attribute, Yii::t('core', 'extraField', [
+                'label' => $model->getAttributeLabel($attribute),
+                'field' => implode(', ', array_keys($extraFields)),
+                'value' => implode(', ', $requiredFields),
+            ]));
+
+            throw new ErrorMessage($model, Yii::t('core', 'extraFieldFound', [
+                'label' => $model->getAttributeLabel($attribute),
+            ]), 422);
+        }
+
+        $missingFields = array_diff($requiredFields, array_keys($fields));
+        if ($missingFields) {
+            $model->addError($attribute, Yii::t('core', 'missingField', [
+                'field' => implode(', ', $missingFields),
+            ]));
+
+            throw new ErrorMessage($model, Yii::t('core', 'missingFieldFound', [
+                'label' => $model->getAttributeLabel($attribute),
+            ]), 422);
+        }
+
+        return false;
+    }
 
 	public static function nullFieldValidator($model, $attribute, $item): bool {
 		$nullFields = array_keys(array_filter($item, function ($value) {

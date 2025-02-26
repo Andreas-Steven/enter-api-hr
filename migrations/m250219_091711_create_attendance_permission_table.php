@@ -27,7 +27,7 @@ class m250219_091711_create_attendance_permission_table extends Migration
             'permission_type' => $this->smallInteger()->notNull()->comment('1: Sick, 2: Sick with receipt, 3: Leave early, 4: Late, 5: Annual leave'),
             'date' => $this->date()->notNull()->defaultValue(null),
             'note' => $this->string(255)->defaultValue(null),
-            'approved' => $this->smallInteger()->notNull()->defaultValue(null)->comment('0: Unapproved, 1: Approved'),
+            'approved' => $this->smallInteger()->defaultValue(null)->comment('0: Unapproved, 1: Approved'),
             'approved_note' => $this->string(255)->defaultValue(null),
             'revision' => $this->json()->defaultValue('[]'),
             'status' => $this->smallInteger()->notNull()->defaultValue(2)->comment('0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance'),
