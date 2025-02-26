@@ -151,7 +151,7 @@ class m250106_094350_create_shipment_table extends Migration
                     ],
                 ],
                 'shipment_status' => 4,
-                'status' => 3,
+                'status' => 1,
                 'detail_info' => [
                     "sale" => null,
                     'delivery_order' => [
@@ -274,7 +274,7 @@ class m250106_094350_create_shipment_table extends Migration
                     ],
                 ],
                 'shipment_status' => 4,
-                'status' => 3,
+                'status' => 1,
                 'detail_info' => [
                     "sale" => [
                         "id" => 1,
