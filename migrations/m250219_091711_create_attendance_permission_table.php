@@ -67,7 +67,7 @@ class m250219_091711_create_attendance_permission_table extends Migration
                     'start_time' => null,
                     'end_time' => null,
                 ],
-                'status' => 3,
+                'status' => 1,
                 'detail_info' => [
                     'employee' => [
                         'id' => 1,
@@ -98,7 +98,7 @@ class m250219_091711_create_attendance_permission_table extends Migration
                     'start_time' => null,
                     'end_time' => '15:18:00',
                 ],
-                'status' => 3,
+                'status' => 1,
                 'detail_info' => [
                     'employee' => [
                         'id' => 2,
@@ -125,7 +125,7 @@ class m250219_091711_create_attendance_permission_table extends Migration
         ];
 
         foreach ($dummyData as $key => $value) {
-            $this->insert('{{%' . $this->tableName . '}}', $value);
+            // $this->insert('{{%' . $this->tableName . '}}', $value);
         }
     }
 
