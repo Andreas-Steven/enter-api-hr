@@ -21,6 +21,11 @@ return [
     'noRecordDeleted' => 'Failed, Record already deleted.',
     'noRecordUpdated' => 'Failed, no record updated.',
 
+    'approveRecordSuccess' => 'Data has been saved successfully.',
+    'approveRecordFailed' => 'Failed to save data.',
+    'rejectRecordSuccess' => 'Data has been saved successfully.',
+    'rejectRecordFailed' => 'Failed to save data.',
+
     // Field Validation Rules
     'required' => '{label} cannot be blank.',
     'integer' => '{label} must be an integer.',
