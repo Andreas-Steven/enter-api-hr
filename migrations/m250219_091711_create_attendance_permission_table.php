@@ -125,7 +125,7 @@ class m250219_091711_create_attendance_permission_table extends Migration
         ];
 
         foreach ($dummyData as $key => $value) {
-            // $this->insert('{{%' . $this->tableName . '}}', $value);
+            $this->insert('{{%' . $this->tableName . '}}', $value);
         }
     }
 
