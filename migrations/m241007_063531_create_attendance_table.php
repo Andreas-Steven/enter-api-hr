@@ -52,16 +52,10 @@ class m241007_063531_create_attendance_table extends Migration
             return true;
         }
 
-        $date = (new \DateTime('-1 days'))->format('Y-m-d');
-        if ((int) date('d', strtotime($date)) >= 26) {
-            $date = $date->modify('+1 month');
-        }
-        $period = intval(date('Ym', strtotime($date)));
-
         $dummyData = [
             [
-                'date' => $date,
-                'period' => $period,
+                'date' => '2025-02-25',
+                'period' => '202502',
                 'attendance' => [
                     '1' => [
                         'info' => [

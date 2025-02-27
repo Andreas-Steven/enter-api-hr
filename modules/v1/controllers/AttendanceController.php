@@ -50,7 +50,7 @@ class AttendanceController extends CoreController
 		$params['dateMismatch'] = null;
 
 		// Uncomment this for testing
-		$params['system_date'] = $params['date'];
+		// $params['system_date'] = $params['date'];
 		
 		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
 			return $coreUnavailableParams;
