@@ -76,7 +76,7 @@ class m250106_094350_create_shipment_table extends Migration
                 'warehouse_id' => 1,
                 'shipment_service_id' => 1,
                 'shipment_fee' => 0,
-                'shipment_date' => '2024-02-12',
+                'shipment_date' => date('Y-m-d'),
                 'distance' => 36,
                 'weight' => 10000,
                 'receiver' => [
@@ -186,8 +186,8 @@ class m250106_094350_create_shipment_table extends Migration
                         'name' => 'Gudang Utama',
                         'address' => 'Ruko Mall Mangga Dua, Jl. Mangga Dua Raya No. 33',
                     ],
-                    'shipment_note' => 'DO Cabang Serpong',
-                    'courier_note' => 'Barang telah sampai',
+                    'shipment_note' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut hendrerit, massa nec convallis blandit, libero odio dignissim libero, sit amet consectetur purus erat id enim. Sed vitae suscipit est, eu consequat. Nulla facilisi.',
+                    'courier_note' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut hendrerit, massa nec convallis blandit, libero odio dignissim libero, sit amet consectetur purus erat id enim. Sed vitae suscipit est, eu consequat. Nulla facilisi.',
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy,
@@ -207,7 +207,7 @@ class m250106_094350_create_shipment_table extends Migration
                 'vehicle_id' => 1,
                 'shipment_service_id' => 1,
                 'shipment_fee' => 0,
-                'shipment_date' => '2024-02-11',
+                'shipment_date' => date('Y-m-d'),
                 'distance' => 6,
                 'weight' => 5000,
                 'receiver' => [
@@ -323,8 +323,8 @@ class m250106_094350_create_shipment_table extends Migration
                         'name' => 'Gudang Utama',
                         'address' => 'Ruko Mall Mangga Dua, Jl. Mangga Dua Raya No. 33',
                     ],
-                    'shipment_note' => 'Pastikan barang lengkap dan tidak rusak',
-                    'courier_note' => 'Barang telah diterima oleh yang bersangkutan',
+                    'shipment_note' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut hendrerit, massa nec convallis blandit, libero odio dignissim libero, sit amet consectetur purus erat id enim. Sed vitae suscipit est, eu consequat. Nulla facilisi.',
+                    'courier_note' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut hendrerit, massa nec convallis blandit, libero odio dignissim libero, sit amet consectetur purus erat id enim. Sed vitae suscipit est, eu consequat. Nulla facilisi.',
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy,
