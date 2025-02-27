@@ -166,7 +166,15 @@ class m250106_094350_create_shipment_table extends Migration
                         "code" => "FR",
                         "name" => "Free",
                         "rate" => 0,
-                        "is_flat" => 1
+                        "is_flat" => 1,
+                        "distance" => [
+                            "min" => 0,
+                            "max" => 100
+                        ],
+                        "weight" => [
+                            "max" => 50000,
+                            "divided_by" => 0
+                        ]
                     ],
                     'vehicle' => [
                         'id' => 2,
@@ -295,7 +303,15 @@ class m250106_094350_create_shipment_table extends Migration
                         "code" => "FR",
                         "name" => "Free",
                         "rate" => 0,
-                        "is_flat" => 1
+                        "is_flat" => 1,
+                        "distance" => [
+                            "min" => 0,
+                            "max" => 100
+                        ],
+                        "weight" => [
+                            "max" => 50000,
+                            "divided_by" => 0
+                        ]
                     ],
                     'vehicle' => [
                         'id' => 1,
