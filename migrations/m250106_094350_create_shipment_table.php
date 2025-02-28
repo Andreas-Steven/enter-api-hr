@@ -186,8 +186,8 @@ class m250106_094350_create_shipment_table extends Migration
                         'name' => 'Gudang Utama',
                         'address' => 'Ruko Mall Mangga Dua, Jl. Mangga Dua Raya No. 33',
                     ],
-                    'shipment_note' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut hendrerit, massa nec convallis blandit, libero odio dignissim libero, sit amet consectetur purus erat id enim. Sed vitae suscipit est, eu consequat. Nulla facilisi.',
-                    'courier_note' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut hendrerit, massa nec convallis blandit, libero odio dignissim libero, sit amet consectetur purus erat id enim. Sed vitae suscipit est, eu consequat. Nulla facilisi.',
+                    'shipment_note' => 'Delivery Order cabang serpong',
+                    'courier_note' => 'Paket telah diterima',
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy,
