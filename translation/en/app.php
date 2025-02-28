@@ -52,7 +52,7 @@ return [
 
     // Attendance Permission Rules
     'attendancePermissionFailed' => 'Attendance Permission failed.',
-    'rivisionEmpty' => 'Rivision Start Time and End Time can not be empty at same time.',
+    'rivisionEmpty' => 'Rivision Start Time and End Time can not be empty at same time for {value} request.',
     'invalidTimeFormat' => 'The {field} must be in the format of HH:MM:SS.',
     'revisionRestriction' => 'For Revision request, Permission Type can only be set for Late or Leave Early.',
     'revisionRequired' => '{field} is required for {value} request.',

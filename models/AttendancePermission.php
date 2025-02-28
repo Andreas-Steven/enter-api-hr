@@ -127,12 +127,8 @@ class AttendancePermission extends \yii\db\ActiveRecord
                 case Constants::SCENARIO_CREATE:
                 case Constants::SCENARIO_UPDATE:
                     if (in_array($this->permission_type, Constants::REVISION_PERMISSION_LIST)) {
-                        if ($this->isAttributeChanged('date')) {
-                            $this->validateAttendance('date');
-                        }
-                        if ($this->isAttributeChanged('revision')) {
-                            $this->validateRevision('revision');
-                        }
+                        $this->validateAttendance('date');
+                        $this->validateRevision('revision');
                     } else {
                         $this->revision = Yii::$app->params['defaultValue']['revision'];
                     }
@@ -224,7 +220,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
         $revision['end_time'] = CoreModel::nullSafe($revision['end_time']);
         
         if (empty($revision['start_time']) && empty($revision['end_time'])) {
-            $this->addError($attribute, Yii::t('app', 'rivisionEmpty'));
+            $this->addError($attribute, Yii::t('app', 'rivisionEmpty', ['value' => $this->getAttributeLabel(Constants::PERMISSION_LIST[$this->permission_type])]));
             throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
         }
 
