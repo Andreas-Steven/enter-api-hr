@@ -49,7 +49,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
                 [['note', 'approved_note'], 'string', 'max' => 255],
                 [['employee_id', 'permission_type', 'approved', 'status', 'sync'], 'integer'],
 
-                [['employee_id', 'permission_type', 'date', 'note'], 'required', 'on' => Constants::SCENARIO_CREATE],
+                [['employee_id', 'permission_type', 'date', 'note'], 'required'],
 
                 [['employee_id', 'permission_type'], 'filter', 'filter' => 'intval'],
                 [['employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>', 
