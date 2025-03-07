@@ -46,8 +46,9 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 [['asset', 'code', 'detail_info'], 'safe'],
                 [['product_id', 'category_id', 'location_id'], 'integer'],
                 
-                [['product_id', 'category_id', 'location_id'], 'filter', 'filter' => 'intval'],
                 [['product_id', 'category_id', 'location_id'], 'required'],
+                
+                [['product_id', 'category_id', 'location_id'], 'filter', 'filter' => 'intval'],
                 
                 [['product_id'], 'validateProduct'],
                 [['category_id'], 'validateCategory'],

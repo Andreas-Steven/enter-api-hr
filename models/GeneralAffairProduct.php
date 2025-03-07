@@ -33,7 +33,8 @@ class GeneralAffairProduct extends \yii\db\ActiveRecord
                 [['detail_info'], 'safe'],
                 [['name'], 'string', 'max' => 255],
                 
-                [['name'], 'required', 'on' => Constants::SCENARIO_CREATE],
+                [['name'], 'required'],
+                
                 [['name', 'status'], function ($attribute, $params, $validator) {
                     CoreModel::validateDependencies($attribute, $params, $validator, $this, [
                         ['className' => 'GeneralAffair', 'field' => ['product_id']],

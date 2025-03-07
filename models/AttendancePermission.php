@@ -57,14 +57,13 @@ class AttendancePermission extends \yii\db\ActiveRecord
                 [['permission_type'], 'in', 'range' => array_keys(Constants::PERMISSION_LIST)],
 
                 [['revision'], 'default', 'value' => []],
-                [['approved'], 'default', 'value' => Constants::APPROVED_DEFAULT],
-                [['note', 'approved_note', 'status', 'sync'], 'default', 'value' => null],
+                [['note', 'approved', 'approved_note', 'status', 'sync'], 'default', 'value' => null],
 
                 [['employee_id'], 'validateEmployee'],
             ], 
             CoreModel::getStatusRules($this),
             CoreModel::getLockVersionRulesOnly($this),
-        );
+        ); 
     }
 
     public function scenarios()

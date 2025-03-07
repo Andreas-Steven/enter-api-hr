@@ -54,6 +54,8 @@ class Employee extends \yii\db\ActiveRecord
                 [['email', 'nik', 'sso_id'], 'unique'],
                 [['email'], 'email', 'skipOnEmpty' => true],
 
+                [['name', 'sso_id', 'username'], 'required', 'on' => Constants::SCENARIO_CREATE],
+
                 [['nik'], 'match', 'pattern' => '/^\d{16}$/', 'message' => Yii::t('app', 'invalidNik')],
                 [['sso_id', 'division_id', 'position_id', 'employee_type_id'], 'filter', 'filter' => 'intval'],
                 [['birth_date', 'date_start', 'date_resign', 'system_date'], 'date', 'format' => 'php:Y-m-d', 'skipOnEmpty' => true],

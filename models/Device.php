@@ -34,9 +34,9 @@ class Device extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['ip_address'], 'ip'],
-                [['code'], 'string', 'max' => 5],
-                [['name', 'address'], 'string', 'max' => 255],
+                [['code'], 'string', 'max' => 5], 
                 [['location', 'detail_info'], 'safe'],
+                [['name', 'address'], 'string', 'max' => 255],
 
                 [['code', 'ip_address'], 'unique', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'name', 'address', 'ip_address'], 'required'],

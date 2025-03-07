@@ -35,10 +35,14 @@ class UserAttendance extends \yii\db\ActiveRecord
             [
                 [['detail_info'], 'safe'],
                 [['work_time_id', 'employee_id'], 'integer'],
-
+                
+                [['work_time_id', 'employee_id'], 'required'],
+                
                 [['work_time_id', 'employee_id'], 'filter', 'filter' => 'intval'],
-                [['work_time_id', 'employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>'],
-                [['work_time_id', 'employee_id'], 'required' , 'on' => Constants::SCENARIO_CREATE],
+                [['work_time_id'], 'compare', 'compareValue' => 0, 'operator' => '>', 
+                    'message' => Yii::t('core', 'integer', ['label' => $this->getAttributeLabel('work_time_id')])],
+                [['employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>', 
+                    'message' => Yii::t('core', 'integer', ['label' => $this->getAttributeLabel('employee_id')])],
                 
                 [['employee_id'], 'validateEmployee'],
                 [['work_time_id'], 'validateWorkTime'],
@@ -63,6 +67,7 @@ class UserAttendance extends \yii\db\ActiveRecord
         
         return [
             'id' => 'ID',
+            'employee_id' => 'Employee ID',
             'work_time_id' => 'Work Time ID',
             'status' => 'Status',
             'detail_info' => 'Detail Info',

@@ -113,6 +113,7 @@ class Attendance extends \yii\db\ActiveRecord
 
             return true;
         }
+
         return false;
     }
 
@@ -265,6 +266,7 @@ class Attendance extends \yii\db\ActiveRecord
                             'start_time' => $attendanceData['start_time'],
                             'time' => date('H:i:s')
                         ];
+
                         $attendanceData['start_time'] = date('H:i:s');
                     } elseif (!empty($this->dateMismatch)) {
                         $blacklist = [
@@ -274,6 +276,7 @@ class Attendance extends \yii\db\ActiveRecord
                             'start_time' => $attendanceData['start_time'],
                             'time' => date('H:i:s')
                         ];
+                        
                         $attendanceData['start_time'] = date('H:i:s');
                         $this->dateMismatch = null;
                     }

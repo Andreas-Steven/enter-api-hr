@@ -34,6 +34,7 @@ class EmployeeType extends \yii\db\ActiveRecord
                 [['name'], 'string', 'max' => 255],
                 
                 [['name'], 'required'],
+                
                 [['name', 'status'], function ($attribute, $params, $validator) {
                     CoreModel::validateDependencies($attribute, $params, $validator, $this, [
                         ['className' => 'Employee', 'field' => ['employee_type_id']],

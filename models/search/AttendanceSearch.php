@@ -31,8 +31,8 @@ class AttendanceSearch extends Attendance
         return array_merge(
             [
                 [['employee_id'], 'safe'],
-                [['id', 'status'], 'integer'],
                 [['employee_name'], 'string'],
+                [['id', 'status'], 'integer'],
                 [['date'], 'date', 'format' => 'php:Y-m-d'],
                 [['attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
