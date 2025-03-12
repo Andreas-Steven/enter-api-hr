@@ -232,13 +232,13 @@ class Attendance extends \yii\db\ActiveRecord
                 $startTime = strtotime($attendanceData['start_time']);
                 $entryTime = strtotime($workTime->entry_time);
                 if ($startTime > $entryTime) {
-                    $attendanceData['info']['detail'][] = Constants::ATTENDANCE_STATUS_LT;
+                    $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LATE;
                 }
                 
                 $workingDays = $workTime->working_days;
                 $dayNow = date('l', strtotime($this->date));
                 if (!in_array($dayNow, $workingDays)) {
-                    $attendanceData['info']['detail'][] = Constants::ATTENDANCE_STATUS_WH;
+                    $attendanceData['info']['detail'][] = Constants::ATTENDANCE_WORK_HOLIDAY;
                 }
 
                 // If start_time and end_time is set on one request
@@ -250,7 +250,7 @@ class Attendance extends \yii\db\ActiveRecord
                     $homeTime = strtotime($workTime->home_time);
     
                     if ($endTime < $homeTime) {
-                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_STATUS_LE;
+                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
                     }
                 }
                 
@@ -313,9 +313,9 @@ class Attendance extends \yii\db\ActiveRecord
                     $homeTime = strtotime($attendanceData['work_time']['home_time']);
     
                     if ($endTime < $homeTime) {
-                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_STATUS_LE;
+                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
                     } else {
-                        if (($key = array_search(Constants::ATTENDANCE_STATUS_LE, $attendanceData['info']['detail'])) !== false) {
+                        if (($key = array_search(Constants::ATTENDANCE_LEAVE_EARLY, $attendanceData['info']['detail'])) !== false) {
                             unset($attendanceData['info']['detail'][$key]);
                         }
                     }
@@ -395,7 +395,7 @@ class Attendance extends \yii\db\ActiveRecord
         $attendance = $this->getOldAttribute($attribute);
         foreach ($attendance as $key => $value) {
             if (empty($value['end_time'])) {
-                $value['info']['detail'][] = Constants::ATTENDANCE_STATUS_ICC;
+                $value['info']['detail'][] = Constants::ATTENDANCE_MISSED_CHECKOUT;
                 $value['info']['out'] = false;
             }
             

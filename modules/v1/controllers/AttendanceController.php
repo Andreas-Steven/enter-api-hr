@@ -125,6 +125,21 @@ class AttendanceController extends CoreController
         return CoreController::coreData($dataProvider);
     }
 
+	public function actionReport()
+    {
+        $params = Yii::$app->getRequest()->getBodyParams();
+
+        $searchModel = new AttendanceSearch();
+        $searchModel->load($params);
+		$dataProvider = $searchModel->attendanceReport($params);
+
+        if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
+            return $coreValidateProvider;
+        }
+
+        return CoreController::coreData($dataProvider);
+    }
+
 	public function updateMongoDB($model)
     {
         $data = $model->toArray();

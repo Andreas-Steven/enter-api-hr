@@ -52,7 +52,7 @@ class m241007_063531_create_attendance_table extends Migration
             return true;
         }
 
-        $system_date = date('Y-m-d', strtotime('-1 days'));
+        $system_date = date('Y-m-d', strtotime('-2 days'));
         $date = new \DateTime($system_date);
         $day = $date->format('d');
 
@@ -62,6 +62,26 @@ class m241007_063531_create_attendance_table extends Migration
         
         $period = $date->format('Ym');
 
+        $system_date_new = date('Y-m-d', strtotime('-1 days'));
+        $date_new = new \DateTime($system_date_new);
+        $day_new = $date->format('d');
+
+        if (intval($day_new) >= 26) {
+            $date_new = $day_new->modify('+1 month');
+        }
+        
+        $period_new = $date_new->format('Ym');
+
+        $system_date_current = date('Y-m-d');
+        $date_current = new \DateTime($system_date_current);
+        $day_current = $date_current->format('d');
+
+        if (intval($day_current) >= 26) {
+            $date_current = $day_current->modify('+1 month');
+        }
+        
+        $period_current = $date_current->format('Ym');
+
         $dummyData = [
             [
                 'date' => $system_date,
@@ -70,7 +90,7 @@ class m241007_063531_create_attendance_table extends Migration
                     '1' => [
                         'info' => [
                             'in' => true,
-                            'out' => null,
+                            'out' => true,
                             'detail' => [],
                         ],
                         'device' => [
@@ -82,21 +102,21 @@ class m241007_063531_create_attendance_table extends Migration
                             'id' => 2,
                             'name' => 'Teknologi Informasi',
                         ],
-                        'end_time' => null,
+                        'end_time' => '18:32:00',
                         'location' => null,
                         'work_time' => [
                             'id' => 1,
                             'entry_time' => '09:45:59',
                             'home_time' => '18:30:00',
                         ],
-                        'start_time' => '09:38:15',
+                        'start_time' => '09:44:15',
                         'employee_id' => 1,
                         'employee_name' => 'Employee 1',
                     ],
                     '2' => [
                         'info' => [
                             'in' => true,
-                            'out' => null,
+                            'out' => true,
                             'detail' => [],
                         ],
                         'device' => [
@@ -108,22 +128,22 @@ class m241007_063531_create_attendance_table extends Migration
                             'id' => 2,
                             'name' => 'Teknologi Informasi',
                         ],
-                        'end_time' => null,
+                        'end_time' => '18:30:00',
                         'location' => null,
                         'work_time' => [
                             'id' => 1,
                             'entry_time' => '09:45:59',
                             'home_time' => '18:30:00',
                         ],
-                        'start_time' => '10:32:52',
+                        'start_time' => '09:40:52',
                         'employee_id' => 2,
                         'employee_name' => 'Employee 2',
                     ],
                     '3' => [
                         'info' => [
                             'in' => true,
-                            'out' => null,
-                            'detail' => [],
+                            'out' => true,
+                            'detail' => ['Late'],
                         ],
                         'device' => [
                             'id' => 2,
@@ -134,22 +154,22 @@ class m241007_063531_create_attendance_table extends Migration
                             'id' => 2,
                             'name' => 'Teknologi Informasi',
                         ],
-                        'end_time' => null,
+                        'end_time' => '18:32:44',
                         'location' => null,
                         'work_time' => [
                             'id' => 1,
                             'entry_time' => '09:45:59',
                             'home_time' => '18:30:00',
                         ],
-                        'start_time' => '10:32:52',
+                        'start_time' => '09:52:53',
                         'employee_id' => 3,
                         'employee_name' => 'Employee 3',
                     ],
                     '4' => [
                         'info' => [
                             'in' => true,
-                            'out' => null,
-                            'detail' => [],
+                            'out' => true,
+                            'detail' => ['Late', 'Leave Early'],
                         ],
                         'device' => [
                             'id' => 2,
@@ -160,22 +180,296 @@ class m241007_063531_create_attendance_table extends Migration
                             'id' => 2,
                             'name' => 'Teknologi Informasi',
                         ],
-                        'end_time' => null,
+                        'end_time' => '18:55:36',
                         'location' => null,
                         'work_time' => [
                             'id' => 2,
                             'entry_time' => '10:45:59',
                             'home_time' => '19:00:00',
                         ],
-                        'start_time' => '10:32:52',
+                        'start_time' => '10:48:52',
                         'employee_id' => 4,
                         'employee_name' => 'Employee 4',
                     ],
                     '5' => [
                         'info' => [
                             'in' => true,
-                            'out' => null,
+                            'out' => true,
+                            'detail' => ['Late'],
+                        ],
+                        'device' => [
+                            'id' => 2,
+                            'code' => 'MK2',
+                            'name' => 'Toko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => '19:02:20',
+                        'location' => null,
+                        'work_time' => [
+                            'id' => 2,
+                            'entry_time' => '10:45:59',
+                            'home_time' => '19:00:00',
+                        ],
+                        'start_time' => '10:50:52',
+                        'employee_id' => 5,
+                        'employee_name' => 'Employee 5',
+                    ],
+                ],
+                'status' => 3,
+                'detail_info' => [
+                    'dayoff' => false,
+                    'blacklist' => [],
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'date' => $system_date_new,
+                'period' => intval($period_new),
+                'attendance' => [
+                    '1' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => true,
                             'detail' => [],
+                        ],
+                        'device' => [
+                            'id' => 1,
+                            'code' => 'MK1',
+                            'name' => 'Ruko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => '18:32:00',
+                        'location' => null,
+                        'work_time' => [
+                            'id' => 1,
+                            'entry_time' => '09:45:59',
+                            'home_time' => '18:30:00',
+                        ],
+                        'start_time' => '09:44:15',
+                        'employee_id' => 1,
+                        'employee_name' => 'Employee 1',
+                    ],
+                    '2' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => true,
+                            'detail' => [],
+                        ],
+                        'device' => [
+                            'id' => 2,
+                            'code' => 'MK2',
+                            'name' => 'Toko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => '18:30:00',
+                        'location' => null,
+                        'work_time' => [
+                            'id' => 1,
+                            'entry_time' => '09:45:59',
+                            'home_time' => '18:30:00',
+                        ],
+                        'start_time' => '09:40:52',
+                        'employee_id' => 2,
+                        'employee_name' => 'Employee 2',
+                    ],
+                    '3' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => true,
+                            'detail' => ['Late'],
+                        ],
+                        'device' => [
+                            'id' => 2,
+                            'code' => 'MK2',
+                            'name' => 'Toko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => '18:32:44',
+                        'location' => null,
+                        'work_time' => [
+                            'id' => 1,
+                            'entry_time' => '09:45:59',
+                            'home_time' => '18:30:00',
+                        ],
+                        'start_time' => '09:52:53',
+                        'employee_id' => 3,
+                        'employee_name' => 'Employee 3',
+                    ],
+                    '4' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => true,
+                            'detail' => ['Late', 'Leave Early'],
+                        ],
+                        'device' => [
+                            'id' => 2,
+                            'code' => 'MK2',
+                            'name' => 'Toko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => '18:55:36',
+                        'location' => null,
+                        'work_time' => [
+                            'id' => 2,
+                            'entry_time' => '10:45:59',
+                            'home_time' => '19:00:00',
+                        ],
+                        'start_time' => '10:48:52',
+                        'employee_id' => 4,
+                        'employee_name' => 'Employee 4',
+                    ],
+                    '5' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => true,
+                            'detail' => ['Late'],
+                        ],
+                        'device' => [
+                            'id' => 2,
+                            'code' => 'MK2',
+                            'name' => 'Toko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => '19:02:20',
+                        'location' => null,
+                        'work_time' => [
+                            'id' => 2,
+                            'entry_time' => '10:45:59',
+                            'home_time' => '19:00:00',
+                        ],
+                        'start_time' => '10:50:52',
+                        'employee_id' => 5,
+                        'employee_name' => 'Employee 5',
+                    ],
+                ],
+                'status' => 3,
+                'detail_info' => [
+                    'dayoff' => false,
+                    'blacklist' => [],
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $createdBy,
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
+                'sync' => null,
+            ],
+            [
+                'date' => $system_date_current,
+                'period' => intval($period_current),
+                'attendance' => [
+                    '1' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => true,
+                            'detail' => [],
+                        ],
+                        'device' => [
+                            'id' => 1,
+                            'code' => 'MK1',
+                            'name' => 'Ruko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => '18:32:00',
+                        'location' => null,
+                        'work_time' => [
+                            'id' => 1,
+                            'entry_time' => '09:45:59',
+                            'home_time' => '18:30:00',
+                        ],
+                        'start_time' => '09:44:15',
+                        'employee_id' => 1,
+                        'employee_name' => 'Employee 1',
+                    ],
+                    '3' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => true,
+                            'detail' => ['Late'],
+                        ],
+                        'device' => [
+                            'id' => 2,
+                            'code' => 'MK2',
+                            'name' => 'Toko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => '18:32:44',
+                        'location' => null,
+                        'work_time' => [
+                            'id' => 1,
+                            'entry_time' => '09:45:59',
+                            'home_time' => '18:30:00',
+                        ],
+                        'start_time' => '09:52:53',
+                        'employee_id' => 3,
+                        'employee_name' => 'Employee 3',
+                    ],
+                    '4' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => true,
+                            'detail' => ['Late', 'Leave Early'],
+                        ],
+                        'device' => [
+                            'id' => 2,
+                            'code' => 'MK2',
+                            'name' => 'Toko',
+                        ],
+                        'division' => [
+                            'id' => 2,
+                            'name' => 'Teknologi Informasi',
+                        ],
+                        'end_time' => '18:55:36',
+                        'location' => null,
+                        'work_time' => [
+                            'id' => 2,
+                            'entry_time' => '10:45:59',
+                            'home_time' => '19:00:00',
+                        ],
+                        'start_time' => '10:48:52',
+                        'employee_id' => 4,
+                        'employee_name' => 'Employee 4',
+                    ],
+                    '5' => [
+                        'info' => [
+                            'in' => true,
+                            'out' => false,
+                            'detail' => ['Late', 'Missed Checkout'],
                         ],
                         'device' => [
                             'id' => 2,
@@ -193,7 +487,7 @@ class m241007_063531_create_attendance_table extends Migration
                             'entry_time' => '10:45:59',
                             'home_time' => '19:00:00',
                         ],
-                        'start_time' => '10:32:52',
+                        'start_time' => '10:50:52',
                         'employee_id' => 5,
                         'employee_name' => 'Employee 5',
                     ],

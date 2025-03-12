@@ -9,10 +9,10 @@ class Constants extends CoreConstants
     const LAST_DATE = 26;
 
     // Attendance Status. Source: https://tanya.zemangat.com/kb/penjelasan-kode-status-kehadiran-karyawan/
-    const ATTENDANCE_STATUS_LT = 'Late';
-    const ATTENDANCE_STATUS_LE = 'Leave Early';
-    const ATTENDANCE_STATUS_ICC = 'Incomplate Check Clock';
-    const ATTENDANCE_STATUS_WH = 'Work Holiday';
+    const ATTENDANCE_LATE = 'Late';
+    const ATTENDANCE_LEAVE_EARLY = 'Leave Early';
+    const ATTENDANCE_MISSED_CHECKOUT = 'Missed Checkout';
+    const ATTENDANCE_WORK_HOLIDAY = 'Work Holiday';
 
     // Permission Status
     const PERMISSION_SICK = 1;
