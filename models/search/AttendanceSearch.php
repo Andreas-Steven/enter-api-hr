@@ -146,7 +146,7 @@ class AttendanceSearch extends Attendance
         $collection = $client->selectCollection($mongodb_param['database'], $this::tableName());
 
         $sortOrder = $this->sort_dir === 'asc' ? 1 : -1;
-        $sortBy = $this->sort_by ?? '_id';
+        $sortBy = $this->sort_by ?? '_id.attendance_period';
         $page = $this->page ?? 1;
         $pageSize = (int) ($this->page_size ?: Yii::$app->params['pagination']['pageSize']);
 
@@ -162,39 +162,32 @@ class AttendanceSearch extends Attendance
         }
 
         $totalCount = $collection->countDocuments($matchCriteria);
-        $pageSize = min($totalCount, $pageSize);
         
         $pagination = new \yii\data\Pagination(['totalCount' => $totalCount]);
         $pagination->page = $page - 1;
         $pagination->pageSize = $pageSize;
+    
+        $pipeline = [];
+        if (!empty($matchCriteria)) {
+            $pipeline[] = ['$match' => $matchCriteria];
+        }
 
-        $pipeline = !empty($matchCriteria) ? [['$match' => $matchCriteria]] : [];
-
-        $pipeline = [
-            ['$project' => [
+        $pipeline[] = [
+            '$project' => [
                 "employee_id" => 1,
                 "employee_name" => 1,
                 "period" => 1,
-                "in" => [
-                    '$cond' => [['$eq' => ['$info.in', true]], 1, 0]
-                ],
-                "out" => [
-                    '$cond' => [['$eq' => ['$info.out', true]], 1, 0]
-                ],
-                "late" => [
-                    '$cond' => [['$in' => [Constants::ATTENDANCE_LATE, '$info.detail']], 1, 0]
-                ],
-                "leaveEarly" => [
-                    '$cond' => [['$in' => [Constants::ATTENDANCE_LEAVE_EARLY, '$info.detail']], 1, 0]
-                ],
-                "missedCheckout" => [
-                    '$cond' => [['$in' => [Constants::ATTENDANCE_MISSED_CHECKOUT, '$info.detail']], 1, 0]
-                ],
-                "workHoliday" => [
-                    '$cond' => [['$in' => [Constants::ATTENDANCE_WORK_HOLIDAY, '$info.detail']], 1, 0]
-                ]
-            ]],
-            ['$group' => [
+                "in" => ['$cond' => [['$eq' => ['$info.in', true]], 1, 0]],
+                "out" => ['$cond' => [['$eq' => ['$info.out', true]], 1, 0]],
+                "late" => ['$cond' => [['$in' => [Constants::ATTENDANCE_LATE, '$info.detail']], 1, 0]],
+                "leaveEarly" => ['$cond' => [['$in' => [Constants::ATTENDANCE_LEAVE_EARLY, '$info.detail']], 1, 0]],
+                "missedCheckout" => ['$cond' => [['$in' => [Constants::ATTENDANCE_MISSED_CHECKOUT, '$info.detail']], 1, 0]],
+                "workHoliday" => ['$cond' => [['$in' => [Constants::ATTENDANCE_WORK_HOLIDAY, '$info.detail']], 1, 0]],
+            ]
+        ];
+
+        $pipeline[] = [
+            '$group' => [
                 '_id' => [
                     "employee_id" => '$employee_id',
                     "employee_name" => '$employee_name',
@@ -205,11 +198,12 @@ class AttendanceSearch extends Attendance
                 "late" => ['$sum' => '$late'],
                 "leave_early" => ['$sum' => '$leaveEarly'],
                 "work_holiday" => ['$sum' => '$workHoliday'],
-            ]],
-            ['$sort' => [$sortBy => $sortOrder]],
-            ['$skip' => $pagination->offset],
-            ['$limit' => $pageSize]
+            ]
         ];
+
+        $pipeline[] = ['$limit' => $pageSize]; 
+        $pipeline[] = ['$skip' => $pagination->offset];
+        $pipeline[] = ['$sort' => [$sortBy => $sortOrder]];
 
         $cursor = $collection->aggregate($pipeline);
         $documents = iterator_to_array($cursor);
