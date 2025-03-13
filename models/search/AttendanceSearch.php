@@ -150,7 +150,7 @@ class AttendanceSearch extends Attendance
         $sortBy = $this->sort_by ?? '_id';
         $page = $this->page ?? 1;
         $pageSize = (int) ($this->page_size ?: Yii::$app->params['pagination']['pageSize']);
-    
+
         $totalCount = $collection->countDocuments();
         $pageSize = min($totalCount, $pageSize);
         
@@ -158,27 +158,21 @@ class AttendanceSearch extends Attendance
         $pagination->page = $page - 1;
         $pagination->pageSize = $pageSize;
 
-        $options = [
-            'limit' => $pagination->limit,
-            'skip' => $pagination->offset,
-            'sort' => [$sortBy => $sortOrder],
-            'projection' => array_merge(
-                ['_id' => false], [],
-            ),
-        ];
-
-        $matchCriteria['period'] = (int) $this->period;
-        
+        $matchCriteria = [];
+        if ($this->period !== null) {
+            $matchCriteria['period'] = (int) $this->period;
+        }
         if ($this->employee_id !== null) {
             $matchCriteria['employee_id'] = $this->employee_id;
         }
-        
-        $matchStage = [
-            '$match' => $matchCriteria,
-        ];
-        
-        $pipeline = [
-            $matchStage, [
+
+        $pipeline = [];
+        if (!empty($matchCriteria)) {
+            $pipeline[] = ['$match' => $matchCriteria];
+        }
+
+        $pipeline = array_merge($pipeline, [
+            [
                 '$project' => [
                     "employee_id" => 1,
                     "employee_name" => 1,
@@ -223,11 +217,11 @@ class AttendanceSearch extends Attendance
             [
                 '$limit' => $pageSize
             ]
-        ];
-    
+        ]);
+
         $cursor = $collection->aggregate($pipeline);
         $documents = iterator_to_array($cursor);
-    
+
         $dataProvider = new ActiveDataProvider([
             'models' => $documents,
             'pagination' => $pagination,
@@ -236,4 +230,5 @@ class AttendanceSearch extends Attendance
 
         return $dataProvider;
     }
+
 }
