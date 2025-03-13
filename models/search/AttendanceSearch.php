@@ -157,16 +157,6 @@ class AttendanceSearch extends Attendance
         $pagination->page = $page - 1;
         $pagination->pageSize = $pageSize;
 
-        $options = [
-            'limit' => $pagination->limit,
-            'skip' => $pagination->offset,
-            'sort' => [$sortBy => $sortOrder],
-            'projection' => array_merge(
-                ['_id' => false],
-                [],
-            ),
-        ];
-
         $matchCriteria = [];
         if ($this->period !== null) {
             $matchCriteria['period'] = (int) $this->period;
@@ -212,9 +202,9 @@ class AttendanceSearch extends Attendance
             [
                 '$group' => [
                     '_id' => [
+                        "attendance_period" => '$period',
                         "employee_id" => '$employee_id',
                         "employee_name" => '$employee_name',
-                        "attendance_period" => '$period'
                     ],
                     "total_attendance" => ['$sum' => '$in'],
                     "missed_checkout" => ['$sum' => '$missedCheckout'],
@@ -222,10 +212,14 @@ class AttendanceSearch extends Attendance
                     "leave_early" => ['$sum' => '$leaveEarly'],
                     "work_holiday" => ['$sum' => '$workHoliday'],
                 ]
-            ]
+            ],
         ]);
 
-        $cursor = $collection->aggregate($pipeline, $options);
+        $pipeline[] = ['$limit' => $pagination->limit];
+        $pipeline[] = ['$skip' => $pagination->offset];
+        $pipeline[] = ['$sort' => [$sortBy => $sortOrder]];
+
+        $cursor = $collection->aggregate($pipeline);
         $documents = iterator_to_array($cursor);
 
         $dataProvider = new ActiveDataProvider([
