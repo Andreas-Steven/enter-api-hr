@@ -163,7 +163,7 @@ class AttendanceSearch extends Attendance
             $matchCriteria['period'] = (int) $this->period;
         }
         if ($this->employee_id !== null) {
-            $matchCriteria['employee_id'] = $this->employee_id;
+            $matchCriteria['employee_id'] = (int) $this->employee_id;
         }
 
         $pipeline = [];
@@ -230,5 +230,4 @@ class AttendanceSearch extends Attendance
 
         return $dataProvider;
     }
-
 }
