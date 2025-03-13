@@ -168,56 +168,48 @@ class AttendanceSearch extends Attendance
             $matchCriteria['employee_name'] = $this->employee_name;
         }
 
-        $pipeline = [];
-        if (!empty($matchCriteria)) {
-            $pipeline[] = ['$match' => $matchCriteria];
-        }
+        $pipeline = !empty($matchCriteria) ? [['$match' => $matchCriteria]] : [];
 
-        $pipeline = array_merge($pipeline, [
-            [
-                '$project' => [
-                    "employee_id" => 1,
-                    "employee_name" => 1,
-                    "period" => 1,
-                    "in" => [
-                        '$cond' => [['$eq' => ['$info.in', true]], 1, 0]
-                    ],
-                    "out" => [
-                        '$cond' => [['$eq' => ['$info.out', true]], 1, 0]
-                    ],
-                    "late" => [
-                        '$cond' => [['$in' => [Constants::ATTENDANCE_LATE, '$info.detail']], 1, 0]
-                    ],
-                    "leaveEarly" => [
-                        '$cond' => [['$in' => [Constants::ATTENDANCE_LEAVE_EARLY, '$info.detail']], 1, 0]
-                    ],
-                    "missedCheckout" => [
-                        '$cond' => [['$in' => [Constants::ATTENDANCE_MISSED_CHECKOUT, '$info.detail']], 1, 0]
-                    ],
-                    "workHoliday" => [
-                        '$cond' => [['$in' => [Constants::ATTENDANCE_WORK_HOLIDAY, '$info.detail']], 1, 0]
-                    ]
+        $pipeline = [
+            ['$project' => [
+                "employee_id" => 1,
+                "employee_name" => 1,
+                "period" => 1,
+                "in" => [
+                    '$cond' => [['$eq' => ['$info.in', true]], 1, 0]
+                ],
+                "out" => [
+                    '$cond' => [['$eq' => ['$info.out', true]], 1, 0]
+                ],
+                "late" => [
+                    '$cond' => [['$in' => [Constants::ATTENDANCE_LATE, '$info.detail']], 1, 0]
+                ],
+                "leaveEarly" => [
+                    '$cond' => [['$in' => [Constants::ATTENDANCE_LEAVE_EARLY, '$info.detail']], 1, 0]
+                ],
+                "missedCheckout" => [
+                    '$cond' => [['$in' => [Constants::ATTENDANCE_MISSED_CHECKOUT, '$info.detail']], 1, 0]
+                ],
+                "workHoliday" => [
+                    '$cond' => [['$in' => [Constants::ATTENDANCE_WORK_HOLIDAY, '$info.detail']], 1, 0]
                 ]
-            ],
-            [
-                '$group' => [
-                    '_id' => [
-                        "attendance_period" => '$period',
-                        "employee_id" => '$employee_id',
-                        "employee_name" => '$employee_name',
-                    ],
-                    "total_attendance" => ['$sum' => '$in'],
-                    "missed_checkout" => ['$sum' => '$missedCheckout'],
-                    "late" => ['$sum' => '$late'],
-                    "leave_early" => ['$sum' => '$leaveEarly'],
-                    "work_holiday" => ['$sum' => '$workHoliday'],
-                ]
-            ],
-        ]);
-
-        $pipeline[] = ['$limit' => $pagination->limit];
-        $pipeline[] = ['$skip' => $pagination->offset];
-        $pipeline[] = ['$sort' => [$sortBy => $sortOrder]];
+            ]],
+            ['$group' => [
+                '_id' => [
+                    "employee_id" => '$employee_id',
+                    "employee_name" => '$employee_name',
+                    "attendance_period" => '$period',
+                ],
+                "total_attendance" => ['$sum' => '$in'],
+                "missed_checkout" => ['$sum' => '$missedCheckout'],
+                "late" => ['$sum' => '$late'],
+                "leave_early" => ['$sum' => '$leaveEarly'],
+                "work_holiday" => ['$sum' => '$workHoliday'],
+            ]],
+            ['$sort' => [$sortBy => $sortOrder]],
+            ['$skip' => $pagination->offset],
+            ['$limit' => $pageSize]
+        ];
 
         $cursor = $collection->aggregate($pipeline);
         $documents = iterator_to_array($cursor);
