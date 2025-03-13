@@ -143,7 +143,7 @@ class AttendanceSearch extends Attendance
         $this->load([CoreMongodb::getModelClassName($this) => $params]);
 
         $mongodb_param = require(__DIR__ . '/../../config/mongodb.php');
-        $client = new Client($mongodb_param['dsn']);
+        $client = new \MongoDB\Client($mongodb_param['dsn']);
         $collection = $client->selectCollection($mongodb_param['database'], $this::tableName());
 
         $sortOrder = $this->sort_dir === 'asc' ? 1 : -1;
