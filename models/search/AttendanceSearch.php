@@ -157,6 +157,16 @@ class AttendanceSearch extends Attendance
         $pagination->page = $page - 1;
         $pagination->pageSize = $pageSize;
 
+        $options = [
+            'limit' => $pagination->limit,
+            'skip' => $pagination->offset,
+            'sort' => [$sortBy => $sortOrder],
+            'projection' => array_merge(
+                ['_id' => false],
+                [],
+            ),
+        ];
+
         $matchCriteria = [];
         if ($this->period !== null) {
             $matchCriteria['period'] = (int) $this->period;
@@ -212,16 +222,10 @@ class AttendanceSearch extends Attendance
                     "leave_early" => ['$sum' => '$leaveEarly'],
                     "work_holiday" => ['$sum' => '$workHoliday'],
                 ]
-            ],
-            [
-                '$sort' => [$sortBy => $sortOrder]
-            ],
-            [
-                '$limit' => $pageSize
             ]
         ]);
 
-        $cursor = $collection->aggregate($pipeline);
+        $cursor = $collection->aggregate($pipeline, $options);
         $documents = iterator_to_array($cursor);
 
         $dataProvider = new ActiveDataProvider([
