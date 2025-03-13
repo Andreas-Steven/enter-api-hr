@@ -150,13 +150,6 @@ class AttendanceSearch extends Attendance
         $page = $this->page ?? 1;
         $pageSize = (int) ($this->page_size ?: Yii::$app->params['pagination']['pageSize']);
 
-        $totalCount = $collection->countDocuments();
-        $pageSize = min($totalCount, $pageSize);
-        
-        $pagination = new \yii\data\Pagination(['totalCount' => $totalCount]);
-        $pagination->page = $page - 1;
-        $pagination->pageSize = $pageSize;
-
         $matchCriteria = [];
         if ($this->period !== null) {
             $matchCriteria['period'] = (int) $this->period;
@@ -167,6 +160,13 @@ class AttendanceSearch extends Attendance
         if ($this->employee_name !== null) {
             $matchCriteria['employee_name'] = $this->employee_name;
         }
+
+        $totalCount = $collection->countDocuments($matchCriteria);
+        $pageSize = min($totalCount, $pageSize);
+        
+        $pagination = new \yii\data\Pagination(['totalCount' => $totalCount]);
+        $pagination->page = $page - 1;
+        $pagination->pageSize = $pageSize;
 
         $pipeline = !empty($matchCriteria) ? [['$match' => $matchCriteria]] : [];
 
