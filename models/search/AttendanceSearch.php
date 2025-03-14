@@ -181,14 +181,15 @@ class AttendanceSearch extends Attendance
             '$group' => [
                 '_id' => [
                     'employee_id' => '$employee_id',
+                    'employee_name' => '$employee_name',
                     'attendance_period' => '$period',
                 ],
                 'total_in' => ['$sum' => '$in'],
                 'total_out' => ['$sum' => '$out'],
                 'total_late' => ['$sum' => '$late'],
-                'total_leaveEarly' => ['$sum' => '$leaveEarly'],
-                'total_missedCheckout' => ['$sum' => '$missedCheckout'],
-                'total_workHoliday' => ['$sum' => '$workHoliday'],
+                'total_leave_early' => ['$sum' => '$leaveEarly'],
+                'total_missed_checkout' => ['$sum' => '$missedCheckout'],
+                'total_work_holiday' => ['$sum' => '$workHoliday'],
             ]
         ];
     
