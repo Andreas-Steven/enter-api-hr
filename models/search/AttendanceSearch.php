@@ -147,31 +147,22 @@ class AttendanceSearch extends Attendance
 
         $sortOrder = $this->sort_dir === 'asc' ? 1 : -1;
         $sortBy = $this->sort_by ?? '_id.attendance_period';
-        $page = $this->page ?? 1;
+        $page = (int) ($this->page ?? 1);
         $pageSize = (int) ($this->page_size ?: Yii::$app->params['pagination']['pageSize']);
-
+    
         $matchCriteria = [];
-        if ($this->period !== null) {
-            $matchCriteria['period'] = (int) $this->period;
+        if (isset($params['period'])) {
+            $matchCriteria['period'] = (int) $params['period'];
         }
-        if ($this->employee_id !== null) {
-            $matchCriteria['employee_id'] = (int) $this->employee_id;
+        if (isset($params['employee_id'])) {
+            $matchCriteria['employee_id'] = (int) $params['employee_id'];
         }
-        if ($this->employee_name !== null) {
-            $matchCriteria['employee_name'] = $this->employee_name;
-        }
-
-        $totalCount = $collection->countDocuments($matchCriteria);
-        
-        $pagination = new \yii\data\Pagination(['totalCount' => $totalCount]);
-        $pagination->page = $page - 1;
-        $pagination->pageSize = $pageSize;
     
         $pipeline = [];
         if (!empty($matchCriteria)) {
             $pipeline[] = ['$match' => $matchCriteria];
         }
-
+    
         $pipeline[] = [
             '$project' => [
                 "employee_id" => 1,
@@ -179,41 +170,62 @@ class AttendanceSearch extends Attendance
                 "period" => 1,
                 "in" => ['$cond' => [['$eq' => ['$info.in', true]], 1, 0]],
                 "out" => ['$cond' => [['$eq' => ['$info.out', true]], 1, 0]],
-                "late" => ['$cond' => [['$in' => [Constants::ATTENDANCE_LATE, '$info.detail']], 1, 0]],
-                "leaveEarly" => ['$cond' => [['$in' => [Constants::ATTENDANCE_LEAVE_EARLY, '$info.detail']], 1, 0]],
-                "missedCheckout" => ['$cond' => [['$in' => [Constants::ATTENDANCE_MISSED_CHECKOUT, '$info.detail']], 1, 0]],
-                "workHoliday" => ['$cond' => [['$in' => [Constants::ATTENDANCE_WORK_HOLIDAY, '$info.detail']], 1, 0]],
+                "late" => ['$cond' => [['$in' => ['Late', '$info.detail']], 1, 0]],
+                "leaveEarly" => ['$cond' => [['$in' => ['Leave Early', '$info.detail']], 1, 0]],
+                "missedCheckout" => ['$cond' => [['$in' => ['Missed Checkout', '$info.detail']], 1, 0]],
+                "workHoliday" => ['$cond' => [['$in' => ['Work Holiday', '$info.detail']], 1, 0]],
             ]
         ];
-
+    
         $pipeline[] = [
             '$group' => [
                 '_id' => [
-                    "employee_id" => '$employee_id',
-                    "employee_name" => '$employee_name',
-                    "attendance_period" => '$period',
+                    'employee_id' => '$employee_id',
+                    'attendance_period' => '$period',
                 ],
-                "total_attendance" => ['$sum' => '$in'],
-                "missed_checkout" => ['$sum' => '$missedCheckout'],
-                "late" => ['$sum' => '$late'],
-                "leave_early" => ['$sum' => '$leaveEarly'],
-                "work_holiday" => ['$sum' => '$workHoliday'],
+                'total_in' => ['$sum' => '$in'],
+                'total_out' => ['$sum' => '$out'],
+                'total_late' => ['$sum' => '$late'],
+                'total_leaveEarly' => ['$sum' => '$leaveEarly'],
+                'total_missedCheckout' => ['$sum' => '$missedCheckout'],
+                'total_workHoliday' => ['$sum' => '$workHoliday'],
             ]
         ];
+    
+        $pipeline[] = [
+            '$facet' => [
+                'total_count' => [['$count' => 'total']],
+                'data' => [
+                    ['$sort' => [$sortBy => $sortOrder]],
+                    ['$skip' => ($page - 1) * $pageSize],
+                    ['$limit' => $pageSize],
+                ]
+            ]
+        ];
+    
+        $result = $collection->aggregate($pipeline);
+        $resultsArray = iterator_to_array($result);
 
-        $pipeline[] = ['$limit' => $pageSize]; 
-        $pipeline[] = ['$skip' => $pagination->offset];
-        $pipeline[] = ['$sort' => [$sortBy => $sortOrder]];
-
-        $cursor = $collection->aggregate($pipeline);
-        $documents = iterator_to_array($cursor);
+        $totalCount = 0;
+        if (isset($resultsArray[0]['total_count'][0]['total'])) {
+            $totalCount = $resultsArray[0]['total_count'][0]['total'];
+        }
+    
+        $documents = [];
+        if (isset($resultsArray[0]['data'])) {
+            $documents = iterator_to_array($resultsArray[0]['data']);
+        }
+        
+        $pagination = new \yii\data\Pagination(['totalCount' => $totalCount]);
+        $pagination->page = $page - 1;
+        $pagination->pageSize = $pageSize;
 
         $dataProvider = new ActiveDataProvider([
-            'models' => $documents,
             'pagination' => $pagination,
+            'models' => $documents,
         ]);
         $dataProvider->totalCount = $totalCount;
-
+    
         return $dataProvider;
     }
 }
