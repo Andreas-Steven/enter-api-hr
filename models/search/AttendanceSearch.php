@@ -174,10 +174,10 @@ class AttendanceSearch extends Attendance
             'period' => 1,
             'in' => ['$cond' => [['$eq' => ['$info.in', true]], 1, 0]],
             'out' => ['$cond' => [['$eq' => ['$info.out', true]], 1, 0]],
-            'late' => ['$cond' => [['$in' => [Constants::ATTENDANCE_LATE, '$info.detail']], 1, 0]],
-            'leaveEarly' => ['$cond' => [['$in' => [Constants::ATTENDANCE_LEAVE_EARLY, '$info.detail']], 1, 0]],
-            'missedCheckout' => ['$cond' => [['$in' => [Constants::ATTENDANCE_MISSED_CHECKOUT, '$info.detail']], 1, 0]],
-            'workHoliday' => ['$cond' => [['$in' => [Constants::ATTENDANCE_WORK_HOLIDAY, '$info.detail']], 1, 0]],
+            'late' => ['$cond' => [['$in' => ['Late', '$info.detail']], 1, 0]],
+            'leaveEarly' => ['$cond' => [['$in' => ['Leave Early', '$info.detail']], 1, 0]],
+            'missedCheckout' => ['$cond' => [['$in' => ['Missed Checkout', '$info.detail']], 1, 0]],
+            'workHoliday' => ['$cond' => [['$in' => ['Work Holiday', '$info.detail']], 1, 0]],
         ]];
 
         $pipeline[] = ['$group' => [
