@@ -73,7 +73,7 @@ class m241007_032424_create_work_time_table extends Migration
         ];
         
         foreach ($dummyData as $key => $value) {
-            // $this->insert('{{%' . $this->tableName . '}}', $value);
+            $this->insert('{{%' . $this->tableName . '}}', $value);
         }
     }
 

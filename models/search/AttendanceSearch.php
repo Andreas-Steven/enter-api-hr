@@ -163,22 +163,12 @@ class AttendanceSearch extends Attendance
             $matchCriteria['employee_name'] = $this->employee_name;
         }
         
+        $workingDaysInfo = $this->getWorkingDays();
+        
         $pipeline = [];
         if (!empty($matchCriteria)) {
             $pipeline[] = ['$match' => $matchCriteria];
         }
-
-        $pipeline[] = ['$project' => [
-            'employee_id' => 1,
-            'employee_name' => 1,
-            'period' => 1,
-            'in' => ['$cond' => [['$eq' => ['$info.in', true]], 1, 0]],
-            'out' => ['$cond' => [['$eq' => ['$info.out', true]], 1, 0]],
-            'late' => ['$cond' => [['$in' => [Constants::ATTENDANCE_LATE, '$info.detail']], 1, 0]],
-            'leaveEarly' => ['$cond' => [['$in' => [Constants::ATTENDANCE_LEAVE_EARLY, '$info.detail']], 1, 0]],
-            'missedCheckout' => ['$cond' => [['$in' => [Constants::ATTENDANCE_MISSED_CHECKOUT, '$info.detail']], 1, 0]],
-            'workHoliday' => ['$cond' => [['$in' => [Constants::ATTENDANCE_WORK_HOLIDAY, '$info.detail']], 1, 0]],
-        ]];
 
         $pipeline[] = ['$group' => [
             '_id' => [
@@ -186,14 +176,38 @@ class AttendanceSearch extends Attendance
                 'employee_name' => '$employee_name',
                 'period' => '$period',
             ],
-            'total_in' => ['$sum' => '$in'],
-            'total_out' => ['$sum' => '$out'],
-            'total_late' => ['$sum' => '$late'],
-            'total_leave_early' => ['$sum' => '$leaveEarly'],
-            'total_missed_checkout' => ['$sum' => '$missedCheckout'],
-            'total_work_holiday' => ['$sum' => '$workHoliday'],
+            'total_in' => ['$sum' => ['$cond' => [['$eq' => ['$info.in', true]], 1, 0]]],
+            'total_out' => ['$sum' => ['$cond' => [['$eq' => ['$info.out', true]], 1, 0]]],
+            'total_late' => ['$sum' => ['$cond' => [['$in' => [Constants::ATTENDANCE_LATE, '$info.detail']], 1, 0]]],
+            'total_leave_early' => ['$sum' => ['$cond' => [['$in' => [Constants::ATTENDANCE_LEAVE_EARLY, '$info.detail']], 1, 0]]],
+            'total_missed_checkout' => ['$sum' => ['$cond' => [['$in' => [Constants::ATTENDANCE_MISSED_CHECKOUT, '$info.detail']], 1, 0]]],
+            'total_work_holiday' => ['$sum' => ['$cond' => [['$in' => [Constants::ATTENDANCE_WORK_HOLIDAY, '$info.detail']], 1, 0]]],
         ]];
-
+    
+        $pipeline[] = ['$addFields' => [
+            'working_days' => [
+                'workingDays' => $workingDaysInfo['workingDays'],
+                'saturdaysCount' => $workingDaysInfo['saturdaysCount'],
+                'sundaysCount' => $workingDaysInfo['sundaysCount'],
+                'startDate' => $workingDaysInfo['startDate'],
+                'endDate' => $workingDaysInfo['endDate'],
+            ],
+            'report' => [
+                'total_in' => '$total_in',
+                'total_out' => '$total_out',
+                'total_late' => '$total_late',
+                'total_leave_early' => '$total_leave_early',
+                'total_missed_checkout' => '$total_missed_checkout',
+                'total_work_holiday' => '$total_work_holiday',
+            ]
+        ]];
+    
+        $pipeline[] = ['$project' => [
+            '_id' => 1,
+            'working_days' => 1,
+            'report' => 1,
+        ]];
+    
         $pipeline[] = ['$facet' => [
             'total_count' => [['$count' => 'total']],
             'data' => [
@@ -205,10 +219,33 @@ class AttendanceSearch extends Attendance
 
         $resultsArray = iterator_to_array($collection->aggregate($pipeline));
         $totalCount = $resultsArray[0]['total_count'][0]['total'] ?? 0;
-        $documents = $resultsArray[0]['data'] ?? [];
+        $documents = iterator_to_array($resultsArray[0]['data']) ?? [];
+
+        $finalOutput[] = [
+            "period" => (int) $this->period ?? 0,
+            "working_day" => $workingDaysInfo['workingDays'],
+            "saturday_count" => $workingDaysInfo['saturdaysCount'],
+            "sunday_count" => $workingDaysInfo['sundaysCount'],
+            "start_date" => $workingDaysInfo['startDate'],
+            "end_date" => $workingDaysInfo['endDate'],
+            "report" => array_map(function ($doc) {
+                return [
+                    "employee_id" => $doc['_id']['employee_id'],
+                    "employee_name" => $doc['_id']['employee_name'],
+                    "attendance" => [
+                        "total_in" => $doc['report']['total_in'],
+                        'total_out' => $doc['report']['total_out'],
+                        'total_late' => $doc['report']['total_late'],
+                        'total_leave_early' => $doc['report']['total_leave_early'],
+                        'total_missed_checkout' => $doc['report']['total_missed_checkout'],
+                        'total_work_holiday' => $doc['report']['total_work_holiday'],
+                    ],
+                ];
+            }, $documents)
+        ];
 
         return new ActiveDataProvider([
-            'models' => iterator_to_array($documents),
+            'models' => $finalOutput,
             'pagination' => new \yii\data\Pagination([
                 'totalCount' => $totalCount,
                 'page' => $page - 1,
@@ -216,5 +253,47 @@ class AttendanceSearch extends Attendance
             ]),
             'totalCount' => $totalCount,
         ]);
+    }
+
+    public function getWorkingDays()
+    {
+        $currentDate = new \DateTime();
+        $currentYear = $currentDate->format('Y');
+        $currentMonth = $currentDate->format('m');
+
+        $startDate = new \DateTime("$currentYear-$currentMonth-26");
+        $startDate->modify('-1 month');
+        $formattedStartDate = $startDate->format('Y-m-d');
+
+        $endDate = new \DateTime("$currentYear-$currentMonth-25");
+        $formattedEndDate = $endDate->format('Y-m-d');
+
+        $workingDays = 0;
+        $saturdaysCount = 0;
+        $sundaysCount = 0;
+
+        while ($startDate <= $endDate) {
+            $dayOfWeek = $startDate->format('N');
+
+            if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
+                $workingDays++;
+            } else {
+                if ($dayOfWeek == 6) {
+                    $saturdaysCount++;
+                } elseif ($dayOfWeek == 7) {
+                    $sundaysCount++;
+                }
+            }
+
+            $startDate->modify('+1 day');
+        }
+
+        return [
+            'workingDays' => $workingDays,
+            'saturdaysCount' => $saturdaysCount,
+            'sundaysCount' => $sundaysCount,
+            'startDate' => $formattedStartDate,
+            'endDate' => $formattedEndDate,
+        ];
     }
 }
