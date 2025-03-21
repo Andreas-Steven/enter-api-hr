@@ -135,8 +135,6 @@ class UserAttendance extends \yii\db\ActiveRecord
         $this->work_time = [
             'id' => $work_time->id, 
             'name' => $work_time->name, 
-            'entry_time' => $work_time->entry_time, 
-            'home_time' => $work_time->home_time, 
             'working_days' => $work_time->working_days
         ];
     }

@@ -62,7 +62,7 @@ class Attendance extends \yii\db\ActiveRecord
                 [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],
             ],
             CoreModel::getStatusRules($this),
-            CoreModel::getLockVersionRules($this),
+            // CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -229,28 +229,39 @@ class Attendance extends \yii\db\ActiveRecord
                     throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                 }
 
-                $startTime = strtotime($attendanceData['start_time']);
-                $entryTime = strtotime($workTime->entry_time);
-                if ($startTime > $entryTime) {
-                    $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LATE;
-                }
-                
-                $workingDays = $workTime->working_days;
-                $dayNow = date('l', strtotime($this->date));
-                if (!in_array($dayNow, $workingDays)) {
-                    $attendanceData['info']['detail'][] = Constants::ATTENDANCE_WORK_HOLIDAY;
-                }
+                $dayNow = date('D', strtotime($this->date));
 
-                // If start_time and end_time is set on one request
-                if (!empty($attendance['end_time']) && strtotime($attendance['end_time']) !== false) {
-                    $attendanceData['end_time'] = CoreModel::nullSafe($attendanceData['end_time']);
-                    $attendanceData['info']['out'] = true;
+                if (isset($workTime['working_days'][$dayNow])) {
+                    $entryTime = $workTime['working_days'][$dayNow]['entry_time'];
+                    $homeTime = $workTime['working_days'][$dayNow]['home_time'];
 
-                    $endTime = strtotime($attendance['end_time']);
-                    $homeTime = strtotime($workTime->home_time);
-    
-                    if ($endTime < $homeTime) {
-                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
+                    if ($entryTime !== null) {
+                        $startTime = strtotime($attendanceData['start_time']);
+                        $entryTime = strtotime($entryTime);
+
+                        if ($startTime > $entryTime) {
+                            $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LATE;
+                        }
+                    }
+            
+                    $attendanceData['end_time'] = CoreModel::nullSafe($attendance['end_time']);
+                    if (!empty($attendance['end_time']) && strtotime($attendance['end_time']) !== false) {
+                        $attendanceData['info']['out'] = true;
+                        
+                        if ($homeTime !== null) {
+                            $endTime = strtotime($attendance['end_time']);
+                            $homeTime = strtotime($homeTime);
+
+                            if ($endTime < $homeTime) {
+                                $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
+                            }
+                        }
+                    }
+
+                    if ($entryTime === null && $homeTime === null) {
+                        if (!empty($attendanceData['start_time'])) {
+                            $attendanceData['info']['detail'][] = Constants::ATTENDANCE_WORK_HOLIDAY;
+                        }
                     }
                 }
                 
@@ -294,7 +305,7 @@ class Attendance extends \yii\db\ActiveRecord
                 $attendanceData['info']['in'] = true;
                 $attendanceData['employee_name'] = $employee->name;
                 $attendanceData['division'] = ['id' => $division->id, 'name' => $division->name];
-                $attendanceData['work_time'] = ['id' => $workTime->id, 'entry_time' => $workTime->entry_time, 'home_time' => $workTime->home_time];
+                $attendanceData['work_time'] = ['id' => $workTime->id, 'working_days' => [$dayNow => $workTime->working_days[$dayNow]]];
             } else {
                 $attendanceData = $oldAttendance[$index];
 
@@ -308,19 +319,25 @@ class Attendance extends \yii\db\ActiveRecord
                         $this->addError($attribute, Yii::t('app', 'endTimeNotValid'));
                         throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                     }
-    
+
+                    $dayNow = date('D', strtotime($this->date));
+                    $homeTime = $attendanceData['work_time']['working_days'][$dayNow]['home_time'];
+                    $attendanceData['end_time'] = CoreModel::nullSafe($attendance['end_time']);
                     $endTime = strtotime($attendance['end_time']);
-                    $homeTime = strtotime($attendanceData['work_time']['home_time']);
-    
-                    if ($endTime < $homeTime) {
-                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
-                    } else {
-                        if (($key = array_search(Constants::ATTENDANCE_LEAVE_EARLY, $attendanceData['info']['detail'])) !== false) {
-                            unset($attendanceData['info']['detail'][$key]);
+                    
+                    if ($endTime !== null) {
+                        $homeTime = strtotime($homeTime);
+
+                        if ($endTime < $homeTime) {
+                            $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
+                        } else {
+                            if (($key = array_search(Constants::ATTENDANCE_LEAVE_EARLY, $attendanceData['info']['detail'])) !== false) {
+                                unset($attendanceData['info']['detail'][$key]);
+                                $attendanceData['info']['detail'] = array_values($attendanceData['info']['detail']);
+                            }
                         }
                     }
-    
-                    $attendanceData['end_time'] = CoreModel::nullSafe($attendance['end_time']);
+
                     $attendanceData['info']['out'] = true;
                 }
             }

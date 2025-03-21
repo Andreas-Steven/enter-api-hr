@@ -49,17 +49,17 @@ class AttendanceController extends CoreController
 		$params['system_date'] = date('Y-m-d');
 		$params['dateMismatch'] = null;
 
-		// Uncomment this for testing
-		$params['system_date'] = $params['date'];
-		
 		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
 			return $coreUnavailableParams;
         }
-		
+
 		if (!isset($params['date']) || empty($params['date'])) {
 			$model->addError('date', Yii::t('core', 'required', ['label' => $model->getAttributeLabel('date')]));
 			return CoreController::coreError($model);
 		}
+
+		// UNCOMMENT THIS FOR TESTING
+		$params['system_date'] = $params['date'];
 
 		$date = \DateTime::createFromFormat('Y-m-d', $params['date']);
 		if (!$date || $date->format('Y-m-d') !== $params['date']) {

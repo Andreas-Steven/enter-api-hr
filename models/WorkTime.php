@@ -34,9 +34,8 @@ class WorkTime extends \yii\db\ActiveRecord
             [
                 [['name'], 'string', 'max' => 255],
                 [['working_days', 'detail_info'], 'safe'],
-                [['entry_time', 'home_time'], 'date', 'format' => 'php:H:i:s'],
                 
-                [['name', 'entry_time', 'home_time'], 'required'],
+                [['name', 'working_days'], 'required'],
                 [['working_days'], 'default', 'value' => [], 'on' => Constants::SCENARIO_CREATE],
 
                 [['entry_time', 'home_time', 'status'], function ($attribute, $params, $validator) {
@@ -55,8 +54,8 @@ class WorkTime extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'entry_time', 'home_time', 'working_days','status', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'entry_time', 'home_time', 'working_days','status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['name', 'working_days', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['name', 'working_days', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -110,20 +109,45 @@ class WorkTime extends \yii\db\ActiveRecord
         return false;
     }
 
-    public function validateWorkingDays($attribute, $params) 
+    public function validateWorkingDays($attribute, $params)
     {
-        if (!is_array($this->$attribute)) {
+        $workingDays = $this->$attribute;
+
+        if (!is_array($workingDays)) {
             $this->addError($attribute, Yii::t('app', 'mustArray', ['field' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
-        $working_days = array_filter($this->$attribute, fn($item) => !in_array($item, ['[]', '', "", null], true));
-
-        if (empty($working_days)) {
-            $this->addError($attribute, Yii::t('core', 'required', ['label' => $this->getAttributeLabel($attribute)]));
-            return;
+        $allowedFields = Yii::$app->params['allowedFields']['working_days'];
+        CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $this->$attribute);
+        
+        $allowedFields = Yii::$app->params['allowedFields']['time_structure'];
+        foreach ($workingDays as $dayName => $times) {
+            CoreModel::validateRequiredFields($this, "{$attribute}[$dayName]", $allowedFields, $times);
         }
 
-        $this->$attribute = array_values($working_days);
+        array_walk($workingDays, function (&$times, $dayName) use ($attribute) {
+            $entry_time = CoreModel::nullSafe($times['entry_time']);
+            $home_time = CoreModel::nullSafe($times['home_time']);
+
+            if ($entry_time !== null) {
+                $validEntryTime = \DateTime::createFromFormat('H:i:s', $entry_time);
+                if (!$validEntryTime || $validEntryTime->format('H:i:s') !== $entry_time) {
+                    $this->addError($attribute . "[$dayName][entry_time]", Yii::t('app', 'invalidTimeFormat', ['field' => $this->getAttributeLabel($attribute . "[$dayName][entry_time]")]));
+                }
+            }
+
+            if ($home_time !== null) {
+                $validHomeTime = \DateTime::createFromFormat('H:i:s', $home_time);
+                if (!$validHomeTime || $validHomeTime->format('H:i:s') !== $home_time) {
+                    $this->addError($attribute . "[$dayName][home_time]", Yii::t('app', 'invalidTimeFormat', ['field' => $this->getAttributeLabel($attribute . "[$dayName][home_time]")]));
+                }
+            }
+
+            $times['entry_time'] = $entry_time;
+            $times['home_time'] = $home_time;
+        });
+
+        $this->$attribute = $workingDays;
     }
 }

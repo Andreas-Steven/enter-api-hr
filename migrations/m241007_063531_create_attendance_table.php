@@ -52,15 +52,50 @@ class m241007_063531_create_attendance_table extends Migration
             return true;
         }
 
-        $system_date = date('Y-m-d', strtotime('-1 days'));
-        $date = new \DateTime($system_date);
-        $day = $date->format('d');
-        $date = (intval($day) >= 26) ? $date->modify('+1 month') : $date;
+        $date = new \DateTime('-1 days');
+        if (intval($date->format('d')) >= 26) {
+            $date->modify('+1 month');
+        }
+
+        $formattedDate = $date->format('Y-m-d');
+        $day_name = $date->format('D');
         $period = $date->format('Ym');
+
+        if ($day_name === 'Sunday') {
+            $work_time = [
+                'id' => 1,
+                'working_days' => [
+                    $day_name => [
+                        'entry_time' => null,
+                        'home_time' => null,
+                    ]
+                ]
+            ];
+        } else if ($day_name === 'Saturday') {
+            $work_time = [
+                'id' => 1,
+                'working_days' => [
+                    $day_name => [
+                        'entry_time' => '09:00:00',
+                        'home_time' => '15:00:00',
+                    ]
+                ]
+            ];
+        } else {
+            $work_time = [
+                'id' => 1,
+                'working_days' => [
+                    $day_name => [
+                        'entry_time' => '09:00:00',
+                        'home_time' => '18:00:00',
+                    ]
+                ]
+            ];
+        }
 
         $dummyData = [
             [
-                'date' => $system_date,
+                'date' => $formattedDate,
                 'period' => intval($period),
                 'attendance' => [
                     '1' => [
@@ -80,11 +115,7 @@ class m241007_063531_create_attendance_table extends Migration
                         ],
                         'end_time' => '18:32:00',
                         'location' => null,
-                        'work_time' => [
-                            'id' => 1,
-                            'entry_time' => '09:45:59',
-                            'home_time' => '18:30:00',
-                        ],
+                        'work_time' => $work_time,
                         'start_time' => '09:44:15',
                         'employee_id' => 1,
                         'employee_name' => 'Employee 1',
@@ -106,11 +137,7 @@ class m241007_063531_create_attendance_table extends Migration
                         ],
                         'end_time' => '18:30:00',
                         'location' => null,
-                        'work_time' => [
-                            'id' => 1,
-                            'entry_time' => '09:45:59',
-                            'home_time' => '18:30:00',
-                        ],
+                        'work_time' => $work_time,
                         'start_time' => '09:40:52',
                         'employee_id' => 2,
                         'employee_name' => 'Employee 2',
@@ -132,11 +159,7 @@ class m241007_063531_create_attendance_table extends Migration
                         ],
                         'end_time' => '18:32:44',
                         'location' => null,
-                        'work_time' => [
-                            'id' => 1,
-                            'entry_time' => '09:45:59',
-                            'home_time' => '18:30:00',
-                        ],
+                        'work_time' => $work_time,
                         'start_time' => '09:52:53',
                         'employee_id' => 3,
                         'employee_name' => 'Employee 3',
@@ -158,11 +181,7 @@ class m241007_063531_create_attendance_table extends Migration
                         ],
                         'end_time' => '18:55:36',
                         'location' => null,
-                        'work_time' => [
-                            'id' => 2,
-                            'entry_time' => '10:45:59',
-                            'home_time' => '19:00:00',
-                        ],
+                        'work_time' => $work_time,
                         'start_time' => '10:48:52',
                         'employee_id' => 4,
                         'employee_name' => 'Employee 4',
@@ -184,11 +203,7 @@ class m241007_063531_create_attendance_table extends Migration
                         ],
                         'end_time' => '19:02:20',
                         'location' => null,
-                        'work_time' => [
-                            'id' => 2,
-                            'entry_time' => '10:45:59',
-                            'home_time' => '19:00:00',
-                        ],
+                        'work_time' => $work_time,
                         'start_time' => '10:50:52',
                         'employee_id' => 5,
                         'employee_name' => 'Employee 5',
@@ -213,7 +228,7 @@ class m241007_063531_create_attendance_table extends Migration
 
         $index = 1;
         foreach ($dummyData as $key => $value) {
-            $this->insert('{{%' . $this->tableName . '}}', $value);
+            // $this->insert('{{%' . $this->tableName . '}}', $value);
 
             $value['id'] = $index;
 
@@ -225,7 +240,7 @@ class m241007_063531_create_attendance_table extends Migration
             }, $attendance);
 
             foreach ($mdbData as $key => $value) {
-                $collection->insertOne($value);
+                // $collection->insertOne($value);
             }
 
             $index++;
