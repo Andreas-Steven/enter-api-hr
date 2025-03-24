@@ -55,14 +55,14 @@ class m241108_100511_create_user_attendance_table extends Migration
                     'work_time' => [
                         'id' => 1,
                         'name' => 'Package A',
-                        'entry_time' => '09:45:59',
-                        'home_time' => '18:30:00',
                         'working_days' => [
-                            'Monday',
-                            'Tuesday',
-                            'Wednesday',
-                            'Thursday',
-                            'Friday',
+                            1 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Senin
+                            2 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Selasa
+                            3 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Rabu
+                            4 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Kamis
+                            5 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Jumat
+                            6 => ['entry_time' => '09:00:00', 'home_time' => '15:00:00'], // Sabtu
+                            7 => ['entry_time' => null, 'home_time' => null], // Minggu
                         ],
                     ],
                     'change_log' => [
@@ -88,14 +88,14 @@ class m241108_100511_create_user_attendance_table extends Migration
                     'work_time' => [
                         'id' => 1,
                         'name' => 'Package A',
-                        'entry_time' => '09:45:59',
-                        'home_time' => '18:30:00',
                         'working_days' => [
-                            'Monday',
-                            'Tuesday',
-                            'Wednesday',
-                            'Thursday',
-                            'Friday',
+                            1 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Senin
+                            2 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Selasa
+                            3 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Rabu
+                            4 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Kamis
+                            5 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Jumat
+                            6 => ['entry_time' => '09:00:00', 'home_time' => '15:00:00'], // Sabtu
+                            7 => ['entry_time' => null, 'home_time' => null], // Minggu
                         ],
                     ],
                     'change_log' => [
@@ -121,14 +121,14 @@ class m241108_100511_create_user_attendance_table extends Migration
                     'work_time' => [
                         'id' => 1,
                         'name' => 'Package A',
-                        'entry_time' => '09:45:59',
-                        'home_time' => '18:30:00',
                         'working_days' => [
-                            'Monday',
-                            'Tuesday',
-                            'Wednesday',
-                            'Thursday',
-                            'Friday',
+                            1 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Senin
+                            2 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Selasa
+                            3 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Rabu
+                            4 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Kamis
+                            5 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Jumat
+                            6 => ['entry_time' => '09:00:00', 'home_time' => '15:00:00'], // Sabtu
+                            7 => ['entry_time' => null, 'home_time' => null], // Minggu
                         ],
                     ],
                     'change_log' => [
@@ -153,17 +153,15 @@ class m241108_100511_create_user_attendance_table extends Migration
                     ],
                     'work_time' => [
                         'id' => 1,
-                        'name' => 'Package B',
-                        'entry_time' => '10:45:59',
-                        'home_time' => '19:00:00',
+                        'name' => 'Package A',
                         'working_days' => [
-                            'Monday',
-                            'Tuesday',
-                            'Wednesday',
-                            'Thursday',
-                            'Friday',
-                            'Saturday',
-                            'Sunday',
+                            1 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Senin
+                            2 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Selasa
+                            3 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Rabu
+                            4 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Kamis
+                            5 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Jumat
+                            6 => ['entry_time' => '09:00:00', 'home_time' => '15:00:00'], // Sabtu
+                            7 => ['entry_time' => null, 'home_time' => null], // Minggu
                         ],
                     ],
                     'change_log' => [
@@ -190,13 +188,13 @@ class m241108_100511_create_user_attendance_table extends Migration
                         'id' => 1,
                         'name' => 'Package A',
                         'working_days' => [
-                            'Mon' => ['entry_time' => '09:00:00', 'home_time' => '18:30:00'],
-                            'Tue' => ['entry_time' => '09:00:00', 'home_time' => '18:30:00'],
-                            'Wed' => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'],
-                            'Thu' => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'],
-                            'Fri' => ['entry_time' => '09:00:00', 'home_time' => '18:30:00'],
-                            'Sat' => ['entry_time' => '09:00:00', 'home_time' => '15:00:00'],
-                            'Sun' => ['entry_time' => null, 'home_time' => null],
+                            1 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Senin
+                            2 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Selasa
+                            3 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Rabu
+                            4 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Kamis
+                            5 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Jumat
+                            6 => ['entry_time' => '09:00:00', 'home_time' => '15:00:00'], // Sabtu
+                            7 => ['entry_time' => null, 'home_time' => null], // Minggu
                         ],
                     ],
                     'change_log' => [
@@ -213,7 +211,7 @@ class m241108_100511_create_user_attendance_table extends Migration
         ];
 
         foreach ($dummyData as $key => $value) {
-            // $this->insert('{{%' . $this->tableName . '}}', $value);
+            $this->insert('{{%' . $this->tableName . '}}', $value);
         }
     }
 

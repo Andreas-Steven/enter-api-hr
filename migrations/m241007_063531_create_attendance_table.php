@@ -58,34 +58,34 @@ class m241007_063531_create_attendance_table extends Migration
         }
 
         $formattedDate = $date->format('Y-m-d');
-        $day_name = $date->format('D');
+        $dayNumber = $date->format('N');
         $period = $date->format('Ym');
 
-        if ($day_name === 'Sunday') {
+        if ($dayNumber == 7) { // Minggu
             $work_time = [
                 'id' => 1,
                 'working_days' => [
-                    $day_name => [
+                    $dayNumber => [
                         'entry_time' => null,
                         'home_time' => null,
                     ]
                 ]
             ];
-        } else if ($day_name === 'Saturday') {
+        } else if ($dayNumber == 6) { // Sabtu
             $work_time = [
                 'id' => 1,
                 'working_days' => [
-                    $day_name => [
+                    $dayNumber => [
                         'entry_time' => '09:00:00',
                         'home_time' => '15:00:00',
                     ]
                 ]
             ];
-        } else {
+        } else { // Senin hingga Jumat
             $work_time = [
                 'id' => 1,
                 'working_days' => [
-                    $day_name => [
+                    $dayNumber => [
                         'entry_time' => '09:00:00',
                         'home_time' => '18:00:00',
                     ]
@@ -228,7 +228,7 @@ class m241007_063531_create_attendance_table extends Migration
 
         $index = 1;
         foreach ($dummyData as $key => $value) {
-            // $this->insert('{{%' . $this->tableName . '}}', $value);
+            $this->insert('{{%' . $this->tableName . '}}', $value);
 
             $value['id'] = $index;
 
@@ -240,7 +240,7 @@ class m241007_063531_create_attendance_table extends Migration
             }, $attendance);
 
             foreach ($mdbData as $key => $value) {
-                // $collection->insertOne($value);
+                $collection->insertOne($value);
             }
 
             $index++;

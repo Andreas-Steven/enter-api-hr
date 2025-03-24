@@ -59,7 +59,7 @@ class AttendanceController extends CoreController
 		}
 
 		// UNCOMMENT THIS FOR TESTING
-		$params['system_date'] = $params['date'];
+		// $params['system_date'] = $params['date'];
 
 		$date = \DateTime::createFromFormat('Y-m-d', $params['date']);
 		if (!$date || $date->format('Y-m-d') !== $params['date']) {
