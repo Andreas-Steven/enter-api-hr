@@ -229,7 +229,7 @@ class Attendance extends \yii\db\ActiveRecord
                     throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                 }
 
-                $dayNow = date('D', strtotime($this->date));
+                $dayNow = date('N', strtotime($this->date));
 
                 if (isset($workTime['working_days'][$dayNow])) {
                     $entryTime = $workTime['working_days'][$dayNow]['entry_time'];
@@ -320,7 +320,7 @@ class Attendance extends \yii\db\ActiveRecord
                         throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                     }
 
-                    $dayNow = date('D', strtotime($this->date));
+                    $dayNow = date('N', strtotime($this->date));
                     $homeTime = $attendanceData['work_time']['working_days'][$dayNow]['home_time'];
                     $attendanceData['end_time'] = CoreModel::nullSafe($attendance['end_time']);
                     $endTime = strtotime($attendance['end_time']);

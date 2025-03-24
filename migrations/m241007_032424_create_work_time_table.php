@@ -49,13 +49,13 @@ class m241007_032424_create_work_time_table extends Migration
             [
                 'name' => 'Package A',
                 'working_days' => [
-                    'Mon' => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'],
-                    'Tue' => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'],
-                    'Wed' => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'],
-                    'Thu' => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'],
-                    'Fri' => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'],
-                    'Sat' => ['entry_time' => '09:00:00', 'home_time' => '15:00:00'],
-                    'Sun' => ['entry_time' => null, 'home_time' => null],
+                    1 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Senin
+                    2 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Selasa
+                    3 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Rabu
+                    4 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Kamis
+                    5 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Jumat
+                    6 => ['entry_time' => '09:00:00', 'home_time' => '15:00:00'], // Sabtu
+                    7 => ['entry_time' => null, 'home_time' => null], // Minggu
                 ],
                 'status' => 1,
                 'detail_info' => [
