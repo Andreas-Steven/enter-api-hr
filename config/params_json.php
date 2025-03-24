@@ -52,7 +52,7 @@ $params['allowedFields'] = [
     'attendance_location' => ['lat', 'lng', 'image'],
     'location' => ['lat', 'lng'],
     'revision' => ['start_time', 'end_time'],
-    'working_days' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    'working_days' => [1, 2, 3, 4, 5, 6, 7],
     'time_structure' => ['entry_time', 'home_time'],
 ];
 
