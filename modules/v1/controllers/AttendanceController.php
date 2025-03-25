@@ -144,15 +144,7 @@ class AttendanceController extends CoreController
 	{
 		$data = $model->toArray(); 
 	
-		if (empty($data['attendance']) && $data['detail_info']['dayoff'] === true) {
-			$headerData = [
-				'id' => $data['id'],
-				'date' => $data['date'],
-				'detail_info' => $data['detail_info'],
-			];
-			
-			Yii::$app->mongodb->upsertMany($model, ['id', 'date'], [$headerData]);
-		} else {
+		if (!empty($data['attendance'])) {
 			$attendance = array_values($data['attendance']);
 			$mdbData = array_map(function ($item) use ($data) {
 				unset($data['attendance']);

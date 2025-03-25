@@ -124,6 +124,7 @@ class Attendance extends \yii\db\ActiveRecord
         if (parent::beforeSave($insert)) {
             $date = new \DateTime($this->date);
             if ((int) $date->format('d') >= Constants::LAST_DATE) {
+                $date->setDate($date->format('Y'), $date->format('m'), 1);
                 $date->modify('+1 month');
             }
             $this->period = intval($date->format('Ym'));
@@ -232,12 +233,13 @@ class Attendance extends \yii\db\ActiveRecord
                 }
 
                 $dayNow = date('N', strtotime($this->date));
+                $dayoff = $this->dayoff ?? $this->detail_info['dayoff'] ?? false;
 
                 if (isset($workTime['working_days'][$dayNow])) {
                     $entryTime = $workTime['working_days'][$dayNow]['entry_time'];
                     $homeTime = $workTime['working_days'][$dayNow]['home_time'];
 
-                    if ($entryTime !== null) {
+                    if ($entryTime !== null && !$dayoff) {
                         $startTime = strtotime($attendanceData['start_time']);
                         $entryTime = strtotime($entryTime);
 
@@ -250,7 +252,7 @@ class Attendance extends \yii\db\ActiveRecord
                     if (!empty($attendance['end_time']) && strtotime($attendance['end_time']) !== false) {
                         $attendanceData['info']['out'] = true;
                         
-                        if ($homeTime !== null) {
+                        if ($homeTime !== null && !$dayoff) {
                             $endTime = strtotime($attendance['end_time']);
                             $homeTime = strtotime($homeTime);
 
@@ -259,8 +261,6 @@ class Attendance extends \yii\db\ActiveRecord
                             }
                         }
                     }
-
-                    $dayoff = $this->dayoff ?? $this->detail_info['dayoff'] ?? false;
 
                     if ($entryTime === null && $homeTime === null || $dayoff) {
                         if (!empty($attendanceData['start_time'])) {

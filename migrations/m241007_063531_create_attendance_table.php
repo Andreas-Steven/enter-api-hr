@@ -53,21 +53,16 @@ class m241007_063531_create_attendance_table extends Migration
         }
 
         $date = new \DateTime('-1 days');
+        $formattedDate = $date->format('Y-m-d');
+        $dayNumber = $date->format('N');
+
         if (intval($date->format('d')) >= 26) {
+            $date->setDate($date->format('Y'), $date->format('m'), 1);
             $date->modify('+1 month');
         }
-        
-        $formattedDate = $date->format('Y-m-d');
-<<<<<<< HEAD
-        $dayNumber = $date->format('N');
-        $period = $date->format('Ym');
 
-=======
-        $dayNumber = $date->format('N'); // Menggunakan 'N' untuk mendapatkan representasi numerik hari
         $period = $date->format('Ym');
         
-        // Menentukan waktu kerja berdasarkan hari dalam format 'N'
->>>>>>> f9367b0ee5da2f85054e673c20fb1a25f24c3ce0
         if ($dayNumber == 7) { // Minggu
             $work_time = [
                 'id' => 1,

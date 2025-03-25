@@ -104,7 +104,7 @@ class AttendanceSearch extends Attendance
                 )
             ]);
         }
-
+        
         if (isset($this->dayoff)) {
             $conditions = ['and'];
             $conditions[] = ['=', new \yii\db\Expression("CAST(detail_info->>'dayoff' AS BOOLEAN)"), (bool) $this->dayoff];
@@ -204,13 +204,14 @@ class AttendanceSearch extends Attendance
                 "working_day" => $workingDaysInfo['workingDays'],
                 "saturday_count" => $workingDaysInfo['saturdaysCount'],
                 "sunday_count" => $workingDaysInfo['sundaysCount'],
+                "dayoff_count" => $workingDaysInfo['dayoffCount'],
                 "start_date" => $workingDaysInfo['startDate'],
                 "end_date" => $workingDaysInfo['endDate'],
                 "report" => array_map(function ($doc) {
                     return [
                         "employee_id" => $doc['_id']['employee_id'],
                         "employee_name" => $doc['_id']['employee_name'],
-                        "attendance" => [
+                        "attendance_recap" => [
                             "total_in" => $doc['total_in'],
                             'total_out' => $doc['total_out'],
                             'total_late' => $doc['total_late'],
@@ -259,13 +260,21 @@ class AttendanceSearch extends Attendance
         }
     
         $workingDays = $totalDays - ($saturdaysCount + $sundaysCount);
+
+        $dayoffCount = Attendance::find()
+            ->where(['and', Constants::STATUS_NOT_DELETED,
+                ['=', new \yii\db\Expression("CAST(detail_info->>'dayoff' AS BOOLEAN)"), true],
+                ['=', 'period', $period]
+            ])->count();
     
         return [
-            'workingDays' => $workingDays,
+            'workingDays' => ($workingDays - $dayoffCount),
             'saturdaysCount' => $saturdaysCount,
             'sundaysCount' => $sundaysCount,
             'startDate' => $startDate->format('Y-m-d'),
             'endDate' => $endDate->format('Y-m-d'),
+            'dayoffCount' => $dayoffCount,
+
         ];
     }
 }
