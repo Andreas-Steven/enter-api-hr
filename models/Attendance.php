@@ -27,6 +27,7 @@ use app\exceptions\ErrorMessage;
 class Attendance extends \yii\db\ActiveRecord
 {
     public $device;
+    public $dayoff;
     public $division;
     public $end_time;
     public $work_time;
@@ -50,6 +51,7 @@ class Attendance extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
+                [['dayoff'], 'boolean'],
                 [['attendance', 'blacklist', 'detail_info'], 'safe'],
                 [['end_time', 'start_time'], 'date', 'format' => 'php:H:i:s'],
                 [['date', 'system_date', 'dateMismatch'], 'date', 'format' => 'php:Y-m-d'],
