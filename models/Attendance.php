@@ -27,8 +27,9 @@ use app\exceptions\ErrorMessage;
 class Attendance extends \yii\db\ActiveRecord
 {
     public $device;
-    public $division;
+    public $dayoff;
     public $end_time;
+    public $division;
     public $work_time;
     public $start_time;
     public $system_date;
@@ -50,6 +51,7 @@ class Attendance extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
+                [['dayoff'], 'boolean'],
                 [['attendance', 'blacklist', 'detail_info'], 'safe'],
                 [['end_time', 'start_time'], 'date', 'format' => 'php:H:i:s'],
                 [['date', 'system_date', 'dateMismatch'], 'date', 'format' => 'php:Y-m-d'],
@@ -69,7 +71,7 @@ class Attendance extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'system_date', 'dateMismatch', 'attendance', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'system_date', 'dateMismatch', 'attendance', 'dayoff', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['attendance', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
@@ -126,7 +128,7 @@ class Attendance extends \yii\db\ActiveRecord
             }
             $this->period = intval($date->format('Ym'));
 
-            if ($this->scenario === Constants::SCENARIO_CREATE) {
+            if ($this->scenario === Constants::SCENARIO_CREATE && $this->isAttributeChanged('attendance')) {
                 $this->validateAttendance('attendance');
             }
 
@@ -134,7 +136,7 @@ class Attendance extends \yii\db\ActiveRecord
                 $this->detail_info ?? [], 
                 [
                     'change_log' => CoreModel::getChangeLog($this, $insert),
-                    'dayoff' => $this->detail_info['dayoff'] ?? false,
+                    'dayoff' => $this->detail_info['dayoff'] ?? (bool) $this->dayoff,
                     'blacklist' => $this->detail_info['blacklist'] ?? [],
                 ]
             );
@@ -258,7 +260,9 @@ class Attendance extends \yii\db\ActiveRecord
                         }
                     }
 
-                    if ($entryTime === null && $homeTime === null) {
+                    $dayoff = $this->dayoff ?? $this->detail_info['dayoff'] ?? false;
+
+                    if ($entryTime === null && $homeTime === null || $dayoff) {
                         if (!empty($attendanceData['start_time'])) {
                             $attendanceData['info']['detail'][] = Constants::ATTENDANCE_WORK_HOLIDAY;
                         }

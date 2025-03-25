@@ -59,7 +59,7 @@ class AttendanceController extends CoreController
 		}
 
 		// UNCOMMENT THIS FOR TESTING
-		// $params['system_date'] = $params['date'];
+		$params['system_date'] = $params['date'];
 
 		$date = \DateTime::createFromFormat('Y-m-d', $params['date']);
 		if (!$date || $date->format('Y-m-d') !== $params['date']) {
@@ -141,18 +141,28 @@ class AttendanceController extends CoreController
     }
 
 	public function updateMongoDB($model)
-    {
-        $data = $model->toArray();
-		$attendance = array_values($data['attendance']);
-        $mdbData = array_map(function ($item) use ($data) {
-            unset($data['attendance']);
-
-            return array_merge($data, $item);
-        }, $attendance);
-
-        Yii::$app->mongodb->upsertMany($model, ['id', 'employee_id', 'date'], $mdbData);
-    }
-
+	{
+		$data = $model->toArray(); 
+	
+		if (empty($data['attendance']) && $data['detail_info']['dayoff'] === true) {
+			$headerData = [
+				'id' => $data['id'],
+				'date' => $data['date'],
+				'detail_info' => $data['detail_info'],
+			];
+			
+			Yii::$app->mongodb->upsertMany($model, ['id', 'date'], [$headerData]);
+		} else {
+			$attendance = array_values($data['attendance']);
+			$mdbData = array_map(function ($item) use ($data) {
+				unset($data['attendance']);
+	
+				return array_merge($data, $item);
+			}, $attendance);
+	
+			Yii::$app->mongodb->upsertMany($model, ['id', 'employee_id', 'date'], $mdbData);
+		}
+	}
 	public function actionResign()
 	{
 		$model = new Employee();
