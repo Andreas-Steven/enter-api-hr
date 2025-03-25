@@ -9,6 +9,7 @@ use app\helpers\Constants;
 use app\core\CoreModel;
 use app\models\Attendance;
 use app\core\CoreMongodb;
+use app\exceptions\ErrorMessage;
 
 class AttendanceSearch extends Attendance
 {

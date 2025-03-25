@@ -144,7 +144,7 @@ class m241108_100511_create_user_attendance_table extends Migration
             ],
             [
                 'employee_id' => 4,
-                'work_time_id' => 2,
+                'work_time_id' => 1,
                 'status' => 1,
                 'detail_info' => [
                     'employee' => [
@@ -177,7 +177,7 @@ class m241108_100511_create_user_attendance_table extends Migration
             ],
             [
                 'employee_id' => 5,
-                'work_time_id' => 2,
+                'work_time_id' => 1,
                 'status' => 1,
                 'detail_info' => [
                     'employee' => [

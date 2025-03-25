@@ -56,11 +56,18 @@ class m241007_063531_create_attendance_table extends Migration
         if (intval($date->format('d')) >= 26) {
             $date->modify('+1 month');
         }
-
+        
         $formattedDate = $date->format('Y-m-d');
+<<<<<<< HEAD
         $dayNumber = $date->format('N');
         $period = $date->format('Ym');
 
+=======
+        $dayNumber = $date->format('N'); // Menggunakan 'N' untuk mendapatkan representasi numerik hari
+        $period = $date->format('Ym');
+        
+        // Menentukan waktu kerja berdasarkan hari dalam format 'N'
+>>>>>>> f9367b0ee5da2f85054e673c20fb1a25f24c3ce0
         if ($dayNumber == 7) { // Minggu
             $work_time = [
                 'id' => 1,
@@ -228,7 +235,7 @@ class m241007_063531_create_attendance_table extends Migration
 
         $index = 1;
         foreach ($dummyData as $key => $value) {
-            // $this->insert('{{%' . $this->tableName . '}}', $value);
+            $this->insert('{{%' . $this->tableName . '}}', $value);
 
             $value['id'] = $index;
 
@@ -240,7 +247,7 @@ class m241007_063531_create_attendance_table extends Migration
             }, $attendance);
 
             foreach ($mdbData as $key => $value) {
-                // $collection->insertOne($value);
+                $collection->insertOne($value);
             }
 
             $index++;
