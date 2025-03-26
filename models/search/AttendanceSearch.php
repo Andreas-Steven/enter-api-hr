@@ -175,6 +175,7 @@ class AttendanceSearch extends Attendance
                         'employee_name' => '$employee_name',
                         'period' => '$period',
                     ],
+                    'division_name' => ['$first' => '$division.name'],
                     'total_in' => $eqCondition('in', true),
                     'total_out' => $eqCondition('out', true),
                     'total_late' => $inCondition('detail', Constants::ATTENDANCE_LATE),
@@ -202,7 +203,7 @@ class AttendanceSearch extends Attendance
             [
                 "period" => (int) $this->period,
                 "working_day" => $workingDaysInfo['workingDays'],
-                "saturday_count" => $workingDaysInfo['saturdaysCount'],
+                "saturday_count" => $workingDaysInfo['saturdaysCount'],                                
                 "sunday_count" => $workingDaysInfo['sundaysCount'],
                 "dayoff_count" => $workingDaysInfo['dayoffCount'],
                 "start_date" => $workingDaysInfo['startDate'],
@@ -211,6 +212,7 @@ class AttendanceSearch extends Attendance
                     return [
                         "employee_id" => $doc['_id']['employee_id'],
                         "employee_name" => $doc['_id']['employee_name'],
+                        "division_name" => $doc['division_name'],
                         "attendance_recap" => [
                             "total_in" => $doc['total_in'],
                             'total_out' => $doc['total_out'],

@@ -112,7 +112,7 @@ class m241007_063531_create_attendance_table extends Migration
                             'name' => 'Ruko',
                         ],
                         'division' => [
-                            'id' => 2,
+                            'id' => 6,
                             'name' => 'Teknologi Informasi',
                         ],
                         'end_time' => '18:32:00',
@@ -135,7 +135,7 @@ class m241007_063531_create_attendance_table extends Migration
                         ],
                         'division' => [
                             'id' => 2,
-                            'name' => 'Teknologi Informasi',
+                            'name' => 'Update',
                         ],
                         'end_time' => '18:30:00',
                         'location' => null,
@@ -156,8 +156,8 @@ class m241007_063531_create_attendance_table extends Migration
                             'name' => 'Toko',
                         ],
                         'division' => [
-                            'id' => 2,
-                            'name' => 'Teknologi Informasi',
+                            'id' => 4,
+                            'name' => 'Gudang',
                         ],
                         'end_time' => '18:32:44',
                         'location' => null,
@@ -178,8 +178,8 @@ class m241007_063531_create_attendance_table extends Migration
                             'name' => 'Toko',
                         ],
                         'division' => [
-                            'id' => 2,
-                            'name' => 'Teknologi Informasi',
+                            'id' => 7,
+                            'name' => 'Kasir',
                         ],
                         'end_time' => '18:55:36',
                         'location' => null,
@@ -200,8 +200,8 @@ class m241007_063531_create_attendance_table extends Migration
                             'name' => 'Toko',
                         ],
                         'division' => [
-                            'id' => 2,
-                            'name' => 'Teknologi Informasi',
+                            'id' => 10,
+                            'name' => 'Return Merchandise Authorization',
                         ],
                         'end_time' => '19:02:20',
                         'location' => null,
