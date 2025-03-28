@@ -53,10 +53,13 @@ class Attendance extends \yii\db\ActiveRecord
             [
                 [['dayoff'], 'boolean'],
                 [['attendance', 'blacklist', 'detail_info'], 'safe'],
+
                 [['end_time', 'start_time'], 'date', 'format' => 'php:H:i:s'],
                 [['date', 'system_date', 'dateMismatch'], 'date', 'format' => 'php:Y-m-d'],
                 
                 [['date'], 'required'],
+                [['dayoff'], 'default', 'value' => false],
+
                 [['date'], 'filter', 'filter' => function($value) {
                     return CoreModel::nullSafe($value);
                 }],
@@ -163,6 +166,7 @@ class Attendance extends \yii\db\ActiveRecord
         $latestAttendance = !empty($lastStartTime) ? end($lastStartTime) : null;
 
         foreach ($attendances as $index => $attendance) {
+            var_dump($latestAttendance);
             $allowedFields = Yii::$app->params['allowedFields']['attendance'];
             CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $attendance);
 
@@ -406,6 +410,10 @@ class Attendance extends \yii\db\ActiveRecord
 
             $attendanceData['location'] = $location;
             $oldAttendance[$index] = $attendanceData;
+
+            if (empty($latestAttendance)) {
+                $latestAttendance = $attendanceData['start_time'];
+            }
         }
         
         $this->$attribute = $oldAttendance;

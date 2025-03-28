@@ -78,6 +78,7 @@ class AttendanceSearch extends Attendance
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
+            'period' => $this->period,
             'status' => $this->status,
             'date' => $this->date,
         ]);
@@ -163,6 +164,7 @@ class AttendanceSearch extends Attendance
             'employee_name' => $this->employee_name ?? null,
         ]);
 
+
         if (!empty($this->period)) {
             $inCondition = fn($field, $value) => ['$sum' => ['$cond' => [['$in' => [$value, '$'."info.$field"]], 1, 0]]];
             $eqCondition = fn($field, $value) => ['$sum' => ['$cond' => [['$eq' => ['$info.'.$field, $value]], 1, 0]]];
@@ -182,6 +184,7 @@ class AttendanceSearch extends Attendance
                     'total_leave_early' => $inCondition('detail', Constants::ATTENDANCE_LEAVE_EARLY),
                     'total_missed_checkout' => $inCondition('detail', Constants::ATTENDANCE_MISSED_CHECKOUT),
                     'total_work_holiday' => $inCondition('detail', Constants::ATTENDANCE_WORK_HOLIDAY),
+                    'total_blacklist' => ['$sum' => ['$size' => ['$ifNull' => ['$detail_info.blacklist', []]]]],
                 ]],
                 ['$facet' => [
                     'total_count' => [['$count' => 'total']],
@@ -220,6 +223,7 @@ class AttendanceSearch extends Attendance
                             'total_leave_early' => $doc['total_leave_early'],
                             'total_missed_checkout' => $doc['total_missed_checkout'],
                             'total_work_holiday' => $doc['total_work_holiday'],
+                            'total_blacklist' => $doc['total_blacklist'],
                         ],
                     ];
                 }, $documents),

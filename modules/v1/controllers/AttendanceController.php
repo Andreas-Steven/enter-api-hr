@@ -53,13 +53,17 @@ class AttendanceController extends CoreController
 			return $coreUnavailableParams;
         }
 
-		if (!isset($params['date']) || empty($params['date'])) {
+		if (empty($params['date'])) {
 			$model->addError('date', Yii::t('core', 'required', ['label' => $model->getAttributeLabel('date')]));
 			return CoreController::coreError($model);
 		}
 
 		// UNCOMMENT THIS FOR TESTING
-		$params['system_date'] = $params['date'];
+		// $params['system_date'] = $params['date'];
+
+		if (!empty($params['dayoff']) && boolval($params['dayoff'])) {
+			$params['system_date'] = $params['date'];
+		}
 
 		$date = \DateTime::createFromFormat('Y-m-d', $params['date']);
 		if (!$date || $date->format('Y-m-d') !== $params['date']) {
@@ -148,6 +152,12 @@ class AttendanceController extends CoreController
 			$attendance = array_values($data['attendance']);
 			$mdbData = array_map(function ($item) use ($data) {
 				unset($data['attendance']);
+
+				$blacklistData = array_filter($data['detail_info']['blacklist'] ?? [], function($blacklist) use ($item) {
+					return $blacklist['employee_id'] === $item['employee_id'];
+				});
+	
+				$data['detail_info']['blacklist'] = array_values($blacklistData);
 	
 				return array_merge($data, $item);
 			}, $attendance);
@@ -155,6 +165,7 @@ class AttendanceController extends CoreController
 			Yii::$app->mongodb->upsertMany($model, ['id', 'employee_id', 'date'], $mdbData);
 		}
 	}
+
 	public function actionResign()
 	{
 		$model = new Employee();
