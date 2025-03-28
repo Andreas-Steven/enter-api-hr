@@ -230,7 +230,7 @@ class m241007_063531_create_attendance_table extends Migration
 
         $index = 1;
         foreach ($dummyData as $key => $value) {
-            // $this->insert('{{%' . $this->tableName . '}}', $value);
+            $this->insert('{{%' . $this->tableName . '}}', $value);
 
             $value['id'] = $index;
 
@@ -242,7 +242,7 @@ class m241007_063531_create_attendance_table extends Migration
             }, $attendance);
 
             foreach ($mdbData as $key => $value) {
-                // $collection->insertOne($value);
+                $collection->insertOne($value);
             }
 
             $index++;
