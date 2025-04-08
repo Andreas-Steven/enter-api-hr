@@ -164,10 +164,9 @@ class Attendance extends \yii\db\ActiveRecord
 
         $lastStartTime = $oldAttendance ? array_column($oldAttendance, 'start_time') : [];
         $latestAttendance = !empty($lastStartTime) ? end($lastStartTime) : null;
+        $allowedFields = Yii::$app->params['allowedFields']['attendance'];
 
         foreach ($attendances as $index => $attendance) {
-            var_dump($latestAttendance);
-            $allowedFields = Yii::$app->params['allowedFields']['attendance'];
             CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $attendance);
 
             // Attendance Data Validation
