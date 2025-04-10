@@ -39,9 +39,7 @@ class GeneralAffairCategoryController extends CoreController
 		$searchModel = new GeneralAffairCategorySearch();
 		$dataProvider = $searchModel->search($params);
 
-		if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
-			return $coreValidateProvider;
-		}
+		CoreController::validateProvider($dataProvider, $searchModel);
 
 		return CoreController::coreData($dataProvider);
 	}
@@ -52,9 +50,7 @@ class GeneralAffairCategoryController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$scenario = Constants::SCENARIO_CREATE;
 	
-		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
-			return $coreUnavailableParams;
-		}
+		CoreController::unavailableParams($model, $params);
 	
 		$params['status'] = Constants::STATUS_DRAFT;
 		$model->scenario = $scenario;
@@ -73,9 +69,7 @@ class GeneralAffairCategoryController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$scenario = Constants::SCENARIO_UPDATE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
-			return $coreValidateParams;
-		}
+		CoreController::validateParams($params, $scenario);
 		
 		$model = CoreController::coreFindModelOne(new GeneralAffairCategory(), $params);
 		
@@ -83,20 +77,14 @@ class GeneralAffairCategoryController extends CoreController
 			return CoreController::coreDataNotFound();
 		}
 
-		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
-			return $coreUnavailableParams;
-        }
+		CoreController::unavailableParams($model, $params);
 
 		$model->scenario = $scenario;
 
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
+		CoreController::superadmin($params);
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
-                return $coreEmptyParams;
-            }
+			CoreController::emptyParams($model);
 
 			if ($model->save()) {
 				return CoreController::coreSuccess($model);
@@ -111,9 +99,7 @@ class GeneralAffairCategoryController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$scenario = Constants::SCENARIO_DELETE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
-			return $coreValidateParams;
-		}
+		CoreController::validateParams($params, $scenario);
 
 		$model = CoreController::coreFindModelOne(new GeneralAffairCategory(), $params);
 
@@ -124,14 +110,10 @@ class GeneralAffairCategoryController extends CoreController
 		$params['status'] = Constants::STATUS_DELETED;
 		$model->scenario = $scenario;
 
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
+		CoreController::superadmin($params);
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
-                return $coreEmptyParams;
-            }
+			CoreController::emptyParams($model);
 
 			if ($model->save()) {
 				return CoreController::coreSuccess($model);

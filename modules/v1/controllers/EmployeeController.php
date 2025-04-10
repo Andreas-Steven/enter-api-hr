@@ -34,9 +34,7 @@ class EmployeeController extends CoreController
 		$searchModel = new EmployeeSearch();
 		$dataProvider = $searchModel->search($params);
 
-		if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
-			return $coreValidateProvider;
-		}
+		CoreController::validateProvider($dataProvider, $searchModel);
 
 		return CoreController::coreData($dataProvider);
 	}
@@ -47,9 +45,7 @@ class EmployeeController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$scenario = Constants::SCENARIO_CREATE;
 
-        if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
-			return $coreUnavailableParams;
-        }
+        CoreController::unavailableParams($model, $params);
 
 		$model->scenario = $scenario;
 		$params['status'] = Constants::STATUS_DRAFT;
@@ -70,9 +66,7 @@ class EmployeeController extends CoreController
 		$params['system_date'] = date('Y-m-d');
 		$scenario = Constants::SCENARIO_UPDATE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
-			return $coreValidateParams;
-		}
+		CoreController::validateParams($params, $scenario);
 		
 		$model = CoreController::coreFindModelOne(new Employee(), $params);
 		
@@ -80,20 +74,14 @@ class EmployeeController extends CoreController
 			return CoreController::coreDataNotFound();
 		}
 
-		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
-			return $coreUnavailableParams;
-        }
+		CoreController::unavailableParams($model, $params);
 
 		$model->scenario = $scenario;
 
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
+		CoreController::superadmin($params);
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
-                return $coreEmptyParams;
-            }
+			CoreController::emptyParams($model);
 
 			if ($model->save()) {
 				return CoreController::coreSuccess($model);
@@ -108,9 +96,7 @@ class EmployeeController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$scenario = Constants::SCENARIO_DELETE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
-			return $coreValidateParams;
-		}
+		CoreController::validateParams($params, $scenario);
 
 		$model = CoreController::coreFindModelOne(new Employee(), $params);
 
@@ -121,14 +107,10 @@ class EmployeeController extends CoreController
 		$params['status'] = Constants::STATUS_DELETED;
 		$model->scenario = $scenario;
 
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
+		CoreController::superadmin($params);
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
-                return $coreEmptyParams;
-            }
+			CoreController::emptyParams($model);
 
 			if ($model->save()) {
 				return CoreController::coreSuccess($model);

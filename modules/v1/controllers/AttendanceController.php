@@ -35,9 +35,7 @@ class AttendanceController extends CoreController
 		$searchModel = new AttendanceSearch();
 		$dataProvider = $searchModel->search($params);
 		
-		if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
-			return $coreValidateProvider;
-		}
+		CoreController::validateProvider($dataProvider, $searchModel);
 
 		return CoreController::coreData($dataProvider);
 	}
@@ -50,9 +48,7 @@ class AttendanceController extends CoreController
 		$params['dateMismatch'] = null;
 		$scenario = Constants::SCENARIO_CREATE;
 
-		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
-			return $coreUnavailableParams;
-        }
+		CoreController::unavailableParams($model, $params);
 
 		if (empty($params['date'])) {
 			$model->addError('date', Yii::t('app', 'required', ['label' => $model->getAttributeLabel('date')]));
@@ -123,9 +119,7 @@ class AttendanceController extends CoreController
         $searchModel->load($params);
         $dataProvider = $searchModel->mongodbSearch($params);
 
-        if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
-            return $coreValidateProvider;
-        }
+        CoreController::validateProvider($dataProvider, $searchModel);
 
         return CoreController::coreData($dataProvider);
     }
@@ -138,9 +132,7 @@ class AttendanceController extends CoreController
         $searchModel->load($params);
 		$dataProvider = $searchModel->attendanceReport($params);
 
-        if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
-            return $coreValidateProvider;
-        }
+        CoreController::validateProvider($dataProvider, $searchModel);
 
         return CoreController::coreData($dataProvider);
     }

@@ -38,9 +38,7 @@ class AttendancePermissionController extends CoreController
 		$searchModel = new AttendancePermissionSearch();
 		$dataProvider = $searchModel->search($params);
 
-		if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
-			return $coreValidateProvider;
-		}
+		CoreController::validateProvider($dataProvider, $searchModel);
 
 		return CoreController::coreData($dataProvider);
 	}
@@ -49,12 +47,11 @@ class AttendancePermissionController extends CoreController
 	{
 		$model = new AttendancePermission();
 		$params = Yii::$app->getRequest()->getBodyParams();
+		$scenario = Constants::SCENARIO_CREATE;
 
-        if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
-			return $coreUnavailableParams;
-        }
+		CoreController::unavailableParams($model, $params);
 
-		$model->scenario = Constants::SCENARIO_CREATE;
+		$model->scenario = $scenario;
 		$params['status'] = Constants::STATUS_DRAFT;
 		$params['approved'] = null;
 		$params['approved_note'] = null;
@@ -71,10 +68,9 @@ class AttendancePermissionController extends CoreController
     public function actionUpdate()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
+		$scenario = Constants::SCENARIO_UPDATE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_UPDATE)) {
-			return $coreValidateParams;
-		}
+		CoreController::validateParams($params, $scenario);
 		
 		$model = CoreController::coreFindModelOne(new AttendancePermission(), $params, [
 			'status' => Constants::STATUS_DRAFT, 
@@ -87,20 +83,14 @@ class AttendancePermissionController extends CoreController
 			return CoreController::coreDataNotFound();
 		}
 
-		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
-			return $coreUnavailableParams;
-        }
+		CoreController::unavailableParams($model, $params);
 
-		$model->scenario = Constants::SCENARIO_UPDATE;
+		$model->scenario = $scenario;
 
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
+		CoreController::superadmin($params);
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
-                return $coreEmptyParams;
-            }
+			CoreController::emptyParams($model);
 
 			if ($model->save()) {
 				return CoreController::coreSuccess($model);
@@ -114,10 +104,9 @@ class AttendancePermissionController extends CoreController
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$params['status'] = Constants::STATUS_ACTIVE;
+		$scenario = Constants::SCENARIO_APPROVE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_UPDATE)) {
-			return $coreValidateParams;
-		}
+		CoreController::validateParams($params, $scenario);
 		
 		$model = CoreController::coreFindModelOne(new AttendancePermission(), $params, [
 			'status' => Constants::STATUS_ACTIVE, 
@@ -132,20 +121,14 @@ class AttendancePermissionController extends CoreController
 			return CoreController::coreDataNotFound();
 		}
 
-		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
-			return $coreUnavailableParams;
-        }
+		CoreController::unavailableParams($model, $params);
 
-		$model->scenario = Constants::SCENARIO_APPROVE;
+		$model->scenario = $scenario;
 
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
+		CoreController::superadmin($params);
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
-                return $coreEmptyParams;
-            }
+			CoreController::emptyParams($model);
 
 			if ($model->save()) {
 				return CoreController::coreSuccess($model);
@@ -158,12 +141,11 @@ class AttendancePermissionController extends CoreController
 	public function actionReject()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
+		$scenario = Constants::SCENARIO_REJECT;
 		$params['status'] = Constants::STATUS_ACTIVE;
 		$params['approved'] = Constants::APPROVED_REJECT;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_UPDATE)) {
-			return $coreValidateParams;
-		}
+		CoreController::validateParams($params, $scenario);
 		
 		$model = CoreController::coreFindModelOne(new AttendancePermission(), $params, [
 			'status' => Constants::STATUS_ACTIVE, 
@@ -176,20 +158,14 @@ class AttendancePermissionController extends CoreController
 			return CoreController::coreDataNotFound();
 		}
 
-		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
-			return $coreUnavailableParams;
-        }
+		CoreController::unavailableParams($model, $params);
 
-		$model->scenario = Constants::SCENARIO_REJECT;
+		$model->scenario = $scenario;
 
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
+		CoreController::superadmin($params);
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
-                return $coreEmptyParams;
-            }
+			CoreController::emptyParams($model);
 
 			if ($model->save()) {
 				return CoreController::coreSuccess($model);
@@ -202,11 +178,10 @@ class AttendancePermissionController extends CoreController
 	public function actionDelete()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
+		$scenario = Constants::SCENARIO_DELETE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_DELETE)) {
-			return $coreValidateParams;
-		}
-
+		CoreController::validateParams($params, $scenario);
+		
 		$model = CoreController::coreFindModelOne(new AttendancePermission(), $params);
 
 		if ($model === null) {
@@ -214,16 +189,12 @@ class AttendancePermissionController extends CoreController
 		}
 
 		$params['status'] = Constants::STATUS_DELETED;
-		$model->scenario = Constants::SCENARIO_DELETE;
+		$model->scenario = $scenario;
 
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
+		CoreController::superadmin($params);
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
-                return $coreEmptyParams;
-            }
+			CoreController::emptyParams($model);
 
 			if ($model->save()) {
 				return CoreController::coreSuccess($model);

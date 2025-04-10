@@ -37,9 +37,7 @@ class BrandController extends CoreController
 		$searchModel = new BrandSearch();
 		$dataProvider = $searchModel->search($params);
 
-		if ($coreValidateProvider = CoreController::coreValidateProvider($dataProvider, $searchModel)) {
-			return $coreValidateProvider;
-		}
+		CoreController::validateProvider($dataProvider, $searchModel);
 
 		return CoreController::coreData($dataProvider);
 	}
@@ -48,13 +46,12 @@ class BrandController extends CoreController
 	{
 		$model = new Brand();
 		$params = Yii::$app->getRequest()->getBodyParams();
+		$scenario = Constants::SCENARIO_CREATE;
 
-        if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
-			return $coreUnavailableParams;
-        }
+        CoreController::unavailableParams($model, $params);
 
 		$params['status'] = Constants::STATUS_DRAFT;
-		$model->scenario = Constants::SCENARIO_CREATE;
+		$model->scenario = $scenario;
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
@@ -68,10 +65,9 @@ class BrandController extends CoreController
 	public function actionUpdate()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
+		$scenario = Constants::SCENARIO_UPDATE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_UPDATE)) {
-			return $coreValidateParams;
-		}
+		CoreController::validateParams($params, $scenario);
 		
 		$model = CoreController::coreFindModelOne(new Brand(), $params);
 		
@@ -79,20 +75,14 @@ class BrandController extends CoreController
 			return CoreController::coreDataNotFound();
 		}
 
-		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
-			return $coreUnavailableParams;
-        }
+		CoreController::unavailableParams($model, $params);
 
-		$model->scenario = Constants::SCENARIO_UPDATE;
+		$model->scenario = $scenario;
 
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
+		CoreController::superadmin($params);
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
-                return $coreEmptyParams;
-            }
+			CoreController::emptyParams($model);
 
 			if ($model->save()) {
 				return CoreController::coreSuccess($model);
@@ -105,10 +95,9 @@ class BrandController extends CoreController
 	public function actionDelete()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
+		$scenario = Constants::SCENARIO_DELETE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_DELETE)) {
-			return $coreValidateParams;
-		}
+		CoreController::validateParams($params, $scenario);
 
 		$model = CoreController::coreFindModelOne(new Brand(), $params);
 
@@ -117,16 +106,12 @@ class BrandController extends CoreController
 		}
 
 		$params['status'] = Constants::STATUS_DELETED;
-		$model->scenario = Constants::SCENARIO_DELETE;
+		$model->scenario = $scenario;
 
-		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
-			return $coreSuperadmin;
-		}
+		CoreController::superadmin($params);
 
 		if ($model->load($params, '') && $model->validate()) {
-			if ($coreEmptyParams = CoreController::coreEmptyParams($model)) {
-                return $coreEmptyParams;
-            }
+			CoreController::emptyParams($model);
 
 			if ($model->save()) {
 				return CoreController::coreSuccess($model);

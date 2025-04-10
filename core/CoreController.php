@@ -8,6 +8,8 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\components\CustomException;
 use app\helpers\Constants;
+use app\exceptions\ErrorMessage;
+use yii\base\DynamicModel;
 
 class CoreController extends Controller
 {
@@ -182,62 +184,75 @@ class CoreController extends Controller
         ];
     }
 
-    public function coreValidateProvider($dataProvider, $searchModel = null): array|bool
+    public function validateProvider($dataProvider, $searchModel = null): array|bool
     {
+        $model = new DynamicModel();
+        
         if (isset($dataProvider->errors)) {
-            return $this->coreError($dataProvider, Yii::t('app', 'validationFailed'));
+            $errors = $dataProvider->errors;
+
+            foreach($errors as $error) {
+                $model->addError($error['field'], $error['message']);
+            }
+
+            throw new ErrorMessage($model, Yii::t('app', 'validationFailed'), 400);
+            // return $this->coreError($dataProvider, Yii::t('app', 'validationFailed'));
         }
 
-        if ($searchModel !== null && !$searchModel->validate()) {
-            return $this->coreError($searchModel, Yii::t('app', 'badRequest'));
-        }
+        // if ($searchModel !== null && !$searchModel->validate()) {
+        //     return $this->coreError($searchModel, Yii::t('app', 'badRequest'));
+        // }
 
         return false;
     }
 
-    public function coreValidateParams(?array $params, string $scenario = 'default'): array|bool
+    public function validateParams(?array $params, string $scenario = 'default'): array|bool
     {
-        $error = [];
         $idKey = 'id';
         $messageError = null;
-
+        
+        // Create dynamic model with attributes
+        $attributes = array_keys($params);
+        $model = new DynamicModel($attributes);
+        
+        // Add validation rules
         if (isset($params[$idKey])) {
             $id = $params[$idKey];
             unset($params[$idKey]);
 
-            (!is_numeric($id) || intval($id) != $id) ? $error[] = [
-                'field' => $idKey,
-                'message' => Yii::t('app', 'integer', ['label' => $idKey]),
-            ] : null;
+            if (!is_numeric($id) || intval($id) != $id) {
+                $model->addError($idKey, Yii::t('app', 'integer', ['label' => $idKey]));
+            }
 
-            ($scenario === Constants::SCENARIO_UPDATE && empty($params)) ? $error[] = [
-                'field' => $idKey,
-                'message' => Yii::t('app', 'emptyParams'),
-            ] : null;
+            if ($scenario === Constants::SCENARIO_UPDATE && empty($params)) {
+                $model->addError($idKey, Yii::t('app', 'emptyParams'));
+            }
         } else {
             $messageError = Yii::t('app', 'validationFailed');
-
-            $error[] = [
-                'field' => $idKey,
-                'message' => Yii::t('app', 'required', ['label' => $idKey]),
-            ];
+            $model->addError($idKey, Yii::t('app', 'required', ['label' => $idKey]));
         }
 
-        if (!empty($error)) {
-            return [
-                'code' => Yii::$app->response->statusCode = 400,
-                'success' => false,
-                'message' => $messageError ?? Yii::t('app', 'invalidField', ['label' => $idKey]),
-                'errors' => $error,
-            ];
+        if ($model->hasErrors()) {
+            // return [
+            //     'code' => Yii::$app->response->statusCode = 400,
+            //     'success' => false,
+            //     'message' => $messageError ?? Yii::t('app', 'invalidField', ['label' => $idKey]),
+            //     'errors' => array_map(function($attribute) use ($model) {
+            //         return [
+            //             'field' => $attribute,
+            //             'message' => $model->getFirstError($attribute)
+            //         ];
+            //     }, array_keys($model->getErrors()))
+            // ];
+
+            throw new ErrorMessage($model, Yii::t('app', 'validationFailed'), 400);
         }
 
         return false;
     }
 
-    public function coreEmptyParams($model, $scenario = null): bool|array
+    public function emptyParams($model, $scenario = null): bool|array
     {
-		$message = null;
         $scenario = $scenario ?? Constants::SCENARIO_UPDATE;
         $optimisticLock = Constants::OPTIMISTIC_LOCK;
 
@@ -253,50 +268,62 @@ class CoreController extends Controller
             $message = Yii::t('app', 'noRecordDeleted');
         }
 
-        return $message ? [
-            'code' => Yii::$app->response->statusCode = 422,
-            'success' => false,
-            'message' => $message,
-            'errors' => $model->errors ?? [],
-        ] : false;
+        // return $message ? [
+        //     'code' => Yii::$app->response->statusCode = 422,
+        //     'success' => false,
+        //     'message' => $message,
+        //     'errors' => $model->errors ?? [],
+        // ] : false;
+
+        if ($message) {
+            throw new ErrorMessage($model, $message, 400);
+        }
+
+        return false;
     }
 
-    public function coreUnavailableParams($model, ?array $params): array|bool
+    public function unavailableParams($model, ?array $params): array|bool
 	{
+        
         if ($unavailableParams = Yii::$app->coreAPI->unavailableParams($model, $params)) {
-            return [
-                'code' => Yii::$app->response->statusCode = 422,
-                'success' => false,
-                'message' => Yii::t('app', 'validationFailed'),
-                'errors' => $unavailableParams ?? [],
-            ]; 
+            // return [
+            //     'code' => Yii::$app->response->statusCode = 422,
+            //     'success' => false,
+            //     'message' => Yii::t('app', 'validationFailed'),
+            //     'errors' => $unavailableParams ?? [],
+            // ];
+
+            throw new ErrorMessage($unavailableParams, Yii::t('app', 'validationFailed'), 400);
         }
 
         return false;
 	}
 
-    public function coreSuperadmin(?array $params): array|bool
+    public function superadmin(?array $params): array|bool
     {
         $status = (int)($params['status'] ?? null);
         $restrictStatus = Constants::RESTRICT_STATUS_LIST;
 
         if (
-            !$this->superAdmin()
+            !$this->isSuperAdmin()
             && $status !== null
             && in_array($status, $restrictStatus, true)
         ) {
-            return [
-                'code' => Yii::$app->response->statusCode = 403,
-                'success' => false,
-                'message' => Yii::t('app', 'superadminOnly'),
-                'errors' => [],
-            ];
+            // return [
+            //     'code' => Yii::$app->response->statusCode = 403,
+            //     'success' => false,
+            //     'message' => Yii::t('app', 'superadminOnly'),
+            //     'errors' => [],
+            // ];
+
+            $model = new DynamicModel();
+            throw new ErrorMessage($model, Yii::t('app', 'superadminOnly'), 403);
         }
 
         return false;
     }
 
-    public function superAdmin(): bool
+    public function isSuperAdmin(): bool
     {
         $roles = Yii::$app->session->get('roles', []);
 
