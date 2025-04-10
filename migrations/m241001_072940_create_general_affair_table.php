@@ -67,6 +67,10 @@ class m241001_072940_create_general_affair_table extends Migration
                                 'id' => 2,
                                 'name' => 'Teknologi Informasi',
                             ],
+                            'employee' => [
+                                'id' => 1,
+                                'name' => 'Employee 1',
+                            ],
                             'tax_date' => null,
                             'condition' => 4,
                             'buying_date' => '2024-11-15',
