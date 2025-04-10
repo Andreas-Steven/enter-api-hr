@@ -53,7 +53,6 @@ class Attendance extends \yii\db\ActiveRecord
             [
                 [['dayoff'], 'boolean'],
                 [['attendance', 'blacklist', 'detail_info'], 'safe'],
-
                 [['end_time', 'start_time'], 'date', 'format' => 'php:H:i:s'],
                 [['date', 'system_date', 'dateMismatch'], 'date', 'format' => 'php:Y-m-d'],
                 
