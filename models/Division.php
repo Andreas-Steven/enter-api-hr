@@ -32,9 +32,13 @@ class Division extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['detail_info'], 'safe'],
-                [['code', 'name'], 'string', 'max' => 255],
+                [['code'], 'string', 'min' => 2, 'max' => 8],
+                [['name'], 'string', 'min' => 3, 'max' => 255],
                 
                 [['code', 'name'], 'required'],
+                [['code'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
+                    return $model->isAttributeChanged('code');
+                }],
 
                 [['code', 'name', 'status'], function ($attribute, $params, $validator) {
                     CoreModel::validateDependencies($attribute, $params, $validator, $this, [
@@ -45,7 +49,6 @@ class Division extends \yii\db\ActiveRecord
             CoreModel::getStatusRules($this),
             CoreModel::getLockVersionRules($this),
         );
-            
     }
 
     public function scenarios()

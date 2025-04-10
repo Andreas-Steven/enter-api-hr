@@ -30,9 +30,15 @@ class m241010_103834_create_employee_table extends Migration
             'division_id' => $this->integer()->notNull()->defaultValue(1),
             'position_id' => $this->integer()->notNull()->defaultValue(1),
             'employee_type_id' => $this->integer()->notNull()->defaultValue(1),
-            'image' => $this->string(255),
+            'work_time_id' => $this->integer()->notNull()->defaultValue(null),
+            'image' => $this->json()->defaultValue('[]'),
             'status' => $this->smallInteger()->notNull()->defaultValue(2)->comment('0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance'),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
+                'sso' => null,
+                'division' => null,
+                'position' => null,
+                'employee_type' => null,
+                'work_time' => null,
                 'change_log' => [
                     'created_at' => null,
                     'created_by' => null,
@@ -65,7 +71,8 @@ class m241010_103834_create_employee_table extends Migration
                 'division_id' => 6,
                 'position_id' => 2,
                 'employee_type_id' => 2,
-                'image' => 'https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg',
+                'work_time_id' => 1,
+                'image' => ['https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg'],
                 'status' => 1,
                 'detail_info' => [
                     'sso' => [
@@ -83,6 +90,40 @@ class m241010_103834_create_employee_table extends Migration
                     'employee_type' => [
                         'id' => 2,
                         'name' => 'Karyawan Tetap',
+                    ],
+                    'work_time' => [
+                        'id' => 1,
+                        'name' => 'Package A',
+                        'working_days' => [
+                            '1' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '2' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '3' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '4' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '5' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '6' => [
+                                'home_time' => '15:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '7' => [
+                                'home_time' => null,
+                                'entry_time' => null,
+                            ],
+                        ],
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
@@ -107,7 +148,8 @@ class m241010_103834_create_employee_table extends Migration
                 'division_id' => 2,
                 'position_id' => 6,
                 'employee_type_id' => 1,
-                'image' => 'https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg',
+                'work_time_id' => 1,
+                'image' => ['https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg'],
                 'status' => 1,
                 'detail_info' => [
                     'sso' => [
@@ -125,6 +167,40 @@ class m241010_103834_create_employee_table extends Migration
                     'employee_type' => [
                         'id' => 1,
                         'name' => 'Karyawan Percobaan',
+                    ],
+                    'work_time' => [
+                        'id' => 1,
+                        'name' => 'Package A',
+                        'working_days' => [
+                            '1' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '2' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '3' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '4' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '5' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '6' => [
+                                'home_time' => '15:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '7' => [
+                                'home_time' => null,
+                                'entry_time' => null,
+                            ],
+                        ],
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
@@ -149,7 +225,8 @@ class m241010_103834_create_employee_table extends Migration
                 'division_id' => 4,
                 'position_id' => 6,
                 'employee_type_id' => 1,
-                'image' => 'https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg',
+                'work_time_id' => 1,
+                'image' => ['https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg'],
                 'status' => 1,
                 'detail_info' => [
                     'sso' => [
@@ -167,6 +244,40 @@ class m241010_103834_create_employee_table extends Migration
                     'employee_type' => [
                         'id' => 1,
                         'name' => 'Karyawan Percobaan',
+                    ],
+                    'work_time' => [
+                        'id' => 1,
+                        'name' => 'Package A',
+                        'working_days' => [
+                            '1' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '2' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '3' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '4' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '5' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '6' => [
+                                'home_time' => '15:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '7' => [
+                                'home_time' => null,
+                                'entry_time' => null,
+                            ],
+                        ],
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
@@ -191,7 +302,8 @@ class m241010_103834_create_employee_table extends Migration
                 'division_id' => 7,
                 'position_id' => 6,
                 'employee_type_id' => 1,
-                'image' => 'https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg',
+                'work_time_id' => 1,
+                'image' => ['https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg'],
                 'status' => 1,
                 'detail_info' => [
                     'sso' => [
@@ -209,6 +321,40 @@ class m241010_103834_create_employee_table extends Migration
                     'employee_type' => [
                         'id' => 1,
                         'name' => 'Karyawan Percobaan',
+                    ],
+                    'work_time' => [
+                        'id' => 1,
+                        'name' => 'Package A',
+                        'working_days' => [
+                            '1' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '2' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '3' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '4' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '5' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '6' => [
+                                'home_time' => '15:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '7' => [
+                                'home_time' => null,
+                                'entry_time' => null,
+                            ],
+                        ],
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
@@ -230,19 +376,20 @@ class m241010_103834_create_employee_table extends Migration
                 'date_start' => '2022-09-17',
                 'date_resign' => null,
                 'sso_id' => 2,
-                'division_id' => 10,
+                'division_id' => 1,
                 'position_id' => 6,
                 'employee_type_id' => 1,
-                'image' => 'https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg',
-                'status' => 1,
+                'work_time_id' => 1,
+                'image' => ['https://enterkomputer.com/assets/img/ecomm/marketplace-placeholder.svg'],
+                'status' => 2,
                 'detail_info' => [
                     'sso' => [
                         'sso_id' => 5,
                         'username' => 'employee_5',
                     ],
                     'division' => [
-                        'id' => 10,
-                        'name' => 'Return Merchandise Authorization',
+                        'id' => 1,
+                        'name' => 'Unassigned',
                     ],
                     'position' => [
                         'id' => 6,
@@ -251,6 +398,40 @@ class m241010_103834_create_employee_table extends Migration
                     'employee_type' => [
                         'id' => 1,
                         'name' => 'Karyawan Percobaan',
+                    ],
+                    'work_time' => [
+                        'id' => 1,
+                        'name' => 'Package A',
+                        'working_days' => [
+                            '1' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '2' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '3' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '4' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '5' => [
+                                'home_time' => '18:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '6' => [
+                                'home_time' => '15:00:00',
+                                'entry_time' => '09:00:00',
+                            ],
+                            '7' => [
+                                'home_time' => null,
+                                'entry_time' => null,
+                            ],
+                        ],
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,

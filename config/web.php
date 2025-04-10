@@ -7,10 +7,10 @@ $mongodb = require __DIR__ . '/mongodb.php';
 $config = [
     'id' => 'basic'.$params['extraCookies'],
     'name' => $params['titleService'],
-    'timeZone' => $params['timeZone'],
+    'timeZone' => $params['timestamp']['timeZone'],
     'basePath' => dirname(__DIR__),
-    'language' => $params['language']['default'],
     'bootstrap' => ['log'],
+    'language' => $params['language']['default'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
@@ -36,18 +36,28 @@ $config = [
             'on beforeSend' => function ($event) {
                 $response = $event->sender;
 
-                // if (!YII_ENV_DEV){
-                //     if ($response->data !== null && Yii::$app->request->get('suppress_response_code')) {
-                //         $response->data = [
-                //             'success' => $response->isSuccessful,
-                //             'data' => $response->data,
-                //         ];
-                //         $response->statusCode = 200;
-                //     } else {
-                //         $response->data['success'] = $response->isSuccessful;
-                //         unset($response->data['type']);
-                //     }
-                // }
+                if (!YII_ENV_DEV){
+                    if ($response->data !== null && Yii::$app->request->get('suppress_response_code')) {
+                        $response->data = [
+                            'success' => $response->isSuccessful,
+                            'data' => $response->data,
+                        ];
+                        $response->statusCode = 200;
+                    } else {
+                        $response->data['success'] = $response->isSuccessful;
+                        unset($response->data['type']);
+
+                        if (!$response->isSuccessful) {
+                            unset($response->data['name']);
+                        }
+
+                        if ($response->statusCode == 405) {
+                            unset($response->data['status']);
+                            $response->data['errors'] = [];
+                            $response->data['code'] = $response->statusCode;
+                        }
+                    }
+                }
             },
         ],
         'errorHandler' => [
@@ -80,18 +90,10 @@ $config = [
                     ],
                     'on missingTranslation' => ['app\components\TranslationEventHandler', 'handleMissingTranslation']
                 ],
-                'core' => [
-                    'class' => 'yii\i18n\PhpMessageSource',
-                    'basePath' => '@app/translation',
-                    'fileMap' => [
-                        'core' => 'core.php',
-                    ],
-                    'on missingTranslation' => ['app\components\TranslationEventHandler', 'handleMissingTranslation']
-                ]
             ],
         ],
         'log' => [
-            'traceLevel' => YII_DEBUG ? 3 : 0,
+            'traceLevel' => YII_DEBUG ? 3 : 3, #,
             'targets' => [
                 [
                     'class' => 'yii\log\FileTarget',

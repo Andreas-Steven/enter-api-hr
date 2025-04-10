@@ -55,12 +55,19 @@ class CoreModel
         return in_array($status, Constants::RESTRICT_STATUS_LIST, true);
     }
 
-    public static function getStatusRules($model): array
+	public static function isJsonString($value)
     {
+        json_decode($value);
+        return json_last_error() === JSON_ERROR_NONE;
+    }
+
+    public static function getStatusRules($model, ?array $list=[]): array
+    {
+		$list = !empty($list) ? $list : Constants::STATUS_LIST;
         return [
             [['status'], 'default', 'value' => Constants::STATUS_DRAFT],
             [['status'], 'integer'],
-            [['status'], 'in', 'range' => array_keys(Constants::STATUS_LIST)],
+            [['status'], 'in', 'range' => array_keys($list)],
             [['status'], 'filter', 'filter' => 'intval'],
             [
                 ['status'],
@@ -68,6 +75,38 @@ class CoreModel
                     self::validateStatusUpdate($attribute, $params, $model);
                 },
             ],
+        ];
+    }
+
+	public static function validateAttributeArray($model, $attribute, $label)
+    {
+        if (!is_array($model->$attribute)) {
+            if (self::isNullString($model->$attribute)) {
+				return;
+			}
+
+			$model->addError($attribute, Yii::t('app', 'array', ['label' => $label]));
+			return;
+        }
+    }
+
+	public static function validateAttributeArrayOrNull($model, $attribute, $label)
+    {
+        if (!is_array($model->$attribute)) {
+            if (self::isNullString($model->$attribute)) {
+				return;
+			}
+
+			$model->addError($attribute, Yii::t('app', 'array', ['label' => $label]));
+			return;
+        }
+    }
+
+	public static function getSyncRules($model=null): array
+    {
+        return [
+			[['sync'], 'default', 'value' => null],
+            [['sync'], 'integer'],
         ];
     }
 
@@ -80,7 +119,7 @@ class CoreModel
         ];
     }
 
-	public static function getLockVersionRulesOnly($model=null, $requiredOn=null): array
+	public static function getLockVersionRulesOnly(): array
     {
         return [
             [[Constants::OPTIMISTIC_LOCK], 'integer'],
@@ -94,7 +133,7 @@ class CoreModel
             [['page', 'page_size'], 'integer'],
             [['page'], function ($attribute, $params) use ($model) {
 				if ($model->$attribute <= 0) {
-					$model->addError($attribute, Yii::t('core', 'pageMustBeGreaterThanZero'));
+					$model->addError($attribute, Yii::t('app', 'pageMustBeGreaterThanZero'));
 				}
             }],
         ];
@@ -138,7 +177,7 @@ class CoreModel
         if ($model->isAttributeChanged($attribute)) {
             if (!$model->isNewRecord) {
                 if ($oldStatus == Constants::STATUS_DELETED && $newStatus != Constants::STATUS_DELETED && Yii::$app->coreAPI->superAdmin()) {
-                    $model->addError($attribute, Yii::t('core', 'deletedStatusChanged', ['value' => $statusList[Constants::STATUS_DELETED]]));
+                    $model->addError($attribute, Yii::t('app', 'deletedStatusChanged', ['value' => $statusList[Constants::STATUS_DELETED]]));
                     return;
                 }
             }
@@ -150,13 +189,13 @@ class CoreModel
 				}
 	
 				if (in_array($oldStatus, $disallowedStatusUpdate)) {
-					$model->addError($attribute, Yii::t('core', 'disallowedStatusUpdate', ['value' => $statusList[$oldStatus]]));
+					$model->addError($attribute, Yii::t('app', 'disallowedStatusUpdate', ['value' => $statusList[$oldStatus]]));
 					return;
 				}
 	
 				if (!in_array($newStatus, $allowedStatusUpdate[$oldStatus])) {
 					if ($model->hasErrors($attribute)) {
-						$model->addError($attribute, Yii::t('core', 'cannotChangeStatus', [
+						$model->addError($attribute, Yii::t('app', 'cannotChangeStatus', [
 							'value' => $statusList[$oldStatus],
 							'newValue' => $statusList[$newStatus]
 						]));
@@ -193,7 +232,7 @@ class CoreModel
                     foreach ($dependency['field'] as $field) {
                         if ($className::find()->where([$field => $dataId])->exists()) {
                             foreach ($changedAttributes as $changedAttribute) {
-                                $model->addError($changedAttribute, Yii::t('core', 'updatePermission', [
+                                $model->addError($changedAttribute, Yii::t('app', 'updatePermission', [
                                     'label' => $model->getAttributeLabel($changedAttribute),
                                     'tableName' => $model->tableName(),
                                 ]));
@@ -247,54 +286,54 @@ class CoreModel
 	}
 
 	public static function validateRequiredFields($model, $attribute, $requiredFields, $item = null): bool
-    {
-        $fields = $item ?? $model->$attribute;
+	{
+		$fields = $item ?? $model->$attribute;
 
-        if (!is_array($fields)) {
-            $model->addError($attribute, Yii::t('core', 'array', [
-                'label' => $model->getAttributeLabel($attribute),
-            ]));
+		if (!is_array($fields)) {
+			$model->addError($attribute, Yii::t('app', 'array', [
+				'label' => $model->getAttributeLabel($attribute),
+			]));
 
-            throw new ErrorMessage($model, Yii::t('core', 'array', [
-                'label' => $model->getAttributeLabel($attribute),
-            ]), 422);
-        }
+			throw new ErrorMessage($model, Yii::t('app', 'array', [
+				'label' => $model->getAttributeLabel($attribute),
+			]), 422);
+		}
 
-        $extraFields = array_diff_key($fields, array_flip($requiredFields));
-        if ($extraFields) {
-            $model->addError($attribute, Yii::t('core', 'extraField', [
-                'label' => $model->getAttributeLabel($attribute),
-                'field' => implode(', ', array_keys($extraFields)),
-                'value' => implode(', ', $requiredFields),
-            ]));
+		$extraFields = array_diff_key($fields, array_flip($requiredFields));
+		if ($extraFields) {
+			$model->addError($attribute, Yii::t('app', 'extraField', [
+				'label' => $model->getAttributeLabel($attribute),
+				'field' => implode(', ', array_keys($extraFields)),
+				'value' => implode(', ', $requiredFields),
+			]));
 
-            throw new ErrorMessage($model, Yii::t('core', 'extraFieldFound', [
-                'label' => $model->getAttributeLabel($attribute),
-            ]), 422);
-        }
+			throw new ErrorMessage($model, Yii::t('app', 'extraFieldFound', [
+				'label' => $model->getAttributeLabel($attribute),
+			]), 422);
+		}
 
-        $missingFields = array_diff($requiredFields, array_keys($fields));
-        if ($missingFields) {
-            $model->addError($attribute, Yii::t('core', 'missingField', [
-                'field' => implode(', ', $missingFields),
-            ]));
+		$missingFields = array_diff($requiredFields, array_keys($fields));
+		if ($missingFields) {
+			$model->addError($attribute, Yii::t('app', 'missingField', [
+				'field' => implode(', ', $missingFields),
+			]));
 
-            throw new ErrorMessage($model, Yii::t('core', 'missingFieldFound', [
-                'label' => $model->getAttributeLabel($attribute),
-            ]), 422);
-        }
+			throw new ErrorMessage($model, Yii::t('app', 'missingFieldFound', [
+				'label' => $model->getAttributeLabel($attribute),
+			]), 422);
+		}
 
-        return false;
-    }
+		return false;
+	}
 
 	public static function nullFieldValidator($model, $attribute, $item): bool {
 		$nullFields = array_keys(array_filter($item, function ($value) {
 			return $value === null;
 		}));
 		if (!empty($nullFields)) {
-			$model->addError($attribute, Yii::t('core', 'nullField', [
+			$model->addError($attribute, Yii::t('app', 'nullField', [
 				'label' => $model->getAttributeLabel($attribute),
-				'fields' => implode(', ', $nullFields),
+				'field' => implode(', ', $nullFields),
 			]));
 			return true;
 		}
@@ -356,28 +395,90 @@ class CoreModel
 	 * @param string|null $value the value to search for
 	 * @return array the MongoDB regex filter
 	 */
-	public static function mongodbLikeFilter(?string $value): array
+	public static function mdbStringLike(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
 	{
-		return [
-			'$regex' => str_replace(' ', '.*', $value ?? ''),
-			'$options' => 'i',
-		];
+		if ($value !== null) {
+			$query = [
+				'$regex' => str_replace(' ', '.*', $value ?? ''),
+				'$options' => 'i',
+			];
+			
+			match (strtolower($orWhere)) {
+				'or' => $where[] = [$field => $query],
+				default => $where[$field] = $query,
+			};
+		}
 	}
 
-	public static function mongodbEqualFilter(?string $value): array
+	public static function mdbStringEqual(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
 	{
-		return [
-			'$regex' => '^' . $value . '$',
-			'$options' => 'i',
-		];
+		if ($value !== null) {
+			$query = [
+				'$regex' => '^' . $value . '$',
+				'$options' => 'i',
+			];
+			
+			match (strtolower($orWhere)) {
+				'or' => $where[] = [$field => $query],
+				default => $where[$field] = $query,
+			};
+		}
 	}
 
-	public static function mongodbStatusFilter(?string $status): array
+	public static function mdbNumberEqual(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
 	{
-		return [
+		if ($value !== null) {
+			$where[$field] = intval($value);
+		}
+	}
+
+	public static function mdbNumberMultiple(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
+	{
+		if ($value !== null) {
+			$value = array_map('intval', explode(',', $value)) ?? [];
+			
+			$query = [
+				'$in' => $value,
+			];
+
+			match (strtolower($orWhere)) {
+				'or' => $where[] = [$field => $query],
+				default => $where[$field] = $query,
+			};
+		}
+	}
+
+	public static function mdbStatus(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
+	{
+		$query = [
 			'$ne' => Constants::STATUS_DELETED,
-			'$eq' => (int) $status,
 		];
+
+		if ($value !== null) {
+			$query['$eq'] = intval($value);
+		}
+		
+		match (strtolower($orWhere)) {
+			'or' => $where[] = [$field => $query],
+			default => $where[$field] = $query,
+		};
 	}
 
+	public static function localDateFormatter($date)
+	{
+		if ($date === null) {
+			return null;
+		}
+		
+		return (new \DateTime($date))->format(Yii::$app->params['timestamp']['local']);
+	}
+
+	public static function utcDateFormatter($date)
+	{
+		if ($date === null) {
+			return null;
+		}
+
+		return (new \DateTime($date))->format(Yii::$app->params['timestamp']['UTC']);
+	}
 }

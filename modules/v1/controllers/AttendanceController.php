@@ -48,13 +48,14 @@ class AttendanceController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$params['system_date'] = date('Y-m-d');
 		$params['dateMismatch'] = null;
+		$scenario = Constants::SCENARIO_CREATE;
 
 		if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
 			return $coreUnavailableParams;
         }
 
 		if (empty($params['date'])) {
-			$model->addError('date', Yii::t('core', 'required', ['label' => $model->getAttributeLabel('date')]));
+			$model->addError('date', Yii::t('app', 'required', ['label' => $model->getAttributeLabel('date')]));
 			return CoreController::coreError($model);
 		}
 
@@ -101,7 +102,7 @@ class AttendanceController extends CoreController
 		}
 
 		$params['status'] = Constants::STATUS_ACTIVE;
-		$model->scenario = Constants::SCENARIO_CREATE;
+		$model->scenario = $scenario;
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {	

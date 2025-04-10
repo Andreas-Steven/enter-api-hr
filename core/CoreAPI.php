@@ -48,7 +48,7 @@ class CoreAPI
 		
 		if (!empty($unsupportedParams)) {
 			foreach ($unsupportedParams as $key => $value) {
-				$model->addError($key, Yii::t('core', 'invalidField', ['label' => $key]));
+				$model->addError($key, Yii::t('app', 'invalidField', ['label' => $key]));
 			}
 
 			return $model;
@@ -59,12 +59,12 @@ class CoreAPI
 
 	public function unauthorizedAccess(?string $message = null): array
     {
-		throw new ErrorMessage(null, Yii::t('core', 'unauthorizedAccess'), 401);
+		throw new ErrorMessage(null, Yii::t('app', 'unauthorizedAccess'), 401);
     }
 
 	public function serverError(?string $message = null): array
     {
-		throw new ErrorMessage(null, Yii::t('core', 'serverError'), 500);
+		throw new ErrorMessage(null, Yii::t('app', 'serverError'), 500);
     }
 
 	public function setMongodbSyncFailed($model): void

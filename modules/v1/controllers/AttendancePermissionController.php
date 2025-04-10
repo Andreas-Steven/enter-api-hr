@@ -54,8 +54,10 @@ class AttendancePermissionController extends CoreController
 			return $coreUnavailableParams;
         }
 
-		$params['status'] = Constants::STATUS_DRAFT;
 		$model->scenario = Constants::SCENARIO_CREATE;
+		$params['status'] = Constants::STATUS_DRAFT;
+		$params['approved'] = null;
+		$params['approved_note'] = null;
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
@@ -74,7 +76,7 @@ class AttendancePermissionController extends CoreController
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::coreFindModel(new AttendancePermission(), $params, [
+		$model = CoreController::coreFindModelOne(new AttendancePermission(), $params, [
 			'status' => Constants::STATUS_DRAFT, 
 			'approved' => [
 				Constants::APPROVED_DEFAULT
@@ -117,10 +119,12 @@ class AttendancePermissionController extends CoreController
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::coreFindModel(new AttendancePermission(), $params, [
+		$model = CoreController::coreFindModelOne(new AttendancePermission(), $params, [
 			'status' => Constants::STATUS_ACTIVE, 
 			'approved' => [
-				Constants::APPROVED_DEFAULT
+				Constants::APPROVED_DEFAULT,
+				Constants::APPROVED_REJECT,
+				Constants::APPROVED_APPROVE,
 			],
 		]);
 		
@@ -155,12 +159,13 @@ class AttendancePermissionController extends CoreController
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$params['status'] = Constants::STATUS_ACTIVE;
+		$params['approved'] = Constants::APPROVED_REJECT;
 
 		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_UPDATE)) {
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::coreFindModel(new AttendancePermission(), $params, [
+		$model = CoreController::coreFindModelOne(new AttendancePermission(), $params, [
 			'status' => Constants::STATUS_ACTIVE, 
 			'approved' => [
 				Constants::APPROVED_DEFAULT
@@ -202,7 +207,7 @@ class AttendancePermissionController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$model = CoreController::coreFindModel(new AttendancePermission(), $params);
+		$model = CoreController::coreFindModelOne(new AttendancePermission(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();

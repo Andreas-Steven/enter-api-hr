@@ -1,16 +1,18 @@
 <?php
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
 
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'pgsql:host=localhost;port=5432;dbname=dev_master_data',
-    'username' => 'dev_ironhead',
-    'password' => 'vYbrXeVMy#X7',
+    'dsn' => $_ENV['DB_DSN'],
+    'username' => $_ENV['DB_USERNAME'],
+    'password' => $_ENV['DB_PASSWORD'],
     'charset' => 'utf8',
     'enableLogging' => true,
     'enableProfiling' => true,
 
     // Schema cache options (for production environment)
-    // 'enableSchemaCache' => true,
-    // 'schemaCacheDuration' => 60,
-    // 'schemaCache' => 'cache',
+    'enableSchemaCache' => YII_ENV_DEV,
+    'schemaCacheDuration' => 60,
+    'schemaCache' => 'cache',
 ];

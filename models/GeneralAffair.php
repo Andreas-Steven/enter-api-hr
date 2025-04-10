@@ -5,6 +5,7 @@ namespace app\models;
 use Yii;
 use app\helpers\Constants;
 use app\core\CoreModel;
+use app\exceptions\ErrorMessage;
 
 /**
  * This is the model class for table "general_affair".
@@ -42,12 +43,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
-                [['name'], 'string', 'max' => 255],
                 [['asset', 'code', 'detail_info'], 'safe'],
                 [['product_id', 'category_id', 'location_id'], 'integer'],
                 
                 [['product_id', 'category_id', 'location_id'], 'required'],
-                
                 [['product_id', 'category_id', 'location_id'], 'filter', 'filter' => 'intval'],
                 
                 [['product_id'], 'validateProduct'],
@@ -97,7 +96,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function beforeValidate()
     {
         if (parent::beforeValidate()) {
-
+            $this->name = CoreModel::htmlPurifier($this->name);
             return true;
         }
 
@@ -107,7 +106,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->name = CoreModel::htmlPurifier($this->name);
             $this->asset = $this->calculateAsset($this->asset);
             $this->detail_info = [
                 'change_log' => CoreModel::getChangeLog($this, $insert),
@@ -122,10 +120,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
         return false;
     }
 
-    public function validateAsset($attribute, $params)
+    public function validateAsset($attribute)
     {
         if (!is_array($this->$attribute)) {
-            $this->addError($attribute, Yii::t('app', 'mustArray', ['field' => $this->getAttributeLabel('Asset')]));
+            $this->addError($attribute, Yii::t('app', 'mustArray', ['field' => 'Asset']));
             return;
         }
 
@@ -137,27 +135,14 @@ class GeneralAffair extends \yii\db\ActiveRecord
             $timestamp = Yii::$app->coreAPI->UTCTimestamp();
             $username = Yii::$app->coreAPI->getUsername();
 
-            $allowedFields = array_keys(Yii::$app->params['defaultValue']['items']);
-            $fields = array_keys($value);
+            if (empty($value['code'])) {
+                $this->addError($attribute, Yii::t('app', 'null', ['label' => 'Code']));
+            }
             
-            foreach ($fields as $fieldsValue) {
-                if (!in_array($fieldsValue, $allowedFields, true)) {
-                    $this->addError($attribute, Yii::t('core', 'allowedField', [
-                        'field' => $this->getAttributeLabel($attribute), 
-                        'value' => implode(', ', $allowedFields)
-                    ]));
-                    return;
-                }
+            if (!is_string($value['code']) || strlen($value['code']) < 10 || strlen($value['code']) > 25) {
+                $this->addError($attribute, Yii::t('app', 'codeFormatInvalid'));
             }
 
-            if (empty($value['code'])) {
-                $this->addError($attribute, Yii::t('core', 'nullField', [
-                    'label' => $this->getAttributeLabel($attribute.' Code'),
-                    'fields' => $this->getAttributeLabel($attribute.' Code'),
-                ]));
-                return;
-            }
-            
             if (isset($oldItem['items'][$value['code']])) {
                 $generalAffairItems = array_merge($oldItem['items'][$value['code']], $value);
                 $generalAffairItems['items_change_log']['updated_at'] = $timestamp;
@@ -168,55 +153,94 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $generalAffairItems['items_change_log']['created_by'] = $username;
             }
 
-            $generalAffairItems['price'] = floatval($generalAffairItems['price']);  
-            if (empty($generalAffairItems['price']) || $generalAffairItems['price'] < 0) {
-                $this->addError($attribute, Yii::t('core', 'float', ['label' => $this->getAttributeLabel('price')]));
-                return;
-            } 
-            
-            $generalAffairItems['condition'] = intval($generalAffairItems['condition']);
-            if (empty($generalAffairItems['condition']) || $generalAffairItems['condition'] < 1) {
-                $this->addError($attribute, Yii::t('core', 'integer', ['label' => $this->getAttributeLabel('condition')]));
-                return;
-            } 
-    
-            if (empty($generalAffairItems['division']['id'])) {
-                $this->addError($attribute, Yii::t('core', 'required', ['label' => $this->getAttributeLabel('division_id')]));
-                return;
+            $allowedFields = Yii::$app->params['allowedFields']['items'];
+            CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $generalAffairItems);
+
+            if (!is_numeric($generalAffairItems['price']) || empty($generalAffairItems['price'])) {
+                $this->addError($attribute, Yii::t('app', 'float', ['field' => 'Price']));
             }
+            $generalAffairItems['price'] = floatval($generalAffairItems['price']);  
+
+            if (!is_numeric($generalAffairItems['condition']) || empty($generalAffairItems['condition'])) {
+                $this->addError($attribute, Yii::t('app', 'integer', ['label' => 'Condition']));
+            }
+
+            if (!in_array($generalAffairItems['condition'], array_keys(Constants::ASSET_CONDITION))) {
+                $this->addError($attribute, Yii::t('app', 'invalidCondition', ['label' => 'Condition']));
+            }
+            $generalAffairItems['condition'] = intval($generalAffairItems['condition']);
     
+            if (!is_numeric($generalAffairItems['employee']['id']) || empty($generalAffairItems['employee']['id'])) {
+                $this->addError($attribute, Yii::t('app', 'integer', ['label' => 'Employee']));
+            }
+
+            $generalAffairItems['employee']['id'] = intval($generalAffairItems['employee']['id']);
+            $employee = Employee::findOne(['id' => $generalAffairItems['employee']['id'], 'status' => Constants::STATUS_ACTIVE]);
+            if ($employee === null) {
+                $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => 'Employee']));
+            }
+            $generalAffairItems['employee'] = ['id' => $employee->id, 'name' => $employee->name];
+
+            if (!is_numeric($generalAffairItems['division']['id']) || empty($generalAffairItems['division']['id'])) {
+                $this->addError($attribute, Yii::t('app', 'integer', ['label' => 'Division']));
+            }
+
+            $generalAffairItems['division']['id'] = intval($generalAffairItems['division']['id']);
             $division = Division::findOne(['id' => $generalAffairItems['division']['id'], 'status' => Constants::STATUS_ACTIVE]);
             if ($division === null) {
-                $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('division')]));
-                return;
+                $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => 'Division']));
             }
-
             $generalAffairItems['division'] = ['id' => $division->id, 'name' => $division->name];
-            
+
+            // DATE VALIDATION
             $dateValidator = new \yii\validators\DateValidator(['format' => 'php:Y-m-d']);
-            if (isset($generalAffairItems['buying_date']) && !$dateValidator->validate($generalAffairItems['buying_date'], $error)) {
-                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['field' => $this->getAttributeLabel('buying_date')]));
-                return;
-            }
-    
-            if (isset($generalAffairItems['tax_date']) && !$dateValidator->validate($generalAffairItems['tax_date'], $error)) {
-                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['field' => $this->getAttributeLabel('tax_date')]));
-                return;
-            }
-    
-            if (isset($generalAffairItems['inspection_date']) && !$dateValidator->validate($generalAffairItems['inspection_date'], $error)) {
-                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['field' => $this->getAttributeLabel('inspection_date')]));
-                return;
+            $generalAffairItems['buying_date'] = CoreModel::nullSafe($generalAffairItems['buying_date']);
+            if (empty($generalAffairItems['buying_date'])) {
+                $this->addError($attribute, Yii::t('app', 'required', ['label' => 'Buying Date']));
             }
 
-            if (isset($generalAffairItems['image']) && is_array($generalAffairItems['image'])) {
-                $generalAffairItems['image'] = array_filter($generalAffairItems['image'], fn($item) => !in_array($item, ['[]', '', null], true));
+            if (!$dateValidator->validate($generalAffairItems['buying_date'], $error)) {
+                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['field' => 'Buying Date']));
+            }
+            
+            $generalAffairItems['tax_date'] = CoreModel::nullSafe($generalAffairItems['tax_date']);
+            if (!empty($generalAffairItems['tax_date']) && !$dateValidator->validate($generalAffairItems['tax_date'], $error)) {
+                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['field' => 'Tax Date']));
+            }
+            
+            $generalAffairItems['inspection_date'] = CoreModel::nullSafe($generalAffairItems['inspection_date']);
+            if (!empty($generalAffairItems['inspection_date']) && !$dateValidator->validate($generalAffairItems['inspection_date'], $error)) {
+                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['field' => 'Inspection Date']));
+            }
+            // DATE VALIDATION END
+
+            // IMAGE VALIDATION
+            if (!empty($generalAffairItems['image'])) {
+                if (!is_array($generalAffairItems['image'])) {
+                    $this->addError('image', Yii::t('app', 'mustArray'));
+                }
+            
+                $generalAffairItems['image'] = array_filter($generalAffairItems['image'], function($item) {
+                    if (!in_array($item, ['[]', '', null], true)) {
+                        if (!filter_var($item, FILTER_VALIDATE_URL)) {
+                            $this->addError('image', Yii::t('app', 'invalidImage', ['label' => 'Image']));
+                        }
+                        return true;
+                    }
+                    return false;
+                });
+            
                 $generalAffairItems['image'] = array_values($generalAffairItems['image']);
             }
-            
+            // IMAGE VALIDATION END
+
             $oldItem['items'][$generalAffairItems['code']] = $generalAffairItems;
         }
         
+        if ($this->hasErrors()) {
+            throw new ErrorMessage($this, Yii::t('app', 'generalAffairFailed'), 422);
+        }
+
         $this->$attribute = ['items' => $oldItem['items']];
     }
     
@@ -255,38 +279,56 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function validateProduct($attribute, $params)
     {
-        $product = GeneralAffairProduct::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
+        $product = GeneralAffairProduct::findOne([
+            'id' => $this->$attribute, 
+            'status' => Constants::STATUS_ACTIVE
+        ]);
 
         if ($product === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
-        $this->product = ['id' => $product->id, 'name' => $product->name];
+        $this->product = [
+            'id' => $product->id, 
+            'name' => $product->name,
+        ];
         $this->name = $product->name;
     }
 
     public function validateCategory($attribute, $params)
     {
-        $category = GeneralAffairCategory::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
+        $category = GeneralAffairCategory::findOne([
+            'id' => $this->$attribute, 
+            'status' => Constants::STATUS_ACTIVE
+        ]);
 
         if ($category === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
-        $this->category = ['id' => $category->id, 'name' => $category->name];
+        $this->category = [
+            'id' => $category->id, 
+            'name' => $category->name,
+        ];
     }
 
     public function validateLocation($attribute, $params)
     {
-        $location = GeneralAffairLocation::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
+        $location = GeneralAffairLocation::findOne([
+            'id' => $this->$attribute, 
+            'status' => Constants::STATUS_ACTIVE
+        ]);
 
         if ($location === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
-        $this->location = ['id' => $location->id, 'name' => $location->name];
+        $this->location = [
+            'id' => $location->id, 
+            'name' => $location->name,
+        ];
     }
 }

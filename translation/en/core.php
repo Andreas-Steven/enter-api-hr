@@ -21,16 +21,31 @@ return [
     'noRecordDeleted' => 'Failed, Record already deleted.',
     'noRecordUpdated' => 'Failed, no record updated.',
 
-    'approveRecordSuccess' => 'Data has been saved successfully.',
-    'approveRecordFailed' => 'Failed to save data.',
-    'rejectRecordSuccess' => 'Data has been saved successfully.',
-    'rejectRecordFailed' => 'Failed to save data.',
+    'create_shipment_doRecordSuccess' => 'Data has been saved successfully.',
+    'create_shipment_doRecordFailed' => 'Failed to save data.',
+    'scheduledRecordSuccess' => 'Data has been scheduled successfully.',
+    'scheduledRecordFailed' => 'Failed to schedule data.',
+    'rescheduledRecordSuccess' => 'Data has been rescheduled successfully.',
+    'rescheduledRecordFailed' => 'Failed to reschedule data.',
+    'departedRecordSuccess' => 'Data has been departed successfully.',
+    'departedRecordFailed' => 'Failed to depart data.',
+    'deliveredRecordSuccess' => 'Data has been delivered successfully.',
+    'deliveredRecordFailed' => 'Failed to deliver data.',
+    'delayRecordSuccess' => 'Data has been delayed successfully.',
+    'delayRecordFailed' => 'Failed to delay data.',
+    'canceledRecordSuccess' => 'Data has been canceled successfully.',
+    'canceledRecordFailed' => 'Failed to cancel data.',
+
+    'approveRecordSuccess' => 'Data has been approved successfully.',
+    'approveRecordFailed' => 'Failed to approve data.',
+    'rejectRecordSuccess' => 'Data has been rejected successfully.',
+    'rejectRecordFailed' => 'Failed to reject data.',
 
     // Field Validation Rules
     'required' => '{label} cannot be blank.',
     'integer' => '{label} must be an integer.',
-    'float' => '{label} must be an float.',
     'array' => '{label} must be an array.',
+    'number' => '{label} must be a number.',
     'validationFailed' => 'Field validation failed.',
     'invalidField' => 'Field {label} not a valid request parameter.',
     'fieldDataNotFound' => '{label} data not found.',
@@ -40,6 +55,7 @@ return [
     'missingFieldFound' => 'Missing required field in {label}.',
     'nullField' => '{label} field: {field} is cannot be null or empty.',
     'allowedField' => '{field} can only contain the field {value}.',
+    'integerNoZero' => '{label} must be an integer and greater than 0.',
 
     // General Pagination Rules
     'pageMustBeGreaterThanZero' => 'Page must be greater than 0.',
@@ -52,4 +68,7 @@ return [
     // Superadmin Rights Rules
     'superadminOnly' => 'You do not have permission to perform this action.',
     'updatePermission' => 'You do not have permission to update the {label} of this {tableName} because it is referenced in other data.',
+
+
 ];
+

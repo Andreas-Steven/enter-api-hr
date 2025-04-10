@@ -16,7 +16,7 @@ class ErrorMessage extends Exception
         $this->model = $model;
         $this->errors = $model ? $model->getErrors() : [];
         $this->statusCode = $statusCode;
-        $message = $message ?? \Yii::t('core', 'badRequest');
+        $message = $message ?? \Yii::t('app', 'badRequest');
         parent::__construct($message, $statusCode);
     }
 

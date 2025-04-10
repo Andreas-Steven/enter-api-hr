@@ -12,6 +12,7 @@ $params['defaultValue'] = [
         'buying_date' => null,
         'tax_date' => null,
         'inspection_date' => null,
+        'employee' => null,
         'division' => null,
         'image' => [],
         'items_change_log' => [
@@ -54,6 +55,7 @@ $params['allowedFields'] = [
     'revision' => ['start_time', 'end_time'],
     'working_days' => [1, 2, 3, 4, 5, 6, 7],
     'time_structure' => ['entry_time', 'home_time'],
+    'items' => ['code', 'price', 'condition', 'description', 'buying_date', 'tax_date', 'inspection_date', 'employee', 'division', 'image', 'items_change_log'],
 ];
 
 /**

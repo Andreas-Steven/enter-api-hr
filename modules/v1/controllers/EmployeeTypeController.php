@@ -68,12 +68,13 @@ class EmployeeTypeController extends CoreController
 	public function actionUpdate()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
-
-		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_UPDATE)) {
+		$scenario = Constants::SCENARIO_UPDATE;
+		
+		if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::coreFindModel(new EmployeeType(), $params);
+		$model = CoreController::coreFindModelOne(new EmployeeType(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -83,7 +84,7 @@ class EmployeeTypeController extends CoreController
 			return $coreUnavailableParams;
         }
 
-		$model->scenario = Constants::SCENARIO_UPDATE;
+		$model->scenario = $scenario;
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
 			return $coreSuperadmin;
@@ -105,19 +106,20 @@ class EmployeeTypeController extends CoreController
 	public function actionDelete()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
-
-		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_DELETE)) {
+		$scenario = Constants::SCENARIO_DELETE;
+	
+		if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
 			return $coreValidateParams;
 		}
-
-		$model = CoreController::coreFindModel(new EmployeeType(), $params);
+	
+		$model = CoreController::coreFindModelOne(new EmployeeType(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
 
 		$params['status'] = Constants::STATUS_DELETED;
-		$model->scenario = Constants::SCENARIO_DELETE;
+		$model->scenario = $scenario;
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
 			return $coreSuperadmin;

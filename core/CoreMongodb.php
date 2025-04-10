@@ -104,18 +104,4 @@ class CoreMongodb
 			};
 		}
 	}
-
-	public static function mdbTextSearch(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
-	{
-		if ($value !== null) {
-			$query = [
-				'$search' => $value
-			];
-			
-			match (strtolower($orWhere)) {
-				'or' => $where[] = ['$text' => $query],
-				default => $where['$text'] = $query,
-			};
-		}
-	}
 }

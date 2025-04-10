@@ -48,13 +48,14 @@ class EmployeePositionController extends CoreController
 	{
 		$model = new EmployeePosition();
 		$params = Yii::$app->getRequest()->getBodyParams();
+		$scenario = Constants::SCENARIO_CREATE;
 
         if ($coreUnavailableParams = CoreController::coreUnavailableParams($model, $params)) {
 			return $coreUnavailableParams;
         }
 
 		$params['status'] = Constants::STATUS_DRAFT;
-		$model->scenario = Constants::SCENARIO_CREATE;
+		$model->scenario = $scenario;
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
@@ -68,12 +69,13 @@ class EmployeePositionController extends CoreController
 	public function actionUpdate()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
+		$scenario = Constants::SCENARIO_UPDATE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_UPDATE)) {
+		if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
 			return $coreValidateParams;
 		}
-		
-		$model = CoreController::coreFindModel(new EmployeePosition(), $params);
+
+		$model = CoreController::coreFindModelOne(new EmployeePosition(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -83,7 +85,7 @@ class EmployeePositionController extends CoreController
 			return $coreUnavailableParams;
         }
 
-		$model->scenario = Constants::SCENARIO_UPDATE;
+		$model->scenario = $scenario;
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
 			return $coreSuperadmin;
@@ -105,19 +107,20 @@ class EmployeePositionController extends CoreController
 	public function actionDelete()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
+			$scenario = Constants::SCENARIO_DELETE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, Constants::SCENARIO_DELETE)) {
+		if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
 			return $coreValidateParams;
 		}
 
-		$model = CoreController::coreFindModel(new EmployeePosition(), $params);
+		$model = CoreController::coreFindModelOne(new EmployeePosition(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}
 
 		$params['status'] = Constants::STATUS_DELETED;
-		$model->scenario = Constants::SCENARIO_DELETE;
+		$model->scenario = $scenario;
 
 		if ($coreSuperadmin = CoreController::coreSuperadmin($params)) {
 			return $coreSuperadmin;

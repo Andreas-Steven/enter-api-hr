@@ -38,7 +38,9 @@ class Device extends \yii\db\ActiveRecord
                 [['location', 'detail_info'], 'safe'],
                 [['name', 'address'], 'string', 'max' => 255],
 
-                [['code', 'ip_address'], 'unique', 'on' => Constants::SCENARIO_CREATE],
+                [['code'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
+                    return $model->isAttributeChanged('code');
+                }],
                 [['code', 'name', 'address', 'ip_address'], 'required'],
                 
                 [['location'], 'validateLocation'],
@@ -114,7 +116,7 @@ class Device extends \yii\db\ActiveRecord
         $allowedFields = Yii::$app->params['allowedFields']['location'];
 
         if (empty($location)) {
-            $this->addError($attribute, Yii::t('core', 'required', ['label' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('app', 'required', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 

@@ -5,6 +5,8 @@ use app\core\CoreConstants;
 
 class Constants extends CoreConstants
 {
+    const SCENARIO_UPDATE_DAYOFF = 'updateDayoff';
+    
     const DEVICE_APP = 'APP';
     const LAST_DATE = 26;
 
@@ -35,7 +37,29 @@ class Constants extends CoreConstants
     ];
 
     // Approved Status
-    Const APPROVED_DEFAULT = null;
+    const APPROVED_DEFAULT = null;
     const APPROVED_REJECT = 0;
     const APPROVED_APPROVE = 1;
+
+    const PERMISSION_APPROVAL = [
+        self::APPROVED_DEFAULT => 'default',
+        self::APPROVED_REJECT => 'reject',
+        self::APPROVED_APPROVE => 'approve',
+    ];
+
+    const NEW = 1;
+    const GOOD = 2;
+    const LESS_GOOD = 3;
+    const SECOND_HAND_GOOD = 4;
+    const SECOND_HAND_LESS_GOOD = 5;
+    const BROKEN = 6;
+
+    const ASSET_CONDITION = [
+        self::NEW => 'New',
+        self::GOOD => 'Good',
+        self::LESS_GOOD => 'Less Good',
+        self::SECOND_HAND_GOOD => 'Second Hand Good',
+        self::SECOND_HAND_LESS_GOOD => 'Second Hand Less Good',
+        self::BROKEN => 'Broken',
+    ];
 }

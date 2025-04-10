@@ -76,23 +76,22 @@ class CoreController extends Controller
         ];
     }
 
-    public function coreFindModel($model, ?array $paramsID, ?array $otherParams = []): ?object
-    {
+    public function coreFindModelOne($model, ?array $paramsID, ?array $otherParams = []): ?object
+	{
         $id = $paramsID['id'] ?? null;
-        $whereID = [];
+        $where = [];
 
         if ($id) {
-            $whereID = ['id' => $id];
-            $where = $whereID;
+            $where = ['id' => $id];
         }
 
         if ($otherParams) {
-            $where = array_merge($whereID, $otherParams);
+            $where = array_merge($where, $otherParams);
         }
 
-        if (!empty($where)) {
-            $query = $model::find()->where($where);
-            if (($modelInstance = $query->one()) !== null) {
+		if (!empty($where)) {
+			$query = $model::find()->where($where);
+			if (($modelInstance = $query->one()) !== null) {
                 $lockVersion = Constants::OPTIMISTIC_LOCK;
 
                 if (isset($modelInstance->$lockVersion)) {
@@ -100,12 +99,12 @@ class CoreController extends Controller
                     unset($modelInstance->$lockVersion);
                 }
 
-                return $modelInstance;
-            }
-        }
+				return $modelInstance;
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 
     public function coreData($dataProvider): array
     {
@@ -123,10 +122,23 @@ class CoreController extends Controller
         ];
     }
 
+    public function coreCustomData($model=[], ?string $message = null): array
+    {
+        $response = $model ?? [];
+        $message = $message ?? Yii::t('app', "{$model->scenario}RecordSuccess");
+
+        return [
+            'code' => Yii::$app->response->statusCode = 200,
+            'success' => true,
+            'message' => $message,
+            'data' => $response,
+        ];
+    }
+
     public function coreSuccess($model=[], ?string $message = null, ?array $data=null): array
     {
         $response[] = $model ?? [];
-        $message = $message ?? Yii::t('core', "{$model->scenario}RecordSuccess");
+        $message = $message ?? Yii::t('app', "{$model->scenario}RecordSuccess");
 
         return [
             'code' => Yii::$app->response->statusCode = 200,
@@ -141,7 +153,7 @@ class CoreController extends Controller
         return [
             'code' => Yii::$app->response->statusCode = 422,
             'success' => false,
-            'message' => $message ?? Yii::t('core', "{$model->scenario}RecordFailed"),
+            'message' => $message ?? Yii::t('app', "{$model->scenario}RecordFailed"),
             'errors' => isset($model->errors) ? $model : [],
         ];
     }
@@ -149,7 +161,7 @@ class CoreController extends Controller
     public function coreDataNotFound(): array
     {
         try {
-            throw new \Exception(Yii::t('core', 'dataNotFound'));
+            throw new \Exception(Yii::t('app', 'dataNotFound'));
         } catch (\Exception $e) {
             return [
                 'code' => Yii::$app->response->statusCode = 404,
@@ -165,7 +177,7 @@ class CoreController extends Controller
         return [
             'code' => Yii::$app->response->statusCode = 400,
             'success' => false,
-            'message' => $message ?? Yii::t('core', 'badRequest'),
+            'message' => $message ?? Yii::t('app', 'badRequest'),
             'errors' => $model ?? [],
         ];
     }
@@ -173,11 +185,11 @@ class CoreController extends Controller
     public function coreValidateProvider($dataProvider, $searchModel = null): array|bool
     {
         if (isset($dataProvider->errors)) {
-            return $this->coreError($dataProvider, Yii::t('core', 'validationFailed'));
+            return $this->coreError($dataProvider, Yii::t('app', 'validationFailed'));
         }
 
         if ($searchModel !== null && !$searchModel->validate()) {
-            return $this->coreError($searchModel, Yii::t('core', 'badRequest'));
+            return $this->coreError($searchModel, Yii::t('app', 'badRequest'));
         }
 
         return false;
@@ -187,11 +199,7 @@ class CoreController extends Controller
     {
         $error = [];
         $idKey = 'id';
-
-        (!isset($params[$idKey])) ? $error[] = [
-            'field' => $idKey,
-            'message' => Yii::t('core', 'required', ['label' => $idKey]),
-        ] : null;
+        $messageError = null;
 
         if (isset($params[$idKey])) {
             $id = $params[$idKey];
@@ -199,20 +207,27 @@ class CoreController extends Controller
 
             (!is_numeric($id) || intval($id) != $id) ? $error[] = [
                 'field' => $idKey,
-                'message' => Yii::t('core', 'integer', ['label' => $idKey]),
+                'message' => Yii::t('app', 'integer', ['label' => $idKey]),
             ] : null;
 
             ($scenario === Constants::SCENARIO_UPDATE && empty($params)) ? $error[] = [
                 'field' => $idKey,
-                'message' => Yii::t('core', 'emptyParams'),
+                'message' => Yii::t('app', 'emptyParams'),
             ] : null;
+        } else {
+            $messageError = Yii::t('app', 'validationFailed');
+
+            $error[] = [
+                'field' => $idKey,
+                'message' => Yii::t('app', 'required', ['label' => $idKey]),
+            ];
         }
 
         if (!empty($error)) {
             return [
                 'code' => Yii::$app->response->statusCode = 400,
                 'success' => false,
-                'message' => Yii::t('core', 'invalidField', ['label' => $idKey]),
+                'message' => $messageError ?? Yii::t('app', 'invalidField', ['label' => $idKey]),
                 'errors' => $error,
             ];
         }
@@ -220,29 +235,30 @@ class CoreController extends Controller
         return false;
     }
 
-    public function coreEmptyParams($model): bool|array
+    public function coreEmptyParams($model, $scenario = null): bool|array
     {
-        $scenario = $model->scenario;
 		$message = null;
+        $scenario = $scenario ?? Constants::SCENARIO_UPDATE;
+        $optimisticLock = Constants::OPTIMISTIC_LOCK;
 
-        if (empty($model->getDirtyAttributes()) && $scenario === Constants::SCENARIO_UPDATE) {
-            $message = Yii::t('core', 'noRecordUpdated');
+        $getDirtyAttributes = $model->getDirtyAttributes();
+        unset($getDirtyAttributes['id']);
+        unset($getDirtyAttributes[$optimisticLock]);
+
+        if (empty($getDirtyAttributes) && in_array($scenario, [Constants::SCENARIO_UPDATE, $scenario], true)) {
+            $message = Yii::t('app', 'noRecordUpdated');
         }
 
         if ($scenario === Constants::SCENARIO_DELETE && $model->status === $model->getOldAttribute('status')) {
-            $message = Yii::t('core', 'noRecordDeleted');
+            $message = Yii::t('app', 'noRecordDeleted');
         }
 
-		if ($message){
-			return [
-				'code' => Yii::$app->response->statusCode = 422,
-				'success' => false,
-				'message' => $message,
-				'errors' => $model->errors ?? [],
-			];
-		}
-
-		return false;
+        return $message ? [
+            'code' => Yii::$app->response->statusCode = 422,
+            'success' => false,
+            'message' => $message,
+            'errors' => $model->errors ?? [],
+        ] : false;
     }
 
     public function coreUnavailableParams($model, ?array $params): array|bool
@@ -251,7 +267,7 @@ class CoreController extends Controller
             return [
                 'code' => Yii::$app->response->statusCode = 422,
                 'success' => false,
-                'message' => Yii::t('core', 'validationFailed'),
+                'message' => Yii::t('app', 'validationFailed'),
                 'errors' => $unavailableParams ?? [],
             ]; 
         }
@@ -272,7 +288,7 @@ class CoreController extends Controller
             return [
                 'code' => Yii::$app->response->statusCode = 403,
                 'success' => false,
-                'message' => Yii::t('core', 'superadminOnly'),
+                'message' => Yii::t('app', 'superadminOnly'),
                 'errors' => [],
             ];
         }

@@ -122,14 +122,13 @@ class WorkTime extends \yii\db\ActiveRecord
         CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $this->$attribute);
         
         $allowedFields = Yii::$app->params['allowedFields']['time_structure'];
+
         foreach ($workingDays as $dayName => $times) {
             CoreModel::validateRequiredFields($this, "{$attribute}[$dayName]", $allowedFields, $times);
-        }
 
-        array_walk($workingDays, function (&$times, $dayName) use ($attribute) {
-            $entry_time = CoreModel::nullSafe($times['entry_time']);
-            $home_time = CoreModel::nullSafe($times['home_time']);
-
+            $entry_time = CoreModel::nullSafe($times['entry_time'], 'H:i:s');
+            $home_time = CoreModel::nullSafe($times['home_time'], 'H:i:s');
+            
             if ($entry_time !== null) {
                 $validEntryTime = \DateTime::createFromFormat('H:i:s', $entry_time);
                 if (!$validEntryTime || $validEntryTime->format('H:i:s') !== $entry_time) {
@@ -144,9 +143,9 @@ class WorkTime extends \yii\db\ActiveRecord
                 }
             }
 
-            $times['entry_time'] = $entry_time;
-            $times['home_time'] = $home_time;
-        });
+            $workingDays[$dayName]['entry_time'] = $entry_time;
+            $workingDays[$dayName]['home_time'] = $home_time;
+        }
 
         $this->$attribute = $workingDays;
     }

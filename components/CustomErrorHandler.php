@@ -34,13 +34,6 @@ class CustomErrorHandler extends ErrorHandler
                 $response['trace_for_dev'] = [
                     'exception' => get_class($exception),
                     'trace' => $exception->getTraceAsString(),
-                    'previous' => [
-                        'class' => $exception->getPrevious() ? get_class($exception->getPrevious()) : null,
-                        'message' => $exception->getPrevious() ? $exception->getPrevious()->getMessage() : null,
-                        'trace' => $exception->getPrevious() ? $exception->getPrevious()->getTraceAsString() : null,
-                        'code' => $exception->getPrevious() ? $exception->getPrevious()->getCode() : null,
-                        'file' => $exception->getPrevious() ? $exception->getPrevious()->getFile() : null,
-                    ],
                 ];
             }
 

@@ -1,6 +1,8 @@
 <?php
 
-return [
+$core_translation = require __DIR__ . '/core.php';
+
+return array_merge($core_translation, [
     'responseLanguage' => 'Language English',
 
     // general
@@ -25,10 +27,13 @@ return [
 
     // custom error messages
     'mustArray' => '{field} must be an array.',
-    'float' => 'Field {field} must be an float.',
+    'float' => '{field} must be an float.',
     'mustLogin' => 'You must login to perform this action.',
     'superadminOnly' => 'You do not have permission to perform this action.',
     'updatePermission' => 'You do not have permission to update the {label} of this {tableName} because it is referenced in other data.',
+    'invalidImage' => 'The Image format invalid.',
+    'null' => '{label} is cannot be null or empty.',
+    'invalidCondition' => '{label} is invalid.',
 
     // Attendance custom error messages
     'attendanceFailed' => 'Attendance failed.',
@@ -36,9 +41,12 @@ return [
     'locationRequired' => 'Location must be set for device app.',
     'startTimeNotValid' => 'Attendance start time value not valid.',
     'emptyStartTimeEndTime' => 'Start time or end time must be filled.',
+    'attendanceNotFound' => 'Attendance data not found for date {date}.',
 
     // General Affair custom error messages
+    'generalAffairFailed' => 'General Affair failed.',
     'dateInvalid' => '{field} format must be YYYY-MM-DD.',
+    'codeFormatInvalid' => 'Code format invalid. Code must be a string between 10 and 25 characters',
 
     // Employee custom error messages
     'phonePrefix' => 'The Phone Number must start with 62 and max 15 digits.',
@@ -52,8 +60,8 @@ return [
 
     // Attendance Permission Rules
     'attendancePermissionFailed' => 'Attendance Permission failed.',
-    'rivisionEmpty' => 'Rivision Start Time and End Time can not be empty at same time for {value} request.',
-    'invalidTimeFormat' => 'The {field} must be in the format of HH:MM:SS.',
+    'revisionEmpty' => 'Revision Start Time and End Time can not be empty at same time for {value} request.',
+    'invalidTimeFormat' => '{field} must be in the format of HH:MM:SS.',
     'revisionRestriction' => 'For Revision request, Permission Type can only be set for Late or Leave Early.',
     'revisionRequired' => '{field} is required for {value} request.',
-];
+]);

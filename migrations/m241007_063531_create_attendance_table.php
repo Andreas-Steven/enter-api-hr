@@ -34,6 +34,8 @@ class m241007_063531_create_attendance_table extends Migration
             'status' => $this->smallInteger()->notNull()->defaultValue(2)->comment('0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance'),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
                 'change_log' => [
+                    'dayoff' => null,
+                    'blacklist' => [],
                     'created_at' => null,
                     'created_by' => null,
                     'deleted_at' => null,

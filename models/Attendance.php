@@ -74,8 +74,9 @@ class Attendance extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'system_date', 'dateMismatch', 'attendance', 'dayoff', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'system_date', 'dateMismatch', 'attendance', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['attendance', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_UPDATE_DAYOFF] = ['dayoff', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
@@ -113,6 +114,11 @@ class Attendance extends \yii\db\ActiveRecord
                 if ($this->date !== $this->system_date) {
                     $this->dateMismatch = $this->date;
                     $this->date = $this->system_date;
+                }
+
+                if (empty($this->getDirtyAttributes())) {
+                    $this->addError('attendance', Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('attendance')]));
+                    throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                 }
             }
 
@@ -158,7 +164,7 @@ class Attendance extends \yii\db\ActiveRecord
         $defaultAttendance = Yii::$app->params['defaultValue']['attendance'];
 
         if (!is_array($attendances)) {
-            $this->addError($attribute, Yii::t('core', 'array', ['label' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('app', 'array', ['label' => $this->getAttributeLabel($attribute)]));
             throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
         }
 
@@ -172,7 +178,7 @@ class Attendance extends \yii\db\ActiveRecord
             // Attendance Data Validation
             $attendance['employee_id'] = intval($attendance['employee_id']);
             if (empty($attendance['employee_id']) || !is_numeric($attendance['employee_id'])) {
-                $this->addError($attribute, Yii::t('core', 'integer', ['label' => $this->getAttributeLabel('employee_id')]));
+                $this->addError($attribute, Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')]));
                 throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
             }
             
@@ -182,12 +188,12 @@ class Attendance extends \yii\db\ActiveRecord
             }
 
             if (empty($attendance['device']['code'])) {
-                $this->addError($attribute,  Yii::t('core', 'required', ['label' => $this->getAttributeLabel('device')]));
+                $this->addError($attribute,  Yii::t('app', 'required', ['label' => $this->getAttributeLabel('device')]));
                 throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
             }
 
             if (empty($attendance['location'])) {
-                $this->addError($attribute,  Yii::t('core', 'required', ['label' => $this->getAttributeLabel('device')]));
+                $this->addError($attribute,  Yii::t('app', 'required', ['label' => $this->getAttributeLabel('device')]));
                 throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
             }
             // Attendance Data Validation
@@ -196,34 +202,36 @@ class Attendance extends \yii\db\ActiveRecord
             if ($oldAttendance === null || !isset($oldAttendance[$index])) {
                 $attendanceData = array_merge($defaultAttendance, $attendance);
 
-                $employee = Employee::findOne(['id' => $attendanceData['employee_id'], 'status' => Constants::STATUS_ACTIVE]);
-                if ($employee === null) {
-                    $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('Employee')]));
+                $employeeModel = Employee::findOne([
+                    'id' => $attendanceData['employee_id'], 
+                ]);
+                
+                if ($employeeModel === null) {
+                    $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('UserAttendance')]));
                     throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                 }
 
-                $division = Division::findOne(['id' => $employee->division_id, 'status' => Constants::STATUS_ACTIVE]);
+                $employee = [
+                    'id' => $employeeModel->id,
+                    'name' => $employeeModel->name,
+                ];
+                
+                $division = $employeeModel->detail_info['division'];
                 if ($division === null) {
-                    $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('Division')]));
+                    $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('Division')]));
                     throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                 }
-
-                $userAttendance = UserAttendance::findOne([ 'employee_id' => $attendanceData['employee_id'], 'status' => Constants::STATUS_ACTIVE]);
-                if ($userAttendance === null) {
-                    $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('UserAttendance')]));
-                    throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
-                }
-
-                $workTime = WorkTime::findOne(['id' => $userAttendance->work_time_id, 'status' => Constants::STATUS_ACTIVE]);
+                
+                $workTime = $employeeModel->detail_info['work_time'];
                 if ($workTime === null) {
-                    $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('WorkTime')]));
+                    $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('WorkTime')]));
                     throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                 }
 
                 if ($attendanceData['device']['code'] !== Constants::DEVICE_APP) {
                     $device = Device::findOne(['code' => $attendanceData['device']['code'], 'status' => Constants::STATUS_ACTIVE]);
                     if ($device === null) {
-                        $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('Device')]));
+                        $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('Device')]));
                         throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                     }
                     $attendanceData['device'] = ['id' => $device->id, 'code' => $device->code, 'name' => $device->name];
@@ -279,7 +287,7 @@ class Attendance extends \yii\db\ActiveRecord
                     if (strtotime($attendanceData['start_time']) < strtotime($latestAttendance)) {
                         $blacklist = [
                             'employee_id' => $attendanceData['employee_id'],
-                            'employee_name' => $employee->name,
+                            'employee_name' => $employee['name'],
                             'date' => $this->date,
                             'start_time' => $attendanceData['start_time'],
                             'time' => date('H:i:s')
@@ -289,7 +297,7 @@ class Attendance extends \yii\db\ActiveRecord
                     } elseif (!empty($this->dateMismatch)) {
                         $blacklist = [
                             'employee_id' => $attendanceData['employee_id'],
-                            'employee_name' => $employee->name,
+                            'employee_name' => $employee['name'],
                             'date' => $this->dateMismatch,
                             'start_time' => $attendanceData['start_time'],
                             'time' => date('H:i:s')
@@ -308,11 +316,11 @@ class Attendance extends \yii\db\ActiveRecord
                     $this->detail_info = array_merge($this->detail_info ?? [], ['blacklist' => $exsistingBlacklist]);
                 }
                 // Blacklist
-               
+                
                 $attendanceData['info']['in'] = true;
-                $attendanceData['employee_name'] = $employee->name;
-                $attendanceData['division'] = ['id' => $division->id, 'name' => $division->name];
-                $attendanceData['work_time'] = ['id' => $workTime->id, 'working_days' => [$dayNow => $workTime->working_days[$dayNow]]];
+                $attendanceData['employee_name'] = $employee['name'];
+                $attendanceData['division'] = ['id' => $division['id'], 'name' => $division['name']];
+                $attendanceData['work_time'] = ['id' => $workTime['id'], 'working_days' => [$dayNow => $workTime['working_days'][$dayNow]]];
             } else {
                 $attendanceData = $oldAttendance[$index];
 
@@ -359,7 +367,7 @@ class Attendance extends \yii\db\ActiveRecord
                 $allowedFields = Yii::$app->params['allowedFields']['attendance_location'];
 
                 if (empty($attendance['location'])) {
-                    $this->addError($attribute, Yii::t('core', 'required', ['label' => $this->getAttributeLabel($attribute)]));
+                    $this->addError($attribute, Yii::t('app', 'required', ['label' => $this->getAttributeLabel($attribute)]));
                     return;
                 }
 
@@ -386,14 +394,22 @@ class Attendance extends \yii\db\ActiveRecord
                     $this->addError($attribute, Yii::t('app', 'invalidLng'));
                 }
 
-                $image = array_values($attendance['location']['image']);
-                $image = array_filter($image, fn($item) => !in_array($item, ['[]', '', null], true));
+                $attendance['location']['image'] = array_filter($attendance['location']['image'], function($item) {
+                    if (!in_array($item, ['[]', '', null], true)) {
+                        if (!filter_var($item, FILTER_VALIDATE_URL)) {
+                            $this->addError('image', Yii::t('app', 'invalidImage', ['label' => 'Image']));
+                            return;
+                        }
+                        return true;
+                    }
+                    return false;
+                });
 
                 if (!empty($attendanceData['start_time']) && $entryLocation === null) {
                     $location['entry'] = [
                         'lat' => $latitude,
                         'lng' => $longitude,
-                        'image' => $image
+                        'image' => array_values($attendance['location']['image'])
                     ];
                 }
 
@@ -401,7 +417,7 @@ class Attendance extends \yii\db\ActiveRecord
                     $location['home'] = [
                         'lat' => $latitude,
                         'lng' => $longitude,
-                        'image' => $image
+                        'image' => array_values($attendance['location']['image'])
                     ];
                 }
             }

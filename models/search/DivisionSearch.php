@@ -30,7 +30,7 @@ class DivisionSearch extends Division
                 [['code', 'name'], 'string'],
                 [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
-            CoreModel::getPaginationRules($this)
+            CoreModel::getPaginationRules($this),
         );
     }
 

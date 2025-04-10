@@ -29,6 +29,7 @@ class m241010_103834_create_inventory_table extends Migration
             'product' => $this->json()->notNull()->defaultValue('[]'),
             'status' => $this->smallInteger()->notNull()->defaultValue(2)->comment('0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance'),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
+                'address' => null,
                 'change_log' => [
                     'created_at' => null,
                     'created_by' => null,
@@ -53,6 +54,7 @@ class m241010_103834_create_inventory_table extends Migration
                 'product' => [],
                 'status' => 1,
                 'detail_info' => [
+                    'address' => 'Mangga Dua',
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy,
@@ -69,6 +71,7 @@ class m241010_103834_create_inventory_table extends Migration
                 'product' => [],
                 'status' => 1,
                 'detail_info' => [
+                    'address' => 'Mangga Dua',
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
                         'created_by' => $createdBy,

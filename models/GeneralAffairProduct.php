@@ -31,7 +31,7 @@ class GeneralAffairProduct extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['detail_info'], 'safe'],
-                [['name'], 'string', 'max' => 255],
+                [['name'], 'string', 'min' => 3, 'max' => 255],
                 
                 [['name'], 'required'],
                 

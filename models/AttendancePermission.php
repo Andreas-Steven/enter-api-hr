@@ -53,11 +53,13 @@ class AttendancePermission extends \yii\db\ActiveRecord
 
                 [['employee_id', 'permission_type'], 'filter', 'filter' => 'intval'],
                 [['employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>', 
-                    'message' => Yii::t('core', 'integer', ['label' => $this->getAttributeLabel('employee_id')])],
-                [['permission_type'], 'in', 'range' => array_keys(Constants::PERMISSION_LIST)],
+                    'message' => Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')])],
+                [['permission_type'], 'in', 'range' => array_keys(Constants::PERMISSION_LIST),],
 
                 [['revision'], 'default', 'value' => []],
                 [['note', 'approved', 'approved_note', 'status', 'sync'], 'default', 'value' => null],
+
+                [['approved'], 'in', 'range' => array_keys(Constants::PERMISSION_APPROVAL)],
 
                 [['employee_id'], 'validateEmployee'],
             ], 
@@ -69,7 +71,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'status', 'detail_info', 'sync'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'status', 'detail_info', 'approved', 'approved_note', 'sync'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'status', 'detail_info', 'sync'];
         $scenarios[Constants::SCENARIO_APPROVE] = ['approved', 'approved_note', 'status'];
         $scenarios[Constants::SCENARIO_REJECT] = ['approved', 'status'];
@@ -133,7 +135,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
                     }
                 break;
                 case Constants::SCENARIO_APPROVE:
-                    $this->approved = Constants::APPROVED_APPROVE;
+                    $this->approved = intval($this->approved);
                     $this->approved_at = Yii::$app->coreAPI->UTCTimestamp();
                     $this->approved_by = Yii::$app->coreAPI->getUsername();
                     $this->approved_note = CoreModel::htmlPurifier(CoreModel::nullSafe($this->approved_note));
@@ -173,35 +175,61 @@ class AttendancePermission extends \yii\db\ActiveRecord
         parent::afterSave($insert, $changedAttributes);
     }
 
+    public function selectProductKey($key)
+    {
+        $this->addSelect(new Expression("id, name, status, detail_info, detail_item->'$key'->'product' AS product_detail"));
+        return $this;
+    }
+
+    public function selectProductQuantities($keys=[])
+    {
+        $queryAlias = Yii::$app->params['defaultValue']['inventory']['query_alias'];
+        
+        $keys = array_map(function($key) use ($queryAlias) {
+            // return "detail_item->'$key'->'quantity' AS " . $queryAlias . $key;
+            return "(detail_item->'$key') - 'md_data'  AS " . $queryAlias . $key;
+        }, $keys);
+        
+        $this->addSelect(new Expression('id, name, ' . implode(', ', $keys)));
+
+        return $this;
+    }
+
     public function validateAttendance($attribute)
     {
         $date = $this->$attribute ?? $this->getOldAttribute($attribute);
-        $employee_id = $this->employee_id;
+        $employeeId = $this->employee_id;
 
-        $params = [
-            'date' => $date,
-            'employee_id' => $employee_id,
-        ];
+        $attendanceModel = Attendance::find()
+            ->selectAttendance($employeeId)
+            ->where(['date' => $date])
+            ->asArray()->one();
 
-        $searchModel = new AttendanceSearch();
-        $dataProvider = $searchModel->search($params);
-        $attendanceData = $dataProvider->getModels();
-
-        if (empty($attendanceData)) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('attendance')]));
+        if (empty($attendanceModel)) {
+            $this->addError($attribute, Yii::t('app', 'attendanceNotFound', [
+                'date' => $date,
+            ]));
             throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
         }
 
-        foreach ($attendanceData as $attendance) {
-            $employeeAttendance = $attendance->attendance[$employee_id];
+        $attendanceModel['detail_attendance'] = json_decode($attendanceModel['detail_attendance'], true);
 
-            $this->attendance = [
-                'id' => $attendance->id,
-                'date' => $date,
-                'start_time' => $employeeAttendance['start_time'],
-                'end_time' => $employeeAttendance['end_time'],
-            ];
-        }
+        // $searchModel = new AttendanceSearch();      
+        // $dataProvider = $searchModel->search($params);
+        // $attendanceData = $dataProvider->getModels();
+
+        // if (empty($attendanceData)) {
+        //     $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('attendance')]));
+        //     throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
+        // }
+
+
+        $this->attendance = [
+            'id' => $attendanceModel['id'],
+            'date' => $date,
+            'start_time' => $attendanceModel['detail_attendance']['start_time'],
+            'end_time' => $attendanceModel['detail_attendance']['end_time'],
+        ];
     }
 
     public function validateRevision($attribute)
@@ -209,8 +237,14 @@ class AttendancePermission extends \yii\db\ActiveRecord
         $revision = $this->$attribute ?? $this->getOldAttribute($attribute);
         $allowedFields = Yii::$app->params['allowedFields']['revision'];
 
+        if (empty($revision)) {
+            $this->addError($attribute, Yii::t('app', 'required', ['label' => 'Revision']));
+            throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
+        }
+
         if (!is_array($revision)) {
-            $this->addError($attribute, Yii::t('core', 'array', ['label' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('app', 'array', ['label' => $this->getAttributeLabel($attribute)]));
+            throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
         }
 
         CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $revision);
@@ -219,21 +253,20 @@ class AttendancePermission extends \yii\db\ActiveRecord
         $revision['end_time'] = CoreModel::nullSafe($revision['end_time']);
         
         if (empty($revision['start_time']) && empty($revision['end_time'])) {
-            $this->addError($attribute, Yii::t('app', 'rivisionEmpty', ['value' => $this->getAttributeLabel(Constants::PERMISSION_LIST[$this->permission_type])]));
+            $this->addError($attribute, Yii::t('app', 'revisionEmpty', ['value' => 'Start Time revision']));
             throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
         }
 
         if ($this->permission_type === Constants::PERMISSION_LATE && empty($revision['start_time'])) {
             $this->addError($attribute, Yii::t('app', 'revisionRequired', [
-                'field' => $this->getAttributeLabel($attribute."[start_time]"),
+                'field' => 'Start Time revision',
                 'value' => $this->getAttributeLabel(Constants::PERMISSION_LIST[$this->permission_type])
-                
             ]));
         }
 
         if ($this->permission_type === Constants::PERMISSION_LEAVE_EARLY && empty($revision['end_time'])) {
             $this->addError($attribute, Yii::t('app', 'revisionRequired', [
-                'field' => $this->getAttributeLabel($attribute."[end_time]"),
+                'field' => 'End Time revision',
                 'value' => $this->getAttributeLabel(Constants::PERMISSION_LIST[$this->permission_type])
             ]));
         }
@@ -241,14 +274,14 @@ class AttendancePermission extends \yii\db\ActiveRecord
         if (!empty($revision['start_time'])) {
             $start_time = \DateTime::createFromFormat('H:i:s', $revision['start_time']);
             if (empty($start_time) || !$start_time->format('H:i:s')) {
-                $this->addError($attribute, Yii::t('app', 'invalidTimeFormat', ['field' => $this->getAttributeLabel($attribute."[start_time]")]));
+                $this->addError($attribute, Yii::t('app', 'invalidTimeFormat', ['field' => 'Start Time revision']));
             }
         }
         
         if (!empty($revision['end_time'])) {
             $end_time = \DateTime::createFromFormat('H:i:s', $revision['end_time']); 
             if (!$end_time || !$end_time->format('H:i:s')) {
-                $this->addError($attribute, Yii::t('app', 'invalidTimeFormat', ['field' => $this->getAttributeLabel($attribute."[end_time]")]));
+                $this->addError($attribute, Yii::t('app', 'invalidTimeFormat', ['field' => 'End Time revision']));
             }
         }
 
@@ -264,7 +297,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
         $employee = Employee::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
 
         if ($employee === null) {
-            $this->addError($attribute, Yii::t('core', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 

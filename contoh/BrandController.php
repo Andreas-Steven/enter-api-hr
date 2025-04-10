@@ -73,7 +73,7 @@ class BrandController extends CoreController
 			return $coreValidateParams;
 		}
 		
-		$model = CoreController::coreFindModel(new Brand(), $params);
+		$model = CoreController::coreFindModelOne(new Brand(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -110,7 +110,7 @@ class BrandController extends CoreController
 			return $coreValidateParams;
 		}
 
-		$model = CoreController::coreFindModel(new Brand(), $params);
+		$model = CoreController::coreFindModelOne(new Brand(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
