@@ -70,7 +70,7 @@ class Employee extends \yii\db\ActiveRecord
 
                 [['nik'], 'match', 'pattern' => '/^\d{16}$/', 'message' => Yii::t('app', 'invalidNik')],
                 [['sso_id', 'division_id', 'position_id', 'employee_type_id', 'work_time_id'], 'filter', 'filter' => 'intval'],
-                [['birth_date', 'date_start', 'date_resign', 'system_date'], 'match', 'pattern' => '/^\d{4}-\d{2}-\d{2}$/', 'message' => 'The date must be in the format YYYY-MM-DD.'],
+                [['birth_date', 'date_start', 'date_resign', 'system_date'], 'match', 'pattern' => '/^\d{4}-\d{2}-\d{2}$/', Yii::t('app', 'datePattern')],
 
                 [['image'], 'validateImage'],
                 [['contact'], 'validateContact'],
@@ -172,7 +172,7 @@ class Employee extends \yii\db\ActiveRecord
         $contacts = $this->$attribute;
     
         if (!is_array($contacts)) {
-            $this->addError($attribute, Yii::t('app', 'mustArray', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('app', 'array', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
     

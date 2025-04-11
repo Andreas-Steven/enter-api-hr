@@ -73,7 +73,7 @@ $params['dependenciesUpdate'] = [
     'general_affair_category' => ['name', 'status'],
 
     /* Attendance Module */
-    'work_time' => ['entry_time', 'home_time', 'status'],
+    'work_time' => ['name', 'working_days', 'status'],
     'employee' => ['name', 'status'],
 ];
 

@@ -46,20 +46,19 @@ class AttendancePermission extends \yii\db\ActiveRecord
             [
                 [['revision', 'detail_info'], 'safe'],
                 [['date'], 'date', 'format' => 'php:Y-m-d'],
-                [['note', 'approved_note'], 'string', 'max' => 255],
+                [['note', 'approved_note'], 'string', 'min' => 3, 'max' => 255],
                 [['employee_id', 'permission_type', 'approved', 'status', 'sync'], 'integer'],
 
                 [['employee_id', 'permission_type', 'date', 'note'], 'required'],
 
                 [['employee_id', 'permission_type'], 'filter', 'filter' => 'intval'],
+                [['permission_type'], 'in', 'range' => array_keys(Constants::PERMISSION_LIST),],
+                [['approved'], 'in', 'range' => array_keys(Constants::PERMISSION_APPROVAL)],
                 [['employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>', 
                     'message' => Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')])],
-                [['permission_type'], 'in', 'range' => array_keys(Constants::PERMISSION_LIST),],
-
+                
                 [['revision'], 'default', 'value' => []],
                 [['note', 'approved', 'approved_note', 'status', 'sync'], 'default', 'value' => null],
-
-                [['approved'], 'in', 'range' => array_keys(Constants::PERMISSION_APPROVAL)],
 
                 [['employee_id'], 'validateEmployee'],
             ], 
@@ -259,14 +258,14 @@ class AttendancePermission extends \yii\db\ActiveRecord
 
         if ($this->permission_type === Constants::PERMISSION_LATE && empty($revision['start_time'])) {
             $this->addError($attribute, Yii::t('app', 'revisionRequired', [
-                'field' => 'Start Time revision',
+                'label' => 'Start Time revision',
                 'value' => $this->getAttributeLabel(Constants::PERMISSION_LIST[$this->permission_type])
             ]));
         }
 
         if ($this->permission_type === Constants::PERMISSION_LEAVE_EARLY && empty($revision['end_time'])) {
             $this->addError($attribute, Yii::t('app', 'revisionRequired', [
-                'field' => 'End Time revision',
+                'label' => 'End Time revision',
                 'value' => $this->getAttributeLabel(Constants::PERMISSION_LIST[$this->permission_type])
             ]));
         }
@@ -274,14 +273,14 @@ class AttendancePermission extends \yii\db\ActiveRecord
         if (!empty($revision['start_time'])) {
             $start_time = \DateTime::createFromFormat('H:i:s', $revision['start_time']);
             if (empty($start_time) || !$start_time->format('H:i:s')) {
-                $this->addError($attribute, Yii::t('app', 'invalidTimeFormat', ['field' => 'Start Time revision']));
+                $this->addError($attribute, Yii::t('app', 'invalidTimeFormat', ['label' => 'Start Time revision']));
             }
         }
         
         if (!empty($revision['end_time'])) {
             $end_time = \DateTime::createFromFormat('H:i:s', $revision['end_time']); 
             if (!$end_time || !$end_time->format('H:i:s')) {
-                $this->addError($attribute, Yii::t('app', 'invalidTimeFormat', ['field' => 'End Time revision']));
+                $this->addError($attribute, Yii::t('app', 'invalidTimeFormat', ['label' => 'End Time revision']));
             }
         }
 

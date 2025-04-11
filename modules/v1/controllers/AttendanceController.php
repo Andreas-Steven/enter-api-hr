@@ -44,9 +44,9 @@ class AttendanceController extends CoreController
 	{
 		$model = new Attendance();
 		$params = Yii::$app->getRequest()->getBodyParams();
+		$scenario = Constants::SCENARIO_CREATE;
 		$params['system_date'] = date('Y-m-d');
 		$params['dateMismatch'] = null;
-		$scenario = Constants::SCENARIO_CREATE;
 
 		CoreController::unavailableParams($model, $params);
 
@@ -64,7 +64,7 @@ class AttendanceController extends CoreController
 
 		$date = \DateTime::createFromFormat('Y-m-d', $params['date']);
 		if (!$date || $date->format('Y-m-d') !== $params['date']) {
-			$model->addError('date', Yii::t('app', 'dateInvalid', ['field' => $model->getAttributeLabel('date')]));
+			$model->addError('date', Yii::t('app', 'dateInvalid', ['label' => $model->getAttributeLabel('date')]));
 			return CoreController::coreError($model);
 		}
 

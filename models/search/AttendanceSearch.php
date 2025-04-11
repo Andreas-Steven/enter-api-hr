@@ -24,10 +24,10 @@ class AttendanceSearch extends Attendance
     public $deleted_at;
     public $deleted_by;
     
-    public $employee_name;
-    public $employee_id;
-    public $dayoff;
     public $period;
+    public $dayoff;
+    public $employee_id;
+    public $employee_name;
 
     public function rules()
     {

@@ -5,10 +5,8 @@ use app\core\CoreConstants;
 
 class Constants extends CoreConstants
 {
-    const SCENARIO_UPDATE_DAYOFF = 'updateDayoff';
-    
-    const DEVICE_APP = 'APP';
     const LAST_DATE = 26;
+    const DEVICE_APP = 'APP';
 
     // Attendance Status. Source: https://tanya.zemangat.com/kb/penjelasan-kode-status-kehadiran-karyawan/
     const ATTENDANCE_LATE = 'Late';

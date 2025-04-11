@@ -87,6 +87,7 @@ class Division extends \yii\db\ActiveRecord
     public function beforeValidate()
     {
         if (parent::beforeValidate()) {
+            $this->name = CoreModel::htmlPurifier($this->name);
 
             return true;
         }
@@ -97,7 +98,6 @@ class Division extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->name = CoreModel::htmlPurifier($this->name);
             $this->detail_info = [
                 'change_log' => CoreModel::getChangeLog($this, $insert),
             ];

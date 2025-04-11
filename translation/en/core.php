@@ -68,7 +68,5 @@ return [
     // Superadmin Rights Rules
     'superadminOnly' => 'You do not have permission to perform this action.',
     'updatePermission' => 'You do not have permission to update the {label} of this {tableName} because it is referenced in other data.',
-
-
 ];
 

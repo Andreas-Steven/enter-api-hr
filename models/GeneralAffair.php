@@ -123,7 +123,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function validateAsset($attribute)
     {
         if (!is_array($this->$attribute)) {
-            $this->addError($attribute, Yii::t('app', 'mustArray', ['field' => 'Asset']));
+            $this->addError($attribute, Yii::t('app', 'array', ['label' => 'Asset']));
             return;
         }
 
@@ -156,41 +156,38 @@ class GeneralAffair extends \yii\db\ActiveRecord
             $allowedFields = Yii::$app->params['allowedFields']['items'];
             CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $generalAffairItems);
 
-            if (!is_numeric($generalAffairItems['price']) || empty($generalAffairItems['price'])) {
-                $this->addError($attribute, Yii::t('app', 'float', ['field' => 'Price']));
+            if (!ctype_digit((string) $generalAffairItems['price'])) {
+                $this->addError($attribute, Yii::t('app', 'float', ['label' => 'Price']));
             }
             $generalAffairItems['price'] = floatval($generalAffairItems['price']);  
 
-            if (!is_numeric($generalAffairItems['condition']) || empty($generalAffairItems['condition'])) {
+            if (!filter_var($generalAffairItems['condition'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]])) {
                 $this->addError($attribute, Yii::t('app', 'integer', ['label' => 'Condition']));
             }
 
+            $generalAffairItems['condition'] = intval($generalAffairItems['condition']);
             if (!in_array($generalAffairItems['condition'], array_keys(Constants::ASSET_CONDITION))) {
                 $this->addError($attribute, Yii::t('app', 'invalidCondition', ['label' => 'Condition']));
             }
-            $generalAffairItems['condition'] = intval($generalAffairItems['condition']);
-    
-            if (!is_numeric($generalAffairItems['employee']['id']) || empty($generalAffairItems['employee']['id'])) {
+        
+            if (!filter_var($generalAffairItems['employee']['id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]])) {
                 $this->addError($attribute, Yii::t('app', 'integer', ['label' => 'Employee']));
             }
-
             $generalAffairItems['employee']['id'] = intval($generalAffairItems['employee']['id']);
             $employee = Employee::findOne(['id' => $generalAffairItems['employee']['id'], 'status' => Constants::STATUS_ACTIVE]);
             if ($employee === null) {
                 $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => 'Employee']));
             }
-            $generalAffairItems['employee'] = ['id' => $employee->id, 'name' => $employee->name];
 
-            if (!is_numeric($generalAffairItems['division']['id']) || empty($generalAffairItems['division']['id'])) {
+            if (!filter_var($generalAffairItems['division']['id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]])) {
                 $this->addError($attribute, Yii::t('app', 'integer', ['label' => 'Division']));
             }
-
+            
             $generalAffairItems['division']['id'] = intval($generalAffairItems['division']['id']);
             $division = Division::findOne(['id' => $generalAffairItems['division']['id'], 'status' => Constants::STATUS_ACTIVE]);
             if ($division === null) {
                 $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => 'Division']));
             }
-            $generalAffairItems['division'] = ['id' => $division->id, 'name' => $division->name];
 
             // DATE VALIDATION
             $dateValidator = new \yii\validators\DateValidator(['format' => 'php:Y-m-d']);
@@ -200,24 +197,24 @@ class GeneralAffair extends \yii\db\ActiveRecord
             }
 
             if (!$dateValidator->validate($generalAffairItems['buying_date'], $error)) {
-                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['field' => 'Buying Date']));
+                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['label' => 'Buying Date']));
             }
             
             $generalAffairItems['tax_date'] = CoreModel::nullSafe($generalAffairItems['tax_date']);
             if (!empty($generalAffairItems['tax_date']) && !$dateValidator->validate($generalAffairItems['tax_date'], $error)) {
-                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['field' => 'Tax Date']));
+                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['label' => 'Tax Date']));
             }
             
             $generalAffairItems['inspection_date'] = CoreModel::nullSafe($generalAffairItems['inspection_date']);
             if (!empty($generalAffairItems['inspection_date']) && !$dateValidator->validate($generalAffairItems['inspection_date'], $error)) {
-                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['field' => 'Inspection Date']));
+                $this->addError($attribute, Yii::t('app', 'dateInvalid', ['label' => 'Inspection Date']));
             }
             // DATE VALIDATION END
 
             // IMAGE VALIDATION
             if (!empty($generalAffairItems['image'])) {
                 if (!is_array($generalAffairItems['image'])) {
-                    $this->addError('image', Yii::t('app', 'mustArray'));
+                    $this->addError('image', Yii::t('app', 'array'));
                 }
             
                 $generalAffairItems['image'] = array_filter($generalAffairItems['image'], function($item) {
@@ -234,12 +231,17 @@ class GeneralAffair extends \yii\db\ActiveRecord
             }
             // IMAGE VALIDATION END
 
+            
+            if ($this->hasErrors()) {
+                throw new ErrorMessage($this, Yii::t('app', 'generalAffairFailed'), 422);
+            }
+            
+            $generalAffairItems['employee'] = ['id' => $employee->id, 'name' => $employee->name];
+            $generalAffairItems['division'] = ['id' => $division->id, 'name' => $division->name];
+
             $oldItem['items'][$generalAffairItems['code']] = $generalAffairItems;
         }
         
-        if ($this->hasErrors()) {
-            throw new ErrorMessage($this, Yii::t('app', 'generalAffairFailed'), 422);
-        }
 
         $this->$attribute = ['items' => $oldItem['items']];
     }

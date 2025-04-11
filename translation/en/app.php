@@ -26,8 +26,8 @@ return array_merge($core_translation, [
     'token expired.' => 'Token expired.',
 
     // custom error messages
-    'mustArray' => '{field} must be an array.',
-    'float' => '{field} must be an float.',
+    'array' => '{label} must be an array.',
+    'float' => '{label} must be an float.',
     'mustLogin' => 'You must login to perform this action.',
     'superadminOnly' => 'You do not have permission to perform this action.',
     'updatePermission' => 'You do not have permission to update the {label} of this {tableName} because it is referenced in other data.',
@@ -45,7 +45,8 @@ return array_merge($core_translation, [
 
     // General Affair custom error messages
     'generalAffairFailed' => 'General Affair failed.',
-    'dateInvalid' => '{field} format must be YYYY-MM-DD.',
+    'dateInvalid' => '{label} format must be YYYY-MM-DD.',
+    'datePattern' => 'Date must be in the format YYYY-MM-DD.',
     'codeFormatInvalid' => 'Code format invalid. Code must be a string between 10 and 25 characters',
 
     // Employee custom error messages
@@ -61,7 +62,7 @@ return array_merge($core_translation, [
     // Attendance Permission Rules
     'attendancePermissionFailed' => 'Attendance Permission failed.',
     'revisionEmpty' => 'Revision Start Time and End Time can not be empty at same time for {value} request.',
-    'invalidTimeFormat' => '{field} must be in the format of HH:MM:SS.',
+    'invalidTimeFormat' => '{label} must be in the format of HH:MM:SS.',
     'revisionRestriction' => 'For Revision request, Permission Type can only be set for Late or Leave Early.',
-    'revisionRequired' => '{field} is required for {value} request.',
+    'revisionRequired' => '{label} is required for {value} request.',
 ]);

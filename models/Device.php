@@ -34,14 +34,14 @@ class Device extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['ip_address'], 'ip'],
-                [['code'], 'string', 'max' => 5], 
                 [['location', 'detail_info'], 'safe'],
-                [['name', 'address'], 'string', 'max' => 255],
+                [['code'], 'string', 'min' => 2, 'max' => 5], 
+                [['name', 'address'], 'string', 'min' => 3, 'max' => 255],
 
+                [['code', 'name', 'address', 'ip_address'], 'required'],
                 [['code'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
                     return $model->isAttributeChanged('code');
                 }],
-                [['code', 'name', 'address', 'ip_address'], 'required'],
                 
                 [['location'], 'validateLocation'],
             ],

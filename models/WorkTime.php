@@ -32,15 +32,15 @@ class WorkTime extends \yii\db\ActiveRecord
     {
         return array_merge(
             [
-                [['name'], 'string', 'max' => 255],
                 [['working_days', 'detail_info'], 'safe'],
+                [['name'], 'string', 'min' => 3, 'max' => 255],
                 
                 [['name', 'working_days'], 'required'],
                 [['working_days'], 'default', 'value' => [], 'on' => Constants::SCENARIO_CREATE],
 
                 [['name', 'working_days', 'status'], function ($attribute, $params, $validator) {
                     CoreModel::validateDependencies($attribute, $params, $validator, $this, [
-                        ['className' => 'UserAttendance', 'field' => ['work_time_id']],
+                        ['className' => 'Employee', 'field' => ['work_time_id']],
                     ]);
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],
                 
@@ -114,7 +114,7 @@ class WorkTime extends \yii\db\ActiveRecord
         $workingDays = $this->$attribute;
 
         if (!is_array($workingDays)) {
-            $this->addError($attribute, Yii::t('app', 'mustArray', ['field' => $this->getAttributeLabel($attribute)]));
+            $this->addError($attribute, Yii::t('app', 'array', ['label' => $this->getAttributeLabel($attribute)]));
             return;
         }
 
@@ -132,14 +132,14 @@ class WorkTime extends \yii\db\ActiveRecord
             if ($entry_time !== null) {
                 $validEntryTime = \DateTime::createFromFormat('H:i:s', $entry_time);
                 if (!$validEntryTime || $validEntryTime->format('H:i:s') !== $entry_time) {
-                    $this->addError($attribute . "[$dayName][entry_time]", Yii::t('app', 'invalidTimeFormat', ['field' => $this->getAttributeLabel($attribute . "[$dayName][entry_time]")]));
+                    $this->addError($attribute . "[$dayName][entry_time]", Yii::t('app', 'invalidTimeFormat', ['label' => $this->getAttributeLabel($attribute . "[$dayName][entry_time]")]));
                 }
             }
 
             if ($home_time !== null) {
                 $validHomeTime = \DateTime::createFromFormat('H:i:s', $home_time);
                 if (!$validHomeTime || $validHomeTime->format('H:i:s') !== $home_time) {
-                    $this->addError($attribute . "[$dayName][home_time]", Yii::t('app', 'invalidTimeFormat', ['field' => $this->getAttributeLabel($attribute . "[$dayName][home_time]")]));
+                    $this->addError($attribute . "[$dayName][home_time]", Yii::t('app', 'invalidTimeFormat', ['label' => $this->getAttributeLabel($attribute . "[$dayName][home_time]")]));
                 }
             }
 

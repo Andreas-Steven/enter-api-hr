@@ -29,8 +29,8 @@ class EmployeeTypeSearch extends EmployeeType
     {
         return array_merge(
             [
-                [['id', 'status'], 'integer'],
                 [['name'], 'string'],
+                [['id', 'status'], 'integer'],
                 [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)

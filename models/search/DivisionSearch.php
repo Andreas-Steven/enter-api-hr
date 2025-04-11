@@ -26,8 +26,8 @@ class DivisionSearch extends Division
     {
         return array_merge(
             [
-                [['id', 'status'], 'integer'],
                 [['code', 'name'], 'string'],
+                [['id', 'status'], 'integer'],
                 [['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this),

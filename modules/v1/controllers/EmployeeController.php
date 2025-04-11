@@ -63,8 +63,8 @@ class EmployeeController extends CoreController
 	public function actionUpdate()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
-		$params['system_date'] = date('Y-m-d');
 		$scenario = Constants::SCENARIO_UPDATE;
+		$params['system_date'] = date('Y-m-d');
 
 		CoreController::validateParams($params, $scenario);
 		

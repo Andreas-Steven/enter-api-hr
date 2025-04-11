@@ -75,7 +75,6 @@ class Attendance extends \yii\db\ActiveRecord
         $scenarios = parent::scenarios();
         $scenarios[Constants::SCENARIO_CREATE] = ['date', 'system_date', 'dateMismatch', 'attendance', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['attendance', 'status', 'detail_info'];
-        $scenarios[Constants::SCENARIO_UPDATE_DAYOFF] = ['dayoff', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios;
