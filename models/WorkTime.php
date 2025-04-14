@@ -132,14 +132,14 @@ class WorkTime extends \yii\db\ActiveRecord
             if ($entry_time !== null) {
                 $validEntryTime = \DateTime::createFromFormat('H:i:s', $entry_time);
                 if (!$validEntryTime || $validEntryTime->format('H:i:s') !== $entry_time) {
-                    $this->addError($attribute . "[$dayName][entry_time]", Yii::t('app', 'invalidTimeFormat', ['label' => $this->getAttributeLabel($attribute . "[$dayName][entry_time]")]));
+                    $this->addError($attribute . "[$dayName][entry_time]", Yii::t('app', 'invalidTimeFormat', ['label' => "Entry Time"]));
                 }
             }
 
             if ($home_time !== null) {
                 $validHomeTime = \DateTime::createFromFormat('H:i:s', $home_time);
                 if (!$validHomeTime || $validHomeTime->format('H:i:s') !== $home_time) {
-                    $this->addError($attribute . "[$dayName][home_time]", Yii::t('app', 'invalidTimeFormat', ['label' => $this->getAttributeLabel($attribute . "[$dayName][home_time]")]));
+                    $this->addError($attribute . "[$dayName][home_time]", Yii::t('app', 'invalidTimeFormat', ['label' => "Home Time"]));
                 }
             }
 

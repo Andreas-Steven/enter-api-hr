@@ -70,7 +70,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'status', 'detail_info', 'approved', 'approved_note', 'sync'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'approved', 'approved_note', 'status', 'detail_info', 'sync'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'status', 'detail_info', 'sync'];
         $scenarios[Constants::SCENARIO_APPROVE] = ['approved', 'approved_note', 'status'];
         $scenarios[Constants::SCENARIO_REJECT] = ['approved', 'status'];
@@ -174,26 +174,6 @@ class AttendancePermission extends \yii\db\ActiveRecord
         parent::afterSave($insert, $changedAttributes);
     }
 
-    public function selectProductKey($key)
-    {
-        $this->addSelect(new Expression("id, name, status, detail_info, detail_item->'$key'->'product' AS product_detail"));
-        return $this;
-    }
-
-    public function selectProductQuantities($keys=[])
-    {
-        $queryAlias = Yii::$app->params['defaultValue']['inventory']['query_alias'];
-        
-        $keys = array_map(function($key) use ($queryAlias) {
-            // return "detail_item->'$key'->'quantity' AS " . $queryAlias . $key;
-            return "(detail_item->'$key') - 'md_data'  AS " . $queryAlias . $key;
-        }, $keys);
-        
-        $this->addSelect(new Expression('id, name, ' . implode(', ', $keys)));
-
-        return $this;
-    }
-
     public function validateAttendance($attribute)
     {
         $date = $this->$attribute ?? $this->getOldAttribute($attribute);
@@ -212,16 +192,6 @@ class AttendancePermission extends \yii\db\ActiveRecord
         }
 
         $attendanceModel['detail_attendance'] = json_decode($attendanceModel['detail_attendance'], true);
-
-        // $searchModel = new AttendanceSearch();      
-        // $dataProvider = $searchModel->search($params);
-        // $attendanceData = $dataProvider->getModels();
-
-        // if (empty($attendanceData)) {
-        //     $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('attendance')]));
-        //     throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
-        // }
-
 
         $this->attendance = [
             'id' => $attendanceModel['id'],
