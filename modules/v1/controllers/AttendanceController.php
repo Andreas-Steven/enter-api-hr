@@ -47,6 +47,7 @@ class AttendanceController extends CoreController
 		$scenario = Constants::SCENARIO_CREATE;
 		$params['system_date'] = date('Y-m-d');
 		$params['dateMismatch'] = null;
+		$params['dayoff'] = false;
 
 		CoreController::unavailableParams($model, $params);
 
@@ -60,6 +61,7 @@ class AttendanceController extends CoreController
 
 		if (!empty($params['dayoff']) && boolval($params['dayoff'])) {
 			$params['system_date'] = $params['date'];
+			$params['dayoff'] = true;
 		}
 
 		$date = \DateTime::createFromFormat('Y-m-d', $params['date']);
