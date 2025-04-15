@@ -28,8 +28,8 @@ class AttendanceHoliday extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['detail_info'], 'safe'],
-                [['date'], 'date', 'format' => 'php:Y-m-d'],
                 [['name'], 'string', 'min' => 4, 'max' => 255],
+                [['date'], 'date', 'format' => 'php:Y-m-d', 'message' => Yii::t('app', 'dateInvalid', ['label' => 'Date'])],
 
                 [['name', 'date'], 'required'],
                 
