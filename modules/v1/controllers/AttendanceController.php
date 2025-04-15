@@ -7,10 +7,11 @@ use yii\web\Response;
 use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
-use app\core\CoreController;
-use app\models\search\AttendanceSearch;
-use app\models\Attendance;
 use yii\helpers\ArrayHelper;
+use app\core\CoreController;
+use app\models\Attendance;
+use app\models\search\AttendanceSearch;
+use app\models\AttendanceHoliday;
 
 class AttendanceController extends CoreController
 {
@@ -47,6 +48,7 @@ class AttendanceController extends CoreController
 		$scenario = Constants::SCENARIO_CREATE;
 		$params['system_date'] = date('Y-m-d');
 		$params['dateMismatch'] = null;
+		$params['dayoff'] = false;
 
 		CoreController::unavailableParams($model, $params);
 
@@ -56,10 +58,11 @@ class AttendanceController extends CoreController
 		}
 
 		// UNCOMMENT THIS FOR TESTING
-		// $params['system_date'] = $params['date'];
-
-		if (!empty($params['dayoff']) && boolval($params['dayoff'])) {
+		$params['system_date'] = $params['date'];
+		
+		if ($params['date'] && AttendanceHoliday::find()->where(['date' => $params['date']])->exists()) {
 			$params['system_date'] = $params['date'];
+			$params['dayoff'] = true;
 		}
 
 		$date = \DateTime::createFromFormat('Y-m-d', $params['date']);

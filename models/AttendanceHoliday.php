@@ -32,7 +32,11 @@ class AttendanceHoliday extends \yii\db\ActiveRecord
                 [['name'], 'string', 'min' => 4, 'max' => 255],
 
                 [['name', 'date'], 'required'],
+                
                 [['sync'], 'default', 'value' => null],
+                [['date'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
+                    return $model->isAttributeChanged('date');
+                }],
             ], 
             CoreModel::getStatusRules($this),
             CoreModel::getLockVersionRulesOnly($this),

@@ -30,6 +30,7 @@ class AttendanceHolidaySearch extends AttendanceHoliday
         return array_merge(
             [
                 [['id', 'status'], 'integer'],
+                [['date'], 'date', 'format' => 'php:Y-m-d'],
                 [['name', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
@@ -75,6 +76,7 @@ class AttendanceHolidaySearch extends AttendanceHoliday
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
+            'date' => $this->date,
         ]);
 
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));

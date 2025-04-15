@@ -8,11 +8,11 @@ use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
 use app\core\CoreController;
-use app\models\AttendanceHolidays;
+use app\models\AttendanceHoliday;
 use app\models\search\AttendanceHolidaySearch;
 
 /**
- * AttendanceHolidayController implements the CRUD actions for AttendanceHolidays model.
+ * AttendanceHolidayController implements the CRUD actions for AttendanceHoliday model.
  */
 class AttendanceHolidayController extends CoreController
 {
@@ -44,7 +44,7 @@ class AttendanceHolidayController extends CoreController
 
     public function actionCreate()
 	{
-		$model = new AttendanceHolidays();
+		$model = new AttendanceHoliday();
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$scenario = Constants::SCENARIO_CREATE;
 
@@ -69,7 +69,7 @@ class AttendanceHolidayController extends CoreController
 
 		CoreController::validateParams($params, $scenario);
 		
-		$model = CoreController::coreFindModelOne(new AttendanceHolidays(), $params);
+		$model = CoreController::coreFindModelOne(new AttendanceHoliday(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
@@ -99,7 +99,7 @@ class AttendanceHolidayController extends CoreController
 
 		CoreController::validateParams($params, $scenario);
 
-		$model = CoreController::coreFindModelOne(new AttendanceHolidays(), $params);
+		$model = CoreController::coreFindModelOne(new AttendanceHoliday(), $params);
 
 		if ($model === null) {
 			return CoreController::coreDataNotFound();

@@ -3,9 +3,9 @@
 namespace app\models\query;
 
 /**
- * This is the ActiveQuery class for [[\app\models\AttendanceHolidays]].
+ * This is the ActiveQuery class for [[\app\models\AttendanceHoliday]].
  *
- * @see \app\models\AttendanceHolidays
+ * @see \app\models\AttendanceHoliday
  */
 class AttendanceHolidayQuery extends \yii\db\ActiveQuery
 {
@@ -16,7 +16,7 @@ class AttendanceHolidayQuery extends \yii\db\ActiveQuery
 
     /**
      * {@inheritdoc}
-     * @return \app\models\AttendanceHolidays[]|array
+     * @return \app\models\AttendanceHoliday[]|array
      */
     public function all($db = null)
     {
@@ -25,7 +25,7 @@ class AttendanceHolidayQuery extends \yii\db\ActiveQuery
 
     /**
      * {@inheritdoc}
-     * @return \app\models\AttendanceHolidays|array|null
+     * @return \app\models\AttendanceHoliday|array|null
      */
     public function one($db = null)
     {

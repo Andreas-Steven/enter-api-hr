@@ -57,8 +57,6 @@ class Attendance extends \yii\db\ActiveRecord
                 [['date', 'system_date', 'dateMismatch'], 'date', 'format' => 'php:Y-m-d'],
                 
                 [['date'], 'required'],
-                [['dayoff'], 'default', 'value' => false],
-
                 [['date'], 'filter', 'filter' => function($value) {
                     return CoreModel::nullSafe($value);
                 }],
@@ -73,7 +71,7 @@ class Attendance extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'system_date', 'dateMismatch', 'attendance', 'status', 'detail_info'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['date', 'system_date', 'dateMismatch', 'attendance', 'dayoff', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['attendance', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
@@ -242,7 +240,7 @@ class Attendance extends \yii\db\ActiveRecord
                 }
 
                 $dayNow = date('N', strtotime($this->date));
-                $dayoff = $this->dayoff ?? $this->detail_info['dayoff'] ?? false;
+                $dayoff = $this->dayoff ?? $this->detail_info['dayoff'];
 
                 if (isset($workTime['working_days'][$dayNow])) {
                     $entryTime = $workTime['working_days'][$dayNow]['entry_time'];
