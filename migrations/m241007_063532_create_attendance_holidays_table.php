@@ -12,7 +12,6 @@ class m241007_063532_create_attendance_holidays_table extends Migration
 
     public function safeUp()
     {
-        $mongodb_param = require(__DIR__ . '/../config/mongodb.php');
         $params = require(__DIR__ . '/../config/params.php');
         $UTCTimestamp = gmdate($params['timestamp']['UTC']);
         $createdBy = 'system';
