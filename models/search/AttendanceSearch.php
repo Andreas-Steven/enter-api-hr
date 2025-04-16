@@ -78,7 +78,6 @@ class AttendanceSearch extends Attendance
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'period' => $this->period,
             'status' => $this->status,
         ]);
         
@@ -129,6 +128,8 @@ class AttendanceSearch extends Attendance
             $conditions[] = ['=', new \yii\db\Expression("CAST(detail_info->>'dayoff' AS BOOLEAN)"), (bool) $this->dayoff];
             $query->andFilterWhere($conditions);
         }
+
+        $query->andFilterWhere(['period' => $this->period ? explode(',', $this->period) : $this->period]);
 
         $dataProvider->setPagination(
             CoreModel::setPagination($params, $dataProvider)

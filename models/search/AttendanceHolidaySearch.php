@@ -29,8 +29,8 @@ class AttendanceHolidaySearch extends AttendanceHoliday
     {
         return array_merge(
             [
-                [['id', 'period', 'status'], 'integer'],
-                [['name', 'date', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+                [['id', 'status'], 'integer'],
+                [['name', 'date', 'period', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -74,7 +74,6 @@ class AttendanceHolidaySearch extends AttendanceHoliday
 
         $query->andFilterWhere([
             'id' => $this->id,
-            'period' => $this->period,
             'status' => $this->status,
         ]);
 
@@ -98,6 +97,8 @@ class AttendanceHolidaySearch extends AttendanceHoliday
             
             $query->andFilterWhere($conditions);
         }
+
+        $query->andFilterWhere(['period' => $this->period ? explode(',', $this->period) : $this->period]);
 
         $dataProvider->setPagination(
             CoreModel::setPagination($params, $dataProvider)
