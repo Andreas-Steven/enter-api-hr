@@ -29,9 +29,8 @@ class AttendanceHolidaySearch extends AttendanceHoliday
     {
         return array_merge(
             [
-                [['id', 'status'], 'integer'],
-                [['date'], 'date', 'format' => 'php:Y-m-d'],
-                [['name', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+                [['id', 'period', 'status'], 'integer'],
+                [['name', 'date', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -75,11 +74,30 @@ class AttendanceHolidaySearch extends AttendanceHoliday
 
         $query->andFilterWhere([
             'id' => $this->id,
+            'period' => $this->period,
             'status' => $this->status,
-            'date' => $this->date,
         ]);
 
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
+
+        if ($this->date) {
+            $dateValue = $this->date;
+            $conditions = ['and'];
+
+            if (strpos($dateValue, ',') !== false) {
+                list($startDate, $endDate) = array_map('trim', explode(',', $dateValue));
+
+                $conditions[] = [
+                    'and',
+                    ['>=', "date", $startDate],
+                    ['<=', "date", $endDate],
+                ];
+            } else {
+                $conditions[] = ['=', "date", $dateValue];
+            }
+            
+            $query->andFilterWhere($conditions);
+        }
 
         $dataProvider->setPagination(
             CoreModel::setPagination($params, $dataProvider)

@@ -7,9 +7,10 @@ use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\helpers\Constants;
 use app\core\CoreModel;
-use app\models\Attendance;
 use app\core\CoreMongodb;
 use app\exceptions\ErrorMessage;
+use app\models\Attendance;
+use app\models\AttendanceHoliday;
 
 class AttendanceSearch extends Attendance
 {
@@ -35,8 +36,7 @@ class AttendanceSearch extends Attendance
             [
                 [['dayoff'], 'boolean'],
                 [['id', 'period', 'status'], 'integer'],
-                [['date'], 'date', 'format' => 'php:Y-m-d'],
-                [['employee_name', 'employee_id', 'attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+                [['date', 'employee_name', 'employee_id', 'attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -80,10 +80,28 @@ class AttendanceSearch extends Attendance
             'id' => $this->id,
             'period' => $this->period,
             'status' => $this->status,
-            'date' => $this->date,
         ]);
         
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
+
+        if ($this->date) {
+            $dateValue = $this->date;
+            $conditions = ['and'];
+
+            if (strpos($dateValue, ',') !== false) {
+                list($startDate, $endDate) = array_map('trim', explode(',', $dateValue));
+
+                $conditions[] = [
+                    'and',
+                    ['>=', "date", $startDate],
+                    ['<=', "date", $endDate],
+                ];
+            } else {
+                $conditions[] = ['=', "date", $dateValue];
+            }
+            
+            $query->andFilterWhere($conditions);
+        }
       
         /* EMPLOYEE NAME OR ID FILTERING */
         if ($this->employee_name || $this->employee_id) {
@@ -267,10 +285,10 @@ class AttendanceSearch extends Attendance
     
         $workingDays = $totalDays - ($saturdaysCount + $sundaysCount);
 
-        $dayoffCount = Attendance::find()
-            ->where(['and', Constants::STATUS_NOT_DELETED,
-                ['=', new \yii\db\Expression("CAST(detail_info->>'dayoff' AS BOOLEAN)"), true],
-                ['=', 'period', $period]
+        $dayoffCount = AttendanceHoliday::find()
+            ->where([
+                'period' => $period, 
+                'status' => Constants::STATUS_ACTIVE,
             ])->count();
     
         return [
