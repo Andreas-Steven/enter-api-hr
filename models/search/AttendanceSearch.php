@@ -35,8 +35,7 @@ class AttendanceSearch extends Attendance
             [
                 [['dayoff'], 'boolean'],
                 [['id', 'period', 'status'], 'integer'],
-                [['date'], 'date', 'format' => 'php:Y-m-d'],
-                [['employee_name', 'employee_id', 'attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+                [['date', 'employee_name', 'employee_id', 'attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -80,10 +79,28 @@ class AttendanceSearch extends Attendance
             'id' => $this->id,
             'period' => $this->period,
             'status' => $this->status,
-            'date' => $this->date,
         ]);
         
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
+
+        if ($this->date) {
+            $dateValue = $this->date;
+            $conditions = ['and'];
+
+            if (strpos($dateValue, ',') !== false) {
+                list($startDate, $endDate) = array_map('trim', explode(',', $dateValue));
+
+                $conditions[] = [
+                    'and',
+                    ['>=', "date", $startDate],
+                    ['<=', "date", $endDate],
+                ];
+            } else {
+                $conditions[] = ['=', "date", $dateValue];
+            }
+            
+            $query->andFilterWhere($conditions);
+        }
       
         /* EMPLOYEE NAME OR ID FILTERING */
         if ($this->employee_name || $this->employee_id) {
