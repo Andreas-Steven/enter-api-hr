@@ -34,8 +34,8 @@ class AttendanceSearch extends Attendance
         return array_merge(
             [
                 [['dayoff'], 'boolean'],
-                [['id', 'period', 'status'], 'integer'],
-                [['date', 'employee_name', 'employee_id', 'attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+                [['id', 'status'], 'integer'],
+                [['date', 'period', 'employee_name', 'employee_id', 'attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -77,7 +77,6 @@ class AttendanceSearch extends Attendance
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'period' => $this->period,
             'status' => $this->status,
         ]);
         
@@ -123,11 +122,14 @@ class AttendanceSearch extends Attendance
             ]);
         }
         
+        
         if (isset($this->dayoff)) {
             $conditions = ['and'];
             $conditions[] = ['=', new \yii\db\Expression("CAST(detail_info->>'dayoff' AS BOOLEAN)"), (bool) $this->dayoff];
             $query->andFilterWhere($conditions);
         }
+
+        $query->andFilterWhere(['period' => $this->period ? explode(',', $this->period) : $this->period]);
 
         $dataProvider->setPagination(
             CoreModel::setPagination($params, $dataProvider)
