@@ -25,6 +25,12 @@ return array_merge($core_translation, [
     'token not found.' => 'Token tidak ditemukan.',
     'token expired.' => 'Token kadaluarsa.',
 
+    // Attendance Permission custom messages
+    'approveRecordSuccess' => 'Data telah disetujui dengan sukses.',
+    'approveRecordFailed' => 'Gagal menyetujui data.',
+    'rejectRecordSuccess' => 'Data telah ditolak dengan sukses.',
+    'rejectRecordFailed' => 'Gagal menolak data.',
+
     // custom error messages
     'array' => '{label} harus berupa array.',
     'float' => '{label} harus berupa float.',
@@ -36,6 +42,8 @@ return array_merge($core_translation, [
     'invalidCondition' => '{label} tidak valid.',
 
     // Attendance custom error messages
+    'defaultRecordSuccess' => 'Data telah disimpan dengan sukses.',
+    'defaultRecordFailed' => 'Gagal menyimpan data.',
     'attendanceFailed' => 'Absensi gagal.',
     'endTimeNotValid' => 'Waktu akhir absensi tidak valid.',
     'locationRequired' => 'Lokasi harus diisi untuk aplikasi device.',
