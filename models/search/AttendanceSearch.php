@@ -291,7 +291,11 @@ class AttendanceSearch extends Attendance
             ->where([
                 'period' => $period, 
                 'status' => Constants::STATUS_ACTIVE,
-            ])->count() ?? 0;
+            ])->exists() ? AttendanceHoliday::find()
+            ->where([
+                'period' => $period, 
+                'status' => Constants::STATUS_ACTIVE,
+            ])->count() : 0;
     
         return [
             'workingDays' => ($workingDays - $dayoffCount),
