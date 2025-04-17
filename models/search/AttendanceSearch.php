@@ -35,13 +35,8 @@ class AttendanceSearch extends Attendance
         return array_merge(
             [
                 [['dayoff'], 'boolean'],
-<<<<<<< HEAD
                 [['id', 'status'], 'integer'],
                 [['date', 'period', 'employee_name', 'employee_id', 'attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
-=======
-                [['id', 'period', 'status'], 'integer'],
-                [['date', 'employee_name', 'employee_id', 'attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
->>>>>>> 705a3d24b2d7f17af9b5b6e0c822b8750632a0e0
             ], 
             CoreModel::getPaginationRules($this)
         );
