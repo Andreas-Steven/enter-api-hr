@@ -287,10 +287,16 @@ class AttendanceSearch extends Attendance
     
         $workingDays = $totalDays - ($saturdaysCount + $sundaysCount);
 
-        $dayoffCount = AttendanceHoliday::find()
-            ->where([
-                'period' => $period, 
-                'status' => Constants::STATUS_ACTIVE,
+        // $dayoffCount = AttendanceHoliday::find()
+        //     ->where([
+        //         'period' => $period, 
+        //         'status' => Constants::STATUS_ACTIVE,
+        //     ])->count();
+
+        $dayoffCount = Attendance::find()
+            ->where(['and', Constants::STATUS_NOT_DELETED,
+                ['=', new \yii\db\Expression("CAST(detail_info->>'dayoff' AS BOOLEAN)"), true],
+                ['=', 'period', $period]
             ])->count();
     
         return [
