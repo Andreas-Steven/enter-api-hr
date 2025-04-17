@@ -7,9 +7,10 @@ use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\helpers\Constants;
 use app\core\CoreModel;
-use app\models\Attendance;
 use app\core\CoreMongodb;
 use app\exceptions\ErrorMessage;
+use app\models\Attendance;
+use app\models\AttendanceHoliday;
 
 class AttendanceSearch extends Attendance
 {
@@ -34,8 +35,13 @@ class AttendanceSearch extends Attendance
         return array_merge(
             [
                 [['dayoff'], 'boolean'],
+<<<<<<< HEAD
                 [['id', 'status'], 'integer'],
                 [['date', 'period', 'employee_name', 'employee_id', 'attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+=======
+                [['id', 'period', 'status'], 'integer'],
+                [['date', 'employee_name', 'employee_id', 'attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+>>>>>>> 705a3d24b2d7f17af9b5b6e0c822b8750632a0e0
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -286,10 +292,10 @@ class AttendanceSearch extends Attendance
     
         $workingDays = $totalDays - ($saturdaysCount + $sundaysCount);
 
-        $dayoffCount = Attendance::find()
-            ->where(['and', Constants::STATUS_NOT_DELETED,
-                ['=', new \yii\db\Expression("CAST(detail_info->>'dayoff' AS BOOLEAN)"), true],
-                ['=', 'period', $period]
+        $dayoffCount = AttendanceHoliday::find()
+            ->where([
+                'period' => $period, 
+                'status' => Constants::STATUS_ACTIVE,
             ])->count();
     
         return [
