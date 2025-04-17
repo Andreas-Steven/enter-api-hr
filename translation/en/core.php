@@ -36,11 +36,6 @@ return [
     'canceledRecordSuccess' => 'Data has been canceled successfully.',
     'canceledRecordFailed' => 'Failed to cancel data.',
 
-    'approveRecordSuccess' => 'Data has been approved successfully.',
-    'approveRecordFailed' => 'Failed to approve data.',
-    'rejectRecordSuccess' => 'Data has been rejected successfully.',
-    'rejectRecordFailed' => 'Failed to reject data.',
-
     // Field Validation Rules
     'required' => '{label} cannot be blank.',
     'integer' => '{label} must be an integer.',
@@ -56,6 +51,7 @@ return [
     'nullField' => '{label} field: {field} is cannot be null or empty.',
     'allowedField' => '{field} can only contain the field {value}.',
     'integerNoZero' => '{label} must be an integer and greater than 0.',
+    'invalidStatusTransition' => 'Invalid status transition',
 
     // General Pagination Rules
     'pageMustBeGreaterThanZero' => 'Page must be greater than 0.',
@@ -69,4 +65,3 @@ return [
     'superadminOnly' => 'You do not have permission to perform this action.',
     'updatePermission' => 'You do not have permission to update the {label} of this {tableName} because it is referenced in other data.',
 ];
-

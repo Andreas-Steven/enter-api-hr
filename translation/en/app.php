@@ -25,6 +25,12 @@ return array_merge($core_translation, [
     'token not found.' => 'Token not found.',
     'token expired.' => 'Token expired.',
 
+    // Attendance Permission custom messages
+    'approveRecordSuccess' => 'Data has been approved successfully.',
+    'approveRecordFailed' => 'Failed to approve data.',
+    'rejectRecordSuccess' => 'Data has been rejected successfully.',
+    'rejectRecordFailed' => 'Failed to reject data.',
+
     // custom error messages
     'array' => '{label} must be an array.',
     'float' => '{label} must be an float.',
@@ -36,6 +42,8 @@ return array_merge($core_translation, [
     'invalidCondition' => '{label} is invalid.',
 
     // Attendance custom error messages
+    'defaultRecordSuccess' => 'Data has been saved successfully.',
+    'defaultRecordFailed' => 'Failed to save data.',
     'attendanceFailed' => 'Attendance failed.',
     'endTimeNotValid' => 'Attendance end time value not valid.',
     'locationRequired' => 'Location must be set for device app.',

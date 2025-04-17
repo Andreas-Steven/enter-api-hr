@@ -11,13 +11,23 @@ class CustomMongodb extends \MongoDB\Client
 {
     public string $dsn;
     public string $database;
-    public string $username;
-    public string $password;
+    private $connection = null;
+
+    private function getConnection()
+    {
+        if ($this->connection === null) {
+            $this->connection = new \MongoDB\Client($this->dsn, [
+                'maxPoolSize' => 50,
+                'waitQueueTimeoutMS' => 5000
+            ]);
+        }
+        return $this->connection;
+    }
 
     public function upsert($model): void
     {
         try {
-            $mongodb = new \MongoDB\Client($this->dsn);
+            $mongodb = $this->getConnection();
             $collection = $mongodb->selectCollection($this->database, $model::tableName());
             $data = $model->toArray();
             $collection->updateOne(
@@ -33,13 +43,13 @@ class CustomMongodb extends \MongoDB\Client
     public function upsertMany($model, array $attrtibutes, $data): void
     {
         try {
-            $mongodb = new \MongoDB\Client($this->dsn);
+            $mongodb = $this->getConnection();
             $collection = $mongodb->selectCollection($this->database, $model::tableName());
 
             $bulkWrite = array_map(function ($item) use ($attrtibutes, $collection) {
                 $filters = [];
                 foreach ($attrtibutes as $attribute) {
-                    $filters[$attribute] = $item[$attribute];
+                    $filters[$attribute] = intval($item[$attribute]);
                 }
 
                 return [
@@ -57,28 +67,31 @@ class CustomMongodb extends \MongoDB\Client
         }
     }
 
-    public function upsertLogInventory($model): void
+    public function upsertManyCustomCollection($tableName, array $attrtibutes, $data): void
     {
         try {
-            $mongodb = new \MongoDB\Client($this->dsn);
-            $collection = $mongodb->selectCollection($this->database, $model::tableName());
-            $data = $model->toArray();
+            $mongodb = $this->getConnection();
+            $collection = $mongodb->selectCollection($this->database, $tableName);
 
-            if (isset($data['product'])) {
-                $logs = array_map(function ($product, $productId) use ($data) {
-                    $newRecord = array_merge($data, [
-                        'product_id' => $productId,
-                        'product' => $product,
-                    ]);
-                    unset($newRecord['product'][$productId]);
+            $bulkWrite = array_map(function ($item) use ($attrtibutes, $collection) {
+                $filters = [];
+                foreach ($attrtibutes as $attribute) {
+                    $filters[$attribute] = intval($item[$attribute]);
+                }
 
-                    return $newRecord;
-                }, $data['product'], array_keys($data['product']));
+                return [
+                    'updateOne' => [
+                        $filters,
+                        ['$set' => $item],
+                        ['upsert' => true],
+                    ],
+                ];
+            }, $data);
 
-                $collection->insertMany($logs);
-            }
+            $collection->bulkWrite($bulkWrite);
         } catch (\Exception $e) {
-            Yii::$app->coreAPI->setMongodbSyncFailed($model);
+            // TODO: Handle Exception if custom table is failed to sync
+            // Yii::$app->coreAPI->setMongodbSyncFailed($model);
         }
     }
 
@@ -90,28 +103,24 @@ class CustomMongodb extends \MongoDB\Client
             $page = $model->page ?? 1;
             $pageSize = (int) ($model->page_size ?: Yii::$app->params['pagination']['pageSize']);
 
-            $client = new \MongoDB\Client($this->dsn);
+            $client = $this->getConnection();
             $collection = $client->selectCollection($this->database, $model::tableName());
+            
+            // Prepare query filter
             $andFilters = [];
-
-            if (isset($filters['where']) && !empty($filters['where'])) {
+            if (!empty($filters['where'])) {
                 $andFilters[] = $filters['where'];
             }
-
-            if (isset($filters['orWhere']) && !empty($filters['orWhere'])) {
-                $andFilters[] = [
-                    '$or' => $filters['orWhere'],
-                ];
+            if (!empty($filters['orWhere'])) {
+                $andFilters[] = ['$or' => $filters['orWhere']];
             }
+            $queryFilter = empty($andFilters) ? [] : ['$and' => $andFilters];
 
-            $queryFilter = empty($andFilters) ? [] : [
-                '$and' => $andFilters,
-            ];
+            // Use projection early
+            $finalProjection = array_merge(['_id' => false], $projection);
 
             $totalCount = $collection->countDocuments($queryFilter);
-
             $pageSize = min($totalCount, $pageSize);
-
             $pagination = new \yii\data\Pagination(['totalCount' => $totalCount]);
             $pagination->page = $page - 1;
             $pagination->pageSize = $pageSize;
@@ -120,10 +129,9 @@ class CustomMongodb extends \MongoDB\Client
                 'limit' => $pagination->limit,
                 'skip' => $pagination->offset,
                 'sort' => [$sortBy => $sortOrder],
-                'projection' => array_merge(
-                    ['_id' => false],
-                    $projection,
-                ),
+                'projection' => $finalProjection,
+                'noCursorTimeout' => false,
+                'maxTimeMS' => 5000,
             ];
 
             $cursor = $collection->find($queryFilter, $options);
