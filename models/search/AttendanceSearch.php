@@ -29,6 +29,10 @@ class AttendanceSearch extends Attendance
     public $dayoff;
     public $employee_id;
     public $employee_name;
+    public $late;
+    public $leave_early;
+    public $missed_checkout;
+    public $work_holiday;
 
     public function rules()
     {
@@ -36,7 +40,7 @@ class AttendanceSearch extends Attendance
             [
                 [['dayoff'], 'boolean'],
                 [['id', 'status'], 'integer'],
-                [['date', 'period', 'employee_name', 'employee_id', 'attendance', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+                [['date', 'period', 'employee_name', 'employee_id', 'attendance', 'late', 'leave_early', 'missed_checkout', 'work_holiday', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -102,28 +106,50 @@ class AttendanceSearch extends Attendance
             $query->andFilterWhere($conditions);
         }
       
-        /* EMPLOYEE NAME OR ID FILTERING */
-        if ($this->employee_name || $this->employee_id) {
+        /* EMPLOYEE NAME OR ID OR LATE FILTERING */
+        $whereClauses = [];
+        $params = [];
+
+        if ($this->employee_id) {
+            $whereClauses[] = "(value->>'employee_id')::int = :employee_id";
+            $params[':employee_id'] = $this->employee_id;
+        }
+
+        if ($this->employee_name) {
+            $whereClauses[] = "(value->>'employee_name')::text ILIKE :employee_name";
+            $params[':employee_name'] = $this->employee_name;
+        }
+
+        if ($this->late) {
+            $whereClauses[] = "EXISTS (SELECT 1 FROM jsonb_array_elements(value->'info'->'detail') AS d WHERE d::text = :late)";
+            $params[':late'] = '"' . Constants::ATTENDANCE_LATE . '"';
+        }
+
+        if ($this->leave_early) {
+            $whereClauses[] = "EXISTS (SELECT 1 FROM jsonb_array_elements(value->'info'->'detail') AS d WHERE d::text = :leave_early)";
+            $params[':leave_early'] = '"' . Constants::ATTENDANCE_LEAVE_EARLY . '"';
+        }
+
+        if ($this->missed_checkout) {
+            $whereClauses[] = "EXISTS (SELECT 1 FROM jsonb_array_elements(value->'info'->'detail') AS d WHERE d::text = :missed_checkout)";
+            $params[':missed_checkout'] = '"' . Constants::ATTENDANCE_MISSED_CHECKOUT . '"';
+        }
+
+        if ($this->work_holiday) {
+            $whereClauses[] = "EXISTS (SELECT 1 FROM jsonb_array_elements(value->'info'->'detail') AS d WHERE d::text = :work_holiday)";
+            $params[':work_holiday'] = '"' . Constants::ATTENDANCE_WORK_HOLIDAY . '"';
+        }
+        
+        if ($whereClauses) {
+            $whereSql = implode(' OR ', $whereClauses);
             $query->addSelect([
                 '*',
-                'attendance' => new \yii\db\Expression( "(
-                    WITH attendance_elements AS (
-                        SELECT key, value
-                        FROM jsonb_each(attendance)
-                        WHERE (value->>'employee_id')::int = :employee_id 
-                        OR (value->>'employee_name')::text ILIKE :employee_name
-                    )
-                    SELECT jsonb_object_agg(key, value)
-                    FROM attendance_elements)",
-                    [
-                        ':employee_id' => $this->employee_id,
-                        ':employee_name' => $this->employee_name,
-                    ]
+                'attendance' => new \yii\db\Expression(
+                    "(WITH attendance_elements AS (SELECT key, value FROM jsonb_each(attendance) WHERE $whereSql) SELECT jsonb_object_agg(key, value) FROM attendance_elements)", $params
                 )
             ]);
         }
-        
-        
+
         if (isset($this->dayoff)) {
             $conditions = ['and'];
             $conditions[] = ['=', new \yii\db\Expression("CAST(detail_info->>'dayoff' AS BOOLEAN)"), (bool) $this->dayoff];
