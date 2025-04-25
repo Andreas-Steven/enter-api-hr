@@ -47,6 +47,7 @@ class Employee extends \yii\db\ActiveRecord
         return array_merge(
             [
                 [['image', 'contact', 'detail_info'], 'safe'],
+                [['email'], 'email', 'on' => Constants::SCENARIO_UPDATE],
                 [['sso_id', 'division_id', 'status', 'work_time_id'], 'integer'],
                 [['name', 'nik', 'email', 'username'], 'string', 'min' => 3, 'max' => 255],
                 
@@ -54,23 +55,32 @@ class Employee extends \yii\db\ActiveRecord
                 [['division_id', 'position_id', 'employee_type_id'], 'default', 'value' => 1, 'on' => Constants::SCENARIO_CREATE],
                 [['nik', 'birth_date', 'date_start', 'date_resign', 'email', 'work_time_id'], 'default', 'value' => null, 'on' => Constants::SCENARIO_CREATE],
                 
-                [['email'], 'email', 'on' => Constants::SCENARIO_UPDATE],
-                [['email'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
-                    return $model->isAttributeChanged('email');
-                }],
-                [['nik'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
-                    return $model->isAttributeChanged('nik');
-                }],
-                [['sso_id'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
-                    return $model->isAttributeChanged('sso_id');
-                }],
-
                 [['name', 'sso_id', 'username'], 'required', 'on' => Constants::SCENARIO_CREATE],
                 [['work_time_id', 'division_id', 'position_id'], 'required', 'on' => Constants::SCENARIO_UPDATE],
 
                 [['nik'], 'match', 'pattern' => '/^\d{16}$/', 'message' => Yii::t('app', 'invalidNik')],
                 [['sso_id', 'division_id', 'position_id', 'employee_type_id', 'work_time_id'], 'filter', 'filter' => 'intval'],
-                [['birth_date', 'date_start', 'date_resign', 'system_date'], 'match', 'pattern' => '/^\d{4}-\d{2}-\d{2}$/', Yii::t('app', 'datePattern')],
+                [['birth_date', 'date_start', 'date_resign', 'system_date'], 'match', 'pattern' => '/^\d{4}-\d{2}-\d{2}$/', 'message' => Yii::t('app', 'datePattern')],
+
+                [['image'], function($attribute) {
+                    CoreModel::validateAttributeArray($this, $attribute, 'Image');
+                }],
+
+                [['contact'], function($attribute) {
+                    CoreModel::validateAttributeArray($this, $attribute, 'Contact');
+                }],
+
+                [['email'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
+                    return $model->isAttributeChanged('email');
+                }],
+
+                [['nik'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
+                    return $model->isAttributeChanged('nik');
+                }],
+
+                [['sso_id'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
+                    return $model->isAttributeChanged('sso_id');
+                }],
 
                 [['image'], 'validateImage'],
                 [['contact'], 'validateContact'],
@@ -78,8 +88,8 @@ class Employee extends \yii\db\ActiveRecord
                 [['division_id'], 'validateDivision'], 
                 [['position_id'], 'validatePosition'], 
                 [['employee_type_id'], 'validateType'], 
-                [['sso_id', 'username'], 'validateSSO'],
                 [['work_time_id'], 'validateWorkTime'],
+                [['sso_id', 'username'], 'validateSSO'],
             ],
             CoreModel::getStatusRules($this),
             CoreModel::getLockVersionRules($this),
@@ -169,58 +179,44 @@ class Employee extends \yii\db\ActiveRecord
 
     public function validateContact($attribute, $params)
     {
-        $contacts = $this->$attribute;
-    
-        if (!is_array($contacts)) {
-            $this->addError($attribute, Yii::t('app', 'array', ['label' => $this->getAttributeLabel($attribute)]));
-            return;
-        }
-    
+        $contacts = CoreModel::ensureArray($this->$attribute);
         $contacts = array_filter($contacts, function($contact) {
-            return !in_array($contact, ['[]', '', null], true);
+            return !in_array($contact, ['[]', '', null, 'null'], true);
         });
 
         foreach ($contacts as $contact) {
             $contact = CoreModel::nullSafe($contact);
-
-            if ($contact === null) {
-                $this->addError($attribute, Yii::t('app', 'null', [
-                    'label' => $this->getAttributeLabel($attribute), 
-                ]));
-                return;
-            }
-
-            if (!preg_match('/^(62)[1-9][0-9]{7,12}$/', $contact)) {
+            if (!preg_match('/^(62)[1-9][0-9]{7,12}$/', $contact) && !empty($contact)) {
                 $this->addError($attribute, Yii::t('app', 'phonePrefix'));
                 return;
             }
         }
 
-        $this->$attribute = array_values(array_unique($contacts));
+        $this->$attribute = $contacts;
     }
 
     public function validateImage($attribute, $params)
     {
-        if (!is_array($this->$attribute)) {
-            $this->addError($attribute, Yii::t('app', 'array', ['label' => $this->getAttributeLabel($attribute)]));
-            return;
-        }
+        $array = CoreModel::ensureArray($this->$attribute);
+        $array = array_filter($array, function($item) use ($attribute) {
+            $item = CoreModel::nullSafe($item);
 
-        $this->$attribute = array_filter($this->$attribute, function($item) {
-            if (!in_array($item, ['[]', '', null], true)) {
+            if (!empty($item)) {
                 if (!filter_var($item, FILTER_VALIDATE_URL)) {
                     $this->addError('image', Yii::t('app', 'invalidImage', ['label' => 'Image']));
                     return false;
                 }
+
                 return true;
             }
+            
             return false;
         });
-
-        $this->$attribute = array_values($this->$attribute);
-
+        
+        $this->$attribute = array_values($array);
+        
         if (sizeof($this->$attribute) > 1) {
-            $this->$attribute =  [$this->$attribute[0]];
+            $this->$attribute = [$this->$attribute[0]];
         }
     }
 

@@ -61,7 +61,12 @@ class Attendance extends \yii\db\ActiveRecord
                     return CoreModel::nullSafe($value);
                 }],
                 
+                [['attendance'], function($attribute) {
+                    CoreModel::validateAttributeArray($this, $attribute, 'Attendance');
+                }],
+                
                 [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],
+
             ],
             CoreModel::getStatusRules($this),
             // CoreModel::getLockVersionRules($this),
@@ -158,11 +163,6 @@ class Attendance extends \yii\db\ActiveRecord
         $attendances = $this->$attribute;
         $oldAttendance = $this->getOldAttribute($attribute);
         $defaultAttendance = Yii::$app->params['defaultValue']['attendance'];
-
-        if (!is_array($attendances)) {
-            $this->addError($attribute, Yii::t('app', 'array', ['label' => $this->getAttributeLabel($attribute)]));
-            throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
-        }
 
         $lastStartTime = $oldAttendance ? array_column($oldAttendance, 'start_time') : [];
         $latestAttendance = !empty($lastStartTime) ? end($lastStartTime) : null;

@@ -48,6 +48,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 
                 [['product_id', 'category_id', 'location_id'], 'required'],
                 [['product_id', 'category_id', 'location_id'], 'filter', 'filter' => 'intval'],
+
+                [['asset'], function($attribute) {
+                    CoreModel::validateAttributeArray($this, $attribute, 'Asset');
+                }],
                 
                 [['product_id'], 'validateProduct'],
                 [['category_id'], 'validateCategory'],
@@ -57,7 +61,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
             ],
             CoreModel::getStatusRules($this),
             CoreModel::getLockVersionRules($this),
-        );
+        ); 
     }
 
     public function scenarios()
@@ -122,11 +126,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
     public function validateAsset($attribute)
     {
-        if (!is_array($this->$attribute)) {
-            $this->addError($attribute, Yii::t('app', 'array', ['label' => 'Asset']));
-            return;
-        }
-
         $generalAffairItems = [];
         $itemData = $this->$attribute;
         $oldItem = $this->getOldAttribute($attribute);

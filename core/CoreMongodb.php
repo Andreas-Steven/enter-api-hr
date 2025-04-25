@@ -8,6 +8,13 @@ use yii\helpers\StringHelper;
 
 class CoreMongodb 
 {
+    /**
+     * Gets the base class name of a model.
+     * Useful for logging and error messages.
+     * 
+     * @param object $model Model instance
+     * @return string Base class name without namespace
+     */
     public static function getModelClassName($model): string
     {
 		return StringHelper::basename(get_class($model));
@@ -15,9 +22,24 @@ class CoreMongodb
 
 	/**
 	 * Creates a MongoDB regex filter for a like query.
-	 *
-	 * @param string|null $value the value to search for
-	 * @return array the MongoDB regex filter
+	 * Adds a case-insensitive pattern matching condition.
+	 * 
+	 * Usage:
+	 * ```php
+	 * // Search for documents where 'name' contains 'john doe'
+	 * $where = [];
+	 * CoreMongodb::mdbStringLike('name', 'john doe', $where);
+	 * // Results in: ['name' => ['$regex' => 'john.*doe', '$options' => 'i']]
+	 * 
+	 * // With OR condition
+	 * CoreMongodb::mdbStringLike('name', 'john doe', $where, 'or');
+	 * // Results in: [['name' => ['$regex' => 'john.*doe', '$options' => 'i']]]
+	 * ```
+	 * 
+	 * @param string $field Field name to search in
+	 * @param string|null $value Search value
+	 * @param array &$where Reference to where conditions array
+	 * @param string $orWhere Optional 'or' for OR conditions
 	 */
 	public static function mdbStringLike(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
 	{
@@ -34,6 +56,23 @@ class CoreMongodb
 		}
 	}
 
+	/**
+	 * Creates a MongoDB exact string match filter.
+	 * Adds a case-insensitive exact matching condition using regex anchors.
+	 * 
+	 * Usage:
+	 * ```php
+	 * // Search for documents where 'code' equals 'ABC123'
+	 * $where = [];
+	 * CoreMongodb::mdbStringEqual('code', 'ABC123', $where);
+	 * // Results in: ['code' => ['$regex' => '^ABC123$', '$options' => 'i']]
+	 * ```
+	 * 
+	 * @param string $field Field name to match
+	 * @param string|null $value Exact value to match
+	 * @param array &$where Reference to where conditions array
+	 * @param string $orWhere Optional 'or' for OR conditions
+	 */
 	public static function mdbStringEqual(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
 	{
 		if ($value !== null) {
@@ -49,6 +88,23 @@ class CoreMongodb
 		}
 	}
 
+	/**
+	 * Creates a MongoDB numeric equality filter.
+	 * Adds a numeric equality condition after converting string to integer.
+	 * 
+	 * Usage:
+	 * ```php
+	 * // Search for documents where 'quantity' equals 100
+	 * $where = [];
+	 * CoreMongodb::mdbNumberEqual('quantity', '100', $where);
+	 * // Results in: ['quantity' => 100]
+	 * ```
+	 * 
+	 * @param string $field Field name to compare
+	 * @param string|null $value Numeric value as string
+	 * @param array &$where Reference to where conditions array
+	 * @param string $orWhere Optional 'or' for OR conditions
+	 */
 	public static function mdbNumberEqual(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
 	{
 		if ($value !== null) {
@@ -56,6 +112,23 @@ class CoreMongodb
 		}
 	}
 
+	/**
+	 * Creates a MongoDB multiple number filter using $in operator.
+	 * Adds a condition to match multiple numeric values from a comma-separated string.
+	 * 
+	 * Usage:
+	 * ```php
+	 * // Search for documents where 'status' is 1, 2, or 3
+	 * $where = [];
+	 * CoreMongodb::mdbNumberMultiple('status', '1,2,3', $where);
+	 * // Results in: ['status' => ['$in' => [1, 2, 3]]]
+	 * ```
+	 * 
+	 * @param string $field Field name to compare
+	 * @param string|null $value Comma-separated numbers
+	 * @param array &$where Reference to where conditions array
+	 * @param string $orWhere Optional 'or' for OR conditions
+	 */
 	public static function mdbNumberMultiple(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
 	{
 		if ($value !== null) {
@@ -72,6 +145,23 @@ class CoreMongodb
 		}
 	}
 
+	/**
+	 * Creates a MongoDB status field filter.
+	 * Adds conditions for status field excluding deleted records.
+	 * 
+	 * Usage:
+	 * ```php
+	 * // Search for active documents (status = 1, not deleted)
+	 * $where = [];
+	 * CoreMongodb::mdbStatus('status', '1', $where);
+	 * // Results in: ['status' => ['$ne' => -1, '$eq' => 1]]
+	 * ```
+	 * 
+	 * @param string $field Status field name
+	 * @param string|null $value Status value to match
+	 * @param array &$where Reference to where conditions array
+	 * @param string $orWhere Optional 'or' for OR conditions
+	 */
 	public static function mdbStatus(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
 	{
 		$query = [
@@ -88,6 +178,27 @@ class CoreMongodb
 		};
 	}
 
+	/**
+	 * Matches strings in MongoDB array elements using regex.
+	 * Adds an $elemMatch query condition with case-insensitive exact matching.
+	 * 
+	 * Usage:
+	 * ```php
+	 * // Search for documents where 'tags' array contains exact match 'php'
+	 * $where = [];
+	 * CoreMongodb::mdbStringMatch('tags', 'php', $where);
+	 * // Results in: ['tags' => ['$elemMatch' => ['$regex' => '^php$', '$options' => 'i']]]
+	 * 
+	 * // With OR condition
+	 * CoreMongodb::mdbStringMatch('tags', 'php', $where, 'or');
+	 * // Results in: [['tags' => ['$elemMatch' => ['$regex' => '^php$', '$options' => 'i']]]]
+	 * ```
+	 * 
+	 * @param string $field Field name to search in
+	 * @param string|null $value Search value
+	 * @param array &$where Reference to where conditions array
+	 * @param string $orWhere Optional 'or' for OR conditions
+	 */
 	public static function mdbStringMatch(string $field, ?string $value, array &$where, ?string $orWhere = ""): void
 	{
 		if ($value !== null) {

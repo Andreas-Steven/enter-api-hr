@@ -43,7 +43,11 @@ class WorkTime extends \yii\db\ActiveRecord
                         ['className' => 'Employee', 'field' => ['work_time_id']],
                     ]);
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],
-                
+
+                [['working_days'], function($attribute) {
+                    CoreModel::validateAttributeArray($this, $attribute, 'Working Day');
+                }],
+
                 [['working_days'], 'validateWorkingDays'],
             ],
             CoreModel::getStatusRules($this),
@@ -111,16 +115,10 @@ class WorkTime extends \yii\db\ActiveRecord
 
     public function validateWorkingDays($attribute, $params)
     {
-        $workingDays = $this->$attribute;
-
-        if (!is_array($workingDays)) {
-            $this->addError($attribute, Yii::t('app', 'array', ['label' => $this->getAttributeLabel($attribute)]));
-            return;
-        }
-
         $allowedFields = Yii::$app->params['allowedFields']['working_days'];
         CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $this->$attribute);
-        
+
+        $workingDays = $this->$attribute;
         $allowedFields = Yii::$app->params['allowedFields']['time_structure'];
 
         foreach ($workingDays as $dayName => $times) {

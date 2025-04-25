@@ -54,13 +54,20 @@ class AttendancePermission extends \yii\db\ActiveRecord
                 [['employee_id', 'permission_type'], 'filter', 'filter' => 'intval'],
                 [['permission_type'], 'in', 'range' => array_keys(Constants::PERMISSION_LIST),],
                 [['approved'], 'in', 'range' => array_keys(Constants::PERMISSION_APPROVAL)],
-                [['employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>', 
-                    'message' => Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')])],
-                
+
                 [['revision'], 'default', 'value' => []],
                 [['note', 'approved', 'approved_note', 'status', 'sync'], 'default', 'value' => null],
 
+                [['employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>', 
+                'message' => Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')])
+                ],
+
+                [['revision'], function($attribute) {
+                    CoreModel::validateAttributeArray($this, $attribute, 'Revision');
+                }],
+
                 [['employee_id'], 'validateEmployee'],
+
             ], 
             CoreModel::getStatusRules($this),
             CoreModel::getLockVersionRulesOnly($this),
@@ -208,11 +215,6 @@ class AttendancePermission extends \yii\db\ActiveRecord
 
         if (empty($revision)) {
             $this->addError($attribute, Yii::t('app', 'required', ['label' => 'Revision']));
-            throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
-        }
-
-        if (!is_array($revision)) {
-            $this->addError($attribute, Yii::t('app', 'array', ['label' => $this->getAttributeLabel($attribute)]));
             throw new ErrorMessage($this, Yii::t('app', 'attendancePermissionFailed'), 422);
         }
 

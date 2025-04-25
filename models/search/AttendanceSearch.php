@@ -10,7 +10,6 @@ use app\core\CoreModel;
 use app\core\CoreMongodb;
 use app\exceptions\ErrorMessage;
 use app\models\Attendance;
-use app\models\AttendanceHoliday;
 
 class AttendanceSearch extends Attendance
 {
@@ -33,6 +32,10 @@ class AttendanceSearch extends Attendance
     public $leave_early;
     public $missed_checkout;
     public $work_holiday;
+    public $division_id;
+    public $device_id;
+    public $start_time;
+    public $end_time;
 
     public function rules()
     {
@@ -40,7 +43,7 @@ class AttendanceSearch extends Attendance
             [
                 [['dayoff'], 'boolean'],
                 [['id', 'status'], 'integer'],
-                [['date', 'period', 'employee_name', 'employee_id', 'attendance', 'late', 'leave_early', 'missed_checkout', 'work_holiday', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+                [['date', 'period', 'employee_name', 'employee_id', 'attendance', 'division_id', 'device_id', 'start_time', 'end_time', 'late', 'leave_early', 'missed_checkout', 'work_holiday', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -120,6 +123,16 @@ class AttendanceSearch extends Attendance
             $params[':employee_name'] = $this->employee_name;
         }
 
+        if ($this->division_id) {
+            $whereClauses[] = "(value->'division'->>'id')::int = :division_id";
+            $params[':division_id'] = (int)$this->division_id;
+        }
+
+        if ($this->device_id) {
+            $whereClauses[] = "(value->'device'->>'id')::int = :device_id";
+            $params[':device_id'] = (int)$this->device_id;
+        }
+
         if ($this->late) {
             $whereClauses[] = "EXISTS (SELECT 1 FROM jsonb_array_elements(value->'info'->'detail') AS d WHERE d::text = :late)";
             $params[':late'] = '"' . Constants::ATTENDANCE_LATE . '"';
@@ -138,6 +151,32 @@ class AttendanceSearch extends Attendance
         if ($this->work_holiday) {
             $whereClauses[] = "EXISTS (SELECT 1 FROM jsonb_array_elements(value->'info'->'detail') AS d WHERE d::text = :work_holiday)";
             $params[':work_holiday'] = '"' . Constants::ATTENDANCE_WORK_HOLIDAY . '"';
+        }
+
+        // START_TIME RANGE FILTER
+        if ($this->start_time) {
+            if (strpos($this->start_time, ',') !== false) {
+                list($start, $end) = array_map('trim', explode(',', $this->start_time));
+                $whereClauses[] = "(value->>'start_time')::time >= :start_time_start AND (value->>'start_time')::time <= :start_time_end";
+                $params[':start_time_start'] = $start;
+                $params[':start_time_end'] = $end;
+            } else {
+                $whereClauses[] = "(value->>'start_time')::time = :start_time";
+                $params[':start_time'] = $this->start_time;
+            }
+        }
+
+        // END_TIME RANGE FILTER
+        if ($this->end_time) {
+            if (strpos($this->end_time, ',') !== false) {
+                list($start, $end) = array_map('trim', explode(',', $this->end_time));
+                $whereClauses[] = "(value->>'end_time')::time >= :end_time_start AND (value->>'end_time')::time <= :end_time_end";
+                $params[':end_time_start'] = $start;
+                $params[':end_time_end'] = $end;
+            } else {
+                $whereClauses[] = "(value->>'end_time')::time = :end_time";
+                $params[':end_time'] = $this->end_time;
+            }
         }
         
         if ($whereClauses) {
