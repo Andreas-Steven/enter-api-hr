@@ -37,7 +37,7 @@ return array_merge($params_json, [
         'id' => 'sso-auth-v1',
         'request_time' => '+5 seconds',
         #DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
-        'except' => YII_ENV_DEV ? ['*'] : ['*'],
+        'except' => YII_ENV_DEV ? ['*'] : ['index'],
     ],
     'request' => [
         #DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
