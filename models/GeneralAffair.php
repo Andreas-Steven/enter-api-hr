@@ -56,7 +56,7 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 [['product_id'], 'validateProduct'],
                 [['category_id'], 'validateCategory'],
                 [['location_id'], 'validateLocation'],
-                [['asset'], 'validateAsset', 'on' => Constants::SCENARIO_CREATE],
+                // [['asset'], 'validateAsset', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'status'], 'validateAssetDeleted', 'on' => Constants::SCENARIO_DELETE],
             ],
             CoreModel::getStatusRules($this),
@@ -110,6 +110,10 @@ class GeneralAffair extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
+            if ($this->scenario === Constants::SCENARIO_CREATE && $this->isAttributeChanged('asset')) {
+                $this->validateAsset('asset');
+            }
+
             $this->asset = $this->calculateAsset($this->asset);
             $this->detail_info = [
                 'change_log' => CoreModel::getChangeLog($this, $insert),
@@ -142,6 +146,9 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $this->addError($attribute, Yii::t('app', 'codeFormatInvalid'));
             }
 
+            $allowedFields = Yii::$app->params['allowedFields']['items'];
+            CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $value);
+
             if (isset($oldItem['items'][$value['code']])) {
                 $generalAffairItems = array_merge($oldItem['items'][$value['code']], $value);
                 $generalAffairItems['items_change_log']['updated_at'] = $timestamp;
@@ -151,9 +158,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 $generalAffairItems['items_change_log']['created_at'] = $timestamp;
                 $generalAffairItems['items_change_log']['created_by'] = $username;
             }
-
-            $allowedFields = Yii::$app->params['allowedFields']['items'];
-            CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $generalAffairItems);
 
             if (!ctype_digit((string) $generalAffairItems['price'])) {
                 $this->addError($attribute, Yii::t('app', 'float', ['label' => 'Price']));
