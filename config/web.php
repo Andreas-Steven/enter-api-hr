@@ -77,7 +77,6 @@ $config = [
             'rules' => [
                 '/' => 'site/index',
                 '/v1' => 'site/index',
-                '/v1/' => 'site/index',
                 '/v1/index' => 'site/index',
             ],
         ],
