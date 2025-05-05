@@ -55,6 +55,8 @@ return array_merge($params_json, [
     ],
     'verbsAction' => [
         'index' => ['get'],
+        'data' => ['post'],
+        'list' => ['post'],
         'create' => ['post'],
         'update' => ['put'],
         'delete' => ['delete'],
