@@ -14,18 +14,18 @@ use app\models\Division;
 class DivisionController extends CoreController
 {
 	public function behaviors()
-	{
-		return array_merge(
-			parent::behaviors(),
+    {
+		$behaviors = parent::behaviors();
+
+		$behaviors['verbs']['actions'] = array_merge(
+			$behaviors['verbs']['actions'],
 			[
-				'authenticator' => [
-					'class' => 'app\components\JwtBearerAuth',
-					'except' => Yii::$app->params['jwt']['except'],
-					'role' => Yii::$app->params['codeApp'],
-				],
-			],
+				'index' => ['get'],
+			]
 		);
-	}
+
+        return $behaviors;
+    }
 
 	public function actionIndex()
 	{
