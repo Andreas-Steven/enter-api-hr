@@ -35,11 +35,11 @@ class GeneralAffairProduct extends \yii\db\ActiveRecord
                 
                 [['name'], 'required'],
                 
-                [['name', 'status'], function ($attribute, $params, $validator) {
-                    CoreModel::validateDependencies($attribute, $params, $validator, $this, [
+                [['status', 'name'], function($attribute, $params) {
+                    CoreModel::validateDependencies($attribute, $params, $this, [
                         ['className' => 'GeneralAffair', 'field' => ['product_id']],
                     ]);
-                }, 'on' => Constants::SCENARIO_UPDATE_LIST],
+                }],
             ], 
             CoreModel::getStatusRules($this),
             CoreModel::getLockVersionRules($this),

@@ -56,7 +56,6 @@ class GeneralAffair extends \yii\db\ActiveRecord
                 [['product_id'], 'validateProduct'],
                 [['category_id'], 'validateCategory'],
                 [['location_id'], 'validateLocation'],
-                // [['asset'], 'validateAsset', 'on' => Constants::SCENARIO_CREATE],
                 [['code', 'status'], 'validateAssetDeleted', 'on' => Constants::SCENARIO_DELETE],
             ],
             CoreModel::getStatusRules($this),
