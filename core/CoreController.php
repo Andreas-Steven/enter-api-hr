@@ -2,6 +2,13 @@
 
 namespace app\core;
 
+/**
+ * CoreController functionality for the application core controller.
+ * Provides controller functionality for API response handling, CORS, and content negotiation.
+ * Version: 1.0.0
+ * Version Date: 2025-05-05
+ */
+
 use Yii;
 use yii\rest\Controller;
 use yii\web\Response;
@@ -204,6 +211,45 @@ class CoreController extends Controller
 
 				return $modelInstance;
 			}
+		}
+
+		return null;
+	}
+
+    /**
+     * Finds a model instance by ID or other parameters.
+     * Supports with query parameters.
+     * Automatically handles optimistic locking version field by removing it from results.
+     * 
+     * Usage:
+     * ```php
+     * // Find by ID
+     * $user = $this->coreFindModel(User::class, ['id' => 123])->one();
+     * 
+     * if ($user === null) {
+     *     throw new NotFoundHttpException('User not found');
+     * }
+     * ```
+     * 
+     * @param string $model Fully qualified model class name
+     * @param array|null $params Query parameters, typically ['id' => value]
+     * @return object|null Model instance if found, null otherwise
+     */
+    public function coreFindModel($model, ?array $params): ?object
+	{
+		if (!empty($params)) {
+			$query = $model::find()->where($params);
+            if ($query->exists()) {
+                $modelInstance = $query;
+                $lockVersion = Constants::OPTIMISTIC_LOCK;
+
+                if (isset($modelInstance->$lockVersion)) {
+                    // Hide lock_version on result data for update/delete.
+                    unset($modelInstance->$lockVersion);
+                }
+
+                return $modelInstance;
+            }
 		}
 
 		return null;

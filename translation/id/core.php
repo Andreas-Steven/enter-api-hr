@@ -1,67 +1,59 @@
 <?php
+/*
+ * Translation configuration for the application.
+ * Do not change or remove any values, this used by core
+ * 
+ * Version: 1.0.0
+ * Version Date: 2025-05-05
+ */
 
 return [
-    // General Rules
-    'badRequest' => 'Permintaan buruk.',
-    'emptyParams' => 'Minimal satu input harus disediakan kecuali "id" untuk mengupdate data.',
-    'dataNotFound' => 'Data tidak ditemukan.',
-    'exceptionOccured' => 'Terjadi kesalahan.',
-    'unauthorizedAccess' => 'Akses tidak sah.',
-    'serverError' => 'Terjadi kesalahan server.',
-    'lockVersionOutdated' => 'Data yang diupdate sudah tidak up to date. Silakan refresh halaman dan coba lagi.',
-    'unknownError' => 'Terjadi kesalahan yang tidak diketahui.',
+    #General Rules
+    'badRequest' => 'Bad Request.',
+    'emptyParams' => 'At least one input must be provided except "id" to update data.',
+    'dataNotFound' => 'Data not found.',
+    'exceptionOccured' => 'An exception has occurred.',
+    'unauthorizedAccess' => 'Unauthorized access.',
+    'serverError' => 'Server error.',
+    'lockVersionOutdated' => 'The data being updated is outdated. Please refresh the page and try again.',
+    'unknownError' => 'An unknown error occurred.',
 
-    // General Records Rules
-    'createRecordSuccess' => 'Data berhasil disimpan.',
+    #General Records Rules
+    'createRecordSuccess' => 'Data telah disimpan dengan sukses.',
     'createRecordFailed' => 'Gagal menyimpan data.',
-    'updateRecordSuccess' => 'Data berhasil diupdate.',
-    'updateRecordFailed' => 'Gagal mengupdate data.',
-    'deleteRecordSuccess' => 'Data berhasil dihapus.',
+    'updateRecordSuccess' => 'Data telah diperbarui dengan sukses.',
+    'updateRecordFailed' => 'Gagal memperbarui data.',
+    'deleteRecordSuccess' => 'Data telah dihapus dengan sukses.',
     'deleteRecordFailed' => 'Gagal menghapus data.',
-    'noRecordDeleted' => 'Gagal, data sudah dihapus.',
-    'noRecordUpdated' => 'Gagal, data tidak diupdate.',
+    'noRecordDeleted' => 'Gagal, Record sudah dihapus.',
+    'noRecordUpdated' => 'Gagal, tidak ada record yang diperbarui.',
 
-    'create_shipment_doRecordSuccess' => 'Data berhasil disimpan.',
-    'create_shipment_doRecordFailed' => 'Gagal menyimpan data.',
-    'scheduledRecordSuccess' => 'Data berhasil dijadwalkan.',
-    'scheduledRecordFailed' => 'Gagal mengjadwalkan data.',
-    'rescheduledRecordSuccess' => 'Data berhasil dijadwalkan ulang.',
-    'rescheduledRecordFailed' => 'Gagal mengjadwalkan ulang data.',
-    'departedRecordSuccess' => 'Data berhasil diberangkatkan.',
-    'departedRecordFailed' => 'Gagal menerbangkan data.',
-    'deliveredRecordSuccess' => 'Data berhasil dikirimkan.',
-    'deliveredRecordFailed' => 'Gagal mengirimkan data.',
-    'delayRecordSuccess' => 'Data berhasil ditunda.',
-    'delayRecordFailed' => 'Gagal menunda data.',
-    'canceledRecordSuccess' => 'Data berhasil dibatalkan.',
-    'canceledRecordFailed' => 'Gagal membatalkan data.',
-
-    // Field Validation Rules
-    'required' => '{label} harus diisi.',
-    'integer' => '{label} harus berupa angka.',
-    'array' => '{label} harus berupa array.',
+    #Field Validation Rules
+    'required' => '{label} tidak boleh kosong.',
+    'integer' => '{label} harus berupa bilangan bulat.',
     'number' => '{label} harus berupa angka.',
-    'validationFailed' => 'Validasi field gagal.',
+    'array' => '{label} harus berupa array.',
+    'validationFailed' => 'Validasi gagal.',
     'invalidField' => 'Field {label} tidak valid.',
     'fieldDataNotFound' => 'Data {label} tidak ditemukan.',
-    'extraField' => 'Field tambahan ditemukan di {label}: {field}. Field yang diperbolehkan: {value}.',
+    'extraField' => 'Field tambahan ditemukan di {label}: {field}. Field yang diizinkan: {value}.',
     'extraFieldFound' => 'Field tambahan ditemukan di {label}.',
-    'missingField' => 'Field {field} wajib diisi.',
-    'missingFieldFound' => 'Field {field} wajib diisi di {label}.',
-    'nullField' => '{label} field: {field} harus diisi.',
-    'allowedField' => '{field} hanya dapat berisi field {value}.',
-    'integerNoZero' => '{label} harus berupa angka dan lebih besar dari 0.',
-    'invalidStatusTransition' => 'Perubahan status tidak valid.',
+    'missingField' => 'Field wajib {field} tidak ditemukan.',
+    'missingFieldFound' => 'Field wajib {field} tidak ditemukan di {label}.',
+    'nullField' => '{label} field: {field} tidak boleh kosong atau null.',
+    'allowedField' => '{field} hanya boleh berisi {value}.',
+    'integerNoZero' => '{label} harus berupa bilangan bulat dan lebih besar dari 0.',
+    'invalidStatusTransition' => 'Transisi perubahan status data tidak valid.',
 
-    // General Pagination Rules
+    #General Pagination Rules
     'pageMustBeGreaterThanZero' => 'Halaman harus lebih besar dari 0.',
     
-    // Status Update Rules
+    #Status Update Rules
     'disallowedStatusUpdate' => 'Tidak dapat mengubah status karena data sudah {value}.',
     'cannotChangeStatus' => 'Tidak dapat mengubah status dari {value} ke {newValue}.',
-    'deletedStatusChanged' => 'Anda tidak memiliki hak akses untuk mengubah status dari {value} ke status lain. Hak akses admin dibutuhkan.',
+    'deletedStatusChanged' => 'Anda tidak memiliki izin untuk mengubah status dari {value} ke status lainnya. Hak akses admin diperlukan.',
     
-    // Superadmin Rights Rules
-    'superadminOnly' => 'Anda tidak memiliki hak akses untuk melakukan tindakan ini.',
-    'updatePermission' => 'Anda tidak memiliki hak akses untuk mengupdate {label} dari {tableName} karena data tersebut di referensikan di data lain.',
+    #Superadmin Rights Rules
+    'superadminOnly' => 'Anda tidak memiliki izin untuk melakukan tindakan ini.',
+    'updatePermission' => 'Anda tidak memiliki izin untuk memperbarui {label} dari {tableName} karena data tersebut diacu oleh data lain.',
 ];

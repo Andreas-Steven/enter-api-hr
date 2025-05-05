@@ -2,6 +2,13 @@
 
 namespace app\core;
 
+/**
+ * CoreAPI functionality for the application.
+ * Provides utility methods for timestamps, user management, validation, and error handling.
+ * Version: 1.0.0
+ * Version Date: 2025-05-05
+ */
+
 use Yii;
 use yii\rest\Controller;
 use yii\web\Response;
@@ -10,10 +17,6 @@ use app\helpers\Constants;
 use app\components\CustomException;
 use app\exceptions\ErrorMessage;
 
-/**
- * Core API functionality for the application.
- * Provides utility methods for timestamps, user management, validation, and error handling.
- */
 class CoreAPI 
 {
 	/**
@@ -126,6 +129,7 @@ class CoreAPI
 	/**
 	 * Throws unauthorized access error.
 	 * Standardizes 401 unauthorized responses.
+	 * Throws ErrorMessage with 401 status.
 	 * 
 	 * Usage:
 	 * ```php

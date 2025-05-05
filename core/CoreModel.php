@@ -2,6 +2,13 @@
 
 namespace app\core;
 
+/**
+ * CoreModel functionality for the application core.
+ * Provides model utility methods for class name retrieval and null-safe value conversion.
+ * Version: 1.0.0
+ * Version Date: 2025-05-05
+ */
+
 use Yii;
 use app\helpers\Constants;
 use yii\helpers\HtmlPurifier;
@@ -269,6 +276,42 @@ class CoreModel
     }
 
     /**
+     * Gets validation rules for master_id and sync_master fields.
+     * 
+     * Validation rules include:
+     * - master_id: defaults to Yii::$app->params['dbDefault']['masterID'], must be an integer
+     * - sync_master: defaults to Yii::$app->params['dbDefault']['syncMaster'], must be an integer
+     * 
+     * @return array Array of validation rules
+     */
+    public static function getMasterRules(): array
+    {
+        return [
+            [['master_id'], 'default', 'value' => Yii::$app->params['dbDefault']['masterID']],
+            [['sync_master'], 'default', 'value' => Yii::$app->params['dbDefault']['syncMaster']],
+            [['master_id', 'sync_master'], 'integer', 'skipOnEmpty' => true, 'skipOnError' => true],
+        ];
+    }
+
+    /**
+     * Gets validation rules for slave_id and sync_slave fields.
+     * 
+     * Validation rules include:
+     * - slave_id: defaults to Yii::$app->params['dbDefault']['slaveID'], must be an integer
+     * - sync_slave: defaults to Yii::$app->params['dbDefault']['syncSlave'], must be an integer
+     * 
+     * @return array Array of validation rules
+     */
+    public static function getSlaveRules(): array
+    {
+        return [
+            [['slave_id'], 'default', 'value' => Yii::$app->params['dbDefault']['slaveID']],
+            [['sync_slave'], 'default', 'value' => Yii::$app->params['dbDefault']['syncSlave']],
+            [['slave_id', 'sync_slave'], 'integer', 'skipOnEmpty' => true, 'skipOnError' => true],
+        ];
+    }
+
+    /**
      * Validates that an attribute is an array.
      * Used to ensure attributes that should contain arrays are properly formatted.
      * 
@@ -331,8 +374,8 @@ class CoreModel
     }
 
     /**
-     * Gets validation rules for sync field.
-     * Defines rules for synchronization status tracking.
+     * Gets validation rules for sync_mdb field.
+     * Defines rules for MongoDB synchronization status tracking.
      * Usage:
      * ```php
      * public function rules()
@@ -341,7 +384,7 @@ class CoreModel
      *         [
      *             // other rules
      *         ],
-     *         CoreModel::getSyncRules($this),
+     *         CoreModel::getMongoDbSyncRules($this),
      *     );
      * }
      * ```
@@ -349,11 +392,11 @@ class CoreModel
      * @param object|null $model Optional model instance
      * @return array Array of validation rules for sync field
      */
-    public static function getSyncRules($model=null): array
+    public static function getMongoDbSyncRules($model=null): array
     {
         return [
-            [['sync'], 'default', 'value' => null],
-            [['sync'], 'integer'],
+            [['sync_mdb'], 'default', 'value' => null],
+            [['sync_mdb'], 'integer'],
         ];
     }
 
@@ -436,6 +479,7 @@ class CoreModel
     public static function getPaginationRules($model): array
     {
         return [
+			[['detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             [['sort_dir', 'sort_by'], 'string'],
             [['page', 'page_size'], 'integer'],
             [['page'], function ($attribute, $params) use ($model) {
@@ -559,11 +603,10 @@ class CoreModel
      * 
      * @param string $attribute Attribute being validated
      * @param array $params Validation parameters
-     * @param object $validator Validator instance
      * @param object $model Model being validated
      * @param array $dependencies Array of dependent models and their fields
      */
-    public static function validateDependencies($attribute, $params, $validator, $model, array $dependencies): void
+    public static function validateDependencies($attribute, $params, $model, array $dependencies): void
     {
         if (!$model->isNewRecord) {
             $changedAttributes = [];
@@ -588,6 +631,68 @@ class CoreModel
                     
                     foreach ($dependency['field'] as $field) {
                         if ($className::find()->where([$field => $dataId])->exists()) {
+                            foreach ($changedAttributes as $changedAttribute) {
+                                $model->addError($changedAttribute, Yii::t('app', 'updatePermission', [
+                                    'label' => $model->getAttributeLabel($changedAttribute),
+                                    'tableName' => $model->tableName(),
+                                ]));
+                            }
+
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Validates dependencies for array fields.
+     * 
+     * Usage:
+     * ```php
+     * public function rules()
+     * {
+     *     return [
+     *         [['user_id'], function($attribute, $params) {
+     *             CoreModel::validateDependenciesInArray($attribute, $params, $this, [
+     *                 ['className' => 'Order', 'field' => ['user_id']],
+     *                 ['className' => 'Payment', 'field' => ['user_id']]
+     *             ]);
+     *         }]
+     *     ];
+     * }
+     * ```
+     * 
+     * @param string $attribute Attribute being validated
+     * @param array $params Validation parameters
+     * @param object $model Model being validated
+     * @param array $dependencies Array of dependent models and their fields
+     */
+    public static function validateDependenciesInArray($attribute, $params, $model, array $dependencies): void
+    {
+        if (!$model->isNewRecord) {
+            $changedAttributes = [];
+            $fields = Yii::$app->params['dependenciesUpdate'][$model->tableName()];
+            $disallowedStatusUpdate = Constants::DISALLOWED_UPDATE_STATUS_LIST;
+
+            foreach ($fields as $field) {
+                if ($model->isAttributeChanged($field)) {
+                    $changedAttributes[] = $field;
+                }
+
+                if ($field === 'status' && in_array($model->status, $disallowedStatusUpdate)) {
+                    $changedAttributes[] = $field;
+                }
+            }
+
+            if (!empty($changedAttributes)) {
+                $dataId = $model->id;
+
+                foreach ($dependencies as $dependency) {
+                    $className = 'app\models\\' . $dependency['className'];
+                    foreach ($dependency['field'] as $field) {
+                        if ($className::find()->where("{$field} @> :dataId::jsonb", [':dataId' => $dataId])->exists()) {
                             foreach ($changedAttributes as $changedAttribute) {
                                 $model->addError($changedAttribute, Yii::t('app', 'updatePermission', [
                                     'label' => $model->getAttributeLabel($changedAttribute),

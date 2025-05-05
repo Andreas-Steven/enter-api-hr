@@ -2,6 +2,13 @@
 
 namespace app\core;
 
+/**
+ * CoreMongodb functionality for the application core.
+ * Provides MongoDB utility methods for model class name retrieval and string matching.
+ * Version: 1.0.0
+ * Version Date: 2025-05-05
+ */
+
 use Yii;
 use app\helpers\Constants;
 use yii\helpers\StringHelper;

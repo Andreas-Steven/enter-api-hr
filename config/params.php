@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * Parameters configuration for the application.
+ * 
+ * Version: 1.0.0
+ * Version Date: 2025-05-05
+ */
+
 $params_json = require __DIR__ . '/params_json.php';
 
 return array_merge($params_json, [
@@ -7,15 +14,9 @@ return array_merge($params_json, [
     'serviceVersion' => 'V1',
     'timeZone' => 'Asia/Jakarta',
     'extraCookies' => 'name-cookie-01',
-    // DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
+    #DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
     'codeApp' => 'enterHR',
-    // 'defaultLanguage' => 'en',
-    // 'UTC' => 'Y-m-d\TH:i:s\Z',
-    // 'localTimestamp' => 'Y-m-d H:i:s',
-    // 'languages' => [
-        // 'en', 
-        // 'id'
-    // ],
+    'migrateFresh' => YII_ENV_DEV,
     'timestamp' => [
         'timeZone' => 'Asia/Jakarta',
         'UTC' => 'Y-m-d\TH:i:s\Z',
@@ -36,14 +37,12 @@ return array_merge($params_json, [
         'audience' => 'https://sso.dev-enterkomputer.com',
         'id' => 'sso-auth-v1',
         'request_time' => '+5 seconds',
-        // DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
-        // 'except' => YII_ENV_DEV ? ['*'] : ['index'],
-        'except' => YII_ENV_DEV ? ['*'] : ['*'],
+        #DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
+        'except' => YII_ENV_DEV ? ['*'] : ['index'],
     ],
     'request' => [
-        // DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
-        // 'enableCsrfValidation' => !YII_ENV_DEV,
-        'enableCsrfValidation' => false,
+        #DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
+        'enableCsrfValidation' => !YII_ENV_DEV,
     ],
     'cors' => [
         'requestMethods' => ['GET', 'POST', 'PUT', 'DELETE'],
