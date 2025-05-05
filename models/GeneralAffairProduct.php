@@ -39,7 +39,7 @@ class GeneralAffairProduct extends \yii\db\ActiveRecord
                     CoreModel::validateDependencies($attribute, $params, $this, [
                         ['className' => 'GeneralAffair', 'field' => ['product_id']],
                     ]);
-                }],
+                }, 'on' => Constants::SCENARIO_UPDATE_LIST],
             ], 
             CoreModel::getStatusRules($this),
             CoreModel::getLockVersionRules($this),
