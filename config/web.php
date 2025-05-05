@@ -31,7 +31,7 @@ $config = [
         ],
         'request' => [
             #insert a secret key in the following (if it is empty) - this is required by cookie validation
-            #'cookieValidationKey' => 'rHaRkLSi4OMU-_Gi8LBn0Fh8IcqrYJP7'.$params['extraCookies'],
+            // 'cookieValidationKey' => 'rHaRkLSi4OMU-_Gi8LBn0Fh8IcqrYJP7'.$params['extraCookies'],
             'enableCsrfValidation' => $params['request']['enableCsrfValidation'],
             'enableCookieValidation' => false,
             'parsers' => [
