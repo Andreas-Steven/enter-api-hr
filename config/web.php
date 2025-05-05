@@ -120,12 +120,12 @@ $config = [
             // send all mails to a file by default.
             'useFileTransport' => true,
         ],
-        // 'user' => [
-        //     'identityClass' => 'app\models\User',
-        //     'enableAutoLogin' => true,
-        //     'enableSession' => false,
-        //     'loginUrl' => null
-        // ],
+        'user' => [
+            'identityClass' => 'app\models\User',
+            'enableAutoLogin' => true,
+            'enableSession' => false,
+            'loginUrl' => null
+        ],
     ],
     'modules' => [
         'v1' => [
