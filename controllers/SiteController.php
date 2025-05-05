@@ -35,8 +35,10 @@ class SiteController extends Controller
             'message' => Yii::$app->params['titleService'],
             'data' => [
                 [
-                    'language' => Yii::$app->language,
+                    'app' => Yii::$app->params['codeApp'],
+                    'service' => Yii::$app->params['titleService'],
                     'version' => Yii::$app->params['serviceVersion'],
+                    'language' => Yii::$app->language,
                     'environment' => YII_ENV_DEV ? 'development' : 'production',
                 ]
             ],
