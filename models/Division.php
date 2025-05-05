@@ -41,7 +41,7 @@ class Division extends \yii\db\ActiveRecord
                 }],
 
                 [['code', 'name', 'status'], function ($attribute, $params, $validator) {
-                    CoreModel::validateDependencies($attribute, $params, $validator, $this, [
+                     CoreModel::validateDependencies($attribute, $params, $this, [
                         ['className' => 'Employee', 'field' => ['division_id']],
                     ]);
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],

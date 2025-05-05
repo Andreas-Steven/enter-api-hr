@@ -36,7 +36,7 @@ class GeneralAffairCategory extends \yii\db\ActiveRecord
                 [['name'], 'required'],
                 
                 [['name', 'status'], function ($attribute, $params, $validator) {
-                    CoreModel::validateDependencies($attribute, $params, $validator, $this, [
+                     CoreModel::validateDependencies($attribute, $params, $this, [
                         ['className' => 'GeneralAffair', 'field' => ['category_id']],
                     ]);
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],

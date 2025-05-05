@@ -35,7 +35,7 @@ class Brand extends \yii\db\ActiveRecord
                 [['name'], 'string', 'max' => 255],
                 [['name'], 'required', 'on' => Constants::SCENARIO_CREATE],
                 [['name', 'status'], function ($attribute, $params, $validator) {
-                    CoreModel::validateDependencies($attribute, $params, $validator, $this, [
+                     CoreModel::validateDependencies($attribute, $params, $this, [
                         ['className' => 'Product', 'field' => ['brand_id']],
                     ]);
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],

@@ -39,7 +39,7 @@ class WorkTime extends \yii\db\ActiveRecord
                 [['working_days'], 'default', 'value' => [], 'on' => Constants::SCENARIO_CREATE],
 
                 [['name', 'working_days', 'status'], function ($attribute, $params, $validator) {
-                    CoreModel::validateDependencies($attribute, $params, $validator, $this, [
+                     CoreModel::validateDependencies($attribute, $params, $this, [
                         ['className' => 'Employee', 'field' => ['work_time_id']],
                     ]);
                 }, 'on' => Constants::SCENARIO_UPDATE_LIST],
