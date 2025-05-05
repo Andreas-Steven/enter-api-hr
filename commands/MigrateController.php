@@ -2,7 +2,7 @@
 
 namespace app\commands;
 
-use yii\console\ExitCode; 
+use yii\console\ExitCode;
 use yii\console\controllers\MigrateController as BaseMigrateController;
 
 class MigrateController extends BaseMigrateController
@@ -13,7 +13,9 @@ class MigrateController extends BaseMigrateController
 
     public function beforeAction($action)
     {
-        if (!YII_ENV_DEV && $action->id === 'fresh') {
+        $params = require(__DIR__ . '/../config/params.php');
+
+        if ($params['migrateFresh'] === false && $action->id === 'fresh') {
             echo "Skipping the migrate/fresh command in non-dev environment.\n";
             return ExitCode::OK;
         }
