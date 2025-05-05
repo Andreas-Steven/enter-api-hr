@@ -37,6 +37,7 @@ class SiteController extends Controller
                 [
                     'language' => Yii::$app->language,
                     'version' => Yii::$app->params['serviceVersion'],
+                    'environment' => YII_ENV_DEV ? 'development' : 'production',
                 ]
             ],
         ];
