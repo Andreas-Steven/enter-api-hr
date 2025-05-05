@@ -44,7 +44,7 @@ return array_merge($params_json, [
         'enableCsrfValidation' => !YII_ENV_DEV,
     ],
     'cors' => [
-        'requestMethods' => ['GET', 'POST', 'PUT', 'DELETE'],
+        'requestMethods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         'origins' => ['http://localhost:5173', 'https://entersys.dev-enterkomputer.com'],
         'allowHeaders' => ['Origin','Content-Type','Authorization','Accept-Language'],
     ],
