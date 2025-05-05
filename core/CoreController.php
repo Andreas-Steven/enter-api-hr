@@ -55,7 +55,7 @@ class CoreController extends Controller
                     'Origin' => Yii::$app->params['cors']['origins'], 
                     'Access-Control-Request-Headers' => ['*'],
                     'Access-Control-Request-Origin' => ['*'],
-                    'Access-Control-Allow-Credentials' => true,
+                    'Access-Control-Allow-Credentials' => false,
                     'Access-Control-Request-Method' => Yii::$app->params['cors']['requestMethods'],
                     'Access-Control-Allow-Headers' => Yii::$app->params['cors']['allowHeaders'],
                 ],
