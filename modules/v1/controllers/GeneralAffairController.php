@@ -29,11 +29,6 @@ class GeneralAffairController extends CoreController
         return $behaviors;
     }
 
-	public function actionIndex()
-	{
-		return CoreController::coreActionIndex();
-	}
-
 	public function actionData()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
@@ -51,9 +46,9 @@ class GeneralAffairController extends CoreController
 		$model = new GeneralAffair();
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$scenario = Constants::SCENARIO_CREATE;
-		
-		CoreController::unavailableParams($model, $params);
 
+       CoreController::unavailableParams($model, $params);
+	
 		$existingModel = $model::findOne([
 			'product_id' => $params['product_id'],
 			'location_id' => $params['location_id'],

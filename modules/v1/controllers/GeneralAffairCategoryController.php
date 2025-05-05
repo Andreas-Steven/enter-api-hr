@@ -27,11 +27,6 @@ class GeneralAffairCategoryController extends CoreController
         return $behaviors;
     }
 
-	public function actionIndex()
-	{
-		return CoreController::coreActionIndex();
-	}
-
 	public function actionData()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();

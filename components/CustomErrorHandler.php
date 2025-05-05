@@ -3,6 +3,7 @@
 namespace app\components;
 
 use Yii;
+use yii\db\StaleObjectException;
 use yii\web\ErrorHandler;
 use yii\web\Response;
 use yii\web\HttpException;
@@ -14,19 +15,25 @@ class CustomErrorHandler extends ErrorHandler
     protected function renderException($exception)
     {
         $errors = [];
+        $message = Yii::t('app', 'unknownError');
         Yii::$app->response->format = Response::FORMAT_JSON;
         $statusCode = $exception instanceof HttpException ? $exception->statusCode : 500;
 
         if ($exception !== null) {
+            $message =$exception->getMessage();
+
             if ($exception instanceof ErrorMessage) {
                 $statusCode = $exception->getStatusCode();
                 $errors = $exception->getErrors();
+            } elseif ($exception instanceof StaleObjectException) {
+                $statusCode = 409;
+                $message = Yii::t('app', 'lockVersionOutdated');
             }
 
             $response = [
                 'code' => $statusCode,
                 'success' => false,
-                'message' => $exception->getMessage(),
+                'message' => $message,
                 'errors' => $errors,
             ];
 
@@ -43,7 +50,7 @@ class CustomErrorHandler extends ErrorHandler
             Yii::$app->response->data = [
                 'code' => 500,
                 'success' => false,
-                'message' => 'An unknown error occurred.',
+                'message' => Yii::t('app', 'exceptionOccured'),
             ];
             Yii::$app->response->statusCode = 500;
         }

@@ -21,11 +21,12 @@ class EmployeeController extends CoreController
 			$behaviors['verbs']['actions'],
 			[
 				'index' => ['get'],
+				'resign' => ['post'],
 			]
 		);
 
-		return $behaviors;
-	}
+       return $behaviors;
+   	}
 
     public function actionData()
 	{

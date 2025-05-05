@@ -22,6 +22,8 @@ class AttendanceController extends CoreController
 			$behaviors['verbs']['actions'],
 			[
 				'index' => ['get'],
+				'report' => ['post'],
+				'resign' => ['post'],
 			]
 		);
 
@@ -140,7 +142,7 @@ class AttendanceController extends CoreController
         return CoreController::coreData($dataProvider);
     }
 
-	public function updateMongoDB($model)
+	private function updateMongoDB($model)
 	{
 		$data = $model->toArray(); 
 	

@@ -27,11 +27,6 @@ class GeneralAffairLocationController extends CoreController
         return $behaviors;
     }
 
-	public function actionIndex()
-	{
-		return CoreController::coreActionIndex();
-	}
-
 	public function actionData()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
@@ -65,15 +60,15 @@ class GeneralAffairLocationController extends CoreController
     }
 
     public function actionUpdate()
-{
-	$params = Yii::$app->getRequest()->getBodyParams();
-	$scenario = Constants::SCENARIO_UPDATE;
-	
-	if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
-		return $coreValidateParams;
-	}
+	{
+		$params = Yii::$app->getRequest()->getBodyParams();
+		$scenario = Constants::SCENARIO_UPDATE;
 
-	$model = CoreController::coreFindModelOne(new GeneralAffairLocation(), $params);
+		if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
+			return $coreValidateParams;
+		}
+
+		$model = CoreController::coreFindModelOne(new GeneralAffairLocation(), $params);
 		
 		if ($model === null) {
 			return CoreController::coreDataNotFound();

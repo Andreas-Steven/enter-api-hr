@@ -25,6 +25,8 @@ class AttendancePermissionController extends CoreController
 			$behaviors['verbs']['actions'],
 			[
 				'index' => ['get'],
+				'approve' => ['put'],
+				'reject' => ['put'],
 			]
 		);
 

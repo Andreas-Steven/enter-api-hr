@@ -27,11 +27,6 @@ class DivisionController extends CoreController
         return $behaviors;
     }
 
-	public function actionIndex()
-	{
-		return CoreController::coreActionIndex();
-	}
-
     public function actionData()
 	{
 		$params = Yii::$app->getRequest()->getBodyParams();
@@ -45,8 +40,8 @@ class DivisionController extends CoreController
 	}
 
     public function actionCreate()
-{
-    $model = new Division();
+    {
+		$model = new Division();
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$scenario = Constants::SCENARIO_CREATE;
 
@@ -101,7 +96,7 @@ class DivisionController extends CoreController
 
 		if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
 			return $coreValidateParams;
-    }
+		}
 
 		$model = CoreController::coreFindModelOne(new Division(), $params);
 

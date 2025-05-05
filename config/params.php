@@ -12,9 +12,8 @@ $params_json = require __DIR__ . '/params_json.php';
 return array_merge($params_json, [
     'titleService' => 'enterkomputer-human-resource',
     'serviceVersion' => 'V1',
-    'timeZone' => 'Asia/Jakarta',
-    'extraCookies' => 'name-cookie-01',
     #DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
+    'extraCookies' => 'name-cookie-01',
     'codeApp' => 'enterHR',
     'migrateFresh' => YII_ENV_DEV,
     'timestamp' => [

@@ -28,7 +28,7 @@ class EmployeeTypeController extends CoreController
 		);
 
         return $behaviors;
-    }
+	}
 
 	public function actionData()
 	{
