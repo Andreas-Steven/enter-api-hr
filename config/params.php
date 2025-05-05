@@ -41,7 +41,8 @@ return array_merge($params_json, [
     ],
     'request' => [
         #DONT FORGET TO CHANGE THIS WHEN IN PRODUCTION
-        'enableCsrfValidation' => !YII_ENV_DEV,
+        // 'enableCsrfValidation' => !YII_ENV_DEV,
+        'enableCsrfValidation' => false,
     ],
     'cors' => [
         'requestMethods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
