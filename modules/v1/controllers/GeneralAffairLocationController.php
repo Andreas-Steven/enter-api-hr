@@ -64,9 +64,7 @@ class GeneralAffairLocationController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$scenario = Constants::SCENARIO_UPDATE;
 
-		if ($coreValidateParams = CoreController::coreValidateParams($params, $scenario)) {
-			return $coreValidateParams;
-		}
+		CoreController::validateParams($params, $scenario);
 
 		$model = CoreController::coreFindModelOne(new GeneralAffairLocation(), $params);
 		
