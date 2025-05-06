@@ -29,7 +29,7 @@ class m250106_094350_create_shipment_table extends Migration
             'delivery_order_id' => $this->integer()->defaultValue(null),
             'vehicle_id' => $this->integer()->defaultValue(null),
             'shipment_service_id' => $this->integer()->notNull(),
-            'warehouse_id' => $this->integer()->notNull(),
+            'inventory_id' => $this->integer()->notNull(),
             'shipment_fee' => $this->float(10,2)->notNull()->defaultValue(0),
             'shipment_date' => $this->date()->defaultValue(null),
             'distance' => $this->integer()->defaultValue(0),
@@ -45,7 +45,7 @@ class m250106_094350_create_shipment_table extends Migration
                 'delivery_order' => null,
                 'shipment_service' => null,
                 'vehicle' => null,
-                'warehouse' => null,
+                'inventory' => null,
                 'shipment_note' => null,
                 'courier_note' => null,
                 'change_log' => [
@@ -73,7 +73,7 @@ class m250106_094350_create_shipment_table extends Migration
                 'sale_id' => null,
                 'delivery_order_id' => 1,
                 'vehicle_id' => 2,
-                'warehouse_id' => 1,
+                'inventory_id' => 1,
                 'shipment_service_id' => 1,
                 'shipment_fee' => 0,
                 'shipment_date' => date('Y-m-d'),
@@ -181,7 +181,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'name' => 'Grand Max Genap',
                         'registration_number' => 'B 9008 NCG',
                     ],
-                    'warehouse' => [
+                    'inventory' => [
                         'id' => 1,
                         'name' => 'Gudang Utama',
                         'address' => 'Ruko Mall Mangga Dua, Jl. Mangga Dua Raya No. 33',
@@ -203,7 +203,7 @@ class m250106_094350_create_shipment_table extends Migration
                 'name' => 'FR-60208982',
                 'sale_id' => 1,
                 'delivery_order_id' => null,
-                'warehouse_id' => 1,
+                'inventory_id' => 1,
                 'vehicle_id' => 1,
                 'shipment_service_id' => 1,
                 'shipment_fee' => 0,
@@ -318,7 +318,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'name' => 'Grand Max Ganjil',
                         'registration_number' => 'B 9151 NCG',
                     ],
-                    'warehouse' => [
+                    'inventory' => [
                         'id' => 1,
                         'name' => 'Gudang Utama',
                         'address' => 'Ruko Mall Mangga Dua, Jl. Mangga Dua Raya No. 33',
