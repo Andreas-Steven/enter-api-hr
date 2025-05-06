@@ -215,24 +215,22 @@ class GeneralAffair extends \yii\db\ActiveRecord
 
             // IMAGE VALIDATION
             if (!empty($generalAffairItems['image'])) {
-                if (!is_array($generalAffairItems['image'])) {
-                    $this->addError('image', Yii::t('app', 'array'));
-                }
-            
                 $generalAffairItems['image'] = array_filter($generalAffairItems['image'], function($item) {
-                    if (!in_array($item, ['[]', '', null], true)) {
-                        if (!filter_var($item, FILTER_VALIDATE_URL)) {
-                            $this->addError('image', Yii::t('app', 'invalidImage', ['label' => 'Image']));
-                        }
-                        return true;
+                    $item = CoreModel::nullSafe($item);
+                    if (empty($item)) {
+                        return false;
                     }
-                    return false;
+
+                    if (!empty($item) && !filter_var($item, FILTER_VALIDATE_URL)) {
+                        $this->addError('image', Yii::t('app', 'invalidImage', ['label' => 'Image']));
+                        return false;
+                    }
+
+                    return true;
                 });
-            
                 $generalAffairItems['image'] = array_values($generalAffairItems['image']);
             }
             // IMAGE VALIDATION END
-
             
             if ($this->hasErrors()) {
                 throw new ErrorMessage($this, Yii::t('app', 'generalAffairFailed'), 422);
