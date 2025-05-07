@@ -27,7 +27,7 @@ class m250106_091546_create_shipment_service_table extends Migration
             'name' => $this->string(255)->notNull(),
             'code' => $this->string(255)->notNull(),
             'rate' => $this->float(10,2)->notNull(),
-            'is_flat' => $this->tinyInteger()->notNull()->defaultValue(0)->comment('0: False, 1: True'),
+            'is_flat' => $this->tinyInteger()->notNull()->defaultValue($dbDefault['isFlat'])->comment($dbDefault['isFlatComment']),
             'distance' => $this->json()->defaultValue(json_encode([])),
             'weight' => $this->json()->defaultValue(json_encode([])),
             'status' => $this->smallInteger()->notNull()->defaultValue($dbDefault['status'])->comment($dbDefault['statusComment']),
@@ -41,7 +41,7 @@ class m250106_091546_create_shipment_service_table extends Migration
                     'updated_by' => null,
                 ],
             ])),
-            'sync_mdb' => $this->smallInteger()->defaultValue($dbDefault['syncMdb'])->comment($dbDefault['syncMdbComment']),            // uncomment this if u want use optimistic locking
+            'sync_mdb' => $this->smallInteger()->defaultValue($dbDefault['syncMdb'])->comment($dbDefault['syncMdbComment']),
             #uncomment this if you want use optimistic locking
             // 'lock_version' => $this->integer()->notNull()->defaultValue($dbDefault['lockVersion'])->comment($dbDefault['optimisticLockingComment']),
         ]);

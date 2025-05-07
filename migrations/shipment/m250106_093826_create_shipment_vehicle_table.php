@@ -39,7 +39,7 @@ class m250106_093826_create_shipment_vehicle_table extends Migration
                     'updated_by' => null,
                 ],
             ])),
-            'sync_mdb' => $this->smallInteger()->defaultValue($dbDefault['syncMdb'])->comment($dbDefault['syncMdbComment']),            // uncomment this if u want use optimistic locking
+            'sync_mdb' => $this->smallInteger()->defaultValue($dbDefault['syncMdb'])->comment($dbDefault['syncMdbComment']),
             #uncomment this if you want use optimistic locking
             // 'lock_version' => $this->integer()->notNull()->defaultValue($dbDefault['lockVersion'])->comment($dbDefault['optimisticLockingComment']),
         ]);

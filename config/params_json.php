@@ -29,18 +29,21 @@ $params['dbDefault'] = [
     'skipMigrateFresh' => 'Skipping migration/fresh for non-dev environment.\n',
 
     #Add your new database default values here
-];
-
-/**
- * is default value for migration path use for migrate command
- */
-$params['migrationPath'] = [
-    '@app/migrations',
-    '@app/migrations/attendance',
-    '@app/migrations/generalaffair',
-    '@app/migrations/humanresource',
-    '@app/migrations/shipment',
-    '@app/migrations/masterdata',
+    'divisionID' => 1,
+    'positionID' => 1,
+    'employeeTypeID' => 1,
+    'workTimeID' => null,
+    'isFlat' => 0,
+    'shipmentStatus' => 0,
+    'saleID' => null,
+    'deliveryOrderID' => null,
+    'vehicleID' => null,
+    'shipmentFee' => 0,
+    'shipmentDate' => null,
+    'distance' => 0,
+    'weight' => 0,
+    'isFlatComment' => '0: False, 1: True',
+    'shipmentStatusComment' => '0: waiting, 1: scheduled, 2: rescheduled, 3: departed, 4: delivered, 5: canceled'
 ];
 
 /**

@@ -34,7 +34,6 @@ $config = [
     'controllerMap' => [
         'migrate' => [
             'class' => 'app\commands\MigrateController',
-            'migrationPath' => $params['migrationPath'],
         ],
         // 'fixture' => [ // Fixture generation command line.
         //     'class' => 'yii\faker\FixtureController',
