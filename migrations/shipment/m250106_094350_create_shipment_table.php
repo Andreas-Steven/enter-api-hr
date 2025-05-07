@@ -2,6 +2,7 @@
 
 use MongoDB\Client;
 use yii\db\Migration;
+// use MongoDB\Client;
 use app\helpers\Constants;
 
 /**
@@ -13,12 +14,13 @@ class m250106_094350_create_shipment_table extends Migration
 
     public function safeUp()
     {
-        $params = require(__DIR__ . '/../config/params.php');
+        $params = require(\Yii::getAlias('@app/config/params.php'));
+        $mongodb_param = require(\Yii::getAlias('@app/config/mongodb.php'));
         $UTCTimestamp = gmdate($params['timestamp']['UTC']);
-        $createdBy = 'system';
+        $dbDefault = $params['dbDefault'];
         
         if (!YII_ENV_DEV) {
-            echo "Skipping migration/fresh for non-dev environment.\n";
+            echo $dbDefault['skipMigrateFresh'];
             return true;
         }
 
@@ -34,12 +36,12 @@ class m250106_094350_create_shipment_table extends Migration
             'shipment_date' => $this->date()->defaultValue(null),
             'distance' => $this->integer()->defaultValue(0),
             'weight' => $this->integer()->defaultValue(0),
-            'receiver' => $this->json()->defaultValue('[]')->notNull(),
-            'detail_product' => $this->json()->defaultValue('[]'),
-            'courier' => $this->json()->defaultValue('[]'),
-            'log_tracking' => $this->json()->defaultValue('[]')->notNull(),
+            'receiver' => $this->json()->defaultValue(json_encode([]))->notNull(),
+            'detail_product' => $this->json()->defaultValue(json_encode([])),
+            'courier' => $this->json()->defaultValue(json_encode([])),
+            'log_tracking' => $this->json()->defaultValue(json_encode([]))->notNull(),
             'shipment_status' => $this->smallInteger()->notNull()->defaultValue(0)->comment('0: waiting, 1: scheduled, 2: rescheduled, 3: departed, 4: delivered, 5: canceled'),
-            'status' => $this->smallInteger()->notNull()->defaultValue(2)->comment('0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance'),
+            'status' => $this->smallInteger()->notNull()->defaultValue($dbDefault['status'])->comment($dbDefault['statusComment']),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
                 'sale' => null,
                 'delivery_order' => null,
@@ -57,15 +59,10 @@ class m250106_094350_create_shipment_table extends Migration
                     'updated_by' => null,
                 ],
             ])),
-            'sync' => $this->smallInteger()->defaultValue(null)->comment('1: unsync, null: synced'),
-            // uncomment this if u want use optimistic locking
-            // 'lock_version' => $this->integer()->notNull()->defaultValue(1)->comment('Optimistic Locking'),
+            'sync_mdb' => $this->smallInteger()->defaultValue($dbDefault['syncMdb'])->comment($dbDefault['syncMdbComment']),            // uncomment this if u want use optimistic locking
+            #uncomment this if you want use optimistic locking
+            // 'lock_version' => $this->integer()->notNull()->defaultValue($dbDefault['lockVersion'])->comment($dbDefault['optimisticLockingComment']),
         ]);
-
-        if (!YII_ENV_DEV) {
-            echo "Skipping migration/fresh for non-dev environment.\n";
-            return true;
-        }
 
         $dummyData = [
             [
@@ -126,7 +123,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'shipment_status' => 0,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy
+                        'created_by' => $dbDefault['createdBy']
                     ],
                     [
                         'code' => 'scheduled',
@@ -134,7 +131,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'shipment_status' => 1,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy
+                        'created_by' => $dbDefault['createdBy']
                     ],
                     [
                         'code' => 'departed',
@@ -142,7 +139,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'shipment_status' => 3,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy
+                        'created_by' => $dbDefault['createdBy']
                     ],
                     [
                         'code' => 'delivered',
@@ -150,7 +147,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'shipment_status' => 4,
                         'image' => ['https://apikurirtoko.ruko3233.com/uploads/1730277206430-173027717289512116172814826962.jpg'],
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy
+                        'created_by' => $dbDefault['createdBy']
                     ],
                 ],
                 'shipment_status' => 4,
@@ -190,14 +187,14 @@ class m250106_094350_create_shipment_table extends Migration
                     'courier_note' => 'Paket telah diterima',
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy,
+                        'created_by' => $dbDefault['createdBy'],
                         'deleted_at' => null,
                         'deleted_by' => null,
                         'updated_at' => null,
                         'updated_by' => null,
                     ],
                 ],
-                'sync' => null,
+                'sync_mdb' => null,
             ],
             [
                 'name' => 'FR-60208982',
@@ -263,7 +260,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'shipment_status' => 0,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy
+                        'created_by' => $dbDefault['createdBy']
                     ],
                     [
                         'code' => 'scheduled',
@@ -271,7 +268,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'shipment_status' => 1,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy
+                        'created_by' => $dbDefault['createdBy']
                     ],
                     [
                         'code' => 'departed',
@@ -279,7 +276,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'shipment_status' => 3,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy
+                        'created_by' => $dbDefault['createdBy']
                     ],
                     [
                         'code' => 'delivered',
@@ -287,7 +284,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'shipment_status' => 4,
                         'image' => ['https://apikurirtoko.ruko3233.com/uploads/1730277206430-173027717289512116172814826962.jpg'],
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy
+                        'created_by' => $dbDefault['createdBy']
                     ],
                 ],
                 'shipment_status' => 4,
@@ -327,28 +324,46 @@ class m250106_094350_create_shipment_table extends Migration
                     'courier_note' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut hendrerit, massa nec convallis blandit, libero odio dignissim libero, sit amet consectetur purus erat id enim. Sed vitae suscipit est, eu consequat. Nulla facilisi.',
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy,
+                        'created_by' => $dbDefault['createdBy'],
                         'deleted_at' => null,
                         'deleted_by' => null,
                         'updated_at' => null,
                         'updated_by' => null,
                     ],
                 ],
-                'sync' => null,
+                'sync_mdb' => null,
             ],
         ];
 
+        #uncomment below code if you want to insert data to mongodb
+        // $mongodb = new Client($mongodb_param['dsn']);
+        // $collection = $mongodb->selectCollection($mongodb_param['database'], $this->tableName);
+        // $collection->drop();
+
         foreach ($dummyData as $key => $value) {
             $this->insert('{{%' . $this->tableName . '}}', $value);
+
+            #uncomment below code if you want to insert data to mongodb
+            // $insertID['id'] = $key + 1;
+            // $collection->insertOne(array_merge($insertID, $value));
         }
     }
 
     public function safeDown()
     {
+        $params = require(\Yii::getAlias('@app/config/params.php'));
+        $mongodb_param = require(\Yii::getAlias('@app/config/mongodb.php'));
+        $dbDefault = $params['dbDefault'];
+        
         if (!YII_ENV_DEV) {
-            echo "Skipping migration/fresh for non-dev environment.\n";
+            echo $dbDefault['skipMigrateFresh'];
             return true;
         }
+
+        #uncomment below code if you want to insert data to mongodb
+        // $mongodb = new Client($mongodb_param['dsn']);
+        // $collection = $mongodb->selectCollection($mongodb_param['database'], $this->tableName);
+        // $collection->drop();
 
         $this->dropTable('{{%' . $this->tableName . '}}');
     }

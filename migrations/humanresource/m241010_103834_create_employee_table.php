@@ -1,6 +1,7 @@
 <?php
 
 use yii\db\Migration;
+// use MongoDB\Client;
 
 class m241010_103834_create_employee_table extends Migration
 {
@@ -8,12 +9,13 @@ class m241010_103834_create_employee_table extends Migration
 
     public function safeUp()
     {
-        $params = require(__DIR__ . '/../config/params.php');
+        $params = require(\Yii::getAlias('@app/config/params.php'));
+        $mongodb_param = require(\Yii::getAlias('@app/config/mongodb.php'));
         $UTCTimestamp = gmdate($params['timestamp']['UTC']);
-        $createdBy = 'system';
+        $dbDefault = $params['dbDefault'];
         
         if (!YII_ENV_DEV) {
-            echo "Skipping migration/fresh for non-dev environment.\n";
+            echo $dbDefault['skipMigrateFresh'];
             return true;
         }
 
@@ -22,7 +24,7 @@ class m241010_103834_create_employee_table extends Migration
             'name' => $this->string(255)->notNull(),
             'nik' => $this->string(255),
             'email' => $this->string(255),
-            'contact' => $this->json()->defaultValue('[]'),
+            'contact' => $this->json()->defaultValue(json_encode([])),
             'birth_date' => $this->date(),
             'date_start' => $this->date(),
             'date_resign' => $this->date(),
@@ -31,8 +33,8 @@ class m241010_103834_create_employee_table extends Migration
             'position_id' => $this->integer()->notNull()->defaultValue(1),
             'employee_type_id' => $this->integer()->notNull()->defaultValue(1),
             'work_time_id' => $this->integer()->defaultValue(null),
-            'image' => $this->json()->defaultValue('[]'),
-            'status' => $this->smallInteger()->notNull()->defaultValue(2)->comment('0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance'),
+            'image' => $this->json()->defaultValue(json_encode([])),
+            'status' => $this->smallInteger()->notNull()->defaultValue($dbDefault['status'])->comment($dbDefault['statusComment']),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
                 'sso' => null,
                 'division' => null,
@@ -48,9 +50,9 @@ class m241010_103834_create_employee_table extends Migration
                     'updated_by' => null,
                 ],
             ])),
-            'sync' => $this->smallInteger()->defaultValue(null)->comment('1: unsync, null: synced'),
-            // uncomment this if u want use optimistic locking
-            // 'lock_version' => $this->integer()->notNull()->defaultValue(1)->comment('Optimistic Locking'),
+            'sync_mdb' => $this->smallInteger()->defaultValue($dbDefault['syncMdb'])->comment($dbDefault['syncMdbComment']),
+            #uncomment this if you want use optimistic locking
+            // 'lock_version' => $this->integer()->notNull()->defaultValue($dbDefault['lockVersion'])->comment($dbDefault['optimisticLockingComment']),
         ]);
         
         if (!YII_ENV_DEV) {
@@ -127,14 +129,14 @@ class m241010_103834_create_employee_table extends Migration
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy,
+                        'created_by' => $dbDefault['createdBy'],
                         'deleted_at' => null,
                         'deleted_by' => null,
                         'updated_at' => null,
                         'updated_by' => null,
                     ],
                 ],
-                'sync' => null,
+                'sync_mdb' => null,
             ],
             [
                 'name' => 'Employee 2',
@@ -204,14 +206,14 @@ class m241010_103834_create_employee_table extends Migration
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy,
+                        'created_by' => $dbDefault['createdBy'],
                         'deleted_at' => null,
                         'deleted_by' => null,
                         'updated_at' => null,
                         'updated_by' => null,
                     ],
                 ],
-                'sync' => null,
+                'sync_mdb' => null,
             ],
             [
                 'name' => 'Employee 3',
@@ -281,14 +283,14 @@ class m241010_103834_create_employee_table extends Migration
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy,
+                        'created_by' => $dbDefault['createdBy'],
                         'deleted_at' => null,
                         'deleted_by' => null,
                         'updated_at' => null,
                         'updated_by' => null,
                     ],
                 ],
-                'sync' => null,
+                'sync_mdb' => null,
             ],
             [
                 'name' => 'Employee 4',
@@ -358,14 +360,14 @@ class m241010_103834_create_employee_table extends Migration
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy,
+                        'created_by' => $dbDefault['createdBy'],
                         'deleted_at' => null,
                         'deleted_by' => null,
                         'updated_at' => null,
                         'updated_by' => null,
                     ],
                 ],
-                'sync' => null,
+                'sync_mdb' => null,
             ],
             [
                 'name' => 'Employee 5',
@@ -435,28 +437,46 @@ class m241010_103834_create_employee_table extends Migration
                     ],
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
-                        'created_by' => $createdBy,
+                        'created_by' => $dbDefault['createdBy'],
                         'deleted_at' => null,
                         'deleted_by' => null,
                         'updated_at' => null,
                         'updated_by' => null,
                     ],
                 ],
-                'sync' => null,
+                'sync_mdb' => null,
             ],
         ];
 
+        #uncomment below code if you want to insert data to mongodb
+        // $mongodb = new Client($mongodb_param['dsn']);
+        // $collection = $mongodb->selectCollection($mongodb_param['database'], $this->tableName);
+        // $collection->drop();
+
         foreach ($dummyData as $key => $value) {
             $this->insert('{{%' . $this->tableName . '}}', $value);
+
+            #uncomment below code if you want to insert data to mongodb
+            // $insertID['id'] = $key + 1;
+            // $collection->insertOne(array_merge($insertID, $value));
         }
     }
 
     public function safeDown()
     {
+        $params = require(\Yii::getAlias('@app/config/params.php'));
+        $mongodb_param = require(\Yii::getAlias('@app/config/mongodb.php'));
+        $dbDefault = $params['dbDefault'];
+        
         if (!YII_ENV_DEV) {
-            echo "Skipping migration/fresh for non-dev environment.\n";
+            echo $dbDefault['skipMigrateFresh'];
             return true;
         }
+
+        #uncomment below code if you want to insert data to mongodb
+        // $mongodb = new Client($mongodb_param['dsn']);
+        // $collection = $mongodb->selectCollection($mongodb_param['database'], $this->tableName);
+        // $collection->drop();
 
         $this->dropTable('{{%' . $this->tableName . '}}');
     }

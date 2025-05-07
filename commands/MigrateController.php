@@ -21,5 +21,14 @@ class MigrateController extends BaseMigrateController
         }
 
         return parent::beforeAction($action);
-    }   
+    }
+
+    public function actionFresh()
+    {
+        if ($this->confirm('Are you sure you want to drop all tables and re-run all migrations? This will erase all data.')) {
+            $this->actionDown('all');
+            return $this->actionUp();
+        }
+        return ExitCode::OK;
+    }
 }

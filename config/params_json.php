@@ -16,7 +16,9 @@ $params['dbDefault'] = [
     'slaveID' => null,
     'syncMaster' => 1,
     'syncSlave' => 1,
-    'syncMdb' => 1,
+    'syncMdb' => null,
+    'status' => 2,
+    'lockVersion' => 1,
     'currency' => 'IDR',
     'optimisticLockingComment' => 'Optimistic Locking',
     'syncMdbComment' => '1: unsync, null: synced',
@@ -25,6 +27,20 @@ $params['dbDefault'] = [
     'statusComment' => '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance',
     'purchaseComment' => '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance, 6: Approved, 7: Rejected',
     'skipMigrateFresh' => 'Skipping migration/fresh for non-dev environment.\n',
+
+    #Add your new database default values here
+];
+
+/**
+ * is default value for migration path use for migrate command
+ */
+$params['migrationPath'] = [
+    '@app/migrations',
+    '@app/migrations/attendance',
+    '@app/migrations/generalaffair',
+    '@app/migrations/humanresource',
+    '@app/migrations/shipment',
+    '@app/migrations/masterdata',
 ];
 
 /**
