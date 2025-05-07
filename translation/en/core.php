@@ -29,21 +29,6 @@ return [
     'noRecordDeleted' => 'Failed, Record already deleted.',
     'noRecordUpdated' => 'Failed, no record updated.',
 
-    'create_shipment_doRecordSuccess' => 'Data has been saved successfully.',
-    'create_shipment_doRecordFailed' => 'Failed to save data.',
-    'scheduledRecordSuccess' => 'Data has been scheduled successfully.',
-    'scheduledRecordFailed' => 'Failed to schedule data.',
-    'rescheduledRecordSuccess' => 'Data has been rescheduled successfully.',
-    'rescheduledRecordFailed' => 'Failed to reschedule data.',
-    'departedRecordSuccess' => 'Data has been departed successfully.',
-    'departedRecordFailed' => 'Failed to depart data.',
-    'deliveredRecordSuccess' => 'Data has been delivered successfully.',
-    'deliveredRecordFailed' => 'Failed to deliver data.',
-    'delayRecordSuccess' => 'Data has been delayed successfully.',
-    'delayRecordFailed' => 'Failed to delay data.',
-    'canceledRecordSuccess' => 'Data has been canceled successfully.',
-    'canceledRecordFailed' => 'Failed to cancel data.',
-
     #Field Validation Rules
     'required' => '{label} cannot be blank.',
     'integer' => '{label} must be an integer.',

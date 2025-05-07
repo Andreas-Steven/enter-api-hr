@@ -391,14 +391,17 @@ class Attendance extends \yii\db\ActiveRecord
                 }
 
                 $attendance['location']['image'] = array_filter($attendance['location']['image'], function($item) {
-                    if (!in_array($item, ['[]', '', null], true)) {
-                        if (!filter_var($item, FILTER_VALIDATE_URL)) {
-                            $this->addError('image', Yii::t('app', 'invalidImage', ['label' => 'Image']));
-                            return;
-                        }
-                        return true;
+                    if (in_array($item, ['[]', '', 'null', null], true)) {
+                        $this->addError('location', Yii::t('app', 'required', ['label' => 'Image']));
+                        return false;
                     }
-                    return false;
+
+                    if (!filter_var($item, FILTER_VALIDATE_URL)) {
+                        $this->addError('location', Yii::t('app', 'invalidImage', ['label' => 'Image']));
+                        return false;
+                    }
+
+                    return true;
                 });
 
                 if (!empty($attendanceData['start_time']) && $entryLocation === null) {

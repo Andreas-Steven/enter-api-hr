@@ -88,8 +88,8 @@ class Employee extends \yii\db\ActiveRecord
                 [['division_id'], 'validateDivision'], 
                 [['position_id'], 'validatePosition'], 
                 [['employee_type_id'], 'validateType'], 
-                [['work_time_id'], 'validateWorkTime'],
                 [['sso_id', 'username'], 'validateSSO'],
+                [['work_time_id'], 'validateWorkTime', 'on' => Constants::SCENARIO_UPDATE],
             ],
             CoreModel::getStatusRules($this),
             CoreModel::getLockVersionRules($this),
@@ -199,18 +199,16 @@ class Employee extends \yii\db\ActiveRecord
     {
         $array = CoreModel::ensureArray($this->$attribute);
         $array = array_filter($array, function($item) use ($attribute) {
-            $item = CoreModel::nullSafe($item);
-
-            if (!empty($item)) {
-                if (!filter_var($item, FILTER_VALIDATE_URL)) {
-                    $this->addError('image', Yii::t('app', 'invalidImage', ['label' => 'Image']));
-                    return false;
-                }
-
-                return true;
+            if (in_array($item, ['[]', '', 'null', null], true)) {
+                return false;
             }
-            
-            return false;
+
+            if (!filter_var($item, FILTER_VALIDATE_URL)) {
+                $this->addError($attribute, Yii::t('app', 'invalidImage', ['label' => 'Image']));
+                return false;
+            }
+
+            return true;
         });
         
         $this->$attribute = array_values($array);

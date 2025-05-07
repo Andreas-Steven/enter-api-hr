@@ -13,12 +13,18 @@
 $params['dbDefault'] = [
     'createdBy' => 'system',
     'masterID' => null,
-    'syncMaster' => 1,
     'slaveID' => null,
+    'syncMaster' => 1,
     'syncSlave' => 1,
+    'syncMdb' => 1,
     'currency' => 'IDR',
+    'optimisticLockingComment' => 'Optimistic Locking',
+    'syncMdbComment' => '1: unsync, null: synced',
+    'syncMasterComment' => '1: unsync, null: synced',
+    'syncSlaveComment' => '1: unsync, null: synced',
     'statusComment' => '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance',
     'purchaseComment' => '0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance, 6: Approved, 7: Rejected',
+    'skipMigrateFresh' => 'Skipping migration/fresh for non-dev environment.\n',
 ];
 
 /**

@@ -58,7 +58,7 @@ class AttendanceController extends CoreController
 		}
 
 		// UNCOMMENT THIS FOR TESTING
-		// $params['system_date'] = $params['date'];
+		$params['system_date'] = $params['date'];
 		
 		if ($params['date'] && isset($params['dayoff'])) {
 			$params['dayoff'] = boolval($params['dayoff']);

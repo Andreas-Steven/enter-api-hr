@@ -216,18 +216,18 @@ class GeneralAffair extends \yii\db\ActiveRecord
             // IMAGE VALIDATION
             if (!empty($generalAffairItems['image'])) {
                 $generalAffairItems['image'] = array_filter($generalAffairItems['image'], function($item) {
-                    $item = CoreModel::nullSafe($item);
-                    if (empty($item)) {
+                    if (in_array($item, ['[]', '', 'null', null], true)) {
                         return false;
                     }
 
-                    if (!empty($item) && !filter_var($item, FILTER_VALIDATE_URL)) {
+                    if (!filter_var($item, FILTER_VALIDATE_URL)) {
                         $this->addError('image', Yii::t('app', 'invalidImage', ['label' => 'Image']));
                         return false;
                     }
 
                     return true;
                 });
+
                 $generalAffairItems['image'] = array_values($generalAffairItems['image']);
             }
             // IMAGE VALIDATION END
