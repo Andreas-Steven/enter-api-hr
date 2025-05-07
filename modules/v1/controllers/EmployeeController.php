@@ -50,6 +50,19 @@ class EmployeeController extends CoreController
 
 		$model->scenario = $scenario;
 		$params['status'] = Constants::STATUS_DRAFT;
+
+		$params['image'] = [];
+		$params['contact'] = [];
+
+		$params['division_id'] = 1;
+		$params['position_id'] = 1;
+		$params['employee_type_id'] = 1;
+
+		$params['nik'] = null;
+		$params['birth_date'] = null;
+		$params['date_start'] = null;
+		$params['date_resign'] = null;
+		$params['email'] = null;
 		$params['work_time_id'] = null;
 
 		if ($model->load($params, '') && $model->validate()) {
@@ -66,11 +79,11 @@ class EmployeeController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$scenario = Constants::SCENARIO_UPDATE;
 		$params['system_date'] = date('Y-m-d');
+		
+       CoreController::validateParams($params, $scenario);
 
-		CoreController::validateParams($params, $scenario);
-		
 		$model = CoreController::coreFindModelOne(new Employee(), $params);
-		
+
 		if ($model === null) {
 			return CoreController::coreDataNotFound();
 		}

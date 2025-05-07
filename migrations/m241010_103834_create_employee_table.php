@@ -30,7 +30,7 @@ class m241010_103834_create_employee_table extends Migration
             'division_id' => $this->integer()->notNull()->defaultValue(1),
             'position_id' => $this->integer()->notNull()->defaultValue(1),
             'employee_type_id' => $this->integer()->notNull()->defaultValue(1),
-            'work_time_id' => $this->integer()->notNull()->defaultValue(null),
+            'work_time_id' => $this->integer()->defaultValue(null),
             'image' => $this->json()->defaultValue('[]'),
             'status' => $this->smallInteger()->notNull()->defaultValue(2)->comment('0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance'),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([

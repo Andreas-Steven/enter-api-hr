@@ -28,9 +28,9 @@ class Employee extends \yii\db\ActiveRecord
     public $division;
     public $position;
     public $username;
+    public $work_time;
     public $system_date;
     public $employee_type;
-    public $work_time;
     
     public static function tableName()
     {
@@ -46,20 +46,16 @@ class Employee extends \yii\db\ActiveRecord
     {  
         return array_merge(
             [
+                [['email'], 'email'],
                 [['image', 'contact', 'detail_info'], 'safe'],
-                [['email'], 'email', 'on' => Constants::SCENARIO_UPDATE],
                 [['sso_id', 'division_id', 'status', 'work_time_id'], 'integer'],
                 [['name', 'nik', 'email', 'username'], 'string', 'min' => 3, 'max' => 255],
-                
-                [['image', 'contact'], 'default', 'value' => [], 'on' => Constants::SCENARIO_CREATE],
-                [['division_id', 'position_id', 'employee_type_id'], 'default', 'value' => 1, 'on' => Constants::SCENARIO_CREATE],
-                [['nik', 'birth_date', 'date_start', 'date_resign', 'email', 'work_time_id'], 'default', 'value' => null, 'on' => Constants::SCENARIO_CREATE],
-                
+
                 [['name', 'sso_id', 'username'], 'required', 'on' => Constants::SCENARIO_CREATE],
                 [['work_time_id', 'division_id', 'position_id'], 'required', 'on' => Constants::SCENARIO_UPDATE],
 
                 [['nik'], 'match', 'pattern' => '/^\d{16}$/', 'message' => Yii::t('app', 'invalidNik')],
-                [['sso_id', 'division_id', 'position_id', 'employee_type_id', 'work_time_id'], 'filter', 'filter' => 'intval'],
+                [['sso_id', 'division_id', 'position_id', 'employee_type_id'], 'filter', 'filter' => 'intval'],
                 [['birth_date', 'date_start', 'date_resign', 'system_date'], 'match', 'pattern' => '/^\d{4}-\d{2}-\d{2}$/', 'message' => Yii::t('app', 'datePattern')],
 
                 [['image'], function($attribute) {
@@ -88,8 +84,8 @@ class Employee extends \yii\db\ActiveRecord
                 [['division_id'], 'validateDivision'], 
                 [['position_id'], 'validatePosition'], 
                 [['employee_type_id'], 'validateType'], 
+                [['work_time_id'], 'validateWorkTime'],
                 [['sso_id', 'username'], 'validateSSO'],
-                [['work_time_id'], 'validateWorkTime', 'on' => Constants::SCENARIO_UPDATE],
             ],
             CoreModel::getStatusRules($this),
             CoreModel::getLockVersionRules($this),
@@ -142,6 +138,7 @@ class Employee extends \yii\db\ActiveRecord
     {
         if (parent::beforeValidate()) {
             $this->name = CoreModel::htmlPurifier($this->name);
+
             return true;
         }
 
@@ -153,13 +150,6 @@ class Employee extends \yii\db\ActiveRecord
         if (parent::beforeSave($insert)) {
             if (empty($this->contact)) {
                 $this->contact = [];
-            }
-
-            if ($this->scenario === Constants::SCENARIO_UPDATE) {
-                if (empty($this->work_time_id)) {
-                    $this->addError('work_time_id', Yii::t('app', 'required', ['label' => $this->getAttributeLabel('work_time_id')]));
-                    return;
-                }
             }
 
             $this->detail_info = [
@@ -218,19 +208,6 @@ class Employee extends \yii\db\ActiveRecord
         }
     }
 
-    public function validateResign($attribute, $params)
-    {
-        if (!empty($this->$attribute)) {
-            if ($this->$attribute < $this->system_date) {
-                // Status 3 for resign
-                $this->status = Constants::STATUS_COMPLETED;
-            } elseif ($this->$attribute > $this->system_date) {
-                // Status 5 for one month notice
-                $this->status = Constants::STATUS_MAINTENANCE;
-            }
-        }
-    }
-
     public function validateSSO($attribute, $params)
     {
         $this->sso = ['sso_id' => $this->sso_id, 'username' => $this->username];
@@ -284,7 +261,16 @@ class Employee extends \yii\db\ActiveRecord
     
     public function validateWorkTime($attribute, $params)
     {
-        $work_time = WorkTime::findOne(['id' => $this->$attribute, 'status' => Constants::STATUS_ACTIVE]);
+        if (!ctype_digit((string) $this->$attribute) || intval($this->$attribute) <= 0) {
+            $this->addError($attribute, Yii::t('app', 'integerNoZero', ['label' => $this->getAttributeLabel($attribute)]));
+            return;
+        }
+
+        $this->$attribute = intval($this->$attribute);
+        $work_time = WorkTime::findOne([
+            'id' => $this->$attribute, 
+            'status' => Constants::STATUS_ACTIVE,
+        ]);
 
         if ($work_time === null) {
             $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($attribute)]));
@@ -296,5 +282,18 @@ class Employee extends \yii\db\ActiveRecord
             'name' => $work_time->name,
             'working_days' => $work_time->working_days,
         ];
+    }
+
+    public function validateResign($attribute, $params)
+    {
+        if (!empty($this->$attribute)) {
+            if ($this->$attribute < $this->system_date) {
+                // Status 3 for resign
+                $this->status = Constants::STATUS_COMPLETED;
+            } elseif ($this->$attribute > $this->system_date) {
+                // Status 5 for one month notice
+                $this->status = Constants::STATUS_MAINTENANCE;
+            }
+        }
     }
 }
