@@ -21,7 +21,7 @@ use app\models\search\AttendanceSearch;
  * @property string|null $revision
  * @property int $status 0: Inactive, 1: Active, 2: Draft, 3: Completed, 4: Deleted, 5: Maintenance
  * @property string $detail_info
- * @property int|null $sync 1: unsync, null: synced
+ * @property int|null $sync_mdb 1: unsync_mdb, null: sync_mdbed
  */
 class AttendancePermission extends \yii\db\ActiveRecord
 {
@@ -47,7 +47,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
                 [['revision', 'detail_info'], 'safe'],
                 [['date'], 'date', 'format' => 'php:Y-m-d'],
                 [['note', 'approved_note'], 'string', 'min' => 3, 'max' => 255],
-                [['employee_id', 'permission_type', 'approved', 'status', 'sync'], 'integer'],
+                [['employee_id', 'permission_type', 'approved', 'status', 'sync_mdb'], 'integer'],
 
                 [['employee_id', 'permission_type', 'date', 'note'], 'required'],
 
@@ -56,7 +56,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
                 [['approved'], 'in', 'range' => array_keys(Constants::PERMISSION_APPROVAL)],
 
                 [['revision'], 'default', 'value' => []],
-                [['note', 'approved', 'approved_note', 'status', 'sync'], 'default', 'value' => null],
+                [['note', 'approved', 'approved_note', 'status', 'sync_mdb'], 'default', 'value' => null],
 
                 [['employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>', 
                 'message' => Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')])
@@ -77,11 +77,11 @@ class AttendancePermission extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[Constants::SCENARIO_CREATE] = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'approved', 'approved_note', 'status', 'detail_info', 'sync'];
-        $scenarios[Constants::SCENARIO_UPDATE] = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'status', 'detail_info', 'sync'];
+        $scenarios[Constants::SCENARIO_CREATE] = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'approved', 'approved_note', 'status', 'detail_info', 'sync_mdb'];
+        $scenarios[Constants::SCENARIO_UPDATE] = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'status', 'detail_info', 'sync_mdb'];
         $scenarios[Constants::SCENARIO_APPROVE] = ['approved', 'approved_note', 'status'];
         $scenarios[Constants::SCENARIO_REJECT] = ['approved', 'status'];
-        $scenarios[Constants::SCENARIO_DELETE] = ['status', 'sync'];
+        $scenarios[Constants::SCENARIO_DELETE] = ['status', 'sync_mdb'];
         return $scenarios;
     }
 
@@ -98,7 +98,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
             'revision' => 'Revision',
             'status' => 'Status',
             'detail_info' => 'Detail Info',
-            'sync' => 'Sync',
+            'sync_mdb' => 'sync_mdb',
         ];
     }
 
@@ -110,7 +110,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
     public function fields()
     {
         $fields = parent::fields();
-        unset($fields['sync']);
+        unset($fields['sync_mdb']);
 
         return $fields;
     }
