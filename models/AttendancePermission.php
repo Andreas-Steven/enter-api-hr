@@ -59,7 +59,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
                 [['note', 'approved', 'approved_note', 'status', 'sync_mdb'], 'default', 'value' => null],
 
                 [['employee_id'], 'compare', 'compareValue' => 0, 'operator' => '>', 
-                'message' => Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')])
+                    'message' => Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')])
                 ],
 
                 [['revision'], function($attribute) {

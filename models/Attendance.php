@@ -62,7 +62,8 @@ class Attendance extends \yii\db\ActiveRecord
                 }],
                 
                 [['attendance'], function($attribute) {
-                    CoreModel::validateAttributeArray($this, $attribute, 'Attendance');
+                    $label = $this->getAttributeLabel($attribute);
+                    CoreModel::validateAttributeArray($this, $attribute, $label);
                 }],
                 
                 [['attendance'], 'validateAttendanceNotCheckout', 'on' => Constants::SCENARIO_UPDATE],

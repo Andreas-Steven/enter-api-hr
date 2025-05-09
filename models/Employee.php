@@ -58,25 +58,16 @@ class Employee extends \yii\db\ActiveRecord
                 [['sso_id', 'division_id', 'position_id', 'employee_type_id'], 'filter', 'filter' => 'intval'],
                 [['birth_date', 'date_start', 'date_resign', 'system_date'], 'match', 'pattern' => '/^\d{4}-\d{2}-\d{2}$/', 'message' => Yii::t('app', 'datePattern')],
 
-                [['image'], function($attribute) {
-                    CoreModel::validateAttributeArray($this, $attribute, 'Image');
+                [['image', 'contact'], function($attribute) {
+                    $label = $this->getAttributeLabel($attribute);
+                    CoreModel::validateAttributeArray($this, $attribute, $label);
                 }],
 
-                [['contact'], function($attribute) {
-                    CoreModel::validateAttributeArray($this, $attribute, 'Contact');
-                }],
-
-                [['email'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
-                    return $model->isAttributeChanged('email');
-                }],
-
-                [['nik'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
-                    return $model->isAttributeChanged('nik');
-                }],
-
-                [['sso_id'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
-                    return $model->isAttributeChanged('sso_id');
-                }],
+                [['email', 'nik', 'sso_id'], 'unique', 
+                    'when' => function($model, $attribute) {
+                        return $model->isAttributeChanged($attribute);
+                    }, 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE]
+                ],
 
                 [['image'], 'validateImage'],
                 [['contact'], 'validateContact'],
@@ -176,7 +167,7 @@ class Employee extends \yii\db\ActiveRecord
 
         foreach ($contacts as $contact) {
             $contact = CoreModel::nullSafe($contact);
-            if (!preg_match('/^(62)[1-9][0-9]{7,12}$/', $contact) && !empty($contact)) {
+            if (!preg_match(Yii::$app->params['defaultValue']['phone'], $contact) && !empty($contact)) {
                 $this->addError($attribute, Yii::t('app', 'phonePrefix'));
                 return;
             }

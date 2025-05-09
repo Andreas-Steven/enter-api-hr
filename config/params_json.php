@@ -50,6 +50,7 @@ $params['dbDefault'] = [
  * is default value for json fields in model
  */
 $params['defaultValue'] = [
+    'phone' => '/^(62)[1-9][0-9]{7,12}$/',
     'items' => [
         'code' => null,
         'price' => null,
