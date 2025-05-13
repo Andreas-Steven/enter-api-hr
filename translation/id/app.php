@@ -5,72 +5,72 @@ $core_translation = require __DIR__ . '/core.php';
 return array_merge($core_translation, [
     'responseLanguage' => 'Bahasa Indonesia',
 
-    // general
+    #General
     'id' => 'ID',
     'ok' => 'OK',
-    'success' => 'Sukses',
+    'success' => 'OK',
     'method not allowed' => 'Metode tidak diizinkan',
 
-    // auth
-    'username' => 'Username',
+    #Auth
+    'username' => 'Nama Pengguna',
     'password' => 'Kata Sandi',
-    'invalid username or password.' => 'Nama pengguna atau kata sandi tidak valid.',
-    'no refresh token found.' => 'Token refresh tidak ditemukan.',
-    'the refresh token no longer exists.' => 'Token refresh tidak ada lagi.',
-    'the user no longer exists.' => 'Pengguna tidak ada lagi.',
-    'failed to delete the refresh token.' => 'Gagal menghapus token refresh.',
-    'invalid token provided' => 'Token tidak valid.',
-    'username and password are required' => 'Nama pengguna dan kata sandi diperlukan.',
-    'login success.' => 'Login berhasil.',
+    'token expired.' => 'Token telah kedaluwarsa.',
+    'login success.' => 'Berhasil masuk.',
     'token not found.' => 'Token tidak ditemukan.',
-    'token expired.' => 'Token kadaluarsa.',
-
-    // Attendance Permission custom messages
-    'approveRecordSuccess' => 'Data telah disetujui dengan sukses.',
-    'approveRecordFailed' => 'Gagal menyetujui data.',
-    'rejectRecordSuccess' => 'Data telah ditolak dengan sukses.',
-    'rejectRecordFailed' => 'Gagal menolak data.',
-
-    // custom error messages
-    'array' => '{label} harus berupa array.',
-    'float' => '{label} harus berupa float.',
-    'mustLogin' => 'Anda harus login untuk melakukan aksi ini.',
+    'invalid token provided' => 'Token yang diberikan tidak valid',
+    'no refresh token found.' => 'Token pembaruan tidak ditemukan.',
+    'mustLogin' => 'Anda harus masuk untuk melakukan aksi ini.',
+    'the user no longer exists.' => 'Pengguna tidak lagi tersedia.',
+    'invalid username or password.' => 'Nama pengguna atau kata sandi tidak valid.',
     'superadminOnly' => 'Anda tidak memiliki izin untuk melakukan aksi ini.',
-    'updatePermission' => 'Anda tidak memiliki izin untuk mengupdate {label} dari {tableName} karena data ini di referensi oleh data lain.',
-    'invalidImage' => 'Format gambar tidak valid.',
-    'null' => '{label} tidak boleh kosong.',
-    'invalidCondition' => '{label} tidak valid.',
+    'username and password are required' => 'Nama pengguna dan kata sandi wajib diisi',
+    'the refresh token no longer exists.' => 'Token pembaruan tidak lagi tersedia.',
+    'failed to delete the refresh token.' => 'Gagal menghapus token pembaruan.',
+    'updatePermission' => 'Anda tidak memiliki izin untuk memperbarui {label} dari {tableName} ini karena digunakan di data lain.',
 
-    // Attendance custom error messages
-    'defaultRecordSuccess' => 'Data telah disimpan dengan sukses.',
-    'defaultRecordFailed' => 'Gagal menyimpan data.',
-    'attendanceFailed' => 'Absensi gagal.',
-    'endTimeNotValid' => 'Waktu akhir absensi tidak valid.',
-    'locationRequired' => 'Lokasi harus diisi untuk aplikasi device.',
-    'startTimeNotValid' => 'Waktu awal absensi tidak valid.',
-    'emptyStartTimeEndTime' => 'Waktu awal atau akhir absensi harus diisi.',
-    'attendanceNotFound' => 'Data absensi tidak ditemukan untuk tanggal {date}.',
+    #Attendance Permission Scenario
+    'defaultRecordSuccess' => 'Izin berhasil disimpan.',
+    'defaultRecordFailed' => 'Gagal menyimpan izin.',
+    'approveRecordSuccess' => 'Izin berhasil disetujui.',
+    'approveRecordFailed' => 'Gagal menyetujui izin.',
+    'rejectRecordSuccess' => 'Izin berhasil ditolak.',
+    'rejectRecordFailed' => 'Gagal menolak izin.',
 
-    // General Affair custom error messages
-    'generalAffairFailed' => 'Surat-menyurat umum gagal.',
-    'dateInvalid' => '{label} harus berupa tanggal dalam format YYYY-MM-DD.',
-    'datePattern' => 'Tanggal harus berupa YYYY-MM-DD.',
-    'codeFormatInvalid' => 'Kode format tidak valid. Kode harus berupa string antara 10 dan 25 karakter',
-
-    // Employee custom error messages
-    'phonePrefix' => 'Nomor telepon harus diawali dengan 62 dan maksimal 15 digit.',
-    'invalidNik' => 'NIK harus berupa 16 digit.',
-
-    // Location Rules
+    #Location Error
     'invalidLatFormat' => 'Format latitude tidak valid.',
     'invalidLngFormat' => 'Format longitude tidak valid.',
-    'invalidLat' => 'Latitude harus berupa antara -90 dan 90',
-    'invalidLng' => 'Longitude harus berupa antara -180 dan 180',
+    'invalidLat' => 'Latitude harus berada di antara -90 dan 90.',
+    'invalidLng' => 'Longitude harus berada di antara -180 dan 180.',
 
-    // Attendance Permission Rules
-    'attendancePermissionFailed' => 'Izin absensi gagal.',
-    'revisionEmpty' => 'Waktu awal dan akhir revisi tidak boleh kosong untuk {value} request.',
-    'invalidTimeFormat' => '{label} harus berupa format HH:MM:SS.',
-    'revisionRestriction' => 'Untuk request revisi, Tipe Izin hanya boleh di set untuk Terlambat atau Pulang Awal.',
-    'revisionRequired' => '{label} diperlukan untuk {value} request.',
+    #Custom Error Messages
+    'array' => '{label} harus berupa array.',
+    'float' => '{label} harus berupa angka desimal.',
+    'invalidCondition' => '{label} tidak valid.',
+    'invalidImage' => 'Format {label} tidak valid.',
+    'null' => '{label} tidak boleh kosong atau null.',
+
+    #Attendance Validation
+    'endTimeNotValid' => 'Waktu pulang absensi tidak valid.',
+    'attendanceFailed' => 'Gagal memproses data absensi.',
+    'startTimeNotValid' => 'Waktu masuk absensi tidak valid.',
+    'locationRequired' => 'Lokasi wajib diisi untuk melakukan absensi melalui aplikasi.',
+    'emptyStartTimeEndTime' => 'Waktu masuk atau waktu pulang absensi harus diisi.',
+
+    #General Affair Validation
+    'dateInvalid' => 'Format {label} harus YYYY-MM-DD.',
+    'datePattern' => 'Tanggal harus dalam format YYYY-MM-DD.',
+    'generalAffairFailed' => 'Gagal memproses data General Affair.',
+    'codeFormatInvalid' => 'Format kode tidak valid. Kode harus berupa text antara 10 sampai 25 karakter.',
+
+    #Employee Custom Error Messages
+    'invalidNik' => 'NIK harus berupa text dan terdiri dari 16 karakter.',
+    'invalidPhoneFormat' => 'Nomor Telepon wajib diisi, harus diawali dengan 62, minimal 9 karakter, dan maksimal 15 karakter.',
+
+    #Attendance Permission Rules
+    'revisionRequired' => '{label} wajib diisi untuk permintaan {value}.',
+    'invalidTimeFormat' => '{label} harus dalam format HH:MM:SS.',
+    'attendancePermissionFailed' => 'Gagal memproses data Izin Absensi.',
+    'attendanceNotFound' => 'Data absensi tidak ditemukan untuk tanggal {date}.',
+    'revisionRestriction' => 'Untuk permintaan Revisi, Tipe Izin hanya dapat diatur untuk Terlambat atau Pulang Awal.',
+    'revisionEmpty' => 'Revisi waktu masuk dan pulang tidak boleh kosong bersamaan untuk permintaan {value}.',
 ]);
