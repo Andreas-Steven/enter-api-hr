@@ -94,7 +94,7 @@ class DivisionController extends CoreController
 		$params = Yii::$app->getRequest()->getBodyParams();
 		$scenario = Constants::SCENARIO_DELETE;
 
-CoreController::validateParams($params, $scenario);
+		CoreController::validateParams($params, $scenario);
 
 		$model = CoreController::coreFindModelOne(new Division(), $params);
 

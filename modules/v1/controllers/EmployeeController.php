@@ -21,12 +21,12 @@ class EmployeeController extends CoreController
 			$behaviors['verbs']['actions'],
 			[
 				'index' => ['get'],
-				'resign' => ['post'],
+				'resign' => ['get'],
 			]
 		);
 
        return $behaviors;
-   	}
+	}
 
     public function actionData()
 	{
@@ -147,7 +147,7 @@ class EmployeeController extends CoreController
 		foreach ($employees as $employee) {
 			$employee->scenario = Constants::SCENARIO_UPDATE;
 			$employee->status = Constants::STATUS_COMPLETED;
-			$employee->save(false);
+			$employee->save();
 		}
 	}
 }
