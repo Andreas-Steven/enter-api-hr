@@ -44,38 +44,78 @@ class CoreController extends Controller
      * 
      * @return array Array of behaviors
      */
+    #The error CORS
+    // public function behaviors()
+    // {
+    //     $this->enableCsrfValidation = Yii::$app->params['request']['enableCsrfValidation'];
+        
+    //     return [
+    //         'corsFilter' => [
+    //             'class' => '\yii\filters\Cors',
+    //             'cors' => [
+    //                 'Origin' => Yii::$app->params['cors']['origins'], 
+    //                 'Access-Control-Request-Headers' => ['*'],
+    //                 'Access-Control-Request-Origin' => ['*'],
+    //                 'Access-Control-Allow-Credentials' => true,
+    //                 'Access-Control-Request-Method' => Yii::$app->params['cors']['requestMethods'],
+    //                 'Access-Control-Allow-Headers' => Yii::$app->params['cors']['allowHeaders'],
+    //             ],
+    //         ],
+    //         'contentNegotiator' => [
+    //             'class' => 'yii\filters\ContentNegotiator',
+    //             'formats' => [
+    //                 'application/json' => Response::FORMAT_JSON,
+    //             ],
+    //         ],
+    //         'authenticator' => [
+    //             'class' => 'app\components\JwtBearerAuth',
+    //             'except' => Yii::$app->params['jwt']['except'],
+    //         ],
+    //         'verbs' => [
+	// 			'class' => 'yii\filters\VerbFilter',
+	// 			'actions' => Yii::$app->params['verbsAction'],
+	// 		],
+    //     ];
+    // }
+
+    #The CORS fix
     public function behaviors()
     {
         $behaviors = parent::behaviors();
         $this->enableCsrfValidation = Yii::$app->params['request']['enableCsrfValidation'];
+
+        unset($behaviors['authenticator']);
         
-        return array_merge($behaviors, [
-            'corsFilter' => [
-                'class' => '\yii\filters\Cors',
-                'cors' => [
-                    'Origin' => Yii::$app->params['cors']['origins'], 
-                    'Access-Control-Request-Headers' => ['*'],
-                    'Access-Control-Request-Origin' => ['*'],
-                    'Access-Control-Allow-Credentials' => true,
-                    'Access-Control-Request-Method' => Yii::$app->params['cors']['requestMethods'],
-                    'Access-Control-Allow-Headers' => Yii::$app->params['cors']['allowHeaders'],
-                ],
+        $behaviors['corsFilter'] = [
+            'class' => '\yii\filters\Cors',
+            'cors' => [
+                'Origin' => Yii::$app->params['cors']['origins'], 
+                'Access-Control-Request-Headers' => ['*'],
+                'Access-Control-Request-Origin' => ['*'],
+                'Access-Control-Allow-Credentials' => true,
+                'Access-Control-Request-Method' => Yii::$app->params['cors']['requestMethods'],
+                'Access-Control-Allow-Headers' => Yii::$app->params['cors']['allowHeaders'],
             ],
-            'contentNegotiator' => [
-                'class' => 'yii\filters\ContentNegotiator',
-                'formats' => [
-                    'application/json' => Response::FORMAT_JSON,
-                ],
+        ];
+
+        $behaviors['contentNegotiator'] = [
+            'class' => 'yii\filters\ContentNegotiator',
+            'formats' => [
+                'application/json' => Response::FORMAT_JSON,
             ],
-            'authenticator' => [
-                'class' => 'app\components\JwtBearerAuth',
-                'except' => Yii::$app->params['jwt']['except'],
-            ],
-            'verbs' => [
-				'class' => 'yii\filters\VerbFilter',
-				'actions' => Yii::$app->params['verbsAction'],
-			],
-        ]);
+        ];
+
+        $behaviors['authenticator'] = [
+            'class' => 'app\components\JwtBearerAuth',
+            'except' => Yii::$app->params['jwt']['except'],
+        ];
+
+        $behaviors['verbs'] = [
+            'class' => 'yii\filters\VerbFilter',
+            'actions' => Yii::$app->params['verbsAction'],
+        ];
+
+        return $behaviors;
     }
 
     /**
