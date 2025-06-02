@@ -78,7 +78,7 @@ class CoreController extends Controller
     //     ];
     // }
 
-    #The CORS fix
+    #The fix CORS 
     public function behaviors()
     {
         $behaviors = parent::behaviors();
