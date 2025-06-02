@@ -46,9 +46,10 @@ class CoreController extends Controller
      */
     public function behaviors()
     {
+        $behaviors = parent::behaviors();
         $this->enableCsrfValidation = Yii::$app->params['request']['enableCsrfValidation'];
         
-        return [
+        return array_merge($behaviors, [
             'corsFilter' => [
                 'class' => '\yii\filters\Cors',
                 'cors' => [
@@ -74,7 +75,7 @@ class CoreController extends Controller
 				'class' => 'yii\filters\VerbFilter',
 				'actions' => Yii::$app->params['verbsAction'],
 			],
-        ];
+        ]);
     }
 
     /**
