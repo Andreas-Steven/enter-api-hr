@@ -17,6 +17,7 @@ use app\components\CustomException;
 use app\helpers\Constants;
 use app\exceptions\ErrorMessage;
 use yii\base\DynamicModel;
+use yii\helpers\ArrayHelper;
 
 /**
  * CoreController serves as the base controller for RESTful API endpoints.
@@ -44,7 +45,6 @@ class CoreController extends Controller
      * 
      * @return array Array of behaviors
      */
-    #The fix CORS
     public function behaviors()
     {
         $behaviors = parent::behaviors();
@@ -52,7 +52,7 @@ class CoreController extends Controller
 
         unset($behaviors['authenticator']);
 
-        return array_merge($behaviors, [
+        return ArrayHelper::merge($behaviors, [
             'corsFilter' => [
                 'class' => '\yii\filters\Cors',
                 'cors' => [
@@ -75,9 +75,9 @@ class CoreController extends Controller
                 'except' => Yii::$app->params['jwt']['except'],
             ],
             'verbs' => [
-				'class' => 'yii\filters\VerbFilter',
-				'actions' => Yii::$app->params['verbsAction'],
-			],
+                'class' => 'yii\filters\VerbFilter',
+                'actions' => Yii::$app->params['verbsAction'],
+            ],
         ]);
     }
 
@@ -200,7 +200,7 @@ class CoreController extends Controller
         }
 
         if ($otherParams) {
-            $where = array_merge($where, $otherParams);
+            $where = ArrayHelper::merge($where, $otherParams);
         }
 
 		if (!empty($where)) {
@@ -272,7 +272,7 @@ class CoreController extends Controller
      * @param object $dataProvider Data provider instance
      * @return array API response with pagination
      */
-    public function coreData($dataProvider): array
+    public function coreData($dataProvider, $custom = []): array
     {
         return [
             'code' => Yii::$app->response->statusCode = 200,
