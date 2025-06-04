@@ -241,7 +241,7 @@ class Attendance extends \yii\db\ActiveRecord
                     $currentTime = date('H:i:s');
                     
                     // Check if current time is past 15:00 (3 PM)
-                    if (strtotime($currentTime) >= strtotime('14:00:00') && strtotime($attendanceData['end_time']) !== false) {
+                    if (strtotime($currentTime) >= strtotime('15:00:00') && strtotime($attendanceData['end_time']) !== false) {
                         // If current time is past 3 PM (15:00), set start_time to end_time
                         $attendanceData['start_time'] = $attendanceData['end_time'];
                         $attendanceData['info']['detail'][] = Constants::ATTENDANCE_MISSED_CHECKIN;
