@@ -44,7 +44,7 @@ class Attendance extends \yii\db\ActiveRecord
 
     public function optimisticLock() 
     {
-        // return Constants::OPTIMISTIC_LOCK;
+        # return Constants::OPTIMISTIC_LOCK;
     }
 
     public function rules()
@@ -70,7 +70,7 @@ class Attendance extends \yii\db\ActiveRecord
 
             ],
             CoreModel::getStatusRules($this),
-            // CoreModel::getLockVersionRules($this),
+            # CoreModel::getLockVersionRules($this),
         );
     }
 
@@ -172,7 +172,7 @@ class Attendance extends \yii\db\ActiveRecord
         foreach ($attendances as $index => $attendance) {
             CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $attendance);
 
-            // Attendance Data Validation
+            # Attendance Data Validation
             $attendance['employee_id'] = intval($attendance['employee_id']);
             if (empty($attendance['employee_id']) || !is_numeric($attendance['employee_id'])) {
                 $this->addError($attribute, Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')]));
@@ -193,9 +193,9 @@ class Attendance extends \yii\db\ActiveRecord
                 $this->addError($attribute,  Yii::t('app', 'required', ['label' => $this->getAttributeLabel('device')]));
                 throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
             }
-            // Attendance Data Validation
+            # Attendance Data Validation
 
-            // Data Assignment
+            # Data Assignment
             if ($oldAttendance === null || !isset($oldAttendance[$index])) {
                 $attendanceData = array_merge($defaultAttendance, $attendance);
 
@@ -289,31 +289,28 @@ class Attendance extends \yii\db\ActiveRecord
                     }
                 }
                 
-                // Blacklist
+                # Blacklist
                 if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
                     $blacklist = [];
+                    $dateBlacklist = null;
 
-                    if (strtotime($attendanceData['start_time']) < strtotime($latestAttendance)) {
-                        $blacklist = [
-                            'employee_id' => $attendanceData['employee_id'],
-                            'employee_name' => $employee['name'],
-                            'date' => $this->date,
-                            'start_time' => $attendanceData['start_time'],
-                            'time' => date('H:i:s')
-                        ];
-
-                        $attendanceData['start_time'] = date('H:i:s');
+                    if (strtotime($attendanceData['start_time']) < strtotime($latestAttendance) && empty($this->dateMismatch)) {
+                        $dateBlacklist = $this->date;
                     } elseif (!empty($this->dateMismatch)) {
+                        $dateBlacklist = $this->dateMismatch;
+                        $this->dateMismatch = null;
+                    }
+
+                    if ($dateBlacklist !== null) {
                         $blacklist = [
                             'employee_id' => $attendanceData['employee_id'],
                             'employee_name' => $employee['name'],
-                            'date' => $this->dateMismatch,
+                            'date' => $dateBlacklist,
                             'start_time' => $attendanceData['start_time'],
                             'time' => date('H:i:s')
                         ];
-                        
+
                         $attendanceData['start_time'] = date('H:i:s');
-                        $this->dateMismatch = null;
                     }
                     
                     $exsistingBlacklist = $this->detail_info['blacklist'] ?? [];
@@ -324,7 +321,7 @@ class Attendance extends \yii\db\ActiveRecord
 
                     $this->detail_info = array_merge($this->detail_info ?? [], ['blacklist' => $exsistingBlacklist]);
                 }
-                // Blacklist
+                # Blacklist
                 
                 $attendanceData['info']['in'] = true;
                 $attendanceData['employee_name'] = $employee['name'];
@@ -371,9 +368,9 @@ class Attendance extends \yii\db\ActiveRecord
                     $attendanceData['info']['out'] = true;
                 }
             }
-            // Data Assignment
+            # Data Assignment
 
-            // Validate location
+            # Validate location
             $entryLocation = $attendanceData['location']['entry'] ?? null;
             $homeLocation = $attendanceData['location']['home'] ?? null;
             $location = ['entry' => $entryLocation, 'home' => $homeLocation];
@@ -439,7 +436,7 @@ class Attendance extends \yii\db\ActiveRecord
                     ];
                 }
             }
-            // Validate location
+            # Validate location
 
             $attendanceData['location'] = $location;
             $oldAttendance[$index] = $attendanceData;
