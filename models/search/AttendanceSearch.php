@@ -267,8 +267,9 @@ class AttendanceSearch extends Attendance
                     'total_out' => $eqCondition('out', true),
                     'total_late' => $inCondition('detail', Constants::ATTENDANCE_LATE),
                     'total_leave_early' => $inCondition('detail', Constants::ATTENDANCE_LEAVE_EARLY),
+                    'total_missed_checkin' => $inCondition('detail', Constants::ATTENDANCE_MISSED_CHECKIN),
                     'total_missed_checkout' => $inCondition('detail', Constants::ATTENDANCE_MISSED_CHECKOUT),
-                    'total_work_holiday' => $inCondition('detail', Constants::ATTENDANCE_WORK_HOLIDAY),
+                    'total_work_holiday' => $inCondition('detail', Constants::ATTENDANCE_HOLIDAY),
                     'total_blacklist' => ['$sum' => ['$size' => ['$ifNull' => ['$detail_info.blacklist', []]]]],
                 ]],
                 ['$facet' => [
@@ -306,6 +307,7 @@ class AttendanceSearch extends Attendance
                             'total_out' => $doc['total_out'],
                             'total_late' => $doc['total_late'],
                             'total_leave_early' => $doc['total_leave_early'],
+                            'total_missed_checkin' => $doc['total_missed_checkin'],
                             'total_missed_checkout' => $doc['total_missed_checkout'],
                             'total_work_holiday' => $doc['total_work_holiday'],
                             'total_blacklist' => $doc['total_blacklist'],
