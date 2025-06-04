@@ -53,6 +53,7 @@ return array_merge($core_translation, [
     'endTimeNotValid' => 'Waktu pulang absensi tidak valid.',
     'attendanceFailed' => 'Gagal memproses data absensi.',
     'startTimeNotValid' => 'Waktu masuk absensi tidak valid.',
+    'endTimeBeforeStartTime' => 'Waktu selesai harus lebih lambat dari waktu mulai.',
     'locationRequired' => 'Lokasi wajib diisi untuk melakukan absensi melalui aplikasi.',
     'emptyStartTimeEndTime' => 'Waktu masuk atau waktu pulang absensi harus diisi.',
 

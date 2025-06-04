@@ -7,6 +7,7 @@ class Constants extends CoreConstants
 {
     const LAST_DATE = 26;
     const DEVICE_APP = 'APP';
+    const CHECK_IN_THRESHOLD = '15:00:00';
 
     // Attendance Status. Source: https://tanya.zemangat.com/kb/penjelasan-kode-status-kehadiran-karyawan/
     const ATTENDANCE_LATE = 'late';

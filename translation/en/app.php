@@ -54,6 +54,7 @@ return array_merge($core_translation, [
     'attendanceFailed' => 'Failed to process attendance data.',
     'startTimeNotValid' => 'Attendance start time is not valid.',
     'locationRequired' => 'Location must be set for attendance via the app.',
+    'endTimeBeforeStartTime' => 'The end time must be later than the start time.',
     'emptyStartTimeEndTime' => 'Start time or end time must be provided for attendance.',
 
     #General Affair Validation

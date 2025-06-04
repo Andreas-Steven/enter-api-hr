@@ -113,7 +113,7 @@ class Attendance extends \yii\db\ActiveRecord
     {
         if (parent::beforeValidate()) {
             if ($this->scenario === Constants::SCENARIO_CREATE) {
-                if ($this->date !== $this->system_date) {
+                if (strtotime($this->date) !== strtotime($this->system_date)) {
                     $this->dateMismatch = $this->date;
                     $this->date = $this->system_date;
                 }
@@ -236,18 +236,16 @@ class Attendance extends \yii\db\ActiveRecord
 
                 $attendanceData['start_time'] = CoreModel::nullSafe($attendanceData['start_time']);
 
-                # TODO: Add not checkin validation
-                if (empty($attendanceData['start_time']) && !empty($attendanceData['end_time'])) {
+                # Not checkin validation
+                if (empty($attendanceData['start_time']) && !empty($attendanceData['end_time']) && strtotime($attendanceData['end_time']) !== false) {
                     $currentTime = date('H:i:s');
                     
-                    // Check if current time is past 15:00 (3 PM)
-                    if (strtotime($currentTime) >= strtotime('15:00:00') && strtotime($attendanceData['end_time']) !== false) {
-                        // If current time is past 3 PM (15:00), set start_time to end_time
+                    if (strtotime($currentTime) > strtotime(Constants::CHECK_IN_THRESHOLD)) {
                         $attendanceData['start_time'] = $attendanceData['end_time'];
                         $attendanceData['info']['detail'][] = Constants::ATTENDANCE_MISSED_CHECKIN;
                     }
                 }
-                # Add not checkin validation
+                # Not checkin validation
 
                 if (empty($attendanceData['start_time']) || strtotime($attendanceData['start_time']) === false) {
                     $this->addError($attribute, Yii::t('app', 'startTimeNotValid'));
@@ -339,21 +337,27 @@ class Attendance extends \yii\db\ActiveRecord
                     $attendanceData['start_time'] = $attendance['start_time'];
                 }
                 
-                $attendance['end_time'] = CoreModel::nullSafe($attendance['end_time']);
-                if (!empty($attendance['end_time'])) {
-                    if (strtotime($attendance['end_time']) === false) {
+                $attendanceData['end_time'] = CoreModel::nullSafe($attendance['end_time']);
+                if (!empty($attendanceData['end_time'])) {
+                    if (strtotime($attendanceData['end_time']) === false) {
                         $this->addError($attribute, Yii::t('app', 'endTimeNotValid'));
                         throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                     }
 
                     $dayNow = date('N', strtotime($this->date));
-                    $homeTime = $attendanceData['work_time']['working_days'][$dayNow]['home_time'];
-                    $attendanceData['end_time'] = CoreModel::nullSafe($attendance['end_time']);
-                    $endTime = strtotime($attendance['end_time']);
+                    $endTime = strtotime($attendanceData['end_time']);
+                    $startTime = strtotime($attendanceData['start_time']);
+                    $homeTime = strtotime($attendanceData['work_time']['working_days'][$dayNow]['home_time']);
                     
                     if ($endTime !== null) {
-                        $homeTime = strtotime($homeTime);
-
+                        $isEndBeforeStart = ($endTime < $startTime);
+                        $isValidTime = ($startTime !== false && $endTime !== false);
+                        $isMissedCheckin = in_array(Constants::ATTENDANCE_MISSED_CHECKIN, $attendanceData['info']['detail'] ?? []);
+                        
+                        if (!$isMissedCheckin && $isValidTime && $isEndBeforeStart) {
+                            $this->addError($attribute, Yii::t('app', 'endTimeBeforeStartTime'));
+                            throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                        }
                         if ($endTime < $homeTime) {
                             $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
                         } else {
