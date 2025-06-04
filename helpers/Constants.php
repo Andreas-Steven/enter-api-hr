@@ -9,10 +9,11 @@ class Constants extends CoreConstants
     const DEVICE_APP = 'APP';
 
     // Attendance Status. Source: https://tanya.zemangat.com/kb/penjelasan-kode-status-kehadiran-karyawan/
-    const ATTENDANCE_LATE = 'Late';
-    const ATTENDANCE_LEAVE_EARLY = 'Leave Early';
-    const ATTENDANCE_MISSED_CHECKOUT = 'Missed Checkout';
-    const ATTENDANCE_WORK_HOLIDAY = 'Work Holiday';
+    const ATTENDANCE_LATE = 'late';
+    const ATTENDANCE_LEAVE_EARLY = 'leave_early';
+    const ATTENDANCE_MISSED_CHECKIN = 'missed_checkin';
+    const ATTENDANCE_MISSED_CHECKOUT = 'missed_checkout';
+    const ATTENDANCE_HOLIDAY = 'holiday';
 
     // Permission Status
     const PERMISSION_SICK = 1;

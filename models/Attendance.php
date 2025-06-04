@@ -235,7 +235,21 @@ class Attendance extends \yii\db\ActiveRecord
                 }
 
                 $attendanceData['start_time'] = CoreModel::nullSafe($attendanceData['start_time']);
-                if (strtotime($attendanceData['start_time']) === false) {
+
+                # TODO: Add not checkin validation
+                if (empty($attendanceData['start_time']) && !empty($attendanceData['end_time'])) {
+                    $currentTime = date('H:i:s');
+                    
+                    // Check if current time is past 15:00 (3 PM)
+                    if (strtotime($currentTime) >= strtotime('14:00:00') && strtotime($attendanceData['end_time']) !== false) {
+                        // If current time is past 3 PM (15:00), set start_time to end_time
+                        $attendanceData['start_time'] = $attendanceData['end_time'];
+                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_MISSED_CHECKIN;
+                    }
+                }
+                # Add not checkin validation
+
+                if (empty($attendanceData['start_time']) || strtotime($attendanceData['start_time']) === false) {
                     $this->addError($attribute, Yii::t('app', 'startTimeNotValid'));
                     throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                 }
