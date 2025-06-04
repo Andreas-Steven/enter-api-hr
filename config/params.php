@@ -48,7 +48,7 @@ return array_merge($params_json, [
         'requestMethods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         'origins' => [
             'http://localhost:5173', 
-            'https://entersys.dev-enterkomputer.com',
+            'https://panel.dev-enterkomputer.com',
         ],
         'allowHeaders' => ['Origin','Content-Type','Authorization','Accept-Language'],
     ],
