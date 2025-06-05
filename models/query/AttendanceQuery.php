@@ -29,6 +29,6 @@ class AttendanceQuery extends \yii\db\ActiveQuery
 
     public function selectAttendance($employeeId=0)
     {
-        return $this->addSelect(new Expression("id, date, period, attendance->'$employeeId' AS detail_attendance, status, detail_info, sync_mdb"));
+        return $this->addSelect(new Expression("id, date, period, attendance->'$employeeId' AS detail_attendance, status, detail_info"));
     }
 }
