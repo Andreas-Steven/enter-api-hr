@@ -32,7 +32,7 @@ class AttendancePermissionSearch extends AttendancePermission
     {
         return array_merge(
             [
-                [['id', 'sync_mdb'], 'integer'],
+                [['id'], 'integer'],
                 [['employee_id', 'permission_type', 'approved', 'employee_name', 'date', 'note', 'approved_note', 'revision', 'status', 'detail_info'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
