@@ -106,6 +106,8 @@ class Attendance extends \yii\db\ActiveRecord
     {
         $fields = parent::fields();
 
+        unset($fields['sync'], $fields['sync_mdb']);
+
         return $fields;
     }
 

@@ -109,6 +109,7 @@ class AttendancePermission extends \yii\db\ActiveRecord
     public function fields()
     {
         $fields = parent::fields();
+        
         unset($fields['sync'], $fields['sync_mdb']);
 
         return $fields;
