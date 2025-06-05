@@ -55,7 +55,6 @@ class m241206_083203_create_general_affair_product_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Canon LBP6030',
@@ -70,7 +69,6 @@ class m241206_083203_create_general_affair_product_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
 

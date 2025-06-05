@@ -60,7 +60,6 @@ class m240930_103519_create_general_affair_location_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Ruko',
@@ -75,7 +74,6 @@ class m240930_103519_create_general_affair_location_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Cabang Serpong',
@@ -90,7 +88,6 @@ class m240930_103519_create_general_affair_location_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
 

@@ -136,7 +136,6 @@ class m241010_103834_create_employee_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Employee 2',
@@ -213,7 +212,6 @@ class m241010_103834_create_employee_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Employee 3',
@@ -290,7 +288,6 @@ class m241010_103834_create_employee_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Employee 4',
@@ -367,7 +364,6 @@ class m241010_103834_create_employee_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Employee 5',
@@ -444,7 +440,6 @@ class m241010_103834_create_employee_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
 

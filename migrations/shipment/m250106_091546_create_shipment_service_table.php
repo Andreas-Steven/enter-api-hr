@@ -71,7 +71,6 @@ class m250106_091546_create_shipment_service_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Reguler',
@@ -97,7 +96,6 @@ class m250106_091546_create_shipment_service_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Same Day',
@@ -123,7 +121,6 @@ class m250106_091546_create_shipment_service_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
 

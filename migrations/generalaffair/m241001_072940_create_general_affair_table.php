@@ -114,7 +114,6 @@ class m241001_072940_create_general_affair_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
 

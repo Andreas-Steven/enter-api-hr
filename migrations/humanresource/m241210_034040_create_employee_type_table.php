@@ -55,7 +55,6 @@ class m241210_034040_create_employee_type_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Karyawan Tetap',
@@ -70,7 +69,6 @@ class m241210_034040_create_employee_type_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ]
         ];
 

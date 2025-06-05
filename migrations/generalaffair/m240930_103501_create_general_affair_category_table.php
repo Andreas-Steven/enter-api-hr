@@ -60,7 +60,6 @@ class m240930_103501_create_general_affair_category_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Kelistrikan',
@@ -75,7 +74,6 @@ class m240930_103501_create_general_affair_category_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Kendaraan',
@@ -90,7 +88,6 @@ class m240930_103501_create_general_affair_category_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Alat Tulis Kantor',
@@ -105,7 +102,6 @@ class m240930_103501_create_general_affair_category_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Furniture',
@@ -120,7 +116,6 @@ class m240930_103501_create_general_affair_category_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Alat Kebersihan',
@@ -135,7 +130,6 @@ class m240930_103501_create_general_affair_category_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Peripheral Komputer',
@@ -150,7 +144,6 @@ class m240930_103501_create_general_affair_category_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
         

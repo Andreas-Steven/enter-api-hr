@@ -65,7 +65,6 @@ class m241007_032424_create_work_time_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ]
         ];
         

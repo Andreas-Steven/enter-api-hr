@@ -66,7 +66,6 @@ class m241007_045814_create_device_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'MK2',
@@ -88,7 +87,6 @@ class m241007_045814_create_device_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
 

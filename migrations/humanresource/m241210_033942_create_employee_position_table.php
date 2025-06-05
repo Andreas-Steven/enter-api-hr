@@ -69,7 +69,6 @@ class m241210_033942_create_employee_position_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Director',
@@ -98,7 +97,6 @@ class m241210_033942_create_employee_position_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Supervisor',
@@ -113,7 +111,6 @@ class m241210_033942_create_employee_position_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Staff',
@@ -128,7 +125,6 @@ class m241210_033942_create_employee_position_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
 

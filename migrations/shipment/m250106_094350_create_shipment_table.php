@@ -194,7 +194,6 @@ class m250106_094350_create_shipment_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'FR-60208982',
@@ -331,7 +330,6 @@ class m250106_094350_create_shipment_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
 

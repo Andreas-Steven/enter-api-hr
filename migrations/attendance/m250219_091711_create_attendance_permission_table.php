@@ -81,7 +81,6 @@ class m250219_091711_create_attendance_permission_table extends Migration
                         'approved_by' => $dbDefault['createdBy'],
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'employee_id' => 2,
@@ -116,7 +115,6 @@ class m250219_091711_create_attendance_permission_table extends Migration
                         'approved_by' => $dbDefault['createdBy'],
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
 

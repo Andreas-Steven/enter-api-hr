@@ -65,7 +65,6 @@ class m250106_093826_create_shipment_vehicle_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'name' => 'Grand Max Genap',
@@ -87,7 +86,6 @@ class m250106_093826_create_shipment_vehicle_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
 

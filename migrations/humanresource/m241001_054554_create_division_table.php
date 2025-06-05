@@ -54,7 +54,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'UPDT',
@@ -70,7 +69,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'BRD',
@@ -86,7 +84,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'GD',
@@ -102,7 +99,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'HRD',
@@ -118,7 +114,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'IT',
@@ -134,7 +129,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'KSR',
@@ -150,7 +144,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'MOF',
@@ -166,7 +159,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'MON',
@@ -182,7 +174,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'RMA',
@@ -198,7 +189,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'FAT',
@@ -214,7 +204,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'TKS',
@@ -230,7 +219,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'MKB',
@@ -246,7 +234,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'PU',
@@ -262,7 +249,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'UI',
@@ -278,7 +264,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'PKG',
@@ -294,7 +279,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'KMN',
@@ -310,7 +294,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
             [
                 'code' => 'CS',
@@ -326,7 +309,6 @@ class m241001_054554_create_division_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
             ],
         ];
 
