@@ -161,6 +161,293 @@ class Attendance extends \yii\db\ActiveRecord
         return false;
     }
 
+    public function validateAttendanceNotCheckout($attribute)
+    {
+        $attendance = $this->getOldAttribute($attribute);
+        foreach ($attendance as $key => $value) {
+            if (empty($value['end_time'])) {
+                $value['info']['detail'][] = Constants::ATTENDANCE_MISSED_CHECKOUT;
+                $value['info']['out'] = false;
+            }
+            
+            $attendance[$key]['info'] = $value['info'];
+        }
+        
+        $this->$attribute = $attendance;
+    }
+
+    public function validateAttendance($attribute)
+    {
+        $attendances = $this->$attribute;
+        $oldAttendance = $this->getOldAttribute($attribute);
+        $defaultAttendance = Yii::$app->params['defaultValue']['attendance'];
+
+        $lastStartTime = $oldAttendance ? array_column($oldAttendance, 'start_time') : [];
+        $latestAttendance = !empty($lastStartTime) ? end($lastStartTime) : null;
+        $allowedFields = Yii::$app->params['allowedFields']['attendance'];
+
+        foreach ($attendances as $index => $attendance) {
+            CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $attendance);
+
+            # Attendance Data Validation
+            $attendance['employee_id'] = intval($attendance['employee_id']);
+            if (empty($attendance['employee_id']) || !is_numeric($attendance['employee_id'])) {
+                $this->addError($attribute, Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')]));
+                throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+            }
+            
+            if (empty($attendance['start_time']) && empty($attendance['end_time'])) {
+                $this->addError($attribute, Yii::t('app', 'emptyStartTimeEndTime'));
+                throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+            }
+
+            if (empty($attendance['device']['code'])) {
+                $this->addError($attribute,  Yii::t('app', 'required', ['label' => $this->getAttributeLabel('device')]));
+                throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+            }
+
+            if (empty($attendance['location'])) {
+                $this->addError($attribute,  Yii::t('app', 'required', ['label' => $this->getAttributeLabel('device')]));
+                throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+            }
+            # Attendance Data Validation
+
+            # Data Assignment
+            if ($oldAttendance === null || !isset($oldAttendance[$index])) {
+                $attendanceData = array_merge($defaultAttendance, $attendance);
+
+                $employeeModel = Employee::findOne([
+                    'id' => $attendanceData['employee_id'], 
+                ]);
+                
+                if ($employeeModel === null) {
+                    $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('UserAttendance')]));
+                    throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                }
+
+                $employee = [
+                    'id' => $employeeModel->id,
+                    'name' => $employeeModel->name,
+                ];
+                
+                $division = $employeeModel->detail_info['division'];
+                if ($division === null) {
+                    $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('Division')]));
+                    throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                }
+                
+                $workTime = $employeeModel->detail_info['work_time'];
+                if ($workTime === null) {
+                    $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('WorkTime')]));
+                    throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                }
+
+                if ($attendanceData['device']['code'] !== Constants::DEVICE_APP) {
+                    $device = Device::findOne(['code' => $attendanceData['device']['code'], 'status' => Constants::STATUS_ACTIVE]);
+                    if ($device === null) {
+                        $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('Device')]));
+                        throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                    }
+                    $attendanceData['device'] = ['id' => $device->id, 'code' => $device->code, 'name' => $device->name];
+                }
+
+                $attendanceData['start_time'] = CoreModel::nullSafe($attendanceData['start_time']);
+
+                # Not checkin validation
+                if (empty($attendanceData['start_time']) && !empty($attendanceData['end_time']) && strtotime($attendanceData['end_time']) !== false) {
+                    $currentTime = date('H:i:s');
+                    
+                    if (strtotime($currentTime) > strtotime(Constants::CHECK_IN_THRESHOLD)) {
+                        $attendanceData['start_time'] = $attendanceData['end_time'];
+                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_MISSED_CHECKIN;
+                    }
+                }
+                # Not checkin validation
+
+                if (empty($attendanceData['start_time']) || strtotime($attendanceData['start_time']) === false) {
+                    $this->addError($attribute, Yii::t('app', 'startTimeNotValid'));
+                    throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                }
+
+                $dayNow = date('N', strtotime($this->date));
+                $dayoff = $this->dayoff ?? $this->detail_info['dayoff'];
+
+                if (isset($workTime['working_days'][$dayNow])) {
+                    $entryTime = $workTime['working_days'][$dayNow]['entry_time'];
+                    $homeTime = $workTime['working_days'][$dayNow]['home_time'];
+
+                    if ($entryTime !== null && !$dayoff) {
+                        $startTime = strtotime($attendanceData['start_time']);
+                        $entryTime = strtotime($entryTime);
+
+                        if ($startTime > $entryTime) {
+                            $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LATE;
+                        }
+                    }
+            
+                    $attendanceData['end_time'] = CoreModel::nullSafe($attendance['end_time']);
+                    if (!empty($attendance['end_time']) && strtotime($attendance['end_time']) !== false) {
+                        $attendanceData['info']['out'] = true;
+                        
+                        if ($homeTime !== null && !$dayoff) {
+                            $endTime = strtotime($attendance['end_time']);
+                            $homeTime = strtotime($homeTime);
+
+                            if ($endTime < $homeTime) {
+                                $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
+                            }
+                        }
+                    }
+
+                    if ($entryTime === null && $homeTime === null || $dayoff) {
+                        if (!empty($attendanceData['start_time'])) {
+                            $attendanceData['info']['detail'][] = Constants::ATTENDANCE_WORK_HOLIDAY;
+                        }
+                    }
+                }
+                
+                # Blacklist
+                $attendanceData = $this->handleBlacklist($attendanceData, $employeeModel, $latestAttendance);
+                
+                $attendanceData['info']['in'] = true;
+                $attendanceData['employee_name'] = $employee['name'];
+                $attendanceData['division'] = ['id' => $division['id'], 'name' => $division['name']];
+                $attendanceData['work_time'] = ['id' => $workTime['id'], 'working_days' => [$dayNow => $workTime['working_days'][$dayNow]]];
+            } else {
+                $attendanceData = $oldAttendance[$index];
+
+                if (!empty($attendance['start_time']) && empty($attendanceData['start_time'])) {
+                    $attendanceData['start_time'] = $attendance['start_time'];
+                }
+                
+                $attendanceData['end_time'] = CoreModel::nullSafe($attendance['end_time']);
+                if (!empty($attendanceData['end_time'])) {
+                    if (strtotime($attendanceData['end_time']) === false) {
+                        $this->addError($attribute, Yii::t('app', 'endTimeNotValid'));
+                        throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                    }
+
+                    $dayNow = date('N', strtotime($this->date));
+                    $endTime = strtotime($attendanceData['end_time']);
+                    $startTime = strtotime($attendanceData['start_time']);
+                    $homeTime = strtotime($attendanceData['work_time']['working_days'][$dayNow]['home_time']);
+                    
+                    if ($endTime !== null) {
+                        $isEndBeforeStart = ($endTime < $startTime);
+                        $isValidTime = ($startTime !== false && $endTime !== false);
+                        $isMissedCheckin = in_array(Constants::ATTENDANCE_MISSED_CHECKIN, $attendanceData['info']['detail'] ?? []);
+                        
+                        if (!$isMissedCheckin && $isValidTime && $isEndBeforeStart) {
+                            $this->addError($attribute, Yii::t('app', 'endTimeBeforeStartTime'));
+                            throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                        }
+                        if ($endTime < $homeTime) {
+                            $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
+                        } else {
+                            if (($key = array_search(Constants::ATTENDANCE_LEAVE_EARLY, $attendanceData['info']['detail'])) !== false) {
+                                unset($attendanceData['info']['detail'][$key]);
+                                $attendanceData['info']['detail'] = array_values($attendanceData['info']['detail']);
+                            }
+                        }
+                    }
+
+                    $attendanceData['info']['out'] = true;
+                }
+            }
+            # Data Assignment
+
+            # Location Validation
+            $attendanceData['location'] = $this->validateLocation($attribute, $attendance, $attendanceData);
+            $oldAttendance[$index] = $attendanceData;
+
+            if (empty($latestAttendance)) {
+                $latestAttendance = $attendanceData['start_time'];
+            }
+        }
+        
+        $this->$attribute = $oldAttendance;
+    }
+    
+    private function handleBlacklist(array $attendanceData, $employeeModel, $latestAttendance)
+    {
+        if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
+            $dateBlacklist = null;
+    
+            if (!empty($latestAttendance) && strtotime($attendanceData['start_time']) < strtotime($latestAttendance) && empty($this->dateMismatch)) {
+                $dateBlacklist = $this->date;
+            } elseif (!empty($this->dateMismatch)) {
+                $dateBlacklist = $this->dateMismatch;
+                $this->dateMismatch = null;
+            }
+    
+            if ($dateBlacklist !== null) {
+                $blacklist = [
+                    'employee_id' => $attendanceData['employee_id'],
+                    'employee_name' => $employeeModel->name,
+                    'date' => $dateBlacklist,
+                    'start_time' => $attendanceData['start_time'],
+                    'time' => date('H:i:s')
+                ];
+                $attendanceData['start_time'] = date('H:i:s');
+    
+                $existingBlacklist = $this->detail_info['blacklist'] ?? [];
+                $existingBlacklist[] = $blacklist;
+                $this->detail_info['blacklist'] = $existingBlacklist;
+            }
+        }
+        return $attendanceData;
+    }
+
+    private function validateLocation($attribute, $attendance, $attendanceData)
+    {
+        $entryLocation = $attendanceData['location']['entry'] ?? null;
+        $homeLocation = $attendanceData['location']['home'] ?? null;
+        $location = ['entry' => $entryLocation, 'home' => $homeLocation];
+
+        if ($attendance['device']['code'] === Constants::DEVICE_APP) {
+            $allowedFields = Yii::$app->params['allowedFields']['attendance_location'];
+            CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $attendance['location']);
+
+            $lat = $attendance['location']['lat'];
+            $lng = $attendance['location']['lng'];
+
+            if (!filter_var($lat, FILTER_VALIDATE_FLOAT) || $lat < -90 || $lat > 90) {
+                $this->addError($attribute.'[lat]', Yii::t('app', 'invalidLat'));
+            }
+
+            if (!filter_var($lng, FILTER_VALIDATE_FLOAT) || $lng < -180 || $lng > 180) {
+                $this->addError($attribute.'[lng]', Yii::t('app', 'invalidLng'));
+            }
+
+            $images = array_filter($attendance['location']['image'], function ($img) use ($attribute) {
+                if (in_array($img, ['[]', '', 'null', null], true) || !filter_var($img, FILTER_VALIDATE_URL)) {
+                    $this->addError($attribute, Yii::t('app', 'invalidImage', ['label' => 'Image']));
+                    return false;
+                }
+                return true;
+            });
+
+            if (!empty($attendanceData['start_time']) && $entryLocation === null) {
+                $location['entry'] = [
+                    'lat' => $lat,
+                    'lng' => $lng,
+                    'image' => array_values($images)
+                ];
+            }
+
+            if (!empty($attendanceData['end_time']) && $homeLocation === null) {
+                $location['home'] = [
+                    'lat' => $lat,
+                    'lng' => $lng,
+                    'image' => array_values($images)
+                ];
+            }
+        }
+
+        return $location;
+    }
+
+    /* Correct function
     public function validateAttendance($attribute)
     {
         $attendances = $this->$attribute;
@@ -450,19 +737,145 @@ class Attendance extends \yii\db\ActiveRecord
         
         $this->$attribute = $oldAttendance;
     }
+    */
 
-    public function validateAttendanceNotCheckout($attribute)
+    /* Incorrect function
+    public function validateAttendance($attribute)
     {
-        $attendance = $this->getOldAttribute($attribute);
-        foreach ($attendance as $key => $value) {
-            if (empty($value['end_time'])) {
-                $value['info']['detail'][] = Constants::ATTENDANCE_MISSED_CHECKOUT;
-                $value['info']['out'] = false;
+        $attendances = $this->$attribute;
+        $oldAttendance = $this->getOldAttribute($attribute);
+        $defaultAttendance = Yii::$app->params['defaultValue']['attendance'];
+        $allowedFields = Yii::$app->params['allowedFields']['attendance'];
+    
+        $lastStartTime = $oldAttendance ? array_column($oldAttendance, 'start_time') : [];
+        $latestAttendance = !empty($lastStartTime) ? end($lastStartTime) : null;
+    
+        foreach ($attendances as $index => $attendance) {
+            CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $attendance);
+    
+            $attendance['employee_id'] = intval($attendance['employee_id']);
+            if (empty($attendance['employee_id']) || !is_numeric($attendance['employee_id'])) {
+                $this->addError($attribute, Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')]));
+                throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+            }
+    
+            if (empty($attendance['start_time']) && empty($attendance['end_time'])) {
+                $this->addError($attribute, Yii::t('app', 'emptyStartTimeEndTime'));
+                throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+            }
+    
+            if (empty($attendance['device']['code'])) {
+                $this->addError($attribute, Yii::t('app', 'required', ['label' => $this->getAttributeLabel('device')]));
+                throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+            }
+    
+            if (empty($attendance['location'])) {
+                $this->addError($attribute, Yii::t('app', 'required', ['label' => $this->getAttributeLabel('device')]));
+                throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+            }
+    
+            if (empty($oldAttendance) || !isset($oldAttendance[$index])) {
+                $attendanceData = array_merge($defaultAttendance, $attendance);
+                $employeeModel = Employee::findOne(['id' => $attendanceData['employee_id']]);
+    
+                if (!$employeeModel) {
+                    $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('UserAttendance')]));
+                    throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                } 
+    
+                $division = $employeeModel->detail_info['division'];
+                $workTime = $employeeModel->detail_info['work_time'];
+    
+                if (!$division || !$workTime) {
+                    $label = !$division ? 'Division' : 'WorkTime';
+                    $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel($label)]));
+                    throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                }
+    
+                if ($attendanceData['device']['code'] !== Constants::DEVICE_APP) {
+                    $device = Device::findOne(['code' => $attendanceData['device']['code'], 'status' => Constants::STATUS_ACTIVE]);
+                    if (!$device) {
+                        $this->addError($attribute, Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('Device')]));
+                        throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                    }
+                    $attendanceData['device'] = ['id' => $device->id, 'code' => $device->code, 'name' => $device->name];
+                }
+    
+                $attendanceData['start_time'] = CoreModel::nullSafe($attendanceData['start_time']);
+                $attendanceData['end_time'] = CoreModel::nullSafe($attendanceData['end_time']);
+    
+                $time = $attendanceData['start_time'] ?: $attendanceData['end_time'];
+                $timeOnly = date('H:i:s', strtotime($time));
+
+                # Not checkin validation
+                if (empty($attendanceData['start_time']) && !empty($attendanceData['end_time']) && strtotime($attendanceData['end_time']) !== false) {
+                    $currentTime = date('H:i:s');
+                    
+                    if (strtotime($currentTime) > strtotime(Constants::CHECK_IN_THRESHOLD)) {
+                        $attendanceData['start_time'] = $attendanceData['end_time'];
+                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_MISSED_CHECKIN;
+                    }
+                }
+                # Not checkin validation
+    
+                $dayNow = date('N', strtotime($this->date));
+                $dayoff = $this->dayoff ?? $this->detail_info['dayoff'];
+                $entryTime = $workTime['working_days'][$dayNow]['entry_time'] ?? null;
+                $homeTime = $workTime['working_days'][$dayNow]['home_time'] ?? null;
+    
+                if ($entryTime !== null && !$dayoff && !empty($attendanceData['start_time'])) {
+                    if (strtotime($attendanceData['start_time']) > strtotime($entryTime)) {
+                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LATE;
+                    }
+                }
+    
+                if ($homeTime !== null && !$dayoff && !empty($attendanceData['end_time'])) {
+                    if (strtotime($attendanceData['end_time']) < strtotime($homeTime)) {
+                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
+                    }
+                }
+    
+                if (($entryTime === null && $homeTime === null) || $dayoff) {
+                    if (!empty($attendanceData['start_time']) || !empty($attendanceData['end_time'])) {
+                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_HOLIDAY;
+                    }
+                }
+    
+                $attendanceData = $this->handleBlacklist($attendanceData, $employeeModel, $latestAttendance);
+    
+                $attendanceData['employee_name'] = $employeeModel->name;
+                $attendanceData['division'] = ['id' => $division['id'], 'name' => $division['name']];
+                $attendanceData['work_time'] = ['id' => $workTime['id'], 'working_days' => [$dayNow => $workTime['working_days'][$dayNow]]];
+            } else {
+                $attendanceData = $oldAttendance[$index];
+    
+                if (!empty($attendance['start_time']) && empty($attendanceData['start_time'])) {
+                    $attendanceData['start_time'] = $attendance['start_time'];
+                }
+    
+                $attendanceData['end_time'] = CoreModel::nullSafe($attendance['end_time']);
+    
+                if (!empty($attendanceData['end_time'])) {
+                    $startTime = strtotime($attendanceData['start_time']);
+                    $endTime = strtotime($attendanceData['end_time']);
+
+                    if ($endTime < $startTime) {
+                        $this->addError($attribute, Yii::t('app', 'endTimeBeforeStartTime'));
+                        throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                    }
+                    $attendanceData['info']['out'] = true;
+                }
             }
             
-            $attendance[$key]['info'] = $value['info'];
+            $attendanceData['location'] = $this->validateLocation($attribute, $attendance, $attendanceData);
+            $oldAttendance[$index] = $attendanceData;
+            
+            if (empty($latestAttendance)) {
+                $latestAttendance = $attendanceData['start_time'];
+            }
         }
-        
-        $this->$attribute = $attendance;
+    
+        $this->$attribute = $oldAttendance;
     }
+    */
 }
