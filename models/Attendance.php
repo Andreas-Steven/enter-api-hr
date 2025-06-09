@@ -277,10 +277,11 @@ class Attendance extends \yii\db\ActiveRecord
                     $homeTime = $workTime['working_days'][$dayNow]['home_time'];
 
                     if ($entryTime !== null && !$dayoff) {
+                        $isMissedCheckin = in_array(Constants::ATTENDANCE_MISSED_CHECKIN, $attendanceData['info']['detail'] ?? []);
                         $startTime = strtotime($attendanceData['start_time']);
                         $entryTime = strtotime($entryTime);
 
-                        if ($startTime > $entryTime) {
+                        if ($startTime > $entryTime && !$isMissedCheckin) {
                             $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LATE;
                         }
                     }
