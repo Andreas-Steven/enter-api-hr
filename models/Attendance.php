@@ -163,6 +163,7 @@ class Attendance extends \yii\db\ActiveRecord
 
     public function validateAttendance($attribute)
     {
+        $currentTime = date('H:i:s');
         $attendances = $this->$attribute;
         $oldAttendance = $this->getOldAttribute($attribute);
         $defaultAttendance = Yii::$app->params['defaultValue']['attendance'];
@@ -238,22 +239,36 @@ class Attendance extends \yii\db\ActiveRecord
 
                 $attendanceData['start_time'] = CoreModel::nullSafe($attendanceData['start_time']);
 
-                # Not checkin validation
-                if (empty($attendanceData['start_time']) && !empty($attendanceData['end_time']) && strtotime($attendanceData['end_time']) !== false) {
-                    $currentTime = date('H:i:s');
-                    
-                    if (strtotime($currentTime) > strtotime(Constants::CHECK_IN_THRESHOLD)) {
+                # Start time validation before 12:00
+                if (strtotime($currentTime) < strtotime(Constants::ATTENDANCE_NOON)) {
+                    if (empty($attendanceData['start_time']) && !empty($attendanceData['end_time'])) {
                         $attendanceData['start_time'] = $attendanceData['end_time'];
-                        $attendanceData['info']['detail'][] = Constants::ATTENDANCE_MISSED_CHECKIN;
+                    }
+
+                    if (empty($attendanceData['start_time']) || strtotime($attendanceData['start_time']) === false) {
+                        $this->addError($attribute, Yii::t('app', 'startTimeNotValid'));
+                        throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                     }
                 }
-                # Not checkin validation
+                # Start time validation before 12:00
 
-                if (empty($attendanceData['start_time']) || strtotime($attendanceData['start_time']) === false) {
-                    $this->addError($attribute, Yii::t('app', 'startTimeNotValid'));
-                    throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
+                # Add MACHINE_STATUS if new record is only end_time and current time between 12:00-15:00
+                if (empty($attendanceData['start_time']) && !empty($attendanceData['end_time'])) {
+                    if (strtotime($currentTime) >= strtotime(Constants::ATTENDANCE_NOON) && strtotime($currentTime) <= strtotime(Constants::ATTENDANCE_AFTERNOON)) {
+                        $attendanceData['info']['detail'][] = Constants::MACHINE_STATUS;
+                    }
                 }
+                # Add MACHINE_STATUS if new record is only end_time and current time between 12:00-15:00
 
+                # Not checkin validation after 15:00
+                if (empty($attendanceData['start_time']) && !empty($attendanceData['end_time']) && strtotime($attendanceData['end_time']) !== false) {
+                    if (strtotime($currentTime) > strtotime(Constants::ATTENDANCE_AFTERNOON)) {
+                        $attendanceData['start_time'] = $attendanceData['end_time'];
+                        $attendanceData['info']['detail'][] = Constants::MISSED_CHECKIN;
+                    }
+                }
+                # Not checkin validation after 15:00
+                
                 $dayNow = date('N', strtotime($this->date));
                 $dayoff = $this->dayoff ?? $this->detail_info['dayoff'];
 
@@ -266,7 +281,9 @@ class Attendance extends \yii\db\ActiveRecord
                         $entryTime = strtotime($entryTime);
 
                         if ($startTime > $entryTime) {
-                            $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LATE;
+                            if (!in_array(Constants::MISSED_CHECKIN, $attendanceData['info']['detail'])) {
+                                $attendanceData['info']['detail'][] = Constants::LATE;
+                            }
                         }
                     }
             
@@ -279,14 +296,16 @@ class Attendance extends \yii\db\ActiveRecord
                             $homeTime = strtotime($homeTime);
 
                             if ($endTime < $homeTime) {
-                                $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
+                                if (!in_array(Constants::MACHINE_STATUS, $attendanceData['info']['detail'])) {
+                                    $attendanceData['info']['detail'][] = Constants::LEAVE_EARLY;
+                                }
                             }
                         }
                     }
 
                     if ($entryTime === null && $homeTime === null || $dayoff) {
                         if (!empty($attendanceData['start_time'])) {
-                            $attendanceData['info']['detail'][] = Constants::ATTENDANCE_WORK_HOLIDAY;
+                            $attendanceData['info']['detail'][] = Constants::WORK_HOLIDAY;
                         }
                     }
                 }
@@ -338,6 +357,11 @@ class Attendance extends \yii\db\ActiveRecord
                 if (!empty($attendance['start_time']) && empty($attendanceData['start_time'])) {
                     $attendanceData['start_time'] = $attendance['start_time'];
                 }
+
+                if (in_array(Constants::MACHINE_STATUS, $attendanceData['info']['detail'])) {
+                    $attendanceData['start_time'] = $attendanceData['end_time'];
+                    $attendanceData['info']['detail'][] = Constants::MISSED_CHECKIN;
+                }
                 
                 $attendanceData['end_time'] = CoreModel::nullSafe($attendance['end_time']);
                 if (!empty($attendanceData['end_time'])) {
@@ -354,16 +378,16 @@ class Attendance extends \yii\db\ActiveRecord
                     if ($endTime !== null) {
                         $isEndBeforeStart = ($endTime < $startTime);
                         $isValidTime = ($startTime !== false && $endTime !== false);
-                        $isMissedCheckin = in_array(Constants::ATTENDANCE_MISSED_CHECKIN, $attendanceData['info']['detail'] ?? []);
+                        $isMissedCheckin = in_array(Constants::MISSED_CHECKIN, $attendanceData['info']['detail'] ?? []);
                         
                         if (!$isMissedCheckin && $isValidTime && $isEndBeforeStart) {
                             $this->addError($attribute, Yii::t('app', 'endTimeBeforeStartTime'));
                             throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
                         }
                         if ($endTime < $homeTime) {
-                            $attendanceData['info']['detail'][] = Constants::ATTENDANCE_LEAVE_EARLY;
+                            $attendanceData['info']['detail'][] = Constants::LEAVE_EARLY;
                         } else {
-                            if (($key = array_search(Constants::ATTENDANCE_LEAVE_EARLY, $attendanceData['info']['detail'])) !== false) {
+                            if (($key = array_search(Constants::LEAVE_EARLY, $attendanceData['info']['detail'])) !== false) {
                                 unset($attendanceData['info']['detail'][$key]);
                                 $attendanceData['info']['detail'] = array_values($attendanceData['info']['detail']);
                             }
@@ -460,7 +484,7 @@ class Attendance extends \yii\db\ActiveRecord
         
         foreach ($attendance as $key => $value) {
             if (empty($value['end_time'])) {
-                $value['info']['detail'][] = Constants::ATTENDANCE_MISSED_CHECKOUT;
+                $value['info']['detail'][] = Constants::MISSED_CHECKOUT;
                 $value['info']['out'] = false;
             }
             

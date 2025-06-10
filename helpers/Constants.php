@@ -7,14 +7,16 @@ class Constants extends CoreConstants
 {
     const LAST_DATE = 26;
     const DEVICE_APP = 'APP';
-    const CHECK_IN_THRESHOLD = '15:00:00';
+    const ATTENDANCE_NOON = '12:00:00';
+    const ATTENDANCE_AFTERNOON = '15:00:00';
 
     // Attendance Status. Source: https://tanya.zemangat.com/kb/penjelasan-kode-status-kehadiran-karyawan/
-    const ATTENDANCE_LATE = 'late';
-    const ATTENDANCE_LEAVE_EARLY = 'leave_early';
-    const ATTENDANCE_MISSED_CHECKIN = 'missed_checkin';
-    const ATTENDANCE_MISSED_CHECKOUT = 'missed_checkout';
-    const ATTENDANCE_HOLIDAY = 'holiday';
+    const LATE = 'late';
+    const LEAVE_EARLY = 'leave_early';
+    const MISSED_CHECKIN = 'missed_checkin';
+    const MISSED_CHECKOUT = 'missed_checkout';
+    const HOLIDAY = 'holiday';
+    const MACHINE_STATUS = 'machine_status';
 
     // Permission Status
     const PERMISSION_SICK = 1;
