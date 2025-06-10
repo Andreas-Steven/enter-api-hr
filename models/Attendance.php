@@ -174,7 +174,7 @@ class Attendance extends \yii\db\ActiveRecord
         foreach ($attendances as $index => $attendance) {
             CoreModel::validateRequiredFields($this, $attribute, $allowedFields, $attendance);
 
-            // Attendance Data Validation
+            # Attendance Data Validation
             $attendance['employee_id'] = intval($attendance['employee_id']);
             if (empty($attendance['employee_id']) || !is_numeric($attendance['employee_id'])) {
                 $this->addError($attribute, Yii::t('app', 'integer', ['label' => $this->getAttributeLabel('employee_id')]));
@@ -195,9 +195,9 @@ class Attendance extends \yii\db\ActiveRecord
                 $this->addError($attribute,  Yii::t('app', 'required', ['label' => $this->getAttributeLabel('device')]));
                 throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
             }
-            // Attendance Data Validation
+            # Attendance Data Validation
 
-            // Data Assignment
+            # Data Assignment
             if ($oldAttendance === null || !isset($oldAttendance[$index])) {
                 $attendanceData = array_merge($defaultAttendance, $attendance);
 
@@ -291,7 +291,7 @@ class Attendance extends \yii\db\ActiveRecord
                     }
                 }
                 
-                // Blacklist
+                # Blacklist
                 if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
                     $blacklist = [];
 
@@ -326,7 +326,7 @@ class Attendance extends \yii\db\ActiveRecord
 
                     $this->detail_info = array_merge($this->detail_info ?? [], ['blacklist' => $exsistingBlacklist]);
                 }
-                // Blacklist
+                # Blacklist
                 
                 $attendanceData['info']['in'] = true;
                 $attendanceData['employee_name'] = $employee['name'];
@@ -373,9 +373,9 @@ class Attendance extends \yii\db\ActiveRecord
                     $attendanceData['info']['out'] = true;
                 }
             }
-            // Data Assignment
+            # Data Assignment
 
-            // Validate location
+            # Validate location
             $entryLocation = $attendanceData['location']['entry'] ?? null;
             $homeLocation = $attendanceData['location']['home'] ?? null;
             $location = ['entry' => $entryLocation, 'home' => $homeLocation];
@@ -441,7 +441,7 @@ class Attendance extends \yii\db\ActiveRecord
                     ];
                 }
             }
-            // Validate location
+            # Validate location
 
             $attendanceData['location'] = $location;
             $oldAttendance[$index] = $attendanceData;
@@ -457,6 +457,7 @@ class Attendance extends \yii\db\ActiveRecord
     public function validateAttendanceNotCheckout($attribute)
     {
         $attendance = $this->getOldAttribute($attribute);
+        
         foreach ($attendance as $key => $value) {
             if (empty($value['end_time'])) {
                 $value['info']['detail'][] = Constants::ATTENDANCE_MISSED_CHECKOUT;
