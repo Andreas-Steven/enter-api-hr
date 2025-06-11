@@ -374,6 +374,33 @@ class CoreModel
     }
 
     /**
+     * Gets validation rules for sync field.
+     * Defines rules for synchronization status tracking.
+     * Usage:
+     * ```php
+     * public function rules()
+     * {
+     *     return array_merge(
+     *         [
+     *             // other rules
+     *         ],
+     *         CoreModel::getSyncRules($this),
+     *     );
+     * }
+     * ```
+     * 
+     * @param object $model Model instance containing the attribute
+     * @return array Validation rules for sync attribute
+     */
+	public static function getSyncRules($model=null): array
+    {
+        return [
+			[['sync'], 'default', 'value' => null],
+            [['sync'], 'integer'],
+        ];
+    }
+
+    /**
      * Gets validation rules for sync_mdb field.
      * Defines rules for MongoDB synchronization status tracking.
      * Usage:
