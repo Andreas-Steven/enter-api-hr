@@ -24,11 +24,11 @@ class DeviceController extends CoreController
 			]
 		);
 
-        return $behaviors;
-    }
+       return $behaviors;
+   }
 
 	public function actionData()
-	{
+   {
 		$params = Yii::$app->getRequest()->getBodyParams();
 
 		$searchModel = new DeviceSearch();

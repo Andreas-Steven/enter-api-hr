@@ -74,4 +74,8 @@ return array_merge($core_translation, [
     'attendancePermissionFailed' => 'Failed to process Attendance Permission data.',
     'revisionRestriction' => 'For Revision request, Permission Type can only be set for Late or Leave Early.',
     'revisionEmpty' => 'Revision Start Time and End Time cannot be empty at the same time for {value} request.',
+
+    # ZKTeco ADMS
+    'admsRecordFailed' => 'Failed to process ZKTeco data.',
+    'admsRecordSuccess' => 'Device has been saved successfully.',
 ]);

@@ -74,4 +74,8 @@ return array_merge($core_translation, [
     'attendanceNotFound' => 'Data absensi tidak ditemukan untuk tanggal {date}.',
     'revisionRestriction' => 'Untuk permintaan Revisi, Tipe Izin hanya dapat diatur untuk Terlambat atau Pulang Awal.',
     'revisionEmpty' => 'Revisi waktu masuk dan pulang tidak boleh kosong bersamaan untuk permintaan {value}.',
+
+    # ZKTeco ADMS
+    'admsRecordFailed' => 'Gagal memproses data ZKTeco.',
+    'admsRecordSuccess' => 'Data ZKTeco berhasil disimpan.',
 ]);

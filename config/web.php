@@ -78,6 +78,10 @@ $config = [
                 '/' => 'site/index',
                 '/v1' => 'site/index',
                 '/v1/index' => 'site/index',
+
+                # ADMS Test
+                '/iclock' => 'v1/iclock',
+                '/iclock/cdata' => 'v1/iclock/cdata',
             ],
         ],
         'pagination' => [

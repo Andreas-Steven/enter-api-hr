@@ -5,6 +5,9 @@ use app\core\CoreConstants;
 
 class Constants extends CoreConstants
 {
+    #ZKTeco ADMS
+    const SCENARIO_ADMS = 'adms';
+
     const LAST_DATE = 26;
     const DEVICE_APP = 'APP';
     const ATTENDANCE_NOON = '12:00:00';
@@ -64,4 +67,7 @@ class Constants extends CoreConstants
         self::SECOND_HAND_LESS_GOOD => 'Second Hand Less Good',
         self::BROKEN => 'Broken',
     ];
+
+    # ZKTeco ADMS
+    const ZKTeco_DEFAULT_NAME = 'ZKTeco Attendance Machine';
 }

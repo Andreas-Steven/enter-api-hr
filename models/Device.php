@@ -19,6 +19,10 @@ use app\core\CoreModel;
  */
 class Device extends \yii\db\ActiveRecord
 {
+    # ZKTeco ADMS
+    public $url;
+    public $options;
+
     public static function tableName()
     {
         return 'device';
@@ -35,24 +39,31 @@ class Device extends \yii\db\ActiveRecord
             [
                 [['ip_address'], 'ip'],
                 [['location', 'detail_info'], 'safe'],
-                [['code'], 'string', 'min' => 2, 'max' => 5], 
+                [['code'], 'string', 'min' => 2, 'max' => 25], 
                 [['name', 'address'], 'string', 'min' => 3, 'max' => 255],
 
-                [['code', 'name', 'address', 'ip_address'], 'required'],
-                [['code'], 'unique', 'on' => [Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
+                [['code', 'name', 'address', 'ip_address'], 'required' , 'on' => Constants::SCENARIO_CREATE],
+                [['code'], 'unique', 'on' => [Constants::SCENARIO_ADMS, Constants::SCENARIO_CREATE, Constants::SCENARIO_UPDATE], 'when' => function($model) {
                     return $model->isAttributeChanged('code');
                 }],
-                
                 [['location'], 'validateLocation'],
-            ],
+
+                # ZKTeco ADMS
+                [['url'], 'safe', 'on' => Constants::SCENARIO_ADMS],
+                [['code'], 'string', 'on' => Constants::SCENARIO_ADMS],
+                
+                [['code', 'url'], 'required', 'on' => Constants::SCENARIO_ADMS],
+                [['name', 'address', 'ip_address'], 'default', 'value' => null, 'on' => Constants::SCENARIO_ADMS],
+            ], 
             CoreModel::getStatusRules($this),
-            CoreModel::getLockVersionRules($this),
+            // CoreModel::getLockVersionRules($this),
         );
     }
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
+        $scenarios[Constants::SCENARIO_ADMS] = ['code', 'url', 'name', 'address', 'ip_address', 'location', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_CREATE] = ['code', 'name', 'address', 'ip_address', 'location', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['code', 'name', 'address', 'ip_address', 'location', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
@@ -91,6 +102,7 @@ class Device extends \yii\db\ActiveRecord
     public function beforeValidate()
     {
         if (parent::beforeValidate()) {
+            $this->name = CoreModel::htmlPurifier($this->name);
 
             return true;
         }
@@ -101,8 +113,8 @@ class Device extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->name = CoreModel::htmlPurifier($this->name);
             $this->detail_info = [
+                'url' => $this->url ?? $this->detail_info['url'] ?? null,
                 'change_log' => CoreModel::getChangeLog($this, $insert),
             ];
             
