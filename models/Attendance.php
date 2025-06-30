@@ -270,7 +270,7 @@ class Attendance extends \yii\db\ActiveRecord
                 # Not checkin validation after 15:00
                 
                 $dayNow = date('N', strtotime($this->date));
-                $dayoff = $this->dayoff ?? $this->detail_info['dayoff'];
+                $dayoff = $this->dayoff ?? $this->detail_info['dayoff'] ?? false;
 
                 if (isset($workTime['working_days'][$dayNow])) {
                     $entryTime = $workTime['working_days'][$dayNow]['entry_time'];
