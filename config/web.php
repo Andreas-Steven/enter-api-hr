@@ -116,6 +116,15 @@ $config = [
                     'maxLogFiles' => 10,
                     'logVars' => [],  #Prevents logging of $_SERVER, $_SESSION, etc.
                 ],
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'levels' => ['info'],
+                    'categories' => ['attendance'],
+                    'logFile' => '@runtime/logs/attendance.log',
+                    'maxFileSize' => 1024 * 2,
+                    'maxLogFiles' => 10,
+                    'logVars' => [],
+                ],
             ],
         ],
         'mailer' => [

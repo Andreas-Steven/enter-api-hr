@@ -12,6 +12,8 @@ class Constants extends CoreConstants
     const DEVICE_APP = 'APP';
     const ATTENDANCE_NOON = '12:00:00';
     const ATTENDANCE_AFTERNOON = '15:00:00';
+    const ZKTECO_STATUS_IN = 0;
+    const ZKTECO_STATUS_OUT = 1;
 
     // Attendance Status. Source: https://tanya.zemangat.com/kb/penjelasan-kode-status-kehadiran-karyawan/
     const LATE = 'late';

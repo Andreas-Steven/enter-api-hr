@@ -119,7 +119,7 @@ class Attendance extends \yii\db\ActiveRecord
                     $this->dateMismatch = $this->date;
                     $this->date = $this->system_date;
                 }
-
+                
                 if (empty($this->getDirtyAttributes())) {
                     $this->addError('attendance', Yii::t('app', 'fieldDataNotFound', ['label' => $this->getAttributeLabel('attendance')]));
                     throw new ErrorMessage($this, Yii::t('app', 'attendanceFailed'), 422);
@@ -268,7 +268,45 @@ class Attendance extends \yii\db\ActiveRecord
                     }
                 }
                 # Not checkin validation after 15:00
+
+                # Blacklist
+                if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
+                    $blacklist = [];
+
+                    if (strtotime($attendanceData['start_time']) < strtotime($latestAttendance)) {
+                        $blacklist = [
+                            'employee_id' => $attendanceData['employee_id'],
+                            'employee_name' => $employee['name'],
+                            'date' => $this->date,
+                            'start_time' => $attendanceData['start_time'],
+                            'actual_time' => date('H:i:s')
+                        ];
+
+                        $attendanceData['start_time'] = date('H:i:s');
+                    } elseif (!empty($this->dateMismatch)) {
+                        $blacklist = [
+                            'employee_id' => $attendanceData['employee_id'],
+                            'employee_name' => $employee['name'],
+                            'date' => $this->dateMismatch,
+                            'start_time' => $attendanceData['start_time'],
+                            'actual_time' => date('H:i:s')
+                        ];
+                        
+                        $attendanceData['start_time'] = date('H:i:s');
+                        $this->dateMismatch = null;
+                    }
+                    
+                    $exsistingBlacklist = $this->detail_info['blacklist'] ?? [];
+                    
+                    if (!empty($blacklist)) {
+                        $exsistingBlacklist[] = $blacklist;
+                    }
+
+                    $this->detail_info = array_merge($this->detail_info ?? [], ['blacklist' => $exsistingBlacklist]);
+                }
+                # Blacklist
                 
+                # Info Detail Validation
                 $dayNow = date('N', strtotime($this->date));
                 $dayoff = $this->dayoff ?? $this->detail_info['dayoff'] ?? false;
 
@@ -309,43 +347,7 @@ class Attendance extends \yii\db\ActiveRecord
                         }
                     }
                 }
-                
-                # Blacklist
-                if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
-                    $blacklist = [];
-
-                    if (strtotime($attendanceData['start_time']) < strtotime($latestAttendance)) {
-                        $blacklist = [
-                            'employee_id' => $attendanceData['employee_id'],
-                            'employee_name' => $employee['name'],
-                            'date' => $this->date,
-                            'start_time' => $attendanceData['start_time'],
-                            'time' => date('H:i:s')
-                        ];
-
-                        $attendanceData['start_time'] = date('H:i:s');
-                    } elseif (!empty($this->dateMismatch)) {
-                        $blacklist = [
-                            'employee_id' => $attendanceData['employee_id'],
-                            'employee_name' => $employee['name'],
-                            'date' => $this->dateMismatch,
-                            'start_time' => $attendanceData['start_time'],
-                            'time' => date('H:i:s')
-                        ];
-                        
-                        $attendanceData['start_time'] = date('H:i:s');
-                        $this->dateMismatch = null;
-                    }
-                    
-                    $exsistingBlacklist = $this->detail_info['blacklist'] ?? [];
-                    
-                    if (!empty($blacklist)) {
-                        $exsistingBlacklist[] = $blacklist;
-                    }
-
-                    $this->detail_info = array_merge($this->detail_info ?? [], ['blacklist' => $exsistingBlacklist]);
-                }
-                # Blacklist
+                # Info Detail Validation
                 
                 $attendanceData['info']['in'] = true;
                 $attendanceData['employee_name'] = $employee['name'];

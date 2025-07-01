@@ -54,7 +54,7 @@ class IclockController extends CoreController
 
         CoreController::unavailableParams($model, $params);
 		
-		$params['status'] = Constants::STATUS_DRAFT;
+		$params['status'] = Constants::STATUS_ACTIVE;
 		$model->scenario = 	$scenario;
 
 		if ($model->load($params, '') && $model->validate()) {
@@ -71,9 +71,9 @@ class IclockController extends CoreController
         $model = new Attendance();
         $scenario = Constants::SCENARIO_CREATE;
 
-        $systemDate = date('Y-m-d');
         $request = Yii::$app->getRequest();
         $params = $request->getQueryParams();
+        $params['system_date'] = date('Y-m-d');
         $serialNumber = $request->getQueryParam('SN');
         $content = preg_split('/\r\n|\r|\n/', $request->getRawBody());
 
@@ -91,13 +91,30 @@ class IclockController extends CoreController
             $employeeId = intval($data[0]);
             $date = date('Y-m-d', strtotime($data[1])) ?? null;
             $timestamp = date('H:i:s', strtotime($data[1])) ?? null;
-            $machineStatus = $this->validateInteger($data[2]) ?? -1;
-            $params = $this->buildAttendanceParams($serialNumber, $params, $data, $employeeId, $machineStatus, $systemDate); 
-            $this->buildAttendanceLog($serialNumber, $params, $employeeId, $timestamp, $machineStatus, $data);
+            $machineStatus = $this->validateInteger($data[2]) ?? null;
+            $params = $this->buildAttendanceParams($serialNumber, $params, $data, $employeeId, $machineStatus); 
+            $this->attendanceLog($serialNumber, $params, $employeeId, $timestamp, $machineStatus, $data);
         }
 
+        $params['date'] = $date;
+        $params['dateMismatch'] = null;
+        if (empty($params['date'])) {
+			$model->addError('date', Yii::t('app', 'required', ['label' => $model->getAttributeLabel('date')]));
+			return CoreController::coreError($model);
+		}
+
+        if ($params['date'] && isset($params['dayoff'])) {
+			$params['dayoff'] = boolval($params['dayoff']);
+			$params['system_date'] = $params['date'];
+		} else {
+			$params['dayoff'] = false;
+		}
+
+        // UNCOMMENT THIS FOR TESTING
+		// $params['system_date'] = $params['date'];
+
         $existingModel = $model::findOne([
-            'date' => $systemDate,
+            'date' => $params['system_date'],
             'status' => Constants::STATUS_ACTIVE,
         ]);
 
@@ -116,7 +133,7 @@ class IclockController extends CoreController
                     ->update(
                         $model::tableName(),
                         ['status' => Constants::STATUS_COMPLETED],
-                        ['and', ['status' => Constants::STATUS_ACTIVE], ['<>', 'date', $systemDate]]
+                        ['and', ['status' => Constants::STATUS_ACTIVE], ['<>', 'date', $params['system_date']]]
                     )->execute();
             }
         }
@@ -125,32 +142,42 @@ class IclockController extends CoreController
             $model = $existingModel;
         }
         
-        $params['date'] = $date;
-        $params['system_date'] = $systemDate;
         $params['status'] = Constants::STATUS_ACTIVE;
         $model->scenario = $scenario;
 
         if ($model->load($params, '') && $model->validate()) {
             if ($model->save()) {	
-                # Make Attendance Logs
                 $this->updateMongoDB($model);
-                // 
-
                 return CoreController::coreSuccess($model);
             }
         }
 
         return CoreController::coreError($model);
-}
+    }
 
     private function buildAttendanceParams($serialNumber, $params, $data, $employeeId, $machineStatus)
     {
+        $currentTime = date('H:i:s');
         $timestamp = date('H:i:s', strtotime($data[1])) ?? null;
         
-        # TODO: Make time validation with the rules
-        $params['attendance'][$employeeId]['start_time'] = $timestamp;
-        $params['attendance'][$employeeId]['end_time'] = $timestamp;
-        
+        // Assign start_time and end_time according to rules
+        if (strtotime($currentTime) < strtotime(Constants::ATTENDANCE_NOON)) {
+            $params['attendance'][$employeeId]['start_time'] = $timestamp;
+            $params['attendance'][$employeeId]['end_time'] = null;
+        } elseif (strtotime($currentTime) > strtotime(Constants::ATTENDANCE_AFTERNOON)) {
+            $params['attendance'][$employeeId]['start_time'] = null;
+            $params['attendance'][$employeeId]['end_time'] = $timestamp;
+        } else {
+            // Between ATTENDANCE_NOON and ATTENDANCE_AFTERNOON, use machine status
+            if ($machineStatus === Constants::ZKTECO_STATUS_IN) { 
+                $params['attendance'][$employeeId]['start_time'] = $timestamp;
+                $params['attendance'][$employeeId]['end_time'] = null;
+            } elseif ($machineStatus === Constants::ZKTECO_STATUS_OUT) {
+                $params['attendance'][$employeeId]['start_time'] = null;
+                $params['attendance'][$employeeId]['end_time'] = $timestamp;
+            }
+        }
+
         $params['attendance'][$employeeId]['employee_id'] = $employeeId;
         $params['attendance'][$employeeId]['device']['code'] = $serialNumber;
         $params['attendance'][$employeeId]['location']['lat'] = null;
@@ -160,12 +187,12 @@ class IclockController extends CoreController
         return $params;
     }
 
-    private function buildAttendanceLog($serialNumber, $params, $employeeId, $timestamp, $machineStatus, $data)
+    private function attendanceLog($serialNumber, $params, $employeeId, $timestamp, $machineStatus, $data)
     {
-        return [
-            'sn' => $serialNumber,
-            'table' => $params['table'] ?? null,
-            'stamp' => $params['Stamp'] ?? null,
+        $logs = [
+            'params_table' => $params['table'] ?? null,
+            'params_stamp' => $params['Stamp'] ?? null,
+            'device_code' => $serialNumber,
             'employee_id' => intval($employeeId),
             'timestamp' => $timestamp,
             'status1' => $machineStatus,
@@ -174,8 +201,9 @@ class IclockController extends CoreController
             'status4' => $this->validateInteger($data[5]) ?? -1,
             'status5' => $this->validateInteger($data[6]) ?? -1,
             'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
         ];
+
+        Yii::info(['attendanceLog' => $logs], 'attendance');
     }
 
     private function updateMongoDB($model)
