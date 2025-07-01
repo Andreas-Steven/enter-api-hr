@@ -147,9 +147,11 @@ class IclockController extends CoreController
     {
         $timestamp = date('H:i:s', strtotime($data[1])) ?? null;
         
-        $params['attendance'][$employeeId]['employee_id'] = $employeeId;
+        # TODO: Make time validation with the rules
         $params['attendance'][$employeeId]['start_time'] = $timestamp;
         $params['attendance'][$employeeId]['end_time'] = $timestamp;
+        
+        $params['attendance'][$employeeId]['employee_id'] = $employeeId;
         $params['attendance'][$employeeId]['device']['code'] = $serialNumber;
         $params['attendance'][$employeeId]['location']['lat'] = null;
         $params['attendance'][$employeeId]['location']['lng'] = null;
