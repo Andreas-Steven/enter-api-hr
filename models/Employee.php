@@ -5,6 +5,7 @@ namespace app\models;
 use Yii;
 use app\helpers\Constants;
 use app\core\CoreModel;
+use app\models\DeviceCommand;
 
 /**
  * This is the model class for table "employee".
@@ -158,6 +159,25 @@ class Employee extends \yii\db\ActiveRecord
         }
 
         return false;
+    }
+
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+
+        if (!$insert) {
+            $sn = 'BOCK200961014';
+            $pin = $this->id;
+            $name = preg_replace('/\s+/', '', $this->name); 
+            $privilege = 0;
+            $commandStr = "DATA UPDATE USER PIN={$pin} Name={$name} Privilege={$privilege}";
+
+            $command = new DeviceCommand();
+            $command->sn = $sn;
+            $command->command = $commandStr;
+            $command->status = 'pending';
+            $command->save(false);
+        }
     }
 
     public function validateContact($attribute, $params)

@@ -12,6 +12,7 @@ use app\core\CoreController;
 use app\models\Device;
 use app\models\Employee;
 use app\models\Attendance;
+use app\models\DeviceCommand;
 
 class IclockController extends CoreController
 {
@@ -23,6 +24,9 @@ class IclockController extends CoreController
 			$behaviors['verbs']['actions'],
 			[
 				'cdata' => ['GET', 'POST'],
+                'getrequest' => ['GET'],
+                'devicecmd' => ['POST'],
+                'ping' => ['GET'],
 			]
 		);
 
@@ -55,11 +59,11 @@ class IclockController extends CoreController
         CoreController::unavailableParams($model, $params);
 		
 		$params['status'] = Constants::STATUS_ACTIVE;
-		$model->scenario = 	$scenario;
+		$model->scenario = $scenario;
 
 		if ($model->load($params, '') && $model->validate()) {
 			if ($model->save()) {
-				return CoreController::coreSuccess($model);
+				return "Stamp=9999\nOpStamp=9999\nPhotoStamp=9999\nDelay=10\nRealtime=1\n";
 			}
 		}
 
@@ -155,12 +159,64 @@ class IclockController extends CoreController
         return CoreController::coreError($model);
     }
 
+    public function actionGetrequest()
+    {
+        $sn = Yii::$app->request->get('SN');
+
+        $deviceCommand = DeviceCommand::find()
+            ->where(['sn' => $sn, 'status' => 'pending'])
+            ->orderBy(['id' => SORT_ASC])
+            ->one();
+
+        if ($deviceCommand) {
+            return $deviceCommand->command;
+        }
+
+        return "OK";
+    }
+
+    public function actionDevicecmd()
+    {
+        $sn = Yii::$app->request->get('SN');
+        $body = Yii::$app->request->getRawBody();
+
+        $deviceCommand = DeviceCommand::find()
+            ->where(['sn' => $sn, 'status' => 'pending'])
+            ->orderBy(['id' => SORT_ASC])
+            ->one();
+
+        if ($deviceCommand) {
+            $deviceCommand->status = 'done';
+            $deviceCommand->response = $body;
+            $deviceCommand->save(false);
+        }
+
+        return "OK";
+    }
+
+    public function actionPing()
+    {
+		$request = Yii::$app->getRequest();
+		$scenario = Constants::SCENARIO_ADMS_PING;
+
+        $params['code'] = $request->get('SN');
+		$model = CoreController::coreFindModelOne(new Device(), null, ['code' => $params['code']]);
+
+		if ($model === null) {
+			return CoreController::coreDataNotFound();
+		}
+        
+		$model->scenario = Constants::SCENARIO_ADMS_PING;
+		$model->save();
+
+		return "OK";
+	}
+
     private function buildAttendanceParams($serialNumber, $params, $data, $employeeId, $machineStatus)
     {
         $currentTime = date('H:i:s');
         $timestamp = date('H:i:s', strtotime($data[1])) ?? null;
-        
-        // Assign start_time and end_time according to rules
+
         if (strtotime($currentTime) < strtotime(Constants::ATTENDANCE_NOON)) {
             $params['attendance'][$employeeId]['start_time'] = $timestamp;
             $params['attendance'][$employeeId]['end_time'] = null;
@@ -168,7 +224,6 @@ class IclockController extends CoreController
             $params['attendance'][$employeeId]['start_time'] = null;
             $params['attendance'][$employeeId]['end_time'] = $timestamp;
         } else {
-            // Between ATTENDANCE_NOON and ATTENDANCE_AFTERNOON, use machine status
             if ($machineStatus === Constants::ZKTECO_STATUS_IN) { 
                 $params['attendance'][$employeeId]['start_time'] = $timestamp;
                 $params['attendance'][$employeeId]['end_time'] = null;
@@ -227,7 +282,6 @@ class IclockController extends CoreController
 			Yii::$app->mongodb->upsertMany($model, ['id', 'employee_id', 'date'], $mdbData);
 		}
 	}
-
 
     private function validateInteger($value)
     {

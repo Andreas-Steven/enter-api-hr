@@ -7,6 +7,7 @@ class Constants extends CoreConstants
 {
     #ZKTeco ADMS
     const SCENARIO_ADMS = 'adms';
+    const SCENARIO_ADMS_PING = 'adms_ping';
 
     const LAST_DATE = 26;
     const DEVICE_APP = 'APP';

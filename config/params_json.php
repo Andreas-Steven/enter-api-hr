@@ -34,16 +34,16 @@ $params['dbDefault'] = [
     'employeeTypeID' => 1,
     'workTimeID' => null,
     'isFlat' => 0,
-    'shipmentStatus' => 0,
+    'logisticStatus' => 0,
     'saleID' => null,
     'deliveryOrderID' => null,
     'vehicleID' => null,
-    'shipmentFee' => 0,
-    'shipmentDate' => null,
+    'logisticFee' => 0,
+    'logisticDate' => null,
     'distance' => 0,
     'weight' => 0,
     'isFlatComment' => '0: False, 1: True',
-    'shipmentStatusComment' => '0: waiting, 1: scheduled, 2: rescheduled, 3: departed, 4: delivered, 5: canceled'
+    'logisticStatusComment' => '0: waiting, 1: scheduled, 2: rescheduled, 3: departed, 4: delivered, 5: canceled'
 ];
 
 /**

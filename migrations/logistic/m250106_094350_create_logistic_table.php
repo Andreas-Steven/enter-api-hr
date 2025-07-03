@@ -6,11 +6,11 @@ use yii\db\Migration;
 use app\helpers\Constants;
 
 /**
- * Handles the creation of table `{{%shipment}}`.
+ * Handles the creation of table `{{%logistic}}`.
  */
-class m250106_094350_create_shipment_table extends Migration
+class m250106_094350_create_logistic_table extends Migration
 {
-    private $tableName = 'shipment';
+    private $tableName = 'logistic';
 
     public function safeUp()
     {
@@ -30,25 +30,25 @@ class m250106_094350_create_shipment_table extends Migration
             'sale_id' => $this->integer()->defaultValue($dbDefault['saleID']),
             'delivery_order_id' => $this->integer()->defaultValue($dbDefault['deliveryOrderID']),
             'vehicle_id' => $this->integer()->defaultValue($dbDefault['vehicleID']),
-            'shipment_service_id' => $this->integer()->notNull(),
+            'logistic_service_id' => $this->integer()->notNull(),
             'inventory_id' => $this->integer()->notNull(),
-            'shipment_fee' => $this->float(10,2)->notNull()->defaultValue($dbDefault['shipmentFee']),
-            'shipment_date' => $this->date()->defaultValue($dbDefault['shipmentDate']),
+            'shipping_fee' => $this->float(10,2)->notNull()->defaultValue($dbDefault['logisticFee']),
+            'shipping_date' => $this->date()->defaultValue($dbDefault['logisticDate']),
             'distance' => $this->integer()->defaultValue($dbDefault['distance']),
             'weight' => $this->integer()->defaultValue($dbDefault['weight']),
             'receiver' => $this->json()->defaultValue(json_encode([]))->notNull(),
             'detail_product' => $this->json()->defaultValue(json_encode([])),
             'courier' => $this->json()->defaultValue(json_encode([])),
             'log_tracking' => $this->json()->defaultValue(json_encode([]))->notNull(),
-            'shipment_status' => $this->smallInteger()->notNull()->defaultValue($dbDefault['shipmentStatus'])->comment($dbDefault['shipmentStatusComment']),
+            'logistic_status' => $this->smallInteger()->notNull()->defaultValue($dbDefault['logisticStatus'])->comment($dbDefault['logisticStatusComment']),
             'status' => $this->smallInteger()->notNull()->defaultValue($dbDefault['status'])->comment($dbDefault['statusComment']),
             'detail_info' => $this->json()->notNull()->defaultValue(json_encode([
                 'sale' => null,
                 'delivery_order' => null,
-                'shipment_service' => null,
+                'logistic_service' => null,
                 'vehicle' => null,
                 'inventory' => null,
-                'shipment_note' => null,
+                'logistic_note' => null,
                 'courier_note' => null,
                 'change_log' => [
                     'created_at' => null,
@@ -71,9 +71,9 @@ class m250106_094350_create_shipment_table extends Migration
                 'delivery_order_id' => 1,
                 'vehicle_id' => 2,
                 'inventory_id' => 1,
-                'shipment_service_id' => 1,
-                'shipment_fee' => 0,
-                'shipment_date' => date('Y-m-d'),
+                'logistic_service_id' => 1,
+                'shipping_fee' => 0,
+                'shipping_date' => date('Y-m-d'),
                 'distance' => 36,
                 'weight' => 10000,
                 'receiver' => [
@@ -120,7 +120,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'waiting',
                         'remark' => 'Menunggu Penjadwalan',
-                        'shipment_status' => 0,
+                        'logistic_status' => 0,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $dbDefault['createdBy']
@@ -128,7 +128,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'scheduled',
                         'remark' => 'Pengiriman Dijadwalkan',
-                        'shipment_status' => 1,
+                        'logistic_status' => 1,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $dbDefault['createdBy']
@@ -136,7 +136,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'departed',
                         'remark' => 'Sedang Dikirim',
-                        'shipment_status' => 3,
+                        'logistic_status' => 3,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $dbDefault['createdBy']
@@ -144,13 +144,13 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'delivered',
                         'remark' => 'Telah Diterima',
-                        'shipment_status' => 4,
+                        'logistic_status' => 4,
                         'image' => ['https://apikurirtoko.ruko3233.com/uploads/1730277206430-173027717289512116172814826962.jpg'],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $dbDefault['createdBy']
                     ],
                 ],
-                'shipment_status' => 4,
+                'logistic_status' => 4,
                 'status' => 1,
                 'detail_info' => [
                     "sale" => null,
@@ -158,7 +158,7 @@ class m250106_094350_create_shipment_table extends Migration
                         "id" => 1,
                         "name" => "DO-001"
                     ],
-                    "shipment_service" => [
+                    "logistic_service" => [
                         "id" => 1,
                         "code" => "FR",
                         "name" => "Free",
@@ -183,7 +183,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'name' => 'Gudang Utama',
                         'address' => 'Ruko Mall Mangga Dua, Jl. Mangga Dua Raya No. 33',
                     ],
-                    'shipment_note' => 'Delivery Order cabang serpong',
+                    'logistic_note' => 'Delivery Order cabang serpong',
                     'courier_note' => 'Paket telah diterima',
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
@@ -201,9 +201,9 @@ class m250106_094350_create_shipment_table extends Migration
                 'delivery_order_id' => null,
                 'inventory_id' => 1,
                 'vehicle_id' => 1,
-                'shipment_service_id' => 1,
-                'shipment_fee' => 0,
-                'shipment_date' => date('Y-m-d'),
+                'logistic_service_id' => 1,
+                'shipping_fee' => 0,
+                'shipping_date' => date('Y-m-d'),
                 'distance' => 6,
                 'weight' => 5000,
                 'receiver' => [
@@ -256,7 +256,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'waiting',
                         'remark' => 'Menunggu Penjadwalan',
-                        'shipment_status' => 0,
+                        'logistic_status' => 0,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $dbDefault['createdBy']
@@ -264,7 +264,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'scheduled',
                         'remark' => 'Pengiriman Dijadwalkan',
-                        'shipment_status' => 1,
+                        'logistic_status' => 1,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $dbDefault['createdBy']
@@ -272,7 +272,7 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'departed',
                         'remark' => 'Sedang Dikirim',
-                        'shipment_status' => 3,
+                        'logistic_status' => 3,
                         'image' => [],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $dbDefault['createdBy']
@@ -280,13 +280,13 @@ class m250106_094350_create_shipment_table extends Migration
                     [
                         'code' => 'delivered',
                         'remark' => 'Telah Diterima',
-                        'shipment_status' => 4,
+                        'logistic_status' => 4,
                         'image' => ['https://apikurirtoko.ruko3233.com/uploads/1730277206430-173027717289512116172814826962.jpg'],
                         'created_at' => $UTCTimestamp,
                         'created_by' => $dbDefault['createdBy']
                     ],
                 ],
-                'shipment_status' => 4,
+                'logistic_status' => 4,
                 'status' => 1,
                 'detail_info' => [
                     "sale" => [
@@ -294,7 +294,7 @@ class m250106_094350_create_shipment_table extends Migration
                         "reference" => "SALE/DUMMY/001"
                     ],
                     'delivery_order' => null,
-                    "shipment_service" => [
+                    "logistic_service" => [
                         "id" => 1,
                         "code" => "FR",
                         "name" => "Free",
@@ -319,7 +319,7 @@ class m250106_094350_create_shipment_table extends Migration
                         'name' => 'Gudang Utama',
                         'address' => 'Ruko Mall Mangga Dua, Jl. Mangga Dua Raya No. 33',
                     ],
-                    'shipment_note' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut hendrerit, massa nec convallis blandit, libero odio dignissim libero, sit amet consectetur purus erat id enim. Sed vitae suscipit est, eu consequat. Nulla facilisi.',
+                    'logistic_note' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut hendrerit, massa nec convallis blandit, libero odio dignissim libero, sit amet consectetur purus erat id enim. Sed vitae suscipit est, eu consequat. Nulla facilisi.',
                     'courier_note' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut hendrerit, massa nec convallis blandit, libero odio dignissim libero, sit amet consectetur purus erat id enim. Sed vitae suscipit est, eu consequat. Nulla facilisi.',
                     'change_log' => [
                         'created_at' => $UTCTimestamp,

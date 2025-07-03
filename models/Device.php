@@ -22,6 +22,7 @@ class Device extends \yii\db\ActiveRecord
     # ZKTeco ADMS
     public $url;
     public $options;
+    public $last_online;
 
     public static function tableName()
     {
@@ -63,12 +64,14 @@ class Device extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
+        $scenarios[Constants::SCENARIO_ADMS_PING] = ['code', 'url', 'name', 'address', 'ip_address', 'location', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_ADMS] = ['code', 'url', 'name', 'address', 'ip_address', 'location', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_CREATE] = ['code', 'name', 'address', 'ip_address', 'location', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_UPDATE] = ['code', 'name', 'address', 'ip_address', 'location', 'status', 'detail_info'];
         $scenarios[Constants::SCENARIO_DELETE] = ['status'];
 
         return $scenarios; 
+
     }
 
     public function attributeLabels()
@@ -104,6 +107,10 @@ class Device extends \yii\db\ActiveRecord
         if (parent::beforeValidate()) {
             $this->name = CoreModel::htmlPurifier($this->name);
 
+            if ($this->scenario === Constants::SCENARIO_ADMS_PING) {
+                $this->last_online = Yii::$app->coreAPI->UTCTimestamp();
+            }
+
             return true;
         }
 
@@ -114,6 +121,7 @@ class Device extends \yii\db\ActiveRecord
     {
         if (parent::beforeSave($insert)) {
             $this->detail_info = [
+                'last_online' => $this->last_online ?? $this->detail_info['last_online'] ?? null,
                 'url' => $this->url ?? $this->detail_info['url'] ?? null,
                 'change_log' => CoreModel::getChangeLog($this, $insert),
             ];

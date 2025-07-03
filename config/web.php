@@ -80,8 +80,11 @@ $config = [
                 '/v1/index' => 'site/index',
 
                 # ADMS Test
-                '/iclock' => 'v1/iclock',
-                '/iclock/cdata' => 'v1/iclock/cdata',
+                'GET iclock/cdata' => 'v1/iclock/cdata',
+                'POST iclock/cdata' => 'v1/iclock/cdata',
+                'GET iclock/getrequest' => 'v1/iclock/getrequest',
+                'POST iclock/devicecmd' => 'v1/iclock/devicecmd',
+                'GET iclock/ping' => 'v1/iclock/ping',
             ],
         ],
         'pagination' => [
