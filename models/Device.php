@@ -35,7 +35,7 @@ class Device extends \yii\db\ActiveRecord
             [
                 [['ip_address'], 'ip'],
                 [['location', 'detail_info'], 'safe'],
-                [['code'], 'string', 'min' => 2, 'max' => 5], 
+                [['code'], 'string', 'min' => 2, 'max' => 25], 
                 [['name', 'address'], 'string', 'min' => 3, 'max' => 255],
 
                 [['code', 'name', 'address', 'ip_address'], 'required'],
