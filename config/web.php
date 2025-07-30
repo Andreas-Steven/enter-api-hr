@@ -85,6 +85,7 @@ $config = [
                 'GET iclock/getrequest' => 'v1/iclock/getrequest',
                 'POST iclock/devicecmd' => 'v1/iclock/devicecmd',
                 'GET iclock/ping' => 'v1/iclock/ping',
+                'POST iclock/registry' => 'v1/iclock/registry',
             ],
         ],
         'pagination' => [

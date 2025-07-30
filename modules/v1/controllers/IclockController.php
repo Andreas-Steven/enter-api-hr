@@ -27,6 +27,7 @@ class IclockController extends CoreController
                 'getrequest' => ['GET'],
                 'devicecmd' => ['POST'],
                 'ping' => ['GET'],
+                'registry' => ['POST'],
 			]
 		);
 
@@ -56,6 +57,11 @@ class IclockController extends CoreController
         $params['code'] = $request->get('SN');
         $params['url'] = $request->getQueryParams();
 
+        $existingModel = $model::findOne(['code' => $params['code']]);
+        if ($existingModel !== null) {
+            return "Stamp=9999\nOpStamp=9999\nPhotoStamp=9999\nDelay=10\nRealtime=1\n";
+        }
+        
         CoreController::unavailableParams($model, $params);
 		
 		$params['status'] = Constants::STATUS_ACTIVE;
@@ -80,6 +86,15 @@ class IclockController extends CoreController
         $params['system_date'] = date('Y-m-d');
         $serialNumber = $request->getQueryParam('SN');
         $content = preg_split('/\r\n|\r|\n/', $request->getRawBody());
+
+        $table = $request->getQueryParam('table');
+        if ($table === 'options') {
+            return $this->handleOptions($request);
+        }
+
+        if ($table === 'OPERLOG') {
+            return $this->handleOperLog($request);
+        }
 
         foreach ($content as $record) {
             if (empty($record)) {
@@ -152,11 +167,13 @@ class IclockController extends CoreController
         if ($model->load($params, '') && $model->validate()) {
             if ($model->save()) {	
                 $this->updateMongoDB($model);
-                return CoreController::coreSuccess($model);
+                return "OK";
+                // return CoreController::coreSuccess($model);
             }
         }
 
-        return CoreController::coreError($model);
+        return "OK";
+        // return CoreController::coreError($model);
     }
 
     public function actionGetrequest()
@@ -259,6 +276,63 @@ class IclockController extends CoreController
         ];
 
         Yii::info(['attendanceLog' => $logs], 'attendance');
+    }
+
+    public function actionRegistry()
+    {
+        $request = Yii::$app->getRequest();
+        $body = $request->getRawBody();
+
+        Yii::info("Device registry received from SN={$request->getQueryParam('SN')}");
+        Yii::info("Registry body: " . $body);
+
+        return "OK";
+    }
+
+    protected function handleOptions($request)
+    {
+        $serialNumber = $request->getQueryParam('SN');
+        $content = $request->getRawBody();
+
+        Yii::info("Received OPTIONS from $serialNumber: " . $content, 'device');
+
+        return Yii::$app->getResponse()
+            ->setStatusCode(200)
+            ->content = "OK";
+    }
+
+    protected function handleOperLog($request)
+    {
+        $serialNumber = $request->getQueryParam('SN') ?? 'UNKNOWN';
+        $opStamp = $request->getQueryParam('OpStamp') ?? null;
+        $content = preg_split('/\r\n|\r|\n/', $request->getRawBody());
+
+        foreach ($content as $line) {
+            if (empty($line)) {
+                continue;
+            }
+
+            $data = explode("\t", $line);
+            if (count($data) < 7 || stripos($line, 'OPLOG') !== 0) {
+                Yii::warning("Invalid OPERLOG line: $line", 'device');
+                continue;
+            }
+
+            $operationCode = intval($data[1]);
+            $operationTime = $data[2];
+            $object1 = $data[3] ?? null;
+            $object2 = $data[4] ?? null;
+            $object3 = $data[5] ?? null;
+            $object4 = $data[6] ?? null;
+
+            // Simpan ke log atau DB jika perlu
+            Yii::info("OPLOG from $serialNumber [$operationTime]: Code=$operationCode, Obj1=$object1", 'device');
+        }
+
+        // Agar mesin tidak mengulang
+        return Yii::$app->getResponse()
+            ->setStatusCode(200)
+            ->content = "OK";
     }
 
     private function updateMongoDB($model)
