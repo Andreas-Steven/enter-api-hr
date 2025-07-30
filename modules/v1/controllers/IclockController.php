@@ -54,8 +54,8 @@ class IclockController extends CoreController
 		$scenario = Constants::SCENARIO_ADMS;
 
         $params['name'] = Constants::ZKTeco_DEFAULT_NAME;
-        $params['code'] = $request->get('SN');
         $params['url'] = $request->getQueryParams();
+        $params['code'] = $request->get('SN');
 
         $existingModel = $model::findOne(['code' => $params['code']]);
         if ($existingModel !== null) {
