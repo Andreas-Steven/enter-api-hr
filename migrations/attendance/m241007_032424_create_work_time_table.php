@@ -65,6 +65,29 @@ class m241007_032424_create_work_time_table extends Migration
                         'updated_by' => null,
                     ],
                 ],
+            ],
+            [
+                'name' => 'IT Shift',
+                'working_days' => [
+                    1 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Senin
+                    2 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Selasa
+                    3 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Rabu
+                    4 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Kamis
+                    5 => ['entry_time' => '09:00:00', 'home_time' => '18:00:00'], // Jumat
+                    6 => ['entry_time' => '09:00:00', 'home_time' => '15:00:00'], // Sabtu
+                    7 => ['entry_time' => null, 'home_time' => null], // Minggu
+                ],
+                'status' => 1,
+                'detail_info' => [
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $dbDefault['createdBy'],
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ],
+                ],
             ]
         ];
         
