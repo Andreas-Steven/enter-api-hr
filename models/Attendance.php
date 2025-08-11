@@ -277,7 +277,7 @@ class Attendance extends \yii\db\ActiveRecord
                     $homeTime = $workTime['working_days'][$dayNow]['home_time'];
 
                     if ($entryTime !== null && !$dayoff) {
-                        $startTime = strtotime($attendanceData['start_time']);
+                        $startTime = $startTime = !empty($attendanceData['start_time']) ? strtotime($attendanceData['start_time']) : null;
                         $entryTime = strtotime($entryTime);
 
                         if ($startTime > $entryTime) {
