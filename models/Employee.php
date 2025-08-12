@@ -166,11 +166,11 @@ class Employee extends \yii\db\ActiveRecord
         parent::afterSave($insert, $changedAttributes);
 
         if (!$insert) {
-            $sn = 'BOCK200961014';
+            $sn = Constants::ZKTECO_SERIAL_NUMBER;
             $pin = $this->id;
             $name = preg_replace('/\s+/', '', $this->name); 
             $privilege = 0;
-            $commandStr = "DATA UPDATE USER PIN={$pin} Name={$name} Privilege={$privilege}";
+            $commandStr = "<User>: [uid:{$pin}, name:{$name} user_id:{$this->id}]";
 
             $command = new DeviceCommand();
             $command->sn = $sn;

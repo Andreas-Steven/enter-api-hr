@@ -13,8 +13,7 @@ class Constants extends CoreConstants
     const DEVICE_APP = 'APP';
     const ATTENDANCE_NOON = '12:00:00';
     const ATTENDANCE_AFTERNOON = '15:00:00';
-    const ZKTECO_STATUS_IN = 0;
-    const ZKTECO_STATUS_OUT = 1;
+
 
     // Attendance Status. Source: https://tanya.zemangat.com/kb/penjelasan-kode-status-kehadiran-karyawan/
     const LATE = 'late';
@@ -72,5 +71,13 @@ class Constants extends CoreConstants
     ];
 
     # ZKTeco ADMS
-    const ZKTeco_DEFAULT_NAME = 'ZKTeco Attendance Machine';
+    const ZKTECO_DEFAULT_NAME = 'ZKTeco SpeedFace V5L';
+    const ZKTECO_SERIAL_NUMBER = 'SYZ8251300717';
+    const ZKTECO_STATUS_IN = 0;
+    const ZKTECO_STATUS_OUT = 1;
+
+    const ZKTECO_STATUS = [
+        self::ZKTECO_STATUS_IN => 'In',
+        self::ZKTECO_STATUS_OUT => 'Out',
+    ];
 }

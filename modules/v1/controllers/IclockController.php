@@ -53,7 +53,7 @@ class IclockController extends CoreController
 		$request = Yii::$app->getRequest();
 		$scenario = Constants::SCENARIO_ADMS;
 
-        $params['name'] = Constants::ZKTeco_DEFAULT_NAME;
+        $params['name'] = Constants::ZKTECO_DEFAULT_NAME;
         $params['url'] = $request->getQueryParams();
         $params['code'] = $request->get('SN');
 
@@ -110,7 +110,16 @@ class IclockController extends CoreController
             $employeeId = intval($data[0]);
             $date = date('Y-m-d', strtotime($data[1])) ?? null;
             $timestamp = date('H:i:s', strtotime($data[1])) ?? null;
-            $machineStatus = $this->validateInteger($data[2]) ?? null;
+            $machineStatus = (int) $this->validateInteger($data[2]) ?? null;
+
+            /**
+             * CHECK IN  2\t2025-08-12 12:25:42\t0\t1\t0\t0\t0\t255\t0\t0\t\n
+             * CHECK OUT 2\t2025-08-12 12:25:48\t1\t1\t0\t0\t0\t255\t0\t0\t\n
+             */ 
+            if (!array_key_exists($machineStatus, Constants::ZKTECO_STATUS)) {
+                return "OK";
+            }
+
             $params = $this->buildAttendanceParams($serialNumber, $params, $data, $employeeId, $machineStatus); 
             $this->attendanceLog($serialNumber, $params, $employeeId, $timestamp, $machineStatus, $data);
         }
