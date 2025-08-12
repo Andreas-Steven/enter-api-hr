@@ -107,10 +107,6 @@ class Device extends \yii\db\ActiveRecord
         if (parent::beforeValidate()) {
             $this->name = CoreModel::htmlPurifier($this->name);
 
-            if ($this->scenario === Constants::SCENARIO_ADMS_PING) {
-                $this->last_online = Yii::$app->coreAPI->UTCTimestamp();
-            }
-
             return true;
         }
 
@@ -121,7 +117,6 @@ class Device extends \yii\db\ActiveRecord
     {
         if (parent::beforeSave($insert)) {
             $this->detail_info = [
-                'last_online' => $this->last_online ?? $this->detail_info['last_online'] ?? null,
                 'url' => $this->url ?? $this->detail_info['url'] ?? null,
                 'change_log' => CoreModel::getChangeLog($this, $insert),
             ];
