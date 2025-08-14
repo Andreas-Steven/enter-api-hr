@@ -164,14 +164,29 @@ class Employee extends \yii\db\ActiveRecord
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
-
+    
         if (!$insert) {
             $sn = Constants::ZKTECO_SERIAL_NUMBER;
-            $pin = $this->id;
+            $pin = $this->id; // PIN sesuai ID karyawan
             $name = preg_replace('/\s+/', '', $this->name); 
-            $privilege = 0;
-            $commandStr = "<User>: [uid:{$pin}, name:{$name} user_id:{$this->id}]";
-
+            $privilege = 0; // 0 = user biasa, 1 = admin
+            $passwd = ''; // kosong
+            $cardHex = '0000000000'; // 5 byte hex, default nol semua
+            $grp = 0; // default group
+            $tz = 0;  // default timezone
+    
+            // Gunakan \t (tab) antar field sesuai protokol PUSH SDK
+            $commandStr = sprintf(
+                "DATA USER PIN=%d\tName=%s\tPri=%d\tPasswd=%s\tCard=[%s]\tGrp=%d\tTZ=%d",
+                $pin,
+                $name,
+                $privilege,
+                $passwd,
+                $cardHex,
+                $grp,
+                $tz
+            );
+    
             $command = new DeviceCommand();
             $command->sn = $sn;
             $command->command = $commandStr;
@@ -179,6 +194,7 @@ class Employee extends \yii\db\ActiveRecord
             $command->save(false);
         }
     }
+    
 
     public function validateContact($attribute, $params)
     {

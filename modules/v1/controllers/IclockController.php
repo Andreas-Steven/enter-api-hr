@@ -16,6 +16,8 @@ use app\models\DeviceCommand;
 
 class IclockController extends CoreController
 {
+    # TODO: Fix device_command status field
+
 	public function behaviors()
     {
 		$behaviors = parent::behaviors();
@@ -195,7 +197,9 @@ class IclockController extends CoreController
             ->one();
 
         if ($deviceCommand) {
-            return $deviceCommand->command;
+            Yii::$app->response->format = \yii\web\Response::FORMAT_RAW;
+            Yii::$app->response->headers->set('Content-Type', 'text/plain');
+            return "C:" . $deviceCommand->id . ":" . $deviceCommand->command;
         }
 
         return "OK";
@@ -204,19 +208,35 @@ class IclockController extends CoreController
     public function actionDevicecmd()
     {
         $sn = Yii::$app->request->get('SN');
-        $body = Yii::$app->request->getRawBody();
-
-        $deviceCommand = DeviceCommand::find()
-            ->where(['sn' => $sn, 'status' => 'pending'])
-            ->orderBy(['id' => SORT_ASC])
-            ->one();
-
-        if ($deviceCommand) {
-            $deviceCommand->status = 'done';
-            $deviceCommand->response = $body;
-            $deviceCommand->save(false);
+        $raw = Yii::$app->request->getRawBody();
+        $raw = trim($raw);
+    
+        // Ambil hex setelah 'Data='
+        if (strpos($raw, 'Data=') === 0) {
+            $hex = substr($raw, 5); // hapus 'Data='
+        } else {
+            $hex = $raw; // fallback kalau format beda
         }
+    
+        // Decode HEX -> plain text
+        $decoded = pack('H*', $hex);
+        
+        // Parse 'ID=...&Return=...&CMD=...'
+        parse_str(trim($decoded), $parsed);
+    
+        $id     = isset($parsed['ID']) ? (int) $parsed['ID'] : null;
+        $return = isset($parsed['Return']) ? (int) $parsed['Return'] : null;
+        $cmd    = isset($parsed['CMD']) ? $parsed['CMD'] : null;
 
+        if ($id !== null) {
+            $deviceCommand = DeviceCommand::findOne(['id' => $id, 'sn' => $sn]);
+            if ($deviceCommand) {
+                $deviceCommand->status = ($return === 0) ? 'done' : 'error';
+                $deviceCommand->response = $decoded;
+                $deviceCommand->save(false);
+            }
+        }
+    
         return "OK";
     }
 
