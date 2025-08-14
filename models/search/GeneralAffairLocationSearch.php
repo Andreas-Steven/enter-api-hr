@@ -75,9 +75,9 @@ class GeneralAffairLocationSearch extends GeneralAffairLocation
 
         $query->andFilterWhere([
             'id' => $this->id,
-            'status' => $this->status,
         ]);
 
+        $query->andFilterWhere(['status' => $this->status ? explode(',', $this->status) : $this->status]);
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
 
         $dataProvider->setPagination(

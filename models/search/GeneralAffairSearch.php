@@ -82,12 +82,12 @@ class GeneralAffairSearch extends GeneralAffair
         
         $query->andFilterWhere([
             'id' => $this->id,
-            'status' => $this->status,
             'product_id' => $this->product_id,
             'category_id' => $this->category_id,
             'location_id' => $this->location_id,
         ]);
 
+        $query->andFilterWhere(['status' => $this->status ? explode(',', $this->status) : $this->status]);
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
 
         // Filter for code and deleted_at

@@ -73,15 +73,15 @@ class EmployeeSearch extends Employee
         
         $query->andFilterWhere([
             'id' => $this->id,
-            'status' => $this->status,
             'nik' => $this->nik,
             'sso_id' => $this->sso_id,
-            'division_id' => $this->division_id,
             'birth_date' => $this->birth_date,
             'date_start' => $this->date_start,
             'date_resign' => $this->date_resign,
+            'division_id' => $this->division_id,
         ]);
-        
+
+        $query->andFilterWhere(['status' => $this->status ? explode(',', $this->status) : $this->status]);
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
 
         if (!empty($this->contact)) {

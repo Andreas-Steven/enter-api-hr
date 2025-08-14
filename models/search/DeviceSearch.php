@@ -76,11 +76,11 @@ class DeviceSearch extends Device
         
         $query->andFilterWhere([
             'id' => $this->id,
-            'status' => $this->status,
             'code' => $this->code,
             'ip_address'  => $this->ip_address,
         ]);
 
+        $query->andFilterWhere(['status' => $this->status ? explode(',', $this->status) : $this->status]);
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
         
         $dataProvider->setPagination(

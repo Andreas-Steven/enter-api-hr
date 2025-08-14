@@ -69,9 +69,9 @@ class WorkTimeSearch extends WorkTime
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'status' => $this->status,
         ]);
 
+        $query->andFilterWhere(['status' => $this->status ? explode(',', $this->status) : $this->status]);
         $query->andFilterWhere(CoreModel::setChangelogFilters($this));
 
         if (!empty($this->working_days)) {
