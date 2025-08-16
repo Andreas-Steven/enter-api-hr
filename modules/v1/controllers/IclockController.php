@@ -212,23 +212,19 @@ class IclockController extends CoreController
         $sn  = Yii::$app->request->get('SN');
         $raw = trim(Yii::$app->request->getRawBody());
     
-        // Ambil hex setelah 'Data='
         if (stripos($raw, 'Data=') === 0) {
-            $payload = substr($raw, 5); // hapus 'Data='
+            $payload = substr($raw, 5);
         } else {
             $payload = $raw;
         }
     
-        // Pastikan hanya karakter hex
         if (ctype_xdigit($payload)) {
-            // decode hex ke ASCII
             $decoded = hex2bin($payload);
         } else {
-            // kalau bukan hex, anggap sudah ASCII
             $decoded = $payload;
         }
     
-        // Parse string: "ID=...&Return=...&CMD=..."
+        # Parse string: "ID=...&Return=...&CMD=..."
         parse_str(trim($decoded), $parsed);
     
         $id     = isset($parsed['ID']) ? (int) $parsed['ID'] : null;
