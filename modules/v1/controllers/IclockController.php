@@ -199,7 +199,9 @@ class IclockController extends CoreController
         if ($deviceCommand) {
             Yii::$app->response->format = \yii\web\Response::FORMAT_RAW;
             Yii::$app->response->headers->set('Content-Type', 'text/plain');
-            return "C:" . $deviceCommand->id . ":" . $deviceCommand->command;
+            
+            $command = "C:" . $deviceCommand->id . ":" . $deviceCommand->command;
+            return $command;
         }
 
         return "OK";
@@ -207,31 +209,36 @@ class IclockController extends CoreController
 
     public function actionDevicecmd()
     {
-        $sn = Yii::$app->request->get('SN');
-        $raw = Yii::$app->request->getRawBody();
-        $raw = trim($raw);
+        $sn  = Yii::$app->request->get('SN');
+        $raw = trim(Yii::$app->request->getRawBody());
     
         // Ambil hex setelah 'Data='
-        if (strpos($raw, 'Data=') === 0) {
-            $hex = substr($raw, 5); // hapus 'Data='
+        if (stripos($raw, 'Data=') === 0) {
+            $payload = substr($raw, 5); // hapus 'Data='
         } else {
-            $hex = $raw; // fallback kalau format beda
+            $payload = $raw;
         }
     
-        // Decode HEX -> plain text
-        $decoded = pack('H*', $hex);
-        
-        // Parse 'ID=...&Return=...&CMD=...'
+        // Pastikan hanya karakter hex
+        if (ctype_xdigit($payload)) {
+            // decode hex ke ASCII
+            $decoded = hex2bin($payload);
+        } else {
+            // kalau bukan hex, anggap sudah ASCII
+            $decoded = $payload;
+        }
+    
+        // Parse string: "ID=...&Return=...&CMD=..."
         parse_str(trim($decoded), $parsed);
     
         $id     = isset($parsed['ID']) ? (int) $parsed['ID'] : null;
         $return = isset($parsed['Return']) ? (int) $parsed['Return'] : null;
         $cmd    = isset($parsed['CMD']) ? $parsed['CMD'] : null;
-
+    
         if ($id !== null) {
             $deviceCommand = DeviceCommand::findOne(['id' => $id, 'sn' => $sn]);
             if ($deviceCommand) {
-                $deviceCommand->status = ($return === 0) ? 'done' : 'error';
+                $deviceCommand->status   = ($return === 0) ? 'done' : 'error';
                 $deviceCommand->response = $decoded;
                 $deviceCommand->save(false);
             }
@@ -239,7 +246,7 @@ class IclockController extends CoreController
     
         return "OK";
     }
-
+    
     public function actionPing()
     {
 		$request = Yii::$app->getRequest();
