@@ -194,7 +194,6 @@ class Employee extends \yii\db\ActiveRecord
             $command->save(false);
         }
     }
-    
 
     public function validateContact($attribute, $params)
     {
