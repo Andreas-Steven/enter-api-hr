@@ -187,6 +187,14 @@ class IclockController extends CoreController
         // return CoreController::coreError($model);
     }
 
+    /**
+     * CREATE New User
+     * DATA USER PIN=6	Name=Nandi	Pri=0	Passwd=	Card=[0000000000]	Grp=0	TZ=0
+     * 
+     * GET User Fingerprint data
+     * DATA QUERY USERINFO PIN=1
+     */
+
     public function actionGetrequest()
     {
         $sn = Yii::$app->request->get('SN');
