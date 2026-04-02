@@ -129,6 +129,15 @@ $config = [
                     'maxLogFiles' => 10,
                     'logVars' => [],
                 ],
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'levels' => ['info'],
+                    'categories' => ['iclock'],
+                    'logFile' => '@runtime/logs/iclock.log',
+                    'maxFileSize' => 1024 * 2,
+                    'maxLogFiles' => 10,
+                    'logVars' => [],
+                ],
             ],
         ],
         'mailer' => [

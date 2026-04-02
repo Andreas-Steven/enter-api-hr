@@ -40,6 +40,12 @@ class IclockController extends CoreController
     {
         $request = Yii::$app->getRequest();
 
+        Yii::info([
+            'method' => Yii::$app->request->method,
+            'url' => Yii::$app->request->url,
+            'body' => Yii::$app->request->rawBody,
+        ], 'iclock');
+
         if ($request->isGet) {
             return $this->actionCreate();
         } 
