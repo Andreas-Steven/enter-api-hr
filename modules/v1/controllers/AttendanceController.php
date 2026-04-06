@@ -11,6 +11,7 @@ use yii\helpers\ArrayHelper;
 use app\core\CoreController;
 use app\models\Attendance;
 use app\models\search\AttendanceSearch;
+use app\models\search\AttendancePermissionSearch;
 
 class AttendanceController extends CoreController
 {
@@ -113,6 +114,56 @@ class AttendanceController extends CoreController
 		}
 
 		return CoreController::coreError($model);
+	}
+
+	public function actionShow()
+	{
+		$params = Yii::$app->getRequest()->getBodyParams();
+		$params['employee_id'] = Yii::$app->session->get('userid') ?? $params['employee_id'] ?? 1;
+
+		if (empty($params['date'])) {
+			$currentDate = new \DateTime();
+			$currentDay = (int) $currentDate->format('d');
+			
+			if ($currentDay >= 26) {
+				$startDate = (new \DateTime())->setDate(
+					(int) $currentDate->format('Y'), 
+					(int) $currentDate->format('m'), 
+					26
+				);
+				$endDate = (new \DateTime())->setDate(
+					(int) $currentDate->format('Y'),  
+					(int) $currentDate->format('m'), 
+					25
+				)->modify('+1 month');
+			} else {
+				$startDate = (new \DateTime())->setDate(
+					(int) $currentDate->format('Y'), 
+					(int) $currentDate->format('m'), 
+					26
+				)->modify('-1 month');
+				$endDate = (new \DateTime())->setDate(
+					(int) $currentDate->format('Y'), 
+					(int) $currentDate->format('m'), 
+					25
+				);
+			}
+			
+			$params['date'] = $startDate->format('Y-m-d') . ',' . $endDate->format('Y-m-d');
+		}
+		
+		$searchModel = new AttendanceSearch();
+		$permissionSearchModel = new AttendancePermissionSearch();
+		$dataProvider = $searchModel->search($params);
+		$permissionDataProvider = $permissionSearchModel->search($params);
+		
+		CoreController::validateProvider($dataProvider, $searchModel);
+		CoreController::validateProvider($permissionDataProvider, $permissionSearchModel);
+
+		return ArrayHelper::merge(
+			CoreController::coreData($dataProvider), 
+			['permission' => $permissionDataProvider]
+		);
 	}
 
 	public function actionList()

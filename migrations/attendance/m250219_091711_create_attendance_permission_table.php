@@ -54,9 +54,9 @@ class m250219_091711_create_attendance_permission_table extends Migration
         $dummyData = [
             [
                 'employee_id' => 1,
-                'permission_type' => 5,
+                'permission_type' => 5, // Annual leave
                 'date' => date('Y-m-d', strtotime('+1 days')),
-                'note' => 'Cuti tahunan',
+                'note' => 'Cuti pribadi',
                 'approved' => 1,
                 'approved_note' => 'Diizinkan',
                 'revision' => [
@@ -84,8 +84,8 @@ class m250219_091711_create_attendance_permission_table extends Migration
             ],
             [
                 'employee_id' => 2,
-                'permission_type' => 3,
-                'date' => date('Y-m-d'),
+                'permission_type' => 3, // Leave early
+                'date' => date('Y-m-d', strtotime('-2 days')),
                 'note' => 'Kedukaan',
                 'approved' => 1,
                 'approved_note' => 'Diizinkan',
@@ -101,9 +101,39 @@ class m250219_091711_create_attendance_permission_table extends Migration
                     ],
                     'attendance' => [
                         'id' => 1,
-                        'start_time' => '09:15:00',
-                        'end_time' => null,
+                        'start_time' => '09:50:00',
+                        'end_time' => '11:50:00',
                     ],
+                    'change_log' => [
+                        'created_at' => $UTCTimestamp,
+                        'created_by' => $dbDefault['createdBy'],
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                        'approved_at' => $UTCTimestamp,
+                        'approved_by' => $dbDefault['createdBy'],
+                    ],
+                ],
+            ],
+            [
+                'employee_id' => 3,
+                'permission_type' => 5, // Annual leave
+                'date' => date('Y-m-d'),
+                'note' => 'Keperluan pribadi',
+                'approved' => 1,
+                'approved_note' => 'Diizinkan',
+                'revision' => [
+                    'start_time' => null,
+                    'end_time' => null,
+                ],
+                'status' => 1,
+                'detail_info' => [
+                    'employee' => [
+                        'id' => 3,
+                        'name' => 'Employee 3',
+                    ],
+                    'attendance' => null,
                     'change_log' => [
                         'created_at' => $UTCTimestamp,
                         'created_by' => $dbDefault['createdBy'],

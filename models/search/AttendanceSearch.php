@@ -30,6 +30,7 @@ class AttendanceSearch extends Attendance
     public $employee_name;
     public $late;
     public $leave_early;
+    public $missed_checkin;
     public $missed_checkout;
     public $work_holiday;
     public $division_id;
@@ -43,7 +44,7 @@ class AttendanceSearch extends Attendance
             [
                 [['dayoff'], 'boolean'],
                 [['id', 'status'], 'integer'],
-                [['date', 'period', 'employee_name', 'employee_id', 'attendance', 'division_id', 'device_id', 'start_time', 'end_time', 'late', 'leave_early', 'missed_checkout', 'work_holiday', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
+                [['date', 'period', 'employee_name', 'employee_id', 'attendance', 'division_id', 'device_id', 'start_time', 'end_time', 'late', 'leave_early', 'missed_checkin', 'missed_checkout', 'work_holiday', 'detail_info', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by'], 'safe'],
             ], 
             CoreModel::getPaginationRules($this)
         );
@@ -135,22 +136,27 @@ class AttendanceSearch extends Attendance
 
         if ($this->late) {
             $whereClauses[] = "EXISTS (SELECT 1 FROM jsonb_array_elements(value->'info'->'detail') AS d WHERE d::text = :late)";
-            $params[':late'] = '"' . Constants::ATTENDANCE_LATE . '"';
+            $params[':late'] = '"' . Constants::LATE . '"';
         }
 
         if ($this->leave_early) {
             $whereClauses[] = "EXISTS (SELECT 1 FROM jsonb_array_elements(value->'info'->'detail') AS d WHERE d::text = :leave_early)";
-            $params[':leave_early'] = '"' . Constants::ATTENDANCE_LEAVE_EARLY . '"';
+            $params[':leave_early'] = '"' . Constants::LEAVE_EARLY . '"';
+        }
+
+        if ($this->missed_checkin) {
+            $whereClauses[] = "EXISTS (SELECT 1 FROM jsonb_array_elements(value->'info'->'detail') AS d WHERE d::text = :missed_checkin)";
+            $params[':missed_checkin'] = '"' . Constants::MISSED_CHECKIN . '"';
         }
 
         if ($this->missed_checkout) {
             $whereClauses[] = "EXISTS (SELECT 1 FROM jsonb_array_elements(value->'info'->'detail') AS d WHERE d::text = :missed_checkout)";
-            $params[':missed_checkout'] = '"' . Constants::ATTENDANCE_MISSED_CHECKOUT . '"';
+            $params[':missed_checkout'] = '"' . Constants::MISSED_CHECKOUT . '"';
         }
 
         if ($this->work_holiday) {
             $whereClauses[] = "EXISTS (SELECT 1 FROM jsonb_array_elements(value->'info'->'detail') AS d WHERE d::text = :work_holiday)";
-            $params[':work_holiday'] = '"' . Constants::ATTENDANCE_WORK_HOLIDAY . '"';
+            $params[':work_holiday'] = '"' . Constants::HOLIDAY . '"';
         }
 
         // START_TIME RANGE FILTER
@@ -249,7 +255,6 @@ class AttendanceSearch extends Attendance
             'employee_name' => $this->employee_name ?? null,
         ]);
 
-
         if (!empty($this->period)) {
             $inCondition = fn($field, $value) => ['$sum' => ['$cond' => [['$in' => [$value, '$'."info.$field"]], 1, 0]]];
             $eqCondition = fn($field, $value) => ['$sum' => ['$cond' => [['$eq' => ['$info.'.$field, $value]], 1, 0]]];
@@ -265,11 +270,11 @@ class AttendanceSearch extends Attendance
                     'division_name' => ['$first' => '$division.name'],
                     'total_in' => $eqCondition('in', true),
                     'total_out' => $eqCondition('out', true),
-                    'total_late' => $inCondition('detail', Constants::ATTENDANCE_LATE),
-                    'total_leave_early' => $inCondition('detail', Constants::ATTENDANCE_LEAVE_EARLY),
-                    'total_missed_checkin' => $inCondition('detail', Constants::ATTENDANCE_MISSED_CHECKIN),
-                    'total_missed_checkout' => $inCondition('detail', Constants::ATTENDANCE_MISSED_CHECKOUT),
-                    'total_work_holiday' => $inCondition('detail', Constants::ATTENDANCE_HOLIDAY),
+                    'total_late' => $inCondition('detail', Constants::LATE),
+                    'total_leave_early' => $inCondition('detail', Constants::LEAVE_EARLY),
+                    'total_missed_checkin' => $inCondition('detail', Constants::MISSED_CHECKIN),
+                    'total_missed_checkout' => $inCondition('detail', Constants::MISSED_CHECKOUT),
+                    'total_work_holiday' => $inCondition('detail', Constants::HOLIDAY),
                     'total_blacklist' => ['$sum' => ['$size' => ['$ifNull' => ['$detail_info.blacklist', []]]]],
                 ]],
                 ['$facet' => [
