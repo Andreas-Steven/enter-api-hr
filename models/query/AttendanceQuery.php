@@ -1,6 +1,9 @@
 <?php
 
 namespace app\models\query;
+use Yii;
+use app\helpers\Constants;
+use yii\db\Query;
 use yii\db\Expression;
 
 /**

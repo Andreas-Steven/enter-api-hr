@@ -7,7 +7,6 @@ use yii\web\Response;
 use yii\rest\Controller;
 use yii\filters\VerbFilter;
 use app\helpers\Constants;
-use yii\helpers\ArrayHelper;
 use app\core\CoreController;
 use app\models\Attendance;
 use app\models\search\AttendanceSearch;
@@ -160,10 +159,20 @@ class AttendanceController extends CoreController
 		CoreController::validateProvider($dataProvider, $searchModel);
 		CoreController::validateProvider($permissionDataProvider, $permissionSearchModel);
 
-		return ArrayHelper::merge(
-			CoreController::coreData($dataProvider), 
-			['permission' => $permissionDataProvider]
-		);
+		$response = CoreController::coreData($dataProvider);
+		$permissionResponse = CoreController::coreData($permissionDataProvider);
+
+		$response['pagination'] = [
+			'attendance' => $response['pagination'],
+			'permission' => $permissionResponse['pagination'],
+		];
+
+		$response['data'] = [
+			'attendance' => $response['data'],
+			'permission' => $permissionResponse['data'],
+		];
+
+		return $response;
 	}
 
 	public function actionList()
