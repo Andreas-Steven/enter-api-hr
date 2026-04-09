@@ -273,7 +273,7 @@ class Attendance extends \yii\db\ActiveRecord
                 if (!empty($latestAttendance) || !empty($this->dateMismatch)) {
                     $blacklist = [];
 
-                    if (strtotime($attendanceData['start_time']) < strtotime($latestAttendance)) {
+                    if ($latestAttendance !== null && strtotime($attendanceData['start_time']) < strtotime($latestAttendance)) {
                         $blacklist = [
                             'employee_id' => $attendanceData['employee_id'],
                             'employee_name' => $employee['name'],
