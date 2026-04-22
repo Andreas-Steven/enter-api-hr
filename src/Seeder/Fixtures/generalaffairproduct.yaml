@@ -1,0 +1,43 @@
+# 1. VALUE OBJECTS (Tetap sama)
+App\Domain\Shared\ValueObject\ResourceStatus:
+  status_draft:
+    __factory: 
+      'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
+  status_active:
+    __factory: 
+      'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
+
+App\Domain\Shared\ValueObject\DetailInfo:
+  info_empty:
+    __factory: 
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
+    
+  # info_with_nested_category:
+  #   __factory: 
+  #     'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+  #       - category: 
+  #           id: 1
+  #           name: 'Sony'
+  #         brand: 'Sony'
+  #         specs:
+  #           color: 'Black'
+  #           warranty: '1 Year'
+
+# 2. ENTITIES (Sesuaikan dengan signature method create)
+App\Domain\GeneralAffairProduct\Entity\GeneralAffairProduct:
+  general_affair_product_{1..5}:
+    __factory: 
+      'App\Domain\GeneralAffairProduct\Entity\GeneralAffairProduct::create':
+        # Sesuaikan urutan: name, status, detailInfo, syncMdb
+        - '<company()>'   # $name
+        - '@status_draft' # $status
+        - '@info_empty'   # $detailInfo
+        - null            # $syncMdb
+
+  general_affair_product_{6..10}:
+    __factory: 
+      'App\Domain\GeneralAffairProduct\Entity\GeneralAffairProduct::create':
+        - '<company()> <sentence()>'  # $name
+        - '@status_active'                       # $status
+        - '@info_empty'                          # $detailInfo
+        - 123                                    # $syncMdb

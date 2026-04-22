@@ -1,77 +1,154 @@
 {
-    "name": "yiisoft/yii2-app-basic",
-    "description": "Yii 2 Basic Project Template",
-    "keywords": ["yii2", "framework", "basic", "project template"],
-    "homepage": "https://www.yiiframework.com/",
+    "name": "yiisoft/app-api",
     "type": "project",
+    "description": "Yii3 API project template",
+    "keywords": [
+        "yii3",
+        "app",
+        "api",
+        "rest"
+    ],
+    "homepage": "https://github.com/yiisoft/app-api/",
     "license": "BSD-3-Clause",
     "support": {
-        "issues": "https://github.com/yiisoft/yii2/issues?state=open",
+        "issues": "https://github.com/yiisoft/app-api/issues?state=open",
+        "source": "https://github.com/yiisoft/app-api",
         "forum": "https://www.yiiframework.com/forum/",
         "wiki": "https://www.yiiframework.com/wiki/",
         "irc": "ircs://irc.libera.chat:6697/yii",
-        "source": "https://github.com/yiisoft/yii2"
+        "chat": "https://t.me/yii3en"
     },
-    "minimum-stability": "stable",
-    "require": {
-        "php": ">=7.4.0",
-        "yiisoft/yii2": "~2.0.45",
-        "yiisoft/yii2-bootstrap5": "~2.0.2",
-        "yiisoft/yii2-symfonymailer": "~2.0.3",
-        "firebase/php-jwt": "^6.10",
-        "paragonie/sodium_compat": "^2.0",
-        "vlucas/phpdotenv": "^5.6",
-        "jenssegers/mongodb": "^5.1"
-    },
-    "require-dev": {
-        "yiisoft/yii2-debug": "~2.1.0",
-        "yiisoft/yii2-gii": "~2.2.0",
-        "codeception/codeception": "^5.0.0 || ^4.0",
-        "codeception/lib-innerbrowser": "^4.0 || ^3.0 || ^1.1",
-        "codeception/module-asserts": "^3.0 || ^1.1",
-        "codeception/module-yii2": "^1.1",
-        "codeception/module-filesystem": "^3.0 || ^2.0 || ^1.1",
-        "codeception/verify": "^3.0 || ^2.2",
-        "symfony/browser-kit": "^6.0 || >=2.7 <=4.2.4"
-    },
-    "config": {
-        "allow-plugins": {
-            "yiisoft/yii2-composer" : true
+    "funding": [
+        {
+            "type": "opencollective",
+            "url": "https://opencollective.com/yiisoft"
         },
-        "process-timeout": 1800,
-        "fxp-asset": {
-            "enabled": false
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/yiisoft"
         }
-    },
-    "scripts": {
-        "post-install-cmd": [
-            "yii\\composer\\Installer::postInstall"
-        ],
-        "post-create-project-cmd": [
-            "yii\\composer\\Installer::postCreateProject",
-            "yii\\composer\\Installer::postInstall"
-        ]
-    },
-    "extra": {
-        "yii\\composer\\Installer::postCreateProject": {
-            "setPermission": [
-                {
-                    "runtime": "0777",
-                    "web/assets": "0777",
-                    "yii": "0755"
-                }
-            ]
-        },
-        "yii\\composer\\Installer::postInstall": {
-            "generateCookieValidationKey": [
-                "config/web.php"
-            ]
-        }
-    },
+    ],
     "repositories": [
         {
             "type": "composer",
             "url": "https://asset-packagist.org"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/rahmatsyaparudin/yii3-api-boilerplate.git"
         }
-    ]
+    ],
+    "require": {
+        "ext-filter": "*",
+        "firebase/php-jwt": "^7.0.2",
+        "httpsoft/http-message": "^1.1.6",
+        "mongodb/mongodb": "^2.1",
+        "php": "8.2 - 8.5",
+        "psr/clock": "^1.0",
+        "psr/container": "^2.0.2",
+        "psr/http-factory": "^1.1",
+        "psr/http-message": "^2.0",
+        "psr/http-server-handler": "^1.0.2",
+        "psr/http-server-middleware": "^1.0.2",
+        "psr/log": "^3.0.2",
+        "symfony/console": "^7.4.4",
+        "vlucas/phpdotenv": "^5.6.3",
+        "yiisoft/access": "2.0",
+        "yiisoft/aliases": "^3.1.1",
+        "yiisoft/cache": "^3.2",
+        "yiisoft/cache-file": "^3.2",
+        "yiisoft/config": "^1.6.2",
+        "yiisoft/data": "^1.0.1",
+        "yiisoft/data-response": "^2.1.2",
+        "yiisoft/db": "^2.0",
+        "yiisoft/db-migration": "^2.0.1",
+        "yiisoft/db-pgsql": "^2.0",
+        "yiisoft/definitions": "^3.4.1",
+        "yiisoft/di": "^1.4.1",
+        "yiisoft/error-handler": "^4.3.2",
+        "yiisoft/http": "^1.3",
+        "yiisoft/hydrator": "^1.6.3",
+        "yiisoft/injector": "^1.2.1",
+        "yiisoft/input-http": "^1.0.1",
+        "yiisoft/log": "^2.2.0",
+        "yiisoft/log-target-file": "^3.1",
+        "yiisoft/middleware-dispatcher": "^5.4",
+        "yiisoft/request-body-parser": "^1.2.1",
+        "yiisoft/request-provider": "^1.3",
+        "yiisoft/router": "^4.0.2",
+        "yiisoft/router-fastroute": "^4.0.3",
+        "yiisoft/security": "^1.2",
+        "yiisoft/translator": "^3.2.1",
+        "yiisoft/translator-message-php": "^1.1.2",
+        "yiisoft/validator": "^2.5.1",
+        "yiisoft/yii-console": "^2.4.2",
+        "yiisoft/yii-http": "^1.1.1",
+        "yiisoft/yii-runner-console": "^2.2.1",
+        "yiisoft/yii-runner-http": "^3.2.1"
+    },
+    "require-dev": {
+        "codeception/c3": "^2.9",
+        "codeception/codeception": "^5.3.5",
+        "codeception/lib-innerbrowser": "^4.1.0",
+        "codeception/module-asserts": "^3.3.0",
+        "codeception/module-cli": "^2.0.1",
+        "codeception/module-db": "^3.2.2",
+        "codeception/module-phpbrowser": "^3.0.2",
+        "codeception/module-rest": "^3.4.3",
+        "friendsofphp/php-cs-fixer": "^3.94.0",
+        "nelmio/alice": "^3.16.1",
+        "phpunit/phpunit": "^11.5.54",
+        "rahmatsyaparudin/yii3-api-boilerplate": "dev-main",
+        "rector/rector": "^2.3.6",
+        "roave/infection-static-analysis-plugin": "^1.43",
+        "shipmonk/composer-dependency-analyser": "^1.8.4",
+        "vimeo/psalm": "^6.15.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "skeleton-scripts": [
+            "@php scripts/skeleton-scripts.php"
+        ],
+        "skeleton-update": [
+            "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
+            "@php scripts/skeleton-scripts.php",
+            "@php scripts/skeleton-update.php"
+        ],
+        "skeleton-copy-config": [
+            "@php scripts/skeleton-copy-config.php"
+        ],
+        "skeleton-copy-examples": [
+            "@php scripts/skeleton-copy-examples.php"
+        ],
+        "skeleton-generate-module": [
+            "@php scripts/generate-module.php"
+        ],
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php ./yii serve"
+        ],
+        "test": "codecept run"
+    },
+    "extra": {
+        "config-plugin-file": "config/configuration.php"
+    },
+    "config": {
+        "sort-packages": true,
+        "bump-after-update": true,
+        "allow-plugins": {
+            "codeception/c3": true,
+            "infection/extension-installer": true,
+            "composer/package-versions-deprecated": true,
+            "yiisoft/config": true
+        }
+    }
 }

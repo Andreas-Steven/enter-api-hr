@@ -1,0 +1,310 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Api\V1\AttendanceDevice\Validation;
+
+// Shared Layer
+use App\Shared\Enums\RecordStatus;
+use App\Shared\Validation\AbstractValidator;
+use App\Shared\Context\ValidationContext;
+use App\Shared\Validation\Rules\HasNoDependencies;
+use App\Shared\Validation\Rules\UniqueValue;
+
+// Vendor Layer
+use Yiisoft\Validator\Rule\Required;
+use Yiisoft\Validator\Rule\Integer;
+use Yiisoft\Validator\Rule\StringValue;
+use Yiisoft\Validator\Rule\Length;
+use Yiisoft\Validator\Rule\In;
+use Yiisoft\Validator\Rule\StopOnError;
+use Yiisoft\Validator\Rule\Ip;
+use Yiisoft\Validator\Rule\Number;
+use Yiisoft\Validator\Rule\Nested;
+use Yiisoft\Validator\Rule\Each;
+use Yiisoft\Validator\Rule\Callback;
+
+/**
+ * AttendanceDevice Input Validator
+ * 
+ * Menggunakan pattern AbstractValidator dengan ValidationContext
+ * untuk validasi input yang berbeda per operation
+ */
+final class AttendanceDeviceInputValidator extends AbstractValidator
+{
+    /**
+     * Examples for validation rules
+     * 
+     * This validator shows examples of advanced validation rules including
+     * dependency checking and unique value validation.
+     * 
+     * @see HasNoDependencies
+     * @see UniqueValue
+     * 
+     * Usage example for HasNoDependencies:
+     * ```php
+     * ValidationContext::DELETE => [
+     *     'id' => [
+     *         new StopOnError([
+     *             new Required(),
+     *             new Integer(min: 1),
+     *             new HasNoDependencies(
+     *                 map: [
+     *                     'other_table' => ['example_id'],
+     *                 ],
+     *                 message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
+     *             ),
+     *         ]),
+     *     ],
+     * ],
+     * ```
+     * 
+     * Usage example for UniqueValue:
+     * ```php
+     * ValidationContext::CREATE => [
+     *     'name' => [
+     *         new StopOnError([
+     *             new Required(),
+     *             new StringLength(max: 255),
+     *             new UniqueValue(
+     *                 table: 'examples',
+     *                 column: 'name',
+     *                 ignoreId: null,
+     *             ),
+     *         ]),
+     *     ],
+     * ],
+     * 
+     * Usage example for UniqueValue with exclusion (for updates):
+     * ```php
+     * ValidationContext::UPDATE => [
+     *     'name' => [
+     *         new StopOnError([
+     *             new Required(),
+     *             new StringLength(max: 255),
+     *             new UniqueValue(
+     *                 table: 'examples',
+     *                 column: 'name',
+     *                 ignoreId: $this->data['id'] ?? null,
+     *             ),
+     *         ]),
+     *     ],
+     * ],
+     * ```
+     */
+
+    protected function rules(string $context): array
+    {
+        return match ($context) {
+            ValidationContext::CREATE => [
+                'name' => [
+                    new Required(),
+                    new StringValue(),
+                    new Length(
+                        min: 3,
+                        max: 255,
+                    ),
+                ],
+                'code' => [
+                    new StopOnError([
+                        new Required(),
+                        new StringValue(),
+                        new Length(
+                            min: 3,
+                            max: 25,
+                        ),
+                        new UniqueValue(
+                            table: 'attendance_device', 
+                            column: 'code', 
+                            ignoreId: null
+                        )
+                    ])
+                ],
+                'address' => [
+                    new Required(),
+                    new StringValue(),
+                    new Length(
+                        min: 3,
+                        max: 255,
+                    ),
+                ],
+                'ip_address' => [
+                    new Required(),
+                    new StringValue(),
+                    new Ip(),
+                ],
+                'location' => [
+                    new Required(),
+                    new Nested([
+                        'lat' => [
+                            new Required(),
+                            new Number(
+                                min: -90, 
+                                max: 90
+                            ),
+                        ],
+                        'lng' => [
+                            new Required(),
+                            new Number(
+                                min: -180, 
+                                max: 180
+                            ),
+                        ],
+                    ]),
+                ],
+                'status' => [
+                    new Required(),
+                    new Integer(),
+                    new In(
+                        RecordStatus::draftOnlyStates(),
+                    ),
+                ],
+            ],
+            ValidationContext::UPDATE => [
+                'id' => [
+                    new Required(),
+                    new Integer(
+                        min: 1
+                    ),
+                ],
+                'name' => [
+                    new StringValue(
+                            skipOnEmpty: true,
+                    ),
+                    new Length(
+                        min: 3,
+                        max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'code' => [
+                    new StopOnError([
+                        new StringValue(
+                            skipOnEmpty: true,
+                        ),
+                        new Length(
+                            min: 3,
+                            max: 25,
+                            skipOnEmpty: true,
+                        ),
+                        new UniqueValue(
+                            table: 'attendance_device', 
+                            column: 'code', 
+                            ignoreId: $this->data['id'] ?? null
+                        )
+                    ])
+                ],
+                'address' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        min: 3,
+                        max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'ip_address' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Ip(),
+                ],
+                'location' => [
+                    new Nested([
+                        'lat' => [
+                            new Required(),
+                            new Number(
+                                min: -90, 
+                                max: 90
+                            ),
+                        ],
+                        'lng' => [
+                            new Required(),
+                            new Number(
+                                min: -180, 
+                                max: 180
+                            ),
+                        ],
+                    ], skipOnEmpty: true),
+                ],
+                'status' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        RecordStatus::searchableStates(),
+                    ),
+                ],
+                'lock_version' => [
+                    new Required(
+                        when: fn() => $this->shouldValidateOptimisticLock()
+                    ),
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
+            ],
+            ValidationContext::DELETE => [
+                'id' => [
+                    new Required(), 
+                    new Integer(min: 1),
+                ],
+            ],
+            ValidationContext::SEARCH => [
+                'id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'name' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        min: 1,
+                        max: 100,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'status' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'sync_mdb' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'page' => [
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'page_size' => [
+                    new Integer(
+                        min: 1,
+                        max: 200,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'sort_by' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'sort_dir' => [
+                    new In(
+                        ['asc', 'desc'],
+                        skipOnEmpty: true,
+                    ),
+                ],
+            ],
+
+            default => [],
+        };
+    }
+}

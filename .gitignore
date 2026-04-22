@@ -1,39 +1,33 @@
-# app dir
+# Dependencies
+/vendor/
+node_modules/
+
+# Runtime & cache
+/runtime/
+.cache/
+*.log
+.phpunit.cache/
+.phpunit.result.cache
+.php-cs-fixer.cache
+
+# Environment
 .env
+.env.*
+!.env.example
 
-# phpstorm project files
-.idea
+# Environment configs
 
-# netbeans project files
-nbproject
+# Static build
+/dist/
+/build/
+/coverage/
 
-# zend studio for eclipse project files
-.buildpath
-.project
-.settings
-
-# windows thumbnail cache
+# IDE & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
 Thumbs.db
 
-# composer vendor dir
-/vendor
-
-# composer itself is not needed
-composer.phar
-
-# Mac DS_Store Files
-.DS_Store
-
-# phpunit itself is not needed
-phpunit.phar
-# local phpunit config
-/phpunit.xml
-
-tests/_output/*
-tests/_support/_generated
-
-#vagrant folder
-/.vagrant
-
-# Database file & structure
-/Documents
+# Docker
+/docker/runtime/

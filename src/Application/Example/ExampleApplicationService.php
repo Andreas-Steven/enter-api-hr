@@ -1,0 +1,247 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Application\Example;
+
+// Application Layer
+use App\Application\Example\Command\CreateExampleCommand;
+use App\Application\Example\Command\UpdateExampleCommand;
+use App\Application\Example\Dto\ExampleResponse;
+use App\Application\Shared\Factory\DetailInfoFactory;
+
+// Domain Layer
+use App\Domain\Example\Entity\Example;
+use App\Domain\Example\Repository\ExampleRepositoryInterface;
+use App\Domain\Example\Service\ExampleDomainService;
+use App\Domain\Shared\Security\AuthorizerInterface;
+use App\Domain\Shared\ValueObject\ResourceStatus;
+
+// Shared Layer
+use App\Shared\Dto\PaginatedResult;
+use App\Shared\Dto\SearchCriteria;
+use App\Shared\Exception\NotFoundException;
+use App\Shared\ValueObject\Message;
+
+/**
+ * Example Application Service (Mandor/Alur Kerja)
+ * 
+ * Orchestrates use cases and coordinates domain & infrastructure
+ */
+final class ExampleApplicationService
+{
+    public function __construct(
+        private AuthorizerInterface $auth,
+        private DetailInfoFactory $detailInfoFactory,
+        private ExampleRepositoryInterface $repository,
+        private ExampleDomainService $domainService
+    ) {
+    }
+
+    public function getResource(): string
+    {
+        return Example::RESOURCE;
+    }
+
+    private function getEntityById(int $id, ?int $status = null): Example
+    {
+        $data = $this->repository->findById(
+            id: $id,
+            status: $status
+        );
+
+        if ($data === null) {
+            throw new NotFoundException(
+                translate: Message::create(
+                    key: 'resource.not_found', 
+                    params: [
+                        'resource' => $this->getResource(),
+                        'field' => 'id',
+                        'value' => $id
+                    ]
+                )
+            );
+        }
+        
+        return $data;
+    }
+    
+    public function list(SearchCriteria $criteria): PaginatedResult
+    {
+        return $this->repository->list(
+            criteria: $criteria
+        );
+    }
+
+    public function view(int $id): ExampleResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: null
+        );
+        
+        return ExampleResponse::fromEntity(
+            entity: $data
+        );
+    }
+
+    public function create(CreateExampleCommand $command): ExampleResponse
+    {
+        $detailInfo = $this->detailInfoFactory
+            ->create(
+                detailInfo: []
+            )
+            ->build();
+
+        $data = Example::create(
+            name: $command->name,
+            status: ResourceStatus::from($command->status),
+            detailInfo: $detailInfo
+        );
+
+        return ExampleResponse::fromEntity(
+            entity: $this->repository->insert(
+                entity: $data
+            )
+        );
+    }
+
+    public function update(int $id, UpdateExampleCommand $command): ExampleResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: null
+        );
+
+        $this->repository->verifyLockVersion(
+            entity: $data,
+            version: $command->lockVersion ?? null
+        );
+
+        $newStatus = ResourceStatus::tryFrom($command->status);
+
+        $hasFieldChanges = $data->hasFieldChanges(
+            data: (array) $command,
+            removeNulls: true
+        );
+
+        $data->guardAgainstInvalidTransition(
+            hasFieldChanges: $hasFieldChanges,
+            newStatus: $newStatus
+        );
+
+        $data->updateName(
+            newName: $command->name
+        );
+
+        $data->applyStatus(
+            newStatus: $newStatus
+        );
+
+        $detailInfo = $this->detailInfoFactory
+            ->update(
+                detailInfo: $data->getDetailInfo(),
+                payload: $command->detailInfo ?? [],
+            )
+            ->build();
+
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
+
+        return ExampleResponse::fromEntity(
+            entity: $this->repository->update(
+                entity: $data
+            )
+        );
+    }
+
+    public function delete(int $id, ?int $lockVersion = null): ExampleResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: null
+        );
+
+        $this->repository->verifyLockVersion(
+            entity: $data, 
+            version: $lockVersion,
+        );
+
+        $this->domainService->guardPermission(
+            id: $id,
+            authorizer: $this->auth,
+            permission: 'example.delete',
+            resource: $this->getResource(),
+        );
+        
+        $this->domainService->ensureDeletable(
+            entity: $data,
+            resource: $this->getResource(),
+        );
+
+        $detailInfo = $this->detailInfoFactory
+            ->delete(
+                detailInfo: $data->getDetailInfo(),
+                payload: [],
+            )
+            ->build();
+
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
+
+        return ExampleResponse::fromEntity(
+            entity: $this->repository->delete(
+                entity: $data
+            )
+        );
+    }
+
+    public function restore(int $id): ExampleResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: ResourceStatus::deleted()->value()
+        );
+        
+        if ($data === null) {
+            throw new NotFoundException(
+                translate: Message::create(
+                    key: 'resource.not_found', 
+                    params: [
+                        'resource' => $this->getResource(),
+                        'field' => 'id',
+                        'value' => $id
+                    ]
+                )
+            );
+        }
+
+        $data->guardAgainstInvalidTransition(
+            hasFieldChanges: false,
+            newStatus: ResourceStatus::restored()
+        );
+
+        $data->markAsRestored();
+
+        $detailInfo = $this->detailInfoFactory
+            ->restore(
+                detailInfo: $data->getDetailInfo(),
+                payload: [],
+            )
+            ->build();
+
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
+
+        $restoredData = $this->repository->restore(
+            id: $data->getId()
+        );
+        
+        return ExampleResponse::fromEntity(
+            entity: $restoredData
+        );
+    }
+}

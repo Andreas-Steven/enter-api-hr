@@ -1,0 +1,73 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Api\V1\GeneralAffair\Action;
+
+// Application Layer
+use App\Application\GeneralAffair\GeneralAffairApplicationService;
+
+// API Layer
+use App\Api\Shared\ResponseFactory;
+
+// Shared Layer
+use App\Shared\ValueObject\Message;
+
+// PSR Interfaces
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
+// Vendor Layer
+use Yiisoft\Http\Status;
+use Yiisoft\Router\CurrentRoute;
+
+final readonly class GeneralAffairDeleteAction
+{
+    private const ALLOWED_KEYS = ['id', 'lock_version', 'code'];
+
+    public function __construct(
+        private GeneralAffairApplicationService $applicationService,
+        private ResponseFactory $responseFactory,
+    ) {
+    }
+
+    public function __invoke(
+        ServerRequestInterface $request,
+        CurrentRoute $currentRoute
+    ): ResponseInterface
+    {
+        $id = $currentRoute->getArgument('id');
+        $parsedBody = $request->getParsedBody();
+        $body = is_array($parsedBody) ? $parsedBody : [];
+        $resource = $this->applicationService->getResource();
+        
+        if ($id === null) {
+            return $this->responseFactory->fail(
+                translate: Message::create(
+                    key: 'route.parameter_missing',
+                    params: [
+                        'resource' => $resource,
+                        'parameter' => 'id',
+                    ]
+                ),
+                httpCode: Status::NOT_FOUND,
+            );
+        }
+
+        $response = $this->applicationService->delete(
+            id: (int) $id,
+            lockVersion: isset($body['lock_version']) ? (int) $body['lock_version'] : null,
+            code: isset($body['code']) ? (string) $body['code'] : null,
+        );
+
+        return $this->responseFactory->success(
+            data: $response->toArray(),
+            translate: Message::create(
+                key: 'resource.deleted',
+                params: [
+                    'resource' => $resource,
+                ]
+            ),
+        );
+    }
+}
