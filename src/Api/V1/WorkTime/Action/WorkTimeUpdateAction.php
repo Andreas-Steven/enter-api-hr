@@ -79,6 +79,7 @@ final class WorkTimeUpdateAction
         $command = UpdateWorkTimeCommand::create(
             id: (int) $id,
             name: $params->get('name'),
+            workingDays: $params->get('working_days'),
             status: $params->get('status'),
             detailInfo: $params->get('detail_info'),
             lockVersion: $params->get('lock_version'),

@@ -119,4 +119,8 @@ final class WorkTime
         return $this->workingDays;
     }
     
+    public function updateWorkingDays(WorkingDays $workingDays): void
+    {
+        $this->workingDays = $workingDays;
+    }
 }
