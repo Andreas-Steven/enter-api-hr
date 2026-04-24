@@ -16,6 +16,8 @@ use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
 use App\Domain\Employee\Entity\Employee;
 use App\Domain\Shared\Enums\AttendanceStatus;
 use App\Domain\Attendance\ValueObject\AttendanceItem;
+use App\Domain\Attendance\ValueObject\AttendanceRecords;
+use App\Domain\Attendance\ValueObject\AttendanceProcessResult;
 
 use App\Domain\Shared\Concerns\Service\DomainValidator;
 use App\Domain\Shared\ValueObject\ResourceStatus;
@@ -76,63 +78,153 @@ final class AttendanceDomainService
         );
     }
 
-    // public function prepareRecords(string $date, array $entries): array
-    public function prepareRecords(string $date, array $entries, array $existingEntries = []): array
+    // With date and start time validation blacklist functionality
+    public function prepareRecords(string $date, array $entries, array $existingEntries = []): AttendanceProcessResult
     {
-        // 1. Bulk Load Employee
+        $attendanceResults = [];
+        $blacklistResults = [];
+        $today = date('Y-m-d');
+
+        // 1. Ambil "Jam Terakhir yang Sah" dari data yang sudah ada di database (Existing)
+        // Kita manfaatkan Value Object Records untuk mencari max start_time
+        $recordsVO = AttendanceRecords::fromArray($existingEntries);
+        $lastSystemTime = $recordsVO->getLatestStartTime();
+
+        // 2. Hidrasi input baru ke VO & Sorting
+        // Penting: Urutkan input mesin dari jam terkecil ke terbesar agar tidak saling blacklist
+        usort($entries, fn($a, $b) => strtotime($a['start_time'] ?? '') <=> strtotime($b['start_time'] ?? ''));
         $itemObjects = array_map(fn(array $entry) => AttendanceItem::fromArray($entry), $entries);
         
+        // 3. Bulk Load Master Data (Optimasi database)
         $employeeIds = AttendanceItem::collectEmployeeIds($itemObjects);
         $deviceCodes = AttendanceItem::collectDeviceCodes($itemObjects);
-
         $employeeMasterData = $this->employeeRepository->findAllByIds($employeeIds);
         $deviceMasterData = $this->attendanceDeviceRepository->findAllByCodes($deviceCodes);
 
-        // 2. Create map for existing entries
+        // 4. Map existing data untuk pengecekan update
         $existingMap = [];
         foreach ($existingEntries as $entry) {
             $existingMap[$entry['employee_id']] = $entry;
         }
 
-        return array_map(
-            function (AttendanceItem $item) use ($employeeMasterData, $deviceMasterData, $date, $existingMap) {
+        foreach ($itemObjects as $item) {
+            $employee = $employeeMasterData[$item->employeeId] ?? null;
+            $employeeName = $employee?->getName() ?? $item->employeeName;
 
-                $deviceCode = $item->device['code'] ?? '';
+            // --- VALIDASI 1: TANGGAL (Data Nyasar) ---
+            if ($date !== $today) {
+                $blacklistResults[] = [
+                    'employee_id'   => $item->employeeId,
+                    'employee_name' => $employeeName,
+                    'reason'        => 'Invalid date submission (Expected: ' . $today . ')',
+                    'submitted_at'  => $item->startTime,
+                    'server_at'     => date('H:i:s')
+                ];
+                continue;
+            }
 
-                $existing = $existingMap[$item->employeeId] ?? null;
+            // --- VALIDASI 2: TIME TAMPERING (Jam Dimundurkan) ---
+            // Jika ada start_time baru, bandingkan dengan jam terakhir yang sah di DB
+            if ($item->startTime && $lastSystemTime && strtotime($item->startTime) < strtotime($lastSystemTime)) {
+                $blacklistResults[] = [
+                    'employee_id'   => $item->employeeId,
+                    'employee_name' => $employeeName,
+                    'reason'        => "Fraud Suspect: Backdated time. Last record: $lastSystemTime",
+                    'submitted_at'  => $item->startTime,
+                    'server_at'     => date('H:i:s')
+                ];
+                continue;
+            }
 
-                // 🔥 IMPORTANT: merge info lama
-                if ($existing) {
-                    $item = AttendanceItem::fromArray($existing)
-                        ->withStartTime($item->startTime)
-                        ->withLatestEndTime($item->endTime);
-                }
+            // --- PROSES ATTENDANCE NORMAL ---
+            $deviceCode = $item->device['code'] ?? '';
+            $device = $deviceMasterData[$deviceCode] ?? null;
+            $existing = $existingMap[$item->employeeId] ?? null;
 
-                return $this->createSnapshot(
-                    $item,
-                    $employeeMasterData[$item->employeeId] ?? null,
-                    $deviceMasterData[$deviceCode] ?? null,
-                    $date
-                );
-            },
-            $itemObjects
-        );
+            if ($existing) {
+                // Jika sudah ada, gabungkan jam (Entity-like logic di dalam VO)
+                $item = AttendanceItem::fromArray($existing)
+                    ->withStartTime($item->startTime)
+                    ->withLatestEndTime($item->endTime);
+            }
 
-        // return array_map(
-        //     function (AttendanceItem $item) use ($employeeMasterData, $deviceMasterData, $date) {
-        //         // Akses data langsung dari properti objek, BUKAN dari array
-        //         $deviceCode = $item->device['code'] ?? '';
-                
-        //         return $this->createSnapshot(
-        //             $item, // Kirim objeknya langsung
-        //             $employeeMasterData[$item->employeeId] ?? null,
-        //             $deviceMasterData[$deviceCode] ?? null,
-        //             $date
-        //         );
-        //     },
-        //     $itemObjects
-        // );
+            // Simpan sebagai snapshot
+            $attendanceResults[] = $this->createSnapshot(
+                $item,
+                $employee,
+                $device,
+                $today
+            );
+
+            // Update lastSystemTime secara dinamis (untuk pengecekan item berikutnya dalam batch yang sama)
+            if ($item->startTime && (!$lastSystemTime || strtotime($item->startTime) > strtotime($lastSystemTime))) {
+                $lastSystemTime = $item->startTime;
+            }
+        }
+
+        return new AttendanceProcessResult($attendanceResults, $blacklistResults);
     }
+
+    // public function prepareRecords(string $date, array $entries, array $existingEntries = []): AttendanceProcessResult
+    // {
+    //     $attendanceResults = [];
+    //     $blacklistResults = [];
+    //     $today = date('Y-m-d');
+
+    //     // 1. Hidrasi data ke VO
+    //     $itemObjects = array_map(fn(array $entry) => AttendanceItem::fromArray($entry), $entries);
+        
+    //     $employeeIds = AttendanceItem::collectEmployeeIds($itemObjects);
+    //     $deviceCodes = AttendanceItem::collectDeviceCodes($itemObjects);
+
+    //     $employeeMasterData = $this->employeeRepository->findAllByIds($employeeIds);
+    //     $deviceMasterData = $this->attendanceDeviceRepository->findAllByCodes($deviceCodes);
+
+    //     $existingMap = [];
+    //     foreach ($existingEntries as $entry) {
+    //         $existingMap[$entry['employee_id']] = $entry;
+    //     }
+
+    //     foreach ($itemObjects as $item) {
+    //         // Cek apakah tanggal yang dikirimkan cocok dengan hari ini
+    //         // Jika $date (dari command) != $today, maka ini data "nyasar"
+    //         if ($date !== $today) {
+    //             $blacklistResults[] = [
+    //                 'employee_id'   => $item->employeeId,
+    //                 'employee_name' => $employeeMasterData[$item->employeeId]?->getName() ?? $item->employeeName,
+    //                 'submitted_date'=> $date,
+    //                 'start_time'    => $item->startTime,
+    //                 'reason'        => 'Invalid date submission (Expected: ' . $today . ')',
+    //                 'actual_time'   => date('H:i:s')
+    //             ];
+    //             continue; // Jangan masukkan ke attendanceResults
+    //         }
+
+    //         // --- LOGIKA ATTENDANCE NORMAL ---
+    //         $deviceCode = $item->device['code'] ?? '';
+    //         $existing = $existingMap[$item->employeeId] ?? null;
+
+    //         if ($existing) {
+    //             $item = AttendanceItem::fromArray($existing)
+    //                 ->withStartTime($item->startTime)
+    //                 ->withLatestEndTime($item->endTime);
+    //         }
+
+    //         $attendanceResults[] = $this->createSnapshot(
+    //             $item,
+    //             $employeeMasterData[$item->employeeId] ?? null,
+    //             $deviceMasterData[$deviceCode] ?? null,
+    //             $today
+    //         );
+    //     }
+
+    //     return new AttendanceProcessResult($attendanceResults, $blacklistResults);
+
+    //     // return [
+    //     //     'attendance' => $attendanceResults,
+    //     //     'blacklist'  => $blacklistResults
+    //     // ];
+    // }
 
     private function createSnapshot(
         AttendanceItem $item, 

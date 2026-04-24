@@ -25,24 +25,6 @@ final readonly class AttendanceItem
         }
     }
 
-    // public static function fromArray(array $data): self
-    // {
-    //     $startTime = isset($data['start_time']) && $data['start_time'] !== '' ? $data['start_time'] : null;
-
-    //     return new self(
-    //         employeeId: (int) $data['employee_id'],
-    //         employeeName: $data['employee_name'] ?? null, 
-    //         info: $data['info'] ?? ['in' => true, 'out' => false, 'detail' => []],
-    //         device: $data['device'],
-    //         division: $data['division'] ?? null,
-    //         startTime: $startTime,
-    //         endTime: $data['end_time'] ?? null,
-    //         // Pastikan mapping di sini menerima array dari Domain Service
-    //         workTime: $data['work_time'] ?? null, 
-    //         location: $data['location'] ?? null
-    //     );
-    // }
-
     public static function fromArray(array $data): self
     {
         $startTime = isset($data['start_time']) && $data['start_time'] !== '' 

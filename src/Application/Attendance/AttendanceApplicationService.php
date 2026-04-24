@@ -7,9 +7,12 @@ namespace App\Application\Attendance;
 // Application Layer
 use App\Application\Attendance\Command\CreateAttendanceCommand;
 use App\Application\Attendance\Command\UpdateAttendanceCommand;
-use App\Application\Attendance\Dto\AttendanceShowRow;
 use App\Application\Attendance\Dto\AttendanceResponse;
 use App\Application\Shared\Factory\DetailInfoFactory;
+
+// Application Attendance Detail Info
+use App\Application\Attendance\Dto\AttendanceDetailInfo;
+use App\Application\Attendance\AttendanceDetailInfoFactory;
 
 // Domain Layer
 use App\Domain\Attendance\Entity\Attendance;
@@ -35,7 +38,8 @@ final class AttendanceApplicationService
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private AttendanceRepositoryInterface $repository,
-        private AttendanceDomainService $domainService,  
+        private AttendanceDomainService $domainService,
+        private AttendanceDetailInfoFactory $attendanceDetailInfoFactory,
     ) {
     }
 
@@ -88,64 +92,66 @@ final class AttendanceApplicationService
 
     public function create(CreateAttendanceCommand $command): AttendanceResponse
     {
+        $today = date('Y-m-d');
         $existingAttendance = $this->repository->findByDate(
-            date: $command->date
+            date: $today
         );
-        
-        $existingEntries = $existingAttendance?->getAttendance() ?? [];
-        
-        $enrichedAttendance = $this->domainService->prepareRecords(
+
+        $processed = $this->domainService->prepareRecords(
             date: $command->date,
             entries: $command->attendance,
-            existingEntries: $existingEntries
+            existingEntries: $existingAttendance?->getAttendance() ?? []
         );
+
+        $enrichedAttendance = $processed->attendance;
 
         if ($existingAttendance) {
             // LOGIKA UPDATE (Data tanggal yang sama sudah ada)
-            $existingAttendance->updateEntries(
-                entries: $enrichedAttendance
-            );
-            
+            if (!empty($enrichedAttendance)) {
+                $existingAttendance->updateEntries(
+                    entries: $enrichedAttendance
+                );
+            }
+
+            $existingAttendance->syncWithProcessResult($processed, $this->attendanceDetailInfoFactory, $this->detailInfoFactory);
             $data = $this->repository->update(
                 entity: $existingAttendance
             );
         } else {
             // LOGIKA INSERT DATA BARU
-            // --- AWAL LOGIKA AUTO-COMPLETE ---
             $previousActive = $this->repository->findLatestActive();
-            
+            // --- AWAL LOGIKA AUTO-COMPLETE ---
             if ($previousActive && $previousActive->getDate() < $command->date) {
-                // Tambahkan label Missed Checkout ke setiap item yang belum memiliki end time
                 $oldEntries = $previousActive->getAttendance(); 
-
-                // Panggil Domain Service untuk melakukan finalisasi (Missed Checkout, dll)
                 $finalizedEntries = $this->domainService->finalizeClosingRecords(
                     entries: $oldEntries
                 );
 
-                // Update entitas dengan data yang sudah difinalisasi
                 $previousActive->updateEntries(
                     entries: $finalizedEntries
                 );
 
-                // Set status completed
                 $previousActive->applyStatus(
                     newStatus: ResourceStatus::completed()
                 );
                 
-                // Simpan perubahan
                 $this->repository->update(
                     entity: $previousActive
                 );
             }
             // --- AKHIR LOGIKA AUTO-COMPLETE ---
 
+            $detailInfoDTO = $this->attendanceDetailInfoFactory->buildFromPrimitives(
+                dayoff: false,
+                blacklist: $processed->blacklist,
+            );
+
             $detailInfo = $this->detailInfoFactory->create(
-                detailInfo: []
+                detailInfo: $detailInfoDTO->toArray()
             )->build();
 
             $data = Attendance::create(
-                date: $command->date,
+                date: $today,
                 attendance: $enrichedAttendance,
                 status: ResourceStatus::active(),
                 detailInfo: $detailInfo
@@ -298,50 +304,5 @@ final class AttendanceApplicationService
         return AttendanceResponse::fromEntity(
             entity: $restoredData
         );
-    }
-
-    /**
-     * Attendance Report System
-     */
-    private function mapReportRows(array $rows): array
-    {
-        return array_map(
-            static fn(array $row): AttendanceShowRow => AttendanceShowRow::fromArray($row),
-            $rows
-        );
-    }
-
-    public function reportData(int $employeeId, int $period): array
-    {
-        $criteria = new SearchCriteria(
-            filter: [
-                'period' => $period,
-            ],
-            page: 1,
-            pageSize: 200,
-            sortBy: 'date',
-            sortDir: 'asc',
-            allowedSort: [
-                'date' => 'date',
-                'period' => 'period',
-            ]
-        );
-
-        $result = $this->list(criteria: $criteria);
-
-        $reportRows = $this->mapReportRows($result->data);
-        $filteredRows = [];
-
-        foreach ($reportRows as $reportRow) {
-            $filteredRow = $reportRow->filterAttendanceByEmployee($employeeId);
-
-            if (!$filteredRow->hasAttendance()) {
-                continue;
-            }
-
-            $filteredRows[] = $filteredRow->toArray();
-        }
-
-        return $filteredRows;
     }
 }

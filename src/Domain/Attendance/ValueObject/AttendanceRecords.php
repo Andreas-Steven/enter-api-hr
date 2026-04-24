@@ -73,4 +73,23 @@ final readonly class AttendanceRecords
             'lookup_index' => $lookupIndex,
         ];
     }
+
+    public function getLatestStartTime(): ?string
+    {
+        $latest = null;
+
+        foreach ($this->items as $item) {
+            $startTime = $item->startTime;
+            
+            if ($startTime === null) {
+                continue;
+            }
+
+            if ($latest === null || strtotime($startTime) > strtotime($latest)) {
+                $latest = $startTime;
+            }
+        }
+
+        return $latest;
+    }
 }

@@ -22,8 +22,15 @@ use App\Domain\Shared\Enums\AttendanceStatus;
 use App\Domain\Attendance\ValueObject\AttendancePeriod;
 use App\Domain\Attendance\ValueObject\AttendanceRecords;
 use App\Domain\Attendance\ValueObject\AttendanceItem;
+use App\Domain\Attendance\ValueObject\AttendanceProcessResult;
+use App\Application\Attendance\AttendanceDetailInfoFactory;
+use App\Application\Shared\Factory\DetailInfoFactory;
 
-
+/**
+ * Class Attendance
+ *
+ * @package App\Domain\Attendance\Entity
+ */
 final class Attendance
 {
     use Identifiable, Stateful, Descriptive;
@@ -185,5 +192,40 @@ final class Attendance
 
         // 4. Pastikan AttendanceRecords menerima array of Objects
         $this->attendance = AttendanceRecords::fromItems(array_values($itemMap));
+    }
+
+    // Di dalam class Attendance (Entity)
+    public function syncWithProcessResult(
+        AttendanceProcessResult $result,
+        AttendanceDetailInfoFactory $infoFactory,
+        DetailInfoFactory $generalFactory
+    ): void {
+        // 1. Update Attendance jika ada yang baru
+        if (!empty($result->attendance)) {
+            $this->updateEntries($result->attendance);
+        }
+
+        // 2. Gabungkan Blacklist (Logika Integrity)
+        if (!empty($result->blacklist)) {
+            $currentInfo = $this->getDetailInfo();
+            $currentArray = $currentInfo->toArray();
+
+            // Gabungkan data lama dan baru
+            $mergedBlacklist = array_merge(
+                $currentArray['blacklist'] ?? [],
+                $result->blacklist
+            );
+
+            $newInfoDTO = $infoFactory->buildFromPrimitives(
+                dayoff: $currentArray['day_off'] ?? false,
+                blacklist: $mergedBlacklist
+            );
+
+            $newDetailInfo = $generalFactory
+                ->update($currentInfo, $newInfoDTO->toArray())
+                ->build();
+
+            $this->updateDetailInfo($newDetailInfo);
+        }
     }
 }
