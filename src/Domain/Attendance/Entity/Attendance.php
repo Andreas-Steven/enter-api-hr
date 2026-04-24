@@ -186,4 +186,30 @@ final class Attendance
         // 4. Pastikan AttendanceRecords menerima array of Objects
         $this->attendance = AttendanceRecords::fromItems(array_values($itemMap));
     }
+
+    public function syncWithProcessResult(
+        AttendanceProcessResult $result,
+        AttendanceDetailInfoFactory $infoFactory,
+        DetailInfoFactory $generalFactory
+    ): void {
+        // 1. Update Attendance jika ada yang baru
+        if (!empty($result->attendance)) {
+            $this->updateEntries($result->attendance);
+        }
+
+        // 2. Gabungkan Blacklist (Logika Integrity)
+        if (!empty($result->blacklist)) {
+            $newInfoDTO = $infoFactory->buildFromPrimitives(
+                dayoff: false,
+                blacklist: $result->blacklist
+            );
+
+            $newDetailInfo = $generalFactory->update(
+                $this->getDetailInfo(), 
+                $newInfoDTO->toArray()
+            )->build();
+
+            $this->updateDetailInfo($newDetailInfo);
+        }
+    }
 }

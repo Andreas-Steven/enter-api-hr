@@ -18,6 +18,9 @@ use App\Domain\Attendance\Repository\AttendanceRepositoryInterface;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
+// Application Attendance Detail Info
+use App\Application\Attendance\AttendanceDetailInfoFactory;
+
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
@@ -35,7 +38,8 @@ final class AttendanceApplicationService
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private AttendanceRepositoryInterface $repository,
-        private AttendanceDomainService $domainService,  
+        private AttendanceDomainService $domainService,
+        private AttendanceDetailInfoFactory $attendanceDetailInfoFactory,
     ) {
     }
 
@@ -105,7 +109,7 @@ final class AttendanceApplicationService
             $existingAttendance->updateEntries(
                 entries: $enrichedAttendance
             );
-            
+
             $data = $this->repository->update(
                 entity: $existingAttendance
             );
@@ -140,8 +144,13 @@ final class AttendanceApplicationService
             }
             // --- AKHIR LOGIKA AUTO-COMPLETE ---
 
+            $detailInfoDTO = $this->attendanceDetailInfoFactory->buildFromPrimitives(
+                dayoff: false,
+                blacklist: [],
+            );
+
             $detailInfo = $this->detailInfoFactory->create(
-                detailInfo: []
+                detailInfo: $detailInfoDTO->toArray()
             )->build();
 
             $data = Attendance::create(

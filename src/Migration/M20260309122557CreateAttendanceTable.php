@@ -21,9 +21,9 @@ use Yiisoft\Db\Connection\Connection;
 /**
  * Creates attendance table with status tracking and JSON detail_info.
  */
-// final class M20260212162153CreateAttendanceTable implements RevertibleMigrationInterface
+// final class M20260309122557CreateAttendanceTable implements RevertibleMigrationInterface
 
-final class M20260309122555CreateAttendanceTable implements RevertibleMigrationInterface
+final class M20260309122557CreateAttendanceTable implements RevertibleMigrationInterface
 {
     private const TABLE_NAME = 'attendance';
     

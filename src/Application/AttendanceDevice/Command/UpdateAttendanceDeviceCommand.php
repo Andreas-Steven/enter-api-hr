@@ -38,6 +38,7 @@ final readonly class UpdateAttendanceDeviceCommand
             address: $address,
             ipAddress: $ipAddress,
             location: $location,
+            requiresLocation: $requiresLocation,
             status: $status,
             detailInfo: $detailInfo,
             lockVersion: $lockVersion,
