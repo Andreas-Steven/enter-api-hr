@@ -172,7 +172,7 @@ final class EmployeeDivisionApplicationService
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'employeedivision.delete',
+            permission: 'employee-division.delete',
             resource: $this->getResource(),
         );
         
