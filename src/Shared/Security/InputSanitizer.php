@@ -264,7 +264,7 @@ final class InputSanitizer
         $value = trim($value);
         
         // Convert empty string to null
-        if ($value === '') {
+        if ($value === '' || strtolower($value) === 'null') {
             return null;
         }
 

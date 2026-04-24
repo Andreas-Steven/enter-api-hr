@@ -18,6 +18,9 @@ use Yiisoft\Validator\Rule\StringValue;
 use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
 use Yiisoft\Validator\Rule\StopOnError;
+use Yiisoft\Validator\Rule\Each;
+use Yiisoft\Validator\Rule\Nested;
+
 
 /**
  * WorkTime Input Validator
@@ -108,6 +111,28 @@ final class WorkTimeInputValidator extends AbstractValidator
                         )
                     ])
                 ],
+                
+                'working_days' => [
+                    new Each([
+                        new Nested([
+                            'day_of_week' => [
+                                new Required(),
+                                new Integer(min: 1, max: 7),
+                            ],
+                            'entry_time' => [
+                                new StringValue(
+                                    skipOnEmpty: true,
+                                ),
+                            ],
+                            'home_time' => [
+                                new StringValue(
+                                    skipOnEmpty: true,
+                                ),
+                            ],
+                        ]),
+                    ]),
+                ],
+
                 'status' => [
                     new Required(),
                     new Integer(),
