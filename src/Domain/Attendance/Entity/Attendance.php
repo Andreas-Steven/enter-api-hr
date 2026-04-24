@@ -204,12 +204,14 @@ final class Attendance
                 blacklist: $result->blacklist
             );
 
-            $newDetailInfo = $generalFactory->update(
-                $this->getDetailInfo(), 
-                $newInfoDTO->toArray()
-            )->build();
+            $detailInfo = $this->detailInfoFactory
+                ->update(
+                    detailInfo: $this->getDetailInfo(),
+                    payload: $newInfoDTO->toArray(),
+                )
+                ->build();
 
-            $this->updateDetailInfo($newDetailInfo);
+            $this->updateDetailInfo($detailInfo);
         }
     }
 }
