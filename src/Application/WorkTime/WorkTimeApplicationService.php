@@ -140,9 +140,11 @@ final class WorkTimeApplicationService
             newStatus: $newStatus
         );
 
-        $data->updateWorkingDays(
-            workingDays: WorkingDays::fromArray($command->workingDays)
-        );
+        if ($command->workingDays !== null) {
+            $data->updateWorkingDays(
+                workingDays: WorkingDays::fromArray($command->workingDays)
+            );
+        }
 
         $detailInfo = $this->detailInfoFactory
             ->update(

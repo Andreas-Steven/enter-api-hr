@@ -22,20 +22,33 @@ final readonly class WorkingDays
 
         for ($index = 1; $index <= 7; $index++) {
             $dayData = $this->getDayDataOrThrow($inputMap, $index);
-            $dayName = date('l');
+            $dayName = self::getDayName($index);
 
-            // Validasi waktu
-            self::assertValidTime($dayData['entry_time'], 'Entry Time', $dayName);
-            self::assertValidTime($dayData['home_time'], 'Home Time', $dayName);
+            $entryTime = self::normalizeTime($dayData['entry_time'], 'Entry Time', $dayName);
+            $homeTime = self::normalizeTime($dayData['home_time'], 'Home Time', $dayName);
 
             $processed[$index] = [
                 'day_of_week' => $index,
-                'entry_time'  => $dayData['entry_time'] ? (string) $dayData['entry_time'] : null,
-                'home_time'   => $dayData['home_time'] ? (string) $dayData['home_time'] : null,
+                'entry_time'  => $entryTime,
+                'home_time'   => $homeTime,
             ];
         }
 
         $this->days = $processed;
+    }
+
+    private static function getDayName(int $dayOfWeek): string
+    {
+        return match ($dayOfWeek) {
+            1 => 'Monday',
+            2 => 'Tuesday',
+            3 => 'Wednesday',
+            4 => 'Thursday',
+            5 => 'Friday',
+            6 => 'Saturday',
+            7 => 'Sunday',
+            default => (string) $dayOfWeek,
+        };
     }
 
     private function mapAndValidateInput(array $data): array
@@ -87,13 +100,28 @@ final readonly class WorkingDays
 
     private static function assertValidTime(?string $time, string $attribute, string $day): void
     {
-        if ($time === null) {
-            return;
+        self::normalizeTime($time, $attribute, $day);
+    }
+
+    private static function normalizeTime(?string $time, string $attribute, string $day): ?string
+    {
+        if ($time === null || $time == '') {
+            return null;
         }
 
         $dateTime = DateTime::createFromFormat('H:i:s', $time);
 
-        if (!$dateTime || $dateTime->format('H:i:s') !== $time) {
+        if ($dateTime && $dateTime->format('H:i:s') === $time) {
+            return $time;
+        }
+
+        $dateTime = DateTime::createFromFormat('H:i', $time);
+
+        if ($dateTime && $dateTime->format('H:i') === $time) {
+            return $dateTime->format('H:i:s');
+        }
+
+        {
             throw new BadRequestException(
                 translate: Message::create(
                     key: 'work_time.invalid_format',
@@ -105,6 +133,8 @@ final readonly class WorkingDays
                 )
             );
         }
+
+        return null;
     }
 
     public static function fromArray(array $data): self
