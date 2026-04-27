@@ -104,11 +104,11 @@ final class WorkTimeInputValidator extends AbstractValidator
                             min: 3, 
                             max: 255,
                         ),
-                        new UniqueValue(
-                            table: 'work_time', 
-                            column: 'name', 
-                            ignoreId: null
-                        )
+                        // new UniqueValue(
+                        //     table: 'work_time', 
+                        //     column: 'name', 
+                        //     ignoreId: null
+                        // )
                     ])
                 ],
                 

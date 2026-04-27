@@ -36,7 +36,7 @@ return [
     /**
      *  Work Time
      */
-    'work_time.invalid_format' => 'The {resource} format is invalid',
+    'work_time.invalid_format' => 'The {resource} on {day} format is invalid.',
 
     /**
      * Employee
