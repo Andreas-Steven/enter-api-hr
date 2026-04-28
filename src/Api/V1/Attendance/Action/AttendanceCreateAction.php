@@ -53,7 +53,7 @@ final class AttendanceCreateAction
         $command = CreateAttendanceCommand::create(
             date: (string) $params->get('date'),
             attendance: $params->get('attendance'),
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );
 

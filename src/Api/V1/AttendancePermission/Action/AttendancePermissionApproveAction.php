@@ -81,7 +81,7 @@ final class AttendancePermissionApproveAction
             id: (int) $id,
             approved: $params->get('approved'),
             approvedNote: $params->get('approved_note'),
-            lockVersion: $params->get('lock_version'),
+            lockVersion: (int) $params->get('lock_version'),
         );
 
         $response = $this->applicationService->approve(

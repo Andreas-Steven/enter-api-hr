@@ -56,7 +56,7 @@ final class GeneralAffairCreateAction
             categoryId: (int) $params->get('category_id'),
             locationId: (int) $params->get('location_id'),
             asset: $params->get('asset'),
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );
 

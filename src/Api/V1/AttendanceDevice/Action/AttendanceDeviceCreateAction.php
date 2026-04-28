@@ -58,7 +58,7 @@ final class AttendanceDeviceCreateAction
             address: (string) $params->get('address'),
             requiresLocation: (int) $params->get('requires_location'),
             location: $params->get('location'),
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );
 

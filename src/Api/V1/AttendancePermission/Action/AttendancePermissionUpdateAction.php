@@ -84,10 +84,10 @@ final class AttendancePermissionUpdateAction
             note: $params->get('note'),
             approved: null,
             approvedNote: null,
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             revision: $params->get('revision'),
             detailInfo: null,
-            lockVersion: $params->get('lock_version'),
+            lockVersion: (int) $params->get('lock_version'),
         );
 
         $response = $this->applicationService->update(

@@ -79,7 +79,7 @@ final class AttendancePermissionRejectAction
 
         $command = RejectAttendancePermissionCommand::create(
             id: (int) $id,
-            lockVersion: $params->get('lock_version'),
+            lockVersion: (int) $params->get('lock_version'),
         );
 
         $response = $this->applicationService->reject(

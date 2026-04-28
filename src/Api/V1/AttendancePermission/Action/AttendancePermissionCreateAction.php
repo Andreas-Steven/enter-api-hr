@@ -57,7 +57,7 @@ final class AttendancePermissionCreateAction
             date: $params->get('date'),
             note: (string) $params->get('note'),
             revision: $params->get('revision'),
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );
 

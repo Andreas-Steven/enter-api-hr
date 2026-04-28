@@ -87,9 +87,9 @@ final class AttendanceDeviceUpdateAction
             ipAddress: $params->get('ip_address'),
             location: $params->get('location'),
             requiresLocation: $params->get('requires_location'),
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info'),
-            lockVersion: $params->get('lock_version'),
+            lockVersion: (int) $params->get('lock_version'),
         );
 
         $response = $this->applicationService->update(
