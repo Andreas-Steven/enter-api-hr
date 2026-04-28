@@ -53,7 +53,7 @@ final class WorkTimeCreateAction
         $command = CreateWorkTimeCommand::create(
             name: (string) $params->get('name'),
             workingDays: $params->get('working_days'),
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );
 

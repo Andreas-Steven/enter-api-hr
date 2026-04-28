@@ -52,7 +52,7 @@ final class EmployeeTypeCreateAction
 
         $command = CreateEmployeeTypeCommand::create(
             name: (string) $params->get('name'),
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );
 

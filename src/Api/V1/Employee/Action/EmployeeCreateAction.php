@@ -59,7 +59,7 @@ final class EmployeeCreateAction
             positionId: EmployeeDefault::POSITION_ID,
             workTimeId: EmployeeDefault::WORK_TIME_ID,
             employeeTypeId: EmployeeDefault::EMPLOYEE_TYPE_ID,
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );
 

@@ -53,7 +53,7 @@ final class EmployeeDivisionCreateAction
         $command = CreateEmployeeDivisionCommand::create(
             name: (string) $params->get('name'),
             code: (string) $params->get('code'),
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );
 

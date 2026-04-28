@@ -105,9 +105,9 @@ final class EmployeeUpdateAction
             dateStart: $params->get('date_start'),
             contact: $params->get('contact'),
             image: $params->get('image'),
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info'),
-            lockVersion: $params->get('lock_version'),
+            lockVersion: (int) $params->get('lock_version'),
         );
 
         $response = $this->applicationService->update(

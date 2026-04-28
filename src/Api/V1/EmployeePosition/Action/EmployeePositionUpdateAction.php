@@ -79,9 +79,9 @@ final class EmployeePositionUpdateAction
         $command = UpdateEmployeePositionCommand::create(
             id: (int) $id,
             name: $params->get('name'),
-            status: $params->get('status'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info'),
-            lockVersion: $params->get('lock_version'),
+            lockVersion: (int) $params->get('lock_version'),
         );
 
         $response = $this->applicationService->update(
