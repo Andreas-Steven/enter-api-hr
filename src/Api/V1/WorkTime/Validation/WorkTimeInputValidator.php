@@ -104,11 +104,11 @@ final class WorkTimeInputValidator extends AbstractValidator
                             min: 3, 
                             max: 255,
                         ),
-                        // new UniqueValue(
-                        //     table: 'work_time', 
-                        //     column: 'name', 
-                        //     ignoreId: null
-                        // )
+                        new UniqueValue(
+                            table: 'work_time', 
+                            column: 'name', 
+                            ignoreId: null
+                        )
                     ])
                 ],
                 
@@ -169,8 +169,11 @@ final class WorkTimeInputValidator extends AbstractValidator
                     new Each([
                         new Nested([
                             'day_of_week' => [
-                                new Required(),
-                                new Integer(min: 1, max: 7),
+                                new Integer(
+                                    min: 1, 
+                                    max: 7,
+                                    skipOnEmpty: true,
+                                ),
                             ],
                             'entry_time' => [
                                 new StringValue(

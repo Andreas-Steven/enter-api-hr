@@ -61,9 +61,9 @@ final class WorkTimeUpdateAction
             );
         }
 
-        // $payload->ensureExists(
-        //     resource: $resource,
-        // );
+        $payload->ensureExists(
+            resource: $resource,
+        );
 
         $params = $payload->getRawParams()
             ->onlyAllowed(
