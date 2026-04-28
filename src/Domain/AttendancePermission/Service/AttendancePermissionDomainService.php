@@ -41,13 +41,13 @@ final class AttendancePermissionDomainService
      * - Cross-entity business rules
      */ 
 
-    public function ensureRevisionConsistency(AttendancePermission $entity, Revision $revision): void
+    public function ensureRevisionConsistency(AttendancePermission $entity, ?Revision $revision): void
     {
         $type = $entity->getPermission(); 
 
         // 1. Jika tidak butuh revisi (SICK = 1, SICK_WITH_RECEIPT = 2, & ANNUAL_LEAVE = 5)
         if (!$type->requiresRevision()) {
-            if (!$revision->isEmpty()) {
+            if ($revision !== null && !$revision->isEmpty()) {
                 $entity->clearRevision();
             }
 
@@ -55,7 +55,7 @@ final class AttendancePermissionDomainService
         }
 
         // 2. Jika tipenya LATE (LATE = 4)
-        if ($type === PermissionType::LATE && !$revision->hasStartTime()) {
+        if ($type === PermissionType::LATE && ($revision === null || !$revision->hasStartTime())) {
              throw new BadRequestException(
                 translate: Message::create(
                     key: 'attendance_permission.start_time_required',
@@ -66,7 +66,7 @@ final class AttendancePermissionDomainService
         }
 
             // 3. Jika tipenya LEAVE_EARLY (LEAVE_EARLY = 3)
-        if ($type === PermissionType::LEAVE_EARLY && !$revision->hasEndTime()) {
+        if ($type === PermissionType::LEAVE_EARLY && ($revision === null || !$revision->hasEndTime())) {
             throw new BadRequestException(
                 translate: Message::create(
                     key: 'attendance_permission.end_time_required',

@@ -19,6 +19,8 @@ use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
 use Yiisoft\Validator\Rule\StopOnError;
 use Yiisoft\Validator\Rule\Date\Date;
+use Yiisoft\Validator\Rule\Each;
+use Yiisoft\Validator\Rule\Nested;
 
 /**
  * AttendancePermission Input Validator
@@ -132,6 +134,22 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                         max: 255,
                     ),
                 ],
+                'revision' => [
+                    new Each([
+                        new Nested([
+                            'start_time' => [
+                                new StringValue(
+                                    skipOnEmpty: true,
+                                ),
+                            ],
+                            'end_time' => [
+                                new StringValue(
+                                    skipOnEmpty: true,
+                                ),
+                            ],
+                        ]),
+                    ], skipOnEmpty: true),
+                ],
                 'status' => [
                     new Required(),
                     new Integer(),
@@ -170,11 +188,9 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                         min: 1, 
                     ),
                 ],
-                
                 'permission_type' => [
                     new Integer(
                         skipOnEmpty: true,
-                        min: 1, 
                     ),
                 ],
                 'date' => [
@@ -190,6 +206,22 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                         max: 255,
                         skipOnEmpty: true,
                     ),
+                ],
+                'revision' => [
+                    new Each([
+                        new Nested([
+                            'start_time' => [
+                                new StringValue(
+                                    skipOnEmpty: true,
+                                ),
+                            ],
+                            'end_time' => [
+                                new StringValue(
+                                    skipOnEmpty: true,
+                                ),
+                            ],
+                        ]),
+                    ], skipOnEmpty: true),
                 ],
                 'status' => [
                     new Integer(

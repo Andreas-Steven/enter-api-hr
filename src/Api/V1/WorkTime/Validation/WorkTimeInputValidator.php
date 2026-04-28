@@ -111,7 +111,6 @@ final class WorkTimeInputValidator extends AbstractValidator
                         )
                     ])
                 ],
-                
                 'working_days' => [
                     new Required(),
                     new Each([
@@ -133,7 +132,6 @@ final class WorkTimeInputValidator extends AbstractValidator
                         ]),
                     ]),
                 ],
-
                 'status' => [
                     new Required(),
                     new Integer(),
