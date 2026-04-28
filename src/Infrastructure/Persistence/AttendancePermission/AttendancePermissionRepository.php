@@ -352,6 +352,7 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
             'note' => $entity->getNote(),
             'approved' => $entity->getApproved(),
             'approved_note' => $entity->getApprovedNote(),
+            'revision' => $entity->getRevision()?->toArray(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             SyncMdb::field() => $entity->getSyncMdbValue(),

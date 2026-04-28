@@ -61,6 +61,10 @@ final class WorkTimeUpdateAction
             );
         }
 
+        var_dump("Masuk Update"); 
+        var_dump($resource); 
+        exit;
+
         $payload->ensureExists(
             resource: $resource,
         );
@@ -70,6 +74,8 @@ final class WorkTimeUpdateAction
                 allowedKeys: self::ALLOWED_KEYS
             )->with('id', $id)
             ->sanitize();
+            
+        
 
         $this->inputValidator->validate(
             data: $params,
