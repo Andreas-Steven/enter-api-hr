@@ -90,7 +90,16 @@ final class Revision
      */
     public static function fromArray(?array $data): ?self
     {
-        if (empty($data) || (empty($data['start_time']) && empty($data['end_time']))) {
+        if (empty($data)) {
+            return null;
+        }
+
+        // Handle array of revisions (new format) - take the first item
+        if (isset($data[0]) && is_array($data[0])) {
+            $data = $data[0];
+        }
+
+        if (empty($data['start_time']) && empty($data['end_time'])) {
             return null;
         }
 

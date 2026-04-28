@@ -150,8 +150,8 @@ final class AttendancePermissionApplicationService
         );
 
         $permissionInfo = $this->permissionInfoFactory->buildFromPrimitives(
-            employeeId: $command->employeeId,
-            permissionId: $command->permissionType,
+            employeeId: $command->employeeId ?? $data->getEmployeeId(),
+            permissionId: $command->permissionType ?? $data->getPermissionType(),
             attendance: null
         );
 
