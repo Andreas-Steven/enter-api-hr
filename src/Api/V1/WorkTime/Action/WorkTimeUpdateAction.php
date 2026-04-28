@@ -61,10 +61,6 @@ final class WorkTimeUpdateAction
             );
         }
 
-        var_dump("Masuk Update"); 
-        var_dump($resource); 
-        exit;
-
         $payload->ensureExists(
             resource: $resource,
         );

@@ -6,14 +6,14 @@ namespace App\Domain\Shared\Enums;
 
 enum ApprovalStatus: int
 {
-    case DEFAULT = 0;
+    case PENDING = 0;
     case APPROVED = 1;
     case REJECTED = 2;
     
     public function getLabel(): string
     {
         return match($this) {
-            self::DEFAULT => 'Default',
+            self::PENDING => 'Pending',
             self::REJECTED => 'Rejected',
             self::APPROVED => 'Approved',
         };
@@ -26,14 +26,14 @@ enum ApprovalStatus: int
     {
         return match($this) {
             self::APPROVED => [
-                self::DEFAULT, 
+                self::PENDING, 
                 self::REJECTED, 
                 self::APPROVED
             ],
             self::REJECTED => [
-                self::DEFAULT
+                self::PENDING
             ],
-            self::DEFAULT => [], // Biasanya tidak ada transisi kembali ke Default
+            self::PENDING => [], // Biasanya tidak ada transisi kembali ke Pending
         };
     }
 
