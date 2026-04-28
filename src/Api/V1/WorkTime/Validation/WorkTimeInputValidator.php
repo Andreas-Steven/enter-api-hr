@@ -165,6 +165,26 @@ final class WorkTimeInputValidator extends AbstractValidator
                         )
                     ])
                 ],
+                'working_days' => [
+                    new Each([
+                        new Nested([
+                            'day_of_week' => [
+                                new Required(),
+                                new Integer(min: 1, max: 7),
+                            ],
+                            'entry_time' => [
+                                new StringValue(
+                                    skipOnEmpty: true,
+                                ),
+                            ],
+                            'home_time' => [
+                                new StringValue(
+                                    skipOnEmpty: true,
+                                ),
+                            ],
+                        ]),
+                    ]),
+                ],
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,

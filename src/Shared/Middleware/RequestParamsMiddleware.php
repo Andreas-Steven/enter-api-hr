@@ -181,6 +181,16 @@ final class RequestParamsMiddleware implements MiddlewareInterface
                     $body = (array) $body;
                 }
                 
+                // Handle x-www-form-urlencoded with nested arrays
+                $contentType = $this->request->getHeaderLine('Content-Type');
+                if (str_contains($contentType, 'application/x-www-form-urlencoded')) {
+                    $rawBody = $this->request->getBody()->getContents();
+                    if (!empty($rawBody)) {
+                        parse_str($rawBody, $parsedBody);
+                        $body = array_merge($body, $parsedBody);
+                    }
+                }
+                
                 return \array_merge($query, $body);
             }
             

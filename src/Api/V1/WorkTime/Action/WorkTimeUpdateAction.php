@@ -61,17 +61,15 @@ final class WorkTimeUpdateAction
             );
         }
 
-        $payload->ensureExists(
-            resource: $resource,
-        );
+        // $payload->ensureExists(
+        //     resource: $resource,
+        // );
 
         $params = $payload->getRawParams()
             ->onlyAllowed(
                 allowedKeys: self::ALLOWED_KEYS
             )->with('id', $id)
             ->sanitize();
-            
-        
 
         $this->inputValidator->validate(
             data: $params,
