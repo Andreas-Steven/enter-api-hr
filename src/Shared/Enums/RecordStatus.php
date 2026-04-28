@@ -111,6 +111,7 @@ enum RecordStatus: int
         ],
         self::ACTIVE->value => [
             self::COMPLETED->value,
+            self::INACTIVE->value,
             self::APPROVED->value,
             self::REJECTED->value,
         ],

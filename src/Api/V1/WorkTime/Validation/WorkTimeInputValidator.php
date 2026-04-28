@@ -113,6 +113,7 @@ final class WorkTimeInputValidator extends AbstractValidator
                 ],
                 
                 'working_days' => [
+                    new Required(),
                     new Each([
                         new Nested([
                             'day_of_week' => [
@@ -186,7 +187,7 @@ final class WorkTimeInputValidator extends AbstractValidator
                                 ),
                             ],
                         ]),
-                    ]),
+                    ], skipOnEmpty: $this->data['id'] !== null),
                 ],
                 'status' => [
                     new Integer(
