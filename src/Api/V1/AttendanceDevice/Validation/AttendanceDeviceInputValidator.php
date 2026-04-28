@@ -208,7 +208,9 @@ final class AttendanceDeviceInputValidator extends AbstractValidator
                     new StringValue(
                         skipOnEmpty: true,
                     ),
-                    new Ip(),
+                    new Ip(
+                        skipOnEmpty: true
+                    ),
                 ],
                 'location' => [
                     new Nested([
