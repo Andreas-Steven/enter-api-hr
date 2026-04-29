@@ -19,22 +19,6 @@ final readonly class AttendancePermissionDetailInfoFactory
         private AttendancePermissionFaker $faker,
     ) {}
 
-    // public function buildFromPrimitives(
-    //     ?int $employeeId = null,
-    //     ?int $permissionId = null,
-    //     ?int $attendance = null,
-    // ): AttendancePermissionDetailInfo {
-    //     $permission = $this->buildPermissionArray($permissionId);
-    //     $employee = $this->faker->employeeFaker($employeeId);
-    //     $attendance = $this->faker->attendanceFaker();
-
-    //     return new AttendancePermissionDetailInfo(
-    //         employee: $employee,
-    //         permission: $permission,
-    //         attendance: $attendance,
-    //     );
-    // }
-
     public function buildFromPrimitives(
         ?int $employeeId = null,
         ?int $permissionId = null,
