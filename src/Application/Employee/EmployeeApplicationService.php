@@ -225,8 +225,8 @@ final class EmployeeApplicationService
         }
 
         $employeeInfoFactory = $this->employeeInfoFactory->buildFromPrimitives(
-            ssoId: null,
-            username: null,
+            ssoId: $data->getSsoId(),
+            username: $data->getUsername(),
             workTimeId: $command->workTimeId ?? $data->getWorkTimeId(),
             divisionId: $command->divisionId ?? $data->getDivisionId(),
             positionId: $command->positionId ?? $data->getPositionId(),
