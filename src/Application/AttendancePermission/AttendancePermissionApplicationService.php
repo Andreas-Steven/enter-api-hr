@@ -84,16 +84,12 @@ final class AttendancePermissionApplicationService
         );
     }
 
-    /**
-     * TODO:
-     * [ ] Search the attendance data form Date and Employee ID for Create and Update
-     */
     public function create(CreateAttendancePermissionCommand $command): AttendancePermissionResponse
     {
         $permissionInfo = $this->permissionInfoFactory->buildFromPrimitives(
             employeeId: $command->employeeId,
             permissionId: $command->permissionType,
-            attendance: null
+            date: $command->date
         );
         
         $detailInfo = $this->detailInfoFactory
@@ -156,7 +152,7 @@ final class AttendancePermissionApplicationService
         $permissionInfo = $this->permissionInfoFactory->buildFromPrimitives(
             employeeId: $command->employeeId ?? $data->getEmployeeId(),
             permissionId: $command->permissionType ?? $data->getPermissionType(),
-            attendance: null
+            date: $command->date ?? $data->getDate()
         );
 
         $detailInfo = $this->detailInfoFactory
