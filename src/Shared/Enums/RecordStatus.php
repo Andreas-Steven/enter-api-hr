@@ -90,7 +90,7 @@ enum RecordStatus: int
      * These statuses are considered final and should not allow further transitions
      */
     public const IMMUTABLE_STATUSES = [
-        self::ACTIVE->value,
+        // self::ACTIVE->value,
         self::COMPLETED->value,
         self::DELETED->value,
     ];

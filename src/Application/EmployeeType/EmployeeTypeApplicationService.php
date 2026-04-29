@@ -171,7 +171,7 @@ final class EmployeeTypeApplicationService
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'employeetype.delete',
+            permission: 'employee-type.delete',
             resource: $this->getResource(),
         );
         
