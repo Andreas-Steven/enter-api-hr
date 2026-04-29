@@ -25,10 +25,13 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class AttendancePermissionDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'status'];
+    private const ALLOWED_KEYS = ['id', 'employee_id', 'permission_type', 'date', 'approved', 'status'];
     private const ALLOWED_SORT = [
         'id' => 'id', 
-        'name' => 'name', 
+        'employee_id' => 'employee_id',
+        'permission_type' => 'permission_type',
+        'date' => 'date',
+        'approved' => 'approved',
         'status' => 'status',
     ];
 
@@ -44,7 +47,7 @@ final class AttendancePermissionDataAction
     {
         /** @var \App\Shared\Request\RequestParams $payload */
         $payload = $request->getAttribute('payload');
-
+        
         $filter = $payload->getFilter()
             ->onlyAllowed(
                 allowedKeys: self::ALLOWED_KEYS

@@ -161,6 +161,9 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
             allowedColumns: [
                 'id', 
                 'employee_id',
+                'permission_type',
+                'date',
+                'approved',
                 'status', 
                 SyncMdb::field(),
             ]
