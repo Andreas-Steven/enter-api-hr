@@ -223,8 +223,8 @@ final class AttendancePermission
      */
     public function applyApproval(ApprovalStatus $newStatus, ?string $note): void
     {
-        // 1. Ambil status saat ini dari property int (default ke DEFAULT jika null)
-        $currentStatus = ApprovalStatus::tryFrom($this->approved ?? ApprovalStatus::DEFAULT->value);
+        // 1. Ambil status saat ini dari property int (default ke PENDING jika null)
+        $currentStatus = ApprovalStatus::tryFrom($this->approved ?? ApprovalStatus::PENDING->value);
 
         // 2. Gunakan guard logic yang sudah dipindah ke Enum
         if (!$newStatus->canTransitionFrom($currentStatus)) {

@@ -109,8 +109,8 @@ final class AttendancePermissionApplicationService
             permissionType: (int) $command->permissionType,
             date: $command->date,
             note: $command->note,
-            approved: $command->approved,
-            approvedNote: $command->approvedNote,
+            approved: ApprovalStatus::PENDING->value,
+            approvedNote: null,
             revision: Revision::fromArray($command->revision),
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
@@ -285,16 +285,6 @@ final class AttendancePermissionApplicationService
             version: $command->lockVersion ?? null
         );
 
-        $hasFieldChanges = $data->hasFieldChanges(
-            data: (array) $command,
-            removeNulls: true
-        );
-
-        $data->guardAgainstInvalidTransition(
-            hasFieldChanges: $hasFieldChanges,
-            newStatus: $newStatus
-        );
-
         $data->applyApproval(
             newStatus: ApprovalStatus::APPROVED,
             note: $command->approvedNote
@@ -317,7 +307,9 @@ final class AttendancePermissionApplicationService
         );
 
         return AttendancePermissionResponse::fromEntity(
-            entity: $this->repository->update(entity: $data)
+            entity: $this->repository->update(
+                entity: $data
+            )
         );
     }
 
@@ -325,32 +317,16 @@ final class AttendancePermissionApplicationService
     {
         $data = $this->getEntityById(id: $id, status: null);
 
-        $newStatus = ResourceStatus::completed();
-
         $this->repository->verifyLockVersion(
             entity: $data,
             version: $command->lockVersion ?? null
-        );
-
-        $hasFieldChanges = $data->hasFieldChanges(
-            data: (array) $command,
-            removeNulls: true
-        );
-
-        $data->guardAgainstInvalidTransition(
-            hasFieldChanges: $hasFieldChanges,
-            newStatus: $newStatus
         );
 
         $data->applyApproval(
             newStatus: ApprovalStatus::REJECTED,
             note: null
         );
-
-        $data->applyStatus(
-            newStatus: $newStatus
-        );
-
+        
         $detailInfo = $this->detailInfoFactory
             ->update(
                 detailInfo: $data->getDetailInfo(),

@@ -12,6 +12,7 @@ use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInt
 use App\Domain\AttendancePermission\Entity\AttendancePermission;
 use App\Domain\AttendancePermission\ValueObject\Revision;
 use App\Domain\Shared\Enums\PermissionType;
+use App\Domain\Shared\Enums\ApprovalStatus;
 
 // Shared Layer
 use App\Shared\ValueObject\Message;
@@ -71,6 +72,25 @@ final class AttendancePermissionDomainService
                 translate: Message::create(
                     key: 'attendance_permission.end_time_required',
                     params: ['type' => $type->getLabel()],
+                    domain: 'app',
+                )
+            );
+        }
+    }
+
+    /**
+     * Guard approval status transition
+     */
+    public function guardApprovalTransition(ApprovalStatus $currentStatus, ApprovalStatus $newStatus): void
+    {
+        if (!$newStatus->canTransitionFrom($currentStatus)) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'attendance_permission.invalid_approval_transition',
+                    params: [
+                        'from' => $currentStatus->getLabel(),
+                        'to' => $newStatus->getLabel(),
+                    ],
                     domain: 'app',
                 )
             );
