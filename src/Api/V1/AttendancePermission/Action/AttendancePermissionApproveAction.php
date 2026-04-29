@@ -79,7 +79,7 @@ final class AttendancePermissionApproveAction
 
         $command = ApproveAttendancePermissionCommand::create(
             id: (int) $id,
-            approved: $params->get('approved'),
+            approved: (int) $params->get('approved'),
             approvedNote: $params->get('approved_note'),
             lockVersion: (int) $params->get('lock_version'),
         );
