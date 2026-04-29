@@ -45,134 +45,134 @@ final readonly class EmployeeDetailInfoFactory
             'name' => $username,
         ];
 
-        $workTimeData = $this->workTimeRepo->findById(
-            id: $workTimeId,
-            status: ResourceStatus::active()->value()
-        );
+        $workTime = null;
+        if ($workTimeId !== null) {
+            $workTimeData = $this->workTimeRepo->findById(
+                id: $workTimeId,
+                status: ResourceStatus::active()->value()
+            );
 
-        if ($workTimeData === null) {
-            throw new NotFoundException(
-                translate: Message::create(
-                    key: 'resource.not_found', 
-                    params: [
-                        'resource' => 'work_time',
-                        'field' => 'id',
-                        'value' => $workTimeId
-                    ]
-                )
+            if ($workTimeData === null) {
+                throw new NotFoundException(
+                    translate: Message::create(
+                        key: 'resource.not_found',
+                        params: [
+                            'resource' => 'work_time',
+                            'field' => 'id',
+                            'value' => $workTimeId
+                        ]
+                    )
+                );
+            }
+
+            $workTime = WorkTime::reconstitute(
+                id: $workTimeData->getId(),
+                name: $workTimeData->getName(),
+                workingDays: $workTimeData->getWorkingDays(),
+                status: $workTimeData->getStatus(),
+                detailInfo: $workTimeData->getDetailInfo(),
+                syncMdb: $workTimeData->getSyncMdb(),
+                lockVersion: $workTimeData->getLockVersion()
             );
         }
 
-        $workTime = WorkTime::reconstitute(
-            id: $workTimeData->getId(),
-            name: $workTimeData->getName(),
-            workingDays: $workTimeData->getWorkingDays(),
-            status: $workTimeData->getStatus(),
-            detailInfo: $workTimeData->getDetailInfo(),
-            syncMdb: $workTimeData->getSyncMdb(),
-            lockVersion: $workTimeData->getLockVersion()
-        );
+        $employeeType = null;
+        if ($employeeTypeId !== null) {
+            $employeeTypeData = $this->employeeTypeRepo->findById(
+                id: $employeeTypeId,
+                status: ResourceStatus::active()->value()
+            );
 
-        $employeeTypeData = $this->employeeTypeRepo->findById(
-            id: $employeeTypeId,
-            status: ResourceStatus::active()->value()
-        );
-        
-        if ($employeeTypeData === null) {
-            throw new NotFoundException(
-                translate: Message::create(
-                    key: 'resource.not_found', 
-                    params: [
-                        'resource' => 'employee_type',
-                        'field' => 'id',
-                        'value' => $employeeTypeId
-                    ]
-                )
+            if ($employeeTypeData === null) {
+                throw new NotFoundException(
+                    translate: Message::create(
+                        key: 'resource.not_found',
+                        params: [
+                            'resource' => 'employee_type',
+                            'field' => 'id',
+                            'value' => $employeeTypeId
+                        ]
+                    )
+                );
+            }
+
+            $employeeType = EmployeeType::reconstitute(
+                id: $employeeTypeData->getId(),
+                name: $employeeTypeData->getName(),
+                status: $employeeTypeData->getStatus(),
+                detailInfo: $employeeTypeData->getDetailInfo(),
+                syncMdb: $employeeTypeData->getSyncMdb(),
+                lockVersion: $employeeTypeData->getLockVersion()
             );
         }
 
-        $employeeType = EmployeeType::reconstitute(
-            id: $employeeTypeData->getId(),
-            name: $employeeTypeData->getName(),
-            status: $employeeTypeData->getStatus(),
-            detailInfo: $employeeTypeData->getDetailInfo(),
-            syncMdb: $employeeTypeData->getSyncMdb(),
-            lockVersion: $employeeTypeData->getLockVersion()
-        );
+        $employeePosition = null;
+        if ($positionId !== null) {
+            $employeePositionData = $this->employeePositionRepo->findById(
+                id: $positionId,
+                status: ResourceStatus::active()->value()
+            );
 
-        $employeePositionData = $this->employeePositionRepo->findById(
-            id: $positionId,
-            status: ResourceStatus::active()->value()
-        );
+            if ($employeePositionData === null) {
+                throw new NotFoundException(
+                    translate: Message::create(
+                        key: 'resource.not_found',
+                        params: [
+                            'resource' => 'employee_position',
+                            'field' => 'id',
+                            'value' => $positionId
+                        ]
+                    )
+                );
+            }
 
-        if ($employeePositionData === null) {
-            throw new NotFoundException(
-                translate: Message::create(
-                    key: 'resource.not_found', 
-                    params: [
-                        'resource' => 'employee_position',
-                        'field' => 'id',
-                        'value' => $positionId
-                    ]
-                )
+            $employeePosition = EmployeePosition::reconstitute(
+                id: $employeePositionData->getId(),
+                name: $employeePositionData->getName(),
+                status: $employeePositionData->getStatus(),
+                detailInfo: $employeePositionData->getDetailInfo(),
+                syncMdb: $employeePositionData->getSyncMdb(),
+                lockVersion: $employeePositionData->getLockVersion()
             );
         }
 
-        $employeePosition = EmployeePosition::reconstitute(
-            id: $employeePositionData->getId(),
-            name: $employeePositionData->getName(),
-            status: $employeePositionData->getStatus(),
-            detailInfo: $employeePositionData->getDetailInfo(),
-            syncMdb: $employeePositionData->getSyncMdb(),
-            lockVersion: $employeePositionData->getLockVersion()
-        );
- 
-        $employeeDivisionData = $this->employeeDivisionRepo->findById(
-            id: $divisionId,
-            status: ResourceStatus::active()->value()
-        );
+        $employeeDivision = null;
+        if ($divisionId !== null) {
+            $employeeDivisionData = $this->employeeDivisionRepo->findById(
+                id: $divisionId,
+                status: ResourceStatus::active()->value()
+            );
 
-        if ($employeeDivisionData === null) {
-            throw new NotFoundException(
-                translate: Message::create(
-                    key: 'resource.not_found', 
-                    params: [
-                        'resource' => 'employee_division',
-                        'field' => 'id',
-                        'value' => $divisionId
-                    ]
-                )
+            if ($employeeDivisionData === null) {
+                throw new NotFoundException(
+                    translate: Message::create(
+                        key: 'resource.not_found',
+                        params: [
+                            'resource' => 'employee_division',
+                            'field' => 'id',
+                            'value' => $divisionId
+                        ]
+                    )
+                );
+            }
+
+            $employeeDivision = EmployeeDivision::reconstitute(
+                id: $employeeDivisionData->getId(),
+                name: $employeeDivisionData->getName(),
+                code: $employeeDivisionData->getCode(),
+                status: $employeeDivisionData->getStatus(),
+                detailInfo: $employeeDivisionData->getDetailInfo(),
+                syncMdb: $employeeDivisionData->getSyncMdb(),
+                lockVersion: $employeeDivisionData->getLockVersion()
             );
         }
-
-        $employeeDivision = EmployeeDivision::reconstitute(
-            id: $employeeDivisionData->getId(),
-            name: $employeeDivisionData->getName(),
-            code: $employeeDivisionData->getCode(),
-            status: $employeeDivisionData->getStatus(),
-            detailInfo: $employeeDivisionData->getDetailInfo(),
-            syncMdb: $employeeDivisionData->getSyncMdb(),
-            lockVersion: $employeeDivisionData->getLockVersion()
-        );
 
         return new EmployeeDetailInfo(
             sso: $ssoData,
-            division: $employeeDivision->toPersistence(),
-            position: $employeePosition->toPersistence(),
-            employeeType: $employeeType->toPersistence(),
-            workTime: $workTime->toPersistence(),
+            division: $employeeDivision?->toPersistence(),
+            position: $employeePosition?->toPersistence(),
+            employeeType: $employeeType?->toPersistence(),
+            workTime: $workTime?->toPersistence(),
         );
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'sso' => $this->sso,
-            'division' => $this->division,
-            'position' => $this->position,
-            'employeeType' => $this->employeeType,
-            'workTime' => $this->workTime,
-            'username' => $this->username,
-        ];
     }
 }

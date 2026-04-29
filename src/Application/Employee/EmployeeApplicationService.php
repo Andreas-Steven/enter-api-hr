@@ -163,53 +163,74 @@ final class EmployeeApplicationService
         $data->applyStatus(
             newStatus: $newStatus
         );
-        
-        $data->updateDivision(
-            divisionId: $command->divisionId
-        );
 
-        $data->updatePosition(
-            positionId: $command->positionId
-        );
+        if ($command->divisionId !== null) {
+            $data->updateDivision(
+                divisionId: $command->divisionId
+            );
+        }
 
-        $data->updateEmployeeType(
-            employeeTypeId: $command->employeeTypeId
-        );
+        if ($command->positionId !== null) {
+            $data->updatePosition(
+                positionId: $command->positionId
+            );
+        }
 
-        $data->updateWorkTime(
-            workTimeId: $command->workTimeId
-        );
+        if ($command->employeeTypeId !== null) {
+            $data->updateEmployeeType(
+                employeeTypeId: $command->employeeTypeId
+            );
+        }
 
-        $data->updateNik(
-            nik: $command->nik
-        );
+        if ($command->workTimeId !== null) {
+            $data->updateWorkTime(
+                workTimeId: $command->workTimeId
+            );
+        }
 
-        $data->updateEmail(
-            email: $command->email
-        );
-        $data->updateBirthDate(
-            date: DateFormat::fromString($command->birthDate)
-        );
+        if ($command->nik !== null) {
+            $data->updateNik(
+                nik: $command->nik
+            );
+        }
 
-        $data->updateDateStart(
-            date: DateFormat::fromString($command->dateStart)
-        );
+        if ($command->email !== null) {
+            $data->updateEmail(
+                email: $command->email
+            );
+        }
 
-        $data->updateContact(
-            contact: Contact::fromArray($command->contact)
-        );
+        if ($command->birthDate !== null) {
+            $data->updateBirthDate(
+                date: DateFormat::fromString($command->birthDate)
+            );
+        }
 
-        $data->updateImage(
-            image: Image::fromArray($command->image)
-        );
+        if ($command->dateStart !== null) {
+            $data->updateDateStart(
+                date: DateFormat::fromString($command->dateStart)
+            );
+        }
+
+        if ($command->contact !== null) {
+            $data->updateContact(
+                contact: Contact::fromArray($command->contact)
+            );
+        }
+
+        if ($command->image !== null) {
+            $data->updateImage(
+                image: Image::fromArray($command->image)
+            );
+        }
 
         $employeeInfoFactory = $this->employeeInfoFactory->buildFromPrimitives(
             ssoId: null,
             username: null,
-            workTimeId: $command->workTimeId,
-            divisionId: $command->divisionId,
-            positionId: $command->positionId,
-            employeeTypeId: $command->employeeTypeId,
+            workTimeId: $command->workTimeId ?? $data->getWorkTimeId(),
+            divisionId: $command->divisionId ?? $data->getDivisionId(),
+            positionId: $command->positionId ?? $data->getPositionId(),
+            employeeTypeId: $command->employeeTypeId ?? $data->getEmployeeTypeId(),
         );
 
         $detailInfo = $this->detailInfoFactory
