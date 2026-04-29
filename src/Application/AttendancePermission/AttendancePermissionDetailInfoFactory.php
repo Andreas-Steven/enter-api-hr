@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Application\AttendancePermission;
 
 use App\Application\AttendancePermission\Dto\AttendancePermissionDetailInfo;
+
 use App\Domain\Shared\Enums\PermissionType;
 use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
+use App\Domain\Attendance\ValueObject\AttendanceRecords;
 use App\Domain\Attendance\Repository\AttendanceRepositoryInterface;
+
 use App\Shared\ValueObject\Message;
 use App\Shared\Exception\BadRequestException;
 use App\Shared\Exception\NotFoundException;
@@ -22,37 +25,39 @@ final readonly class AttendancePermissionDetailInfoFactory
     public function buildFromPrimitives(
         ?int $employeeId = null,
         ?int $permissionId = null,
-        ?string $date = null, // Tambahkan parameter date untuk mencari attendance
+        ?string $date = null,
     ): AttendancePermissionDetailInfo {
-        // 1. Build Permission Array
+        
         $permission = $this->buildPermissionArray($permissionId);
         $permissionType = PermissionType::from($permissionId);
         
-        // 2. Fetch Real Employee Data
+        // 1. Build Employee Info
         $employee = null;
         if ($employeeId !== null) {
             $employeeEntity = $this->employeeRepository->findById($employeeId);
-            if ($employeeEntity === null) {
-                throw new NotFoundException(Message::create('employee.not_found', ['id' => $employeeId]));
+            if ($employeeEntity !== null) {
+                $employee = [
+                    'id' => $employeeEntity->getId(),
+                    'name' => $employeeEntity->getName(),
+                ];
             }
-            // Map Entity ke Array (sesuaikan dengan kebutuhan DTO Anda)
-            $employee = [
-                'id' => $employeeEntity->getId(),
-                'name' => $employeeEntity->getName(),
-            ];
         }
 
-        // 3. Fetch Real Attendance Data
         $attendanceData = null;
-        if ($permissionType !== null && $permissionType->requiresRevision() && $date !== null) {
+        if ($permissionType !== null && $permissionType->requiresRevision() && $date !== null && $employeeId !== null) {
             $attendanceEntity = $this->attendanceRepository->findByDate($date);
             
             if ($attendanceEntity !== null) {
-                $attendanceData = [
-                    'id' => $attendanceEntity->getId(),
-                    'date' => $attendanceEntity->getDate(),
-                    'records' => $attendanceEntity->getAttendance(), // Data json_decoded
-                ];
+                $recordsCollection = $attendanceEntity->getAttendanceRecords();
+                $specificItem = $recordsCollection->findByEmployeeId($employeeId);
+
+                if ($specificItem !== null) {
+                    $attendanceData = [
+                        'id' => $attendanceEntity->getId(),
+                        'date' => $attendanceEntity->getDate(),
+                        'attendance' => $specificItem->toArray(), 
+                    ];
+                }
             }
         }
 

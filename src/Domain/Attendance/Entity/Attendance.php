@@ -148,6 +148,11 @@ final class Attendance
         return $this->attendance->getItems();
     }
 
+    public function getAttendanceRecords(): AttendanceRecords
+    {
+        return $this->attendance;
+    }
+
     public function updateEntries(array $entries): void
     {
         // 1. Pastikan $newItems adalah objek AttendanceItem

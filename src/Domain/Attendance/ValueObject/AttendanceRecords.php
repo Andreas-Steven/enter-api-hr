@@ -73,4 +73,18 @@ final readonly class AttendanceRecords
             'lookup_index' => $lookupIndex,
         ];
     }
+
+    /**
+     * Mencari satu record berdasarkan Employee ID
+     */
+    public function findByEmployeeId(int $employeeId): ?AttendanceItem
+    {
+        foreach ($this->items as $item) {
+            if ($item->employeeId === $employeeId) {
+                return $item;
+            }
+        }
+
+        return null;
+    }
 }
