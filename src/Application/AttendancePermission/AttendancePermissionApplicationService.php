@@ -321,6 +321,8 @@ final class AttendancePermissionApplicationService
             entity: $data
         );
 
+        $newStatus = ResourceStatus::completed();
+
         $this->repository->verifyLockVersion(
             entity: $data,
             version: $command->lockVersion ?? null
@@ -329,6 +331,10 @@ final class AttendancePermissionApplicationService
         $data->applyApproval(
             newStatus: ApprovalStatus::REJECTED,
             note: $command->approvedNote
+        );
+
+        $data->applyStatus(
+            newStatus: $newStatus
         );
         
         $detailInfo = $this->detailInfoFactory
@@ -346,9 +352,6 @@ final class AttendancePermissionApplicationService
         );
     }
 
-    /**
-     * Attendance Permission Report System
-     */
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         return $this->repository->list(
@@ -356,6 +359,9 @@ final class AttendancePermissionApplicationService
         );
     }
 
+    /**
+     * Attendance Permission Report System
+     */
     public function reportData(int $employeeId, int $period): array
     {
         $criteria = new SearchCriteria(
