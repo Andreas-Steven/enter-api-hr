@@ -320,7 +320,7 @@ final class AttendancePermissionApplicationService
 
         $data->applyApproval(
             newStatus: ApprovalStatus::REJECTED,
-            note: null
+            note: $command->approvedNote
         );
         
         $detailInfo = $this->detailInfoFactory

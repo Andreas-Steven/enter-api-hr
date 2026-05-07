@@ -248,11 +248,6 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                         min: 1,
                     ),
                 ],
-                'approved' => [
-                    new Required(),
-                    new Integer(),
-                    new In([0, 1]),
-                ],
                 'approved_note' => [
                     new StringValue(
                         skipOnEmpty: true,
@@ -262,12 +257,40 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'lock_version' => [
+                    new Required(
+                        when: fn() => $this->shouldValidateOptimisticLock()
+                    ),
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
             ],
             ValidationContext::PERMISSION_REJECT => [
                 'id' => [
                     new Required(), 
                     new Integer(
                         min: 1,
+                    ),
+                ],
+                'approved_note' => [
+                    new Required(),
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'lock_version' => [
+                    new Required(
+                        when: fn() => $this->shouldValidateOptimisticLock()
+                    ),
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
                     ),
                 ],
             ],

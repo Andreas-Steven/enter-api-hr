@@ -30,7 +30,7 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class AttendancePermissionRejectAction
 {
-    private const ALLOWED_KEYS = ['lock_version'];
+    private const ALLOWED_KEYS = ['approved_note', 'lock_version'];
 
     public function __construct(
         private AttendancePermissionInputValidator $inputValidator,
@@ -74,11 +74,12 @@ final class AttendancePermissionRejectAction
 
         $this->inputValidator->validate(
             data: $params,
-            context: (string) ApprovalStatus::REJECTED->value,
+            context: ValidationContext::PERMISSION_REJECT,
         );
 
         $command = RejectAttendancePermissionCommand::create(
             id: (int) $id,
+            approvedNote: $params->get('approved_note'),
             lockVersion: (int) $params->get('lock_version'),
         );
 
