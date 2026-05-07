@@ -176,7 +176,7 @@ final class AttendanceDeviceApplicationService
             id: $id
         );
         
-        $this->domainService->validateCanBeDeleted(
+        $this->domainService->ensureDeletable(
             entity: $data,
             resource: $this->getResource(),
         );
