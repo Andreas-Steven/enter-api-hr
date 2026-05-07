@@ -46,6 +46,11 @@ final class AttendanceDeviceCreateAction
             )->with('status', RecordStatus::DRAFT->value)
             ->sanitize();
 
+        $code = $params->get('code');
+        if ($code !== null) {
+            $params = $params->with('code', strtoupper((string) $code));
+        }
+
         $this->inputValidator->validate(
             data: $params,
             context: ValidationContext::CREATE,

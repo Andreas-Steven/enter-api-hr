@@ -74,6 +74,11 @@ final class AttendanceDeviceUpdateAction
             )->with('id', $id)
             ->sanitize();
 
+        $code = $params->get('code');
+        if ($code !== null) {
+            $params = $params->with('code', strtoupper((string) $code));
+        }
+
         $this->inputValidator->validate(
             data: $params,
             context: ValidationContext::UPDATE,
