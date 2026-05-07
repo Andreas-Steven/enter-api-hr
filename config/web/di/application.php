@@ -45,8 +45,8 @@ return [
                             // 'application/xml' => new XmlDataResponseFormatter(),
                             'application/json' => new JsonDataResponseFormatter(),
                         ]),
-                        ErrorCatcher::class,
                         CorsMiddleware::class,
+                        ErrorCatcher::class,
                         static fn (ExceptionResponderFactory $factory) => $factory->create(),
                         static fn () => new TrustedHostMiddleware(
                             $params['app/trusted_hosts']['allowedHosts'] ?? [],
