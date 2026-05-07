@@ -105,7 +105,7 @@ final class AttendancePermissionApplicationService
             permissionType: (int) $command->permissionType,
             date: $command->date,
             note: $command->note,
-            approved: ApprovalStatus::PENDING->value,
+            approved: null,
             approvedNote: null,
             revision: Revision::fromArray($command->revision),
             status: ResourceStatus::from($command->status),

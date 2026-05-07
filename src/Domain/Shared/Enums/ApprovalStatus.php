@@ -26,12 +26,13 @@ enum ApprovalStatus: int
     {
         return match($this) {
             self::APPROVED => [
-                self::PENDING, 
-                self::REJECTED, 
+                self::PENDING,
+                self::REJECTED,
                 self::APPROVED
             ],
             self::REJECTED => [
-                self::PENDING
+                self::PENDING,
+                self::APPROVED
             ],
             self::PENDING => [], // Biasanya tidak ada transisi kembali ke Pending
         };

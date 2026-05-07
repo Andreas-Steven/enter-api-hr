@@ -84,7 +84,7 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
             permissionType: (int) $row['permission_type'],
             date: $row['date'],
             note: $row['note'],
-            approved: (int) $row['approved'],
+            approved: $row['approved'] !== null ? (int) $row['approved'] : null,
             approvedNote: $row['approved_note'],
             revision: Revision::fromJson($row['revision']),
             status: ResourceStatus::from((int) $row['status']),
