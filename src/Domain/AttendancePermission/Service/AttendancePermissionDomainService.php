@@ -17,6 +17,7 @@ use App\Domain\Shared\Enums\ApprovalStatus;
 // Shared Layer
 use App\Shared\ValueObject\Message;
 use App\Shared\Exception\BadRequestException;
+use App\Shared\Exception\ConflictException;
 
 /**
  * AttendancePermission Domain Service
@@ -76,6 +77,26 @@ final class AttendancePermissionDomainService
                 )
             );
         }
+    }
+
+    /**
+     * Guard that approval operations require active status
+     */
+    public function guardApprovalRequiresActiveStatus(AttendancePermission $entity): void
+    {
+        if (!$entity->isActive()) {
+            throw new ConflictException(
+                translate: Message::create(
+                    key: 'resource.update_not_allowed_by_status',
+                    params: [
+                        'resource' => $entity->getResource(),
+                        'current_status' => $entity->getStatus()->label(),
+                    ]
+                )
+            );
+        }
+        
+        return;  
     }
 
     /**

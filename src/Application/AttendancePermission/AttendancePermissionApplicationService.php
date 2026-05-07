@@ -274,6 +274,10 @@ final class AttendancePermissionApplicationService
             status: null
         );
 
+        $this->domainService->guardApprovalRequiresActiveStatus(
+            entity: $data
+        );
+
         $newStatus = ResourceStatus::completed();
 
         $this->repository->verifyLockVersion(
@@ -312,6 +316,10 @@ final class AttendancePermissionApplicationService
     public function reject(int $id, RejectAttendancePermissionCommand $command): AttendancePermissionResponse
     {
         $data = $this->getEntityById(id: $id, status: null);
+
+        $this->domainService->guardApprovalRequiresActiveStatus(
+            entity: $data
+        );
 
         $this->repository->verifyLockVersion(
             entity: $data,
