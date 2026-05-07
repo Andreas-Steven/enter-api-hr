@@ -275,7 +275,6 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                     ),
                 ],
                 'approved_note' => [
-                    new Required(),
                     new StringValue(
                         skipOnEmpty: true,
                     ),
