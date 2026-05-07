@@ -93,6 +93,10 @@ final readonly class ExceptionResponderFactory
             'message' => $message,
             'errors' => []
         ];
+
+        if ($exception instanceof ValidationException) {
+            $errorData['errors'] = $exception->getErrors() ?? [];
+        }
         
         // Jika boleh menampilkan detail error
         if ($showErrors) {
