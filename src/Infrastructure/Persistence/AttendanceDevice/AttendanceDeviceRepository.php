@@ -194,7 +194,6 @@ final class AttendanceDeviceRepository implements AttendanceDeviceRepositoryInte
                 'id', 
                 'name',
                 'code',
-                'address',
                 'requires_location',
                 'ip_address',
                 'location',
@@ -208,6 +207,22 @@ final class AttendanceDeviceRepository implements AttendanceDeviceRepositoryInte
                 query: $query, 
                 operator: self::LIKE_OPERATOR,
                 conditions: ['name' => $filter['name']]
+            );
+        }
+
+        if (!empty($filter['address'])) {
+            $this->queryConditionApplier->andLike(
+                query: $query,
+                operator: self::LIKE_OPERATOR,
+                conditions: ['address' => '%' . $filter['address'] . '%']
+            );
+        }
+
+        if (!empty($filter['code'])) {
+            $this->queryConditionApplier->andLike(
+                query: $query,
+                operator: self::LIKE_OPERATOR,
+                conditions: ['code' => '%' . $filter['code'] . '%']
             );
         }
 
