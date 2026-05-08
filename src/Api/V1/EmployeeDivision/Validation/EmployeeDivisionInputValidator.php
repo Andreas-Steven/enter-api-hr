@@ -214,6 +214,15 @@ final class EmployeeDivisionInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'code' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        max: 8,
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,

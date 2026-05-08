@@ -25,10 +25,11 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class EmployeeDivisionDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'status'];
+    private const ALLOWED_KEYS = ['id', 'name', 'code', 'status'];
     private const ALLOWED_SORT = [
         'id' => 'id', 
         'name' => 'name', 
+        'code' => 'code',
         'status' => 'status',
     ];
 

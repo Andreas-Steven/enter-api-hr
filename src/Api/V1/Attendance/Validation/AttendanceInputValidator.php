@@ -177,6 +177,26 @@ final class AttendanceInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'period' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        min: 1,
+                        max: 100,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        min: 1,
+                        max: 100,
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,

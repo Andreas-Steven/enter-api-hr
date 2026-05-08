@@ -266,6 +266,40 @@ final class EmployeeInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'sso_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'nik' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        max: 50,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'division_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'birth_date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'date_start' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'date_resign' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,

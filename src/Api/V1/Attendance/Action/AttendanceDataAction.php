@@ -25,10 +25,12 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class AttendanceDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'status'];
+    private const ALLOWED_KEYS = ['id', 'name', 'period', 'date', 'status'];
     private const ALLOWED_SORT = [
         'id' => 'id', 
         'name' => 'name', 
+        'period' => 'period',
+        'date' => 'date',
         'status' => 'status',
     ];
 

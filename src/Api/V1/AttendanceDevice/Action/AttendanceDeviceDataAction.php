@@ -26,10 +26,13 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class AttendanceDeviceDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'status'];
+    private const ALLOWED_KEYS = ['id', 'code', 'name', 'address', 'ip_address', 'status'];
     private const ALLOWED_SORT = [
         'id' => 'id', 
         'name' => 'name', 
+        'code' => 'code',
+        'address' => 'address',
+        'ip_address' => 'ip_address',
         'status' => 'status',
     ];
 
