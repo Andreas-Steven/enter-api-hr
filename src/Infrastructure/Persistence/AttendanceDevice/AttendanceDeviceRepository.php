@@ -192,12 +192,13 @@ final class AttendanceDeviceRepository implements AttendanceDeviceRepositoryInte
             filters: $filter, 
             allowedColumns: [
                 'id', 
-                'status', 
+                'name',
                 'code',
                 'address',
                 'requires_location',
                 'ip_address',
                 'location',
+                'status',
                 SyncMdb::field(),
             ]
         );

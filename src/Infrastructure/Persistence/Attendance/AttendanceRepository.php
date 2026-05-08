@@ -159,9 +159,9 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
             filters: $filter, 
             allowedColumns: [
                 'id', 
-                'date', 
+                'date',
                 'period',
-                'attendance', 
+                'attendance',
                 'status', 
                 SyncMdb::field(),
             ]

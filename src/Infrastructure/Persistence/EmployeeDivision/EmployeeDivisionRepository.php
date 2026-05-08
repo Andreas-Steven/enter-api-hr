@@ -142,8 +142,10 @@ final class EmployeeDivisionRepository implements EmployeeDivisionRepositoryInte
             query: $query, 
             filters: $filter, 
             allowedColumns: [
-                'id', 
-                'status', 
+                'id',
+                'name',
+                'code',
+                'status',
                 SyncMdb::field(),
             ]
         );
