@@ -12,6 +12,7 @@ use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
 use App\Domain\Attendance\ValueObject\AttendanceRecords;
+use App\Domain\Attendance\ValueObject\DateRange;
 
 // Infrastructure Layer
 use App\Infrastructure\Concerns\HasCoreFeatures;
@@ -159,7 +160,6 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
             filters: $filter, 
             allowedColumns: [
                 'id', 
-                'date',
                 'period',
                 'attendance',
                 'status', 
@@ -173,6 +173,12 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
                 operator: self::LIKE_OPERATOR,
                 conditions: ['name' => $filter['name']]
             );
+        }
+
+        if (!empty($filter['date'])) {
+            $range = DateRange::fromFilterString($filter['date']);
+            $query->andWhere(['>=', 'date', $range->startDate])
+                  ->andWhere(['<=', 'date', $range->endDate]);
         }
 
         $total = (clone $query)->count();
