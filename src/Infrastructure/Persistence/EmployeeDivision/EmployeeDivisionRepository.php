@@ -158,6 +158,14 @@ final class EmployeeDivisionRepository implements EmployeeDivisionRepositoryInte
             );
         }
 
+        if (!empty($filter['code'])) {
+            $this->queryConditionApplier->orLike(
+                query: $query, 
+                operator: self::LIKE_OPERATOR,
+                conditions: ['code' => '%' . $filter['code'] . '%']
+            );
+        }
+
         $total = (clone $query)->count();
 
         $query->orderBy($criteria->getOrderClause())

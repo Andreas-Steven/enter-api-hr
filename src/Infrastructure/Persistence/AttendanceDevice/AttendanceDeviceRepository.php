@@ -226,6 +226,14 @@ final class AttendanceDeviceRepository implements AttendanceDeviceRepositoryInte
             );
         }
 
+        if (!empty($filter['ip_address'])) {
+            $this->queryConditionApplier->andLike(
+                query: $query,
+                operator: self::LIKE_OPERATOR,
+                conditions: ['ip_address' => '%' . $filter['ip_address'] . '%']
+            );
+        }
+
         $total = (clone $query)->count();
 
         $query->orderBy($criteria->getOrderClause())
@@ -382,7 +390,6 @@ final class AttendanceDeviceRepository implements AttendanceDeviceRepositoryInte
         );
     }
     
-
     private function mapEntityToTable(AttendanceDevice $entity, int $lockVersion): array
     {
         return [

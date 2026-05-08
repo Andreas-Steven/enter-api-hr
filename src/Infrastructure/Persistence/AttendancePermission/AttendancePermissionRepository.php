@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\AttendancePermission;
 
 // Domain Layer
-use App\Domain\AttendancePermission\Entity\AttendancePermission;
 use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInterface;
-use App\Domain\Attendance\ValueObject\AttendancePeriod;
+use App\Domain\AttendancePermission\Entity\AttendancePermission;
 use App\Domain\AttendancePermission\ValueObject\Revision;
+use App\Domain\AttendancePermission\ValueObject\DateRange;
+use App\Domain\Attendance\ValueObject\AttendancePeriod;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
@@ -162,7 +163,6 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
                 'id', 
                 'employee_id',
                 'permission_type',
-                'date',
                 'note',
                 'approved',
                 'approved_note',
@@ -178,6 +178,29 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
                 operator: self::LIKE_OPERATOR,
                 conditions: ['name' => $filter['name']]
             );
+        }
+        
+        if (!empty($filter['note'])) {
+            $this->queryConditionApplier->orLike(
+                query: $query, 
+                operator: self::LIKE_OPERATOR,
+                conditions: ['note' => '%' . $filter['note'] . '%']
+            );
+        }
+
+        if (!empty($filter['approved_note'])) {
+            $this->queryConditionApplier->orLike(
+                query: $query, 
+                operator: self::LIKE_OPERATOR,
+                conditions: ['approved_note' => '%' . $filter['approved_note'] . '%']
+            );
+        }
+
+        // Date range fields
+        if (!empty($filter['date'])) {
+            $range = DateRange::fromFilterString($filter['date']);
+            $query->andWhere(['>=', 'date', $range->startDate])
+                  ->andWhere(['<=', 'date', $range->endDate]);
         }
 
         $total = (clone $query)->count();

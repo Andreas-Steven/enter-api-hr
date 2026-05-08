@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Employee;
 
 // Domain Layer
-use App\Domain\Employee\Entity\Employee;
 use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
+use App\Domain\Employee\Entity\Employee;
+use App\Domain\Employee\ValueObject\DateRange;
 use App\Domain\Employee\ValueObject\Contact;
 use App\Domain\Employee\ValueObject\Image;
 use App\Domain\Employee\ValueObject\BirthDate;
@@ -231,6 +232,16 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             filters: $filter, 
             allowedColumns: [
                 'id', 
+                'username',
+                'nik',
+                'email',
+                'contact',
+                'sso_id',
+                'division_id',
+                'position_id',
+                'employee_type_id',
+                'work_time_id',
+                'image',
                 'status', 
                 SyncMdb::field(),
             ]
@@ -242,6 +253,49 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
                 operator: self::LIKE_OPERATOR,
                 conditions: ['name' => $filter['name']]
             );
+        }
+
+        if (!empty($filter['username'])) {
+            $this->queryConditionApplier->orLike(
+                query: $query, 
+                operator: self::LIKE_OPERATOR,
+                conditions: ['username' => '%' . $filter['username'] . '%']
+            );
+        }
+
+        if (!empty($filter['nik'])) {
+            $this->queryConditionApplier->orLike(
+                query: $query, 
+                operator: self::LIKE_OPERATOR,
+                conditions: ['nik' => '%' . $filter['nik'] . '%']
+            );
+        }
+
+        if (!empty($filter['email'])) {
+            $this->queryConditionApplier->orLike(
+                query: $query, 
+                operator: self::LIKE_OPERATOR,
+                conditions: ['email' => '%' . $filter['email'] . '%']
+            );
+        }
+
+        // Date range fields
+        if (!empty($filter['birth_date'])) {
+            $range = DateRange::fromFilterString($filter['birth_date']);
+            $query->andWhere(['>=', 'birth_date', $range->startDate])
+                  ->andWhere(['<=', 'birth_date', $range->endDate]);
+        }
+
+        if (!empty($filter['date_start'])) {
+            $range = DateRange::fromFilterString($filter['date_start']);
+            $query->andWhere(['>=', 'date_start', $range->startDate])
+                  ->andWhere(['<=', 'date_start', $range->endDate]);
+        }
+
+        if (!empty($filter['date_resign'])) {
+            $range = DateRange::fromFilterString($filter['date_resign']);
+            $query->andWhere(['>=', 'date_resign', $range->startDate])
+                  ->andWhere(['<=', 'date_resign', $range->endDate]);
         }
 
         $total = (clone $query)->count();

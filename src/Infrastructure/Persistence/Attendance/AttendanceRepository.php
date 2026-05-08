@@ -175,6 +175,7 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
             );
         }
 
+        // Date range fields
         if (!empty($filter['date'])) {
             $range = DateRange::fromFilterString($filter['date']);
             $query->andWhere(['>=', 'date', $range->startDate])
