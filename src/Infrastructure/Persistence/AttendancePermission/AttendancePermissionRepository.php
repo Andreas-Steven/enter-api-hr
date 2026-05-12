@@ -164,8 +164,6 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
                 'id', 
                 'employee_id',
                 'permission_type',
-                'note',
-                'approved_note',
                 'revision',
                 'status', 
                 SyncMdb::field(),

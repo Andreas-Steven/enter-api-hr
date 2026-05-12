@@ -232,16 +232,11 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             filters: $filter, 
             allowedColumns: [
                 'id', 
-                'username',
-                'nik',
-                'email',
-                'contact',
                 'sso_id',
                 'division_id',
                 'position_id',
                 'employee_type_id',
                 'work_time_id',
-                'image',
                 'status', 
                 SyncMdb::field(),
             ]

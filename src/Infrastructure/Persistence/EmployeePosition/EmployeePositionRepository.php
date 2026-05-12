@@ -140,7 +140,6 @@ final class EmployeePositionRepository implements EmployeePositionRepositoryInte
             filters: $filter, 
             allowedColumns: [
                 'id', 
-                'name',
                 'status', 
                 SyncMdb::field(),
             ]

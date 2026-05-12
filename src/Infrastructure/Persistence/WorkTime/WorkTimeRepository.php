@@ -143,7 +143,6 @@ final class WorkTimeRepository implements WorkTimeRepositoryInterface, CurrentUs
             filters: $filter, 
             allowedColumns: [
                 'id', 
-                'name',
                 'working_days',
                 'status', 
                 SyncMdb::field(),

@@ -153,7 +153,6 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
             filters: $filter,
             allowedColumns: [
                 'id',
-                'name',
                 'status',
                 SyncMdb::field(),
             ]

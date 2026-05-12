@@ -140,7 +140,6 @@ final class EmployeeTypeRepository implements EmployeeTypeRepositoryInterface, C
             filters: $filter, 
             allowedColumns: [
                 'id', 
-                'name',
                 'status', 
                 SyncMdb::field(),
             ]
