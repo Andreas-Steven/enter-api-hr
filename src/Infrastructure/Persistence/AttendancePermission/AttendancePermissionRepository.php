@@ -196,6 +196,14 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
             );
         }
 
+        if (array_key_exists('approved', $filter)) {
+            if ($filter['approved'] === null || $filter['approved'] === 'null') {
+                $query->andWhere(['approved' => null]);
+            } else {
+                $query->andWhere(['approved' => $filter['approved']]);
+            }
+        }
+
         // Date range fields
         if (!empty($filter['date'])) {
             $range = DateRange::fromFilterString($filter['date']);

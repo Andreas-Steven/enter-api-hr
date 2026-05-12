@@ -21,4 +21,8 @@ final class AttendanceStatus
     public const TIME_NOON = '12:00:00';
     public const TIME_AFTERNOON = '15:00:00';
     public const DEVICE_APP = 'APP';
+
+    // Manual Override Constants
+    public const MANUAL_IN = 'manual_in';
+    public const MANUAL_OUT = 'manual_out';
 }
