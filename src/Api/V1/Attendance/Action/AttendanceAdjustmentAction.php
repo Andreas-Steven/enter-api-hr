@@ -73,7 +73,7 @@ final class AttendanceAdjustmentAction
 
         $this->inputValidator->validate(
             data: $params,
-            context: ValidationContext::UPDATE,
+            context: ValidationContext::ADJUSTMENT,
         );
 
         $command = UpdateAttendanceCommand::create(

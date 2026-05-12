@@ -123,6 +123,7 @@ return [
     'attendance.update' => $isKasir,
     'attendance.delete' => $isKasir,
     'attendance.restore' => $isSuperAdmin,
+    'attendance.adjustment' => $isKasir,
 
     // GeneralAffairProduct Access Rules
     'general-affair-product.index' => static fn (Actor $actor): bool => true,

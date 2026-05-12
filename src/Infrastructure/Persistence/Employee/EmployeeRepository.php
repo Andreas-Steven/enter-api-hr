@@ -251,7 +251,7 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             $this->queryConditionApplier->orLike(
                 query: $query, 
                 operator: self::LIKE_OPERATOR,
-                conditions: ['name' => $filter['name']]
+                conditions: ['name' => '%' . $filter['name'] . '%']
             );
         }
 

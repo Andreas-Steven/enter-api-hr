@@ -149,7 +149,7 @@ final class GeneralAffairLocationRepository implements GeneralAffairLocationRepo
             $this->queryConditionApplier->orLike(
                 query: $query, 
                 operator: self::LIKE_OPERATOR,
-                conditions: ['name' => $filter['name']]
+                conditions: ['name' => '%' . $filter['name'] . '%']
             );
         }
 

@@ -183,7 +183,7 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
             $this->queryConditionApplier->orLike(
                 query: $query, 
                 operator: self::LIKE_OPERATOR,
-                conditions: ['name' => $filter['name']]
+                conditions: ['name' => '%' . $filter['name'] . '%']
             );
         }
 

@@ -195,6 +195,10 @@ return [
                 ->action(AttendanceV1\AttendanceRestoreAction::class)
                 ->name('v1/attendance/restore')
                 ->defaults(['permission' => 'attendance.restore']),
+            Route::post('/attendance/adjustment')
+                ->action(AttendanceV1\AttendanceAdjustmentAction::class)
+                ->name('v1/attendance/adjustment')
+                ->defaults(['permission' => 'attendance.adjustment']),
             
             /**
              * Employee Module
