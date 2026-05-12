@@ -31,6 +31,7 @@ use App\Shared\ValueObject\Message;
 
 // Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
+use Yiisoft\Db\Expression\Expression;
 use Yiisoft\Db\Query\Query;
 
 /**
@@ -208,6 +209,17 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
             $range = DateRange::fromFilterString($filter['date']);
             $query->andWhere(['>=', 'date', $range->startDate])
                   ->andWhere(['<=', 'date', $range->endDate]);
+        }
+
+        // Detail Info fields
+        if (!empty($filter['employee_name'])) {
+            $searchTerm = '%' . $filter['employee_name'] . '%';
+
+            $query->andWhere([
+                'ilike',
+                new Expression("detail_info->'employee'->>'name'"),
+                $searchTerm
+            ]);
         }
 
         $total = (clone $query)->count();

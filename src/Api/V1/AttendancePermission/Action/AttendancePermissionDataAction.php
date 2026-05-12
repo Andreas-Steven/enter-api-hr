@@ -25,10 +25,11 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class AttendancePermissionDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'employee_id', 'permission_type', 'date', 'approved', 'status'];
+    private const ALLOWED_KEYS = ['id', 'employee_id', 'employee_name', 'permission_type', 'date', 'approved', 'status'];
     private const ALLOWED_SORT = [
         'id' => 'id', 
         'employee_id' => 'employee_id',
+        'employee_name' => 'employee_name',
         'permission_type' => 'permission_type',
         'date' => 'date',
         'approved' => 'approved',

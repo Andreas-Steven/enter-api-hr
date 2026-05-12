@@ -312,6 +312,11 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'employee_name' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'permission_type' => [
                     new Integer(
                         skipOnEmpty: true,
