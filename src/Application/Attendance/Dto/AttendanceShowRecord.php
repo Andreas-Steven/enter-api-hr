@@ -29,4 +29,21 @@ final readonly class AttendanceShowRecord
     {
         return $this->item->toArray();
     }
+
+    public function matchesFilters(?string $name, ?int $divisionId): bool
+    {
+        $data = $this->toArray();
+        
+        // Cek Nama (Partial Search)
+        if ($name !== null && stripos($data['employee_name'] ?? '', $name) === false) {
+            return false;
+        }
+
+        // Cek Division ID (Deep Search)
+        if ($divisionId !== null && ($data['division']['id'] ?? null) !== $divisionId) {
+            return false;
+        }
+
+        return true;
+    }
 }

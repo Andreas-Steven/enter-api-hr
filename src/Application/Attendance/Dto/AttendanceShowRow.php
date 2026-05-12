@@ -64,4 +64,45 @@ final readonly class AttendanceShowRow
             ),
         ];
     }
+
+    /**
+     * Mengembalikan instance baru dengan daftar attendance yang sudah difilter
+     */
+    public function filterByEmployeeName(string $name): self
+    {
+        $filteredAttendance = array_values(array_filter($this->attendance, function (AttendanceShowRecord $record) use ($name) {
+            // Karena $record adalah Object, kita konversi ke array dulu 
+            // atau gunakan getter jika ada (misal: $record->getEmployeeName())
+            $recordData = $record->toArray();
+            
+            return stripos($recordData['employee_name'] ?? '', $name) !== false;
+        }));
+
+        // Gunakan constructor yang benar (hanya attributes dan attendance)
+        return new self(
+            attributes: $this->attributes,
+            attendance: $filteredAttendance
+        );
+    }
+
+    /**
+     * Memfilter daftar attendance berdasarkan nama dan/atau ID divisi
+     */
+    public function applyFilters(?string $name, ?int $divisionId): self
+    {
+        // Jika tidak ada filter yang aktif, return self (Optimization)
+        if ($name === null && $divisionId === null) {
+            return $this;
+        }
+
+        $filteredAttendance = array_values(array_filter(
+            $this->attendance,
+            static fn(AttendanceShowRecord $record): bool => $record->matchesFilters($name, $divisionId)
+        ));
+
+        return new self(
+            attributes: $this->attributes,
+            attendance: $filteredAttendance
+        );
+    }
 }

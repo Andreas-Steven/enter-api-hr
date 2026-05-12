@@ -70,13 +70,50 @@ final class AttendanceApplicationService
         
         return $data;
     }
-    
+        
     public function list(SearchCriteria $criteria): PaginatedResult
     {
-        return $this->repository->list(
-            criteria: $criteria
-        );
+        $result = $this->repository->list(criteria: $criteria);
+
+        $filters = $criteria->filter ?? [];
+        $nameFilter = $filters['employee_name'] ?? null;
+        $divisionFilter = isset($filters['division_id']) ? (int) $filters['division_id'] : null;
+
+        // Jika ada salah satu filter aktif
+        if ($nameFilter !== null || $divisionFilter !== null) {
+            $filteredData = [];
+
+            foreach ($result->data as $row) {
+                $showRow = AttendanceShowRow::fromArray($row)
+                    ->applyFilters($nameFilter, $divisionFilter);
+
+                if ($showRow->hasAttendance()) {
+                    $filteredData[] = $showRow->toArray();
+                }
+            }
+
+            return new PaginatedResult(
+                data: $filteredData,
+                total: count($filteredData),
+                page: $criteria->page,
+                pageSize: $criteria->pageSize,
+                filter: $criteria->filter,
+                sort: [
+                    'by' => $criteria->sortBy,
+                    'dir' => $criteria->sortDir
+                ]
+            );
+        }
+
+        return $result;
     }
+
+    // public function list(SearchCriteria $criteria): PaginatedResult
+    // {
+    //     return $this->repository->list(
+    //         criteria: $criteria
+    //     );
+    // }
 
     public function view(int $id): AttendanceResponse
     {

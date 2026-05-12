@@ -30,6 +30,7 @@ use App\Shared\ValueObject\Message;
 
 // Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
+use Yiisoft\Db\Expression\Expression;
 use Yiisoft\Db\Query\Query;
 
 // use MongoDB\Collection;
@@ -99,6 +100,7 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()]),
         );
     }
 
@@ -166,6 +168,16 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
                 SyncMdb::field(),
             ]
         );
+
+        if (!empty($filter['employee_name'])) {
+            $searchTerm = $filter['employee_name'];
+            $query->andWhere([
+                'EXISTS',
+                (new Query($this->db))
+                    ->from(new Expression("jsonb_array_elements(attendance) AS elem"))
+                    ->where(['ilike', new Expression("elem->>'employee_name'"), "%$searchTerm%"])
+            ]);
+        }
 
         if (!empty($filter['name'])) {
             $this->queryConditionApplier->orLike(

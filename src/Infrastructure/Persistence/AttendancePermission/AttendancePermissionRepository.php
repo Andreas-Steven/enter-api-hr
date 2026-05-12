@@ -164,7 +164,6 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
                 'employee_id',
                 'permission_type',
                 'note',
-                'approved',
                 'approved_note',
                 'revision',
                 'status', 
