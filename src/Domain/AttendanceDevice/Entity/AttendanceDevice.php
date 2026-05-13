@@ -191,6 +191,15 @@ final class AttendanceDevice
         ];
     }
 
+    public static function toManualSnapshot(): array
+    {
+        return [
+            'id'   => 0,
+            'code' => 'OVR',
+            'name' => 'Override',
+        ];
+    }
+
     public function toSnapshot(): array
     {
         return [

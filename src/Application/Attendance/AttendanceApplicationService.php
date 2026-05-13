@@ -6,6 +6,7 @@ namespace App\Application\Attendance;
 
 // Application Layer
 use App\Application\Attendance\Command\CreateAttendanceCommand;
+use App\Application\Attendance\Command\AdjustAttendanceCommand;
 use App\Application\Attendance\Command\UpdateAttendanceCommand;
 use App\Application\Attendance\Dto\AttendanceShowRow;
 use App\Application\Attendance\Dto\AttendanceResponse;
@@ -13,9 +14,12 @@ use App\Application\Shared\Factory\DetailInfoFactory;
 
 // Domain Layer
 use App\Domain\Attendance\Entity\Attendance;
+use App\Domain\Attendance\ValueObject\AttendanceItem;
 use App\Domain\Attendance\Service\AttendanceDomainService;
 use App\Domain\Attendance\Repository\AttendanceRepositoryInterface;
+use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
 use App\Domain\Shared\Security\AuthorizerInterface;
+use App\Domain\Shared\Enums\AttendanceStatus;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
 // Application Attendance Detail Info
@@ -24,6 +28,7 @@ use App\Application\Attendance\AttendanceDetailInfoFactory;
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
+use App\Shared\Exception\BadRequestException;
 use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
 
@@ -38,6 +43,7 @@ final class AttendanceApplicationService
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private AttendanceRepositoryInterface $repository,
+        private EmployeeRepositoryInterface $employeeRepository,
         private AttendanceDomainService $domainService,
         private AttendanceDetailInfoFactory $attendanceDetailInfoFactory,
     ) {
@@ -389,5 +395,57 @@ final class AttendanceApplicationService
         }
 
         return $filteredRows;
+    }
+
+    /**
+     * Attendance Adjustment System
+     * 
+     * This system allows manual adjustments to attendance records.
+     * It handles cases where automatic attendance tracking needs correction.
+     */
+    public function adjust(AdjustAttendanceCommand $command): AttendanceResponse
+    {
+        // 1. Ambil data master karyawan
+        $employeeIds = array_column($command->attendance, 'employee_id');
+        $employees = $this->employeeRepository->findAllByIds($employeeIds);
+
+        // 2. Cari dokumen atau buat baru
+        $attendance = $this->repository->findByDate($command->date) 
+                    ?? Attendance::createEmpty($command->date);
+
+        $records = $attendance->getAttendanceRecords();
+
+        foreach ($command->attendance as $itemData) {
+            $empId = (int)$itemData['employee_id'];
+            $employee = $employees[$empId] ?? null;
+            if (!$employee) continue;
+
+            $existingItem = $records->findByEmployeeId($empId);
+
+            if ($existingItem) {
+                // PANGGIL DOMAIN SERVICE untuk update existing
+                $newItem = $this->domainService->applyManualAdjustment($existingItem, $itemData);
+            } else {
+                // PANGGIL DOMAIN SERVICE untuk create baru dengan enrichment
+                $newItem = $this->domainService->createManualAdjustmentItem(
+                    employeeId: $empId,
+                    employee: $employee,
+                    date: $command->date,
+                    itemData: $itemData
+                );
+            }
+            
+            $records = $records->withUpsertItem($newItem);
+        }
+
+        // 3. Re-evaluasi status secara menyeluruh (Late, Early, dsb)
+        $attendance->updateRecords($records->withEvaluatedStatus($command->date));
+
+        // 4. Persist
+        $data = $attendance->getId() === null
+            ? $this->repository->insert($attendance)
+            : $this->repository->update($attendance);
+        
+        return AttendanceResponse::fromEntity($data);
     }
 }

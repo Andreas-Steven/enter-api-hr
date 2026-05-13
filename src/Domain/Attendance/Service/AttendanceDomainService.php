@@ -171,6 +171,61 @@ final class AttendanceDomainService
     }
 
     /**
+     * Logic dipindahkan dari Application Service (Standard DDD)
+     * Menangani manipulasi manual dari Admin untuk record yang sudah ada.
+     */
+    public function applyManualAdjustment(AttendanceItem $existing, array $itemData): AttendanceItem
+    {
+        $status = $itemData['manual_status'];
+        $newTime = $itemData['start_time'] ?? $itemData['end_time'];
+        
+        $newInfo = $existing->info;
+        $overrideLabel = $status === AttendanceStatus::MANUAL_IN ? AttendanceStatus::MANUAL_IN : AttendanceStatus::MANUAL_OUT;
+        if (!in_array($overrideLabel, $newInfo['detail'])) {
+            $newInfo['detail'][] = $overrideLabel;
+        }
+
+        if ($status === AttendanceStatus::MANUAL_IN) {
+            return $existing->forceStartTime($newTime)->withInfo($newInfo);
+        }
+
+        if ($status === AttendanceStatus::MANUAL_OUT) {
+            return $existing->withLatestEndTime($newTime)->withInfo($newInfo);
+        }
+
+        return $existing;
+    }
+
+    /**
+     * Membuat AttendanceItem baru untuk manual adjustment dengan enrichment data master.
+     * Pattern sama seperti createSnapshot, menangani enrichment di Domain Service.
+     */
+    public function createManualAdjustmentItem(
+        int $employeeId,
+        ?Employee $employee,
+        string $date,
+        array $itemData
+    ): AttendanceItem {
+        $status = $itemData['manual_status'];
+        $time = $itemData['start_time'] ?? $itemData['end_time'];
+        $isIn = $status === AttendanceStatus::MANUAL_IN;
+
+        $workTimeSnapshot = $employee?->toDailyScheduleSnapshot($date);
+
+        return new AttendanceItem(
+            employeeId: $employeeId,
+            employeeName: $employee?->getName() ?? '',
+            info: AttendanceItem::createManualInfo($isIn),
+            device: AttendanceDevice::toManualSnapshot(),
+            division: $employee?->toDivisionSnapshot() ?? Employee::toUnassignedDivisionSnapshot(),
+            startTime: $isIn ? $time : null,
+            endTime: !$isIn ? $time : null,
+            workTime: $workTimeSnapshot,
+            location: null
+        );
+    }
+
+    /**
      * Memproses penutupan data absensi (Active -> Complete).
      * Mengubah array mentah menjadi Object VO dan menjalankan evaluasi closing.
      * * @param array $entries Data attendance dari entity (array of array)

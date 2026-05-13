@@ -219,4 +219,29 @@ final class Attendance
             $this->updateDetailInfo($detailInfo);
         }
     }
+
+    public static function createEmpty(string $date): self
+    {
+        return new self(
+            id: null,
+            date: $date,
+            period: AttendancePeriod::fromDateString($date),
+            attendance: AttendanceRecords::fromItems([]),
+            status: ResourceStatus::draft(),
+            detailInfo: DetailInfo::fromArray([])
+        );
+    }
+
+    /**
+     * Update records with validation
+     * 
+     * @param AttendanceRecords $records The records to update
+     * @return void
+     */
+    public function updateRecords(AttendanceRecords $records): void
+    {
+        if (!$this->status->isCompleted()) {
+            $this->attendance = $records;
+        }
+    }
 }

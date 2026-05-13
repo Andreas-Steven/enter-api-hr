@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Attendance\ValueObject;
 
+use App\Domain\Shared\Enums\AttendanceStatus;
 use InvalidArgumentException;
 
 final readonly class AttendanceItem
@@ -191,6 +192,7 @@ final readonly class AttendanceItem
     /**
      * Digunakan khusus saat transisi status Active -> Complete (Closing Day).
      * Menambahkan label Missed Checkout jika karyawan masuk tapi tidak pernah absen pulang.
+     * Atau label Override jika override.
      */
     public function withClosingEvaluated(): self
     {
@@ -215,7 +217,7 @@ final readonly class AttendanceItem
     /**
      * Helper untuk membuat instance baru dengan info yang diperbarui
      */
-    private function withInfo(array $info): self
+    public function withInfo(array $info): self
     {
         return new self(
             $this->employeeId,
@@ -334,5 +336,17 @@ final readonly class AttendanceItem
             $this->workTime,
             $this->location
         );
+    }
+
+    /**
+     * Membuat info array untuk manual adjustment
+     */
+    public static function createManualInfo(bool $isIn): array
+    {
+        return [
+            'in' => $isIn,
+            'out' => !$isIn,
+            'detail' => [$isIn ? AttendanceStatus::MANUAL_IN : AttendanceStatus::MANUAL_OUT]
+        ];
     }
 }

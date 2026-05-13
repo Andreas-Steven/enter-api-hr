@@ -87,4 +87,40 @@ final readonly class AttendanceRecords
 
         return null;
     }
+
+    /**
+     * Mengganti item lama dengan yang baru berdasarkan employeeId
+     */
+    public function withUpsertItem(AttendanceItem $newItem): self
+    {
+        $items = $this->items; // Internal array of objects
+        $found = false;
+
+        foreach ($items as $index => $item) {
+            if ($item->employeeId === $newItem->employeeId) {
+                $items[$index] = $newItem;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            $items[] = $newItem;
+        }
+
+        return new self($items);
+    }
+
+    /**
+     * Memicu evaluasi status untuk semua item (Late, Leave Early, dll)
+     */
+    public function withEvaluatedStatus(string $date): self
+    {
+        $evaluatedItems = array_map(
+            fn(AttendanceItem $item) => $item->withEvaluatedStatus($date),
+            $this->items
+        );
+
+        return new self($evaluatedItems);
+    }
 }

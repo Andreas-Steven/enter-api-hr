@@ -6,30 +6,26 @@ namespace App\Api\V1\Attendance\Action;
 
 // Application Layer
 use App\Application\Attendance\AttendanceApplicationService;
-use App\Application\Attendance\Command\UpdateAttendanceCommand;
 
 // API Layer
 use App\Api\Shared\ResponseFactory;
 use App\Api\V1\Attendance\Validation\AttendanceInputValidator;
+use App\Application\Attendance\Command\AdjustAttendanceCommand;
 
 // Shared Layer
+use App\Shared\Enums\RecordStatus;
+use App\Shared\Request\RawParams;
 use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
+use App\Shared\Security\InputSanitizer;
 
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-// Vendor Layer
-use Yiisoft\Http\Status;
-use Yiisoft\Router\CurrentRoute;
-
-/**
- * Attendance Update API Action
- */
-final class AttendanceAdjustmentAction
+final class AttendanceAdjustmentAction 
 {
-    private const ALLOWED_KEYS = ['name', 'status', 'lock_version'];
+    private const ALLOWED_KEYS = ['date', 'attendance', 'status', 'sync_mdb'];
 
     public function __construct(
         private AttendanceInputValidator $inputValidator,
@@ -38,37 +34,15 @@ final class AttendanceAdjustmentAction
     ) {
     }
 
-    public function __invoke(
-        ServerRequestInterface $request,
-        CurrentRoute $currentRoute,
-    ): ResponseInterface
+    public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        /** @var \App\Shared\Request\RequestParams|null $payload */
-        $id = $currentRoute->getArgument('id');
+        /** @var \App\Shared\Request\RequestParams $payload */
         $payload = $request->getAttribute('payload');
-        $resource = $this->applicationService->getResource();
-
-        if ($id === null) {
-            return $this->responseFactory->fail(
-                translate: Message::create(
-                    key: 'route.parameter_missing',
-                    params: [
-                        'resource' => $resource,
-                        'parameter' => 'id',
-                    ]
-                ),
-                httpCode: Status::NOT_FOUND
-            );
-        }
-
-        $payload->ensureExists(
-            resource: $resource
-        );
 
         $params = $payload->getRawParams()
             ->onlyAllowed(
                 allowedKeys: self::ALLOWED_KEYS
-            )->with('id', $id)
+            )->with('status', RecordStatus::DRAFT->value)
             ->sanitize();
 
         $this->inputValidator->validate(
@@ -76,27 +50,24 @@ final class AttendanceAdjustmentAction
             context: ValidationContext::ADJUSTMENT,
         );
 
-        $command = UpdateAttendanceCommand::create(
-            id: (int) $id,
-            name: $params->get('name'),
+        $command = AdjustAttendanceCommand::create(
+            date: (string) $params->get('date'),
+            attendance: $params->get('attendance'),
             status: (int) $params->get('status'),
-            detailInfo: $params->get('detail_info'),
-            lockVersion: (int) $params->get('lock_version'),
+            detailInfo: $params->get('detail_info')
         );
 
-        $response = $this->applicationService->update(
-            id: (int) $id,
-            command: $command
-        );
+        $resource = $this->applicationService->getResource();
+        $response = $this->applicationService->adjust(command: $command);
 
         return $this->responseFactory->success(
             data: $response->toArray(),
             translate: Message::create(
-                key: 'resource.updated',
+                key: 'resource.adjusted',
                 params: [
-                    'resource' => $resource,
+                    'resource' => $resource
                 ]
-            ),
+            )
         );
     }
 }
