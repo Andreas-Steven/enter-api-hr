@@ -153,14 +153,6 @@ final class AttendanceInputValidator extends AbstractValidator
                     ),
                 ],
             ],
-            ValidationContext::DELETE => [
-                'id' => [
-                    new Required(), 
-                    new Integer(
-                        min: 1,
-                    ),
-                ],
-            ],
             ValidationContext::SEARCH => [
                 'id' => [
                     new Integer(
