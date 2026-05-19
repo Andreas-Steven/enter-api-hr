@@ -7,6 +7,8 @@ use App\Api;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
+use App\Api\V1\EmployeeLeave\Action as EmployeeLeaveV1;
+use App\Api\V1\Branch\Action as BranchV1;
 use App\Api\V1\GeneralAffair\Action as GeneralAffairV1;
 use App\Api\V1\GeneralAffairLocation\Action as GeneralAffairLocationV1;
 use App\Api\V1\GeneralAffairCategory\Action as GeneralAffairCategoryV1;
@@ -459,5 +461,65 @@ return [
                 ->action(AttendanceV1\AttendanceReportAction::class)
                 ->name('v1/attendance/report')
                 ->defaults(['permission' => 'attendance.report']),
+
+            // Branch Routes
+            Route::get('/branch')
+                ->action(BranchV1\BranchDataAction::class)
+                ->name('v1/branch/index')
+                ->defaults(['permission' => 'branch.index']),
+            Route::post('/branch/data')
+                ->action(BranchV1\BranchDataAction::class)
+                ->name('v1/branch/data')
+                ->defaults(['permission' => 'branch.data']),
+            Route::get('/branch/{id:\d+}')
+                ->action(BranchV1\BranchViewAction::class)
+                ->name('v1/branch/view')
+                ->defaults(['permission' => 'branch.view']),
+            Route::post('/branch/create')
+                ->action(BranchV1\BranchCreateAction::class)
+                ->name('v1/branch/create')
+                ->defaults(['permission' => 'branch.create']),
+            Route::put('/branch/{id:\d+}')
+                ->action(BranchV1\BranchUpdateAction::class)
+                ->name('v1/branch/update')
+                ->defaults(['permission' => 'branch.update']),
+            Route::delete('/branch/{id:\d+}')
+                ->action(BranchV1\BranchDeleteAction::class)
+                ->name('v1/branch/delete')
+                ->defaults(['permission' => 'branch.delete']),
+            Route::post('/branch/{id:\d+}/restore')
+                ->action(BranchV1\BranchRestoreAction::class)
+                ->name('v1/branch/restore')
+                ->defaults(['permission' => 'branch.restore']),
+
+            // EmployeeLeave Routes
+            Route::get('/employee-leave')
+                ->action(EmployeeLeaveV1\EmployeeLeaveDataAction::class)
+                ->name('v1/employee-leave/index')
+                ->defaults(['permission' => 'employee-leave.index']),
+            Route::post('/employee-leave/data')
+                ->action(EmployeeLeaveV1\EmployeeLeaveDataAction::class)
+                ->name('v1/employee-leave/data')
+                ->defaults(['permission' => 'employee-leave.data']),
+            Route::get('/employee-leave/{id:\d+}')
+                ->action(EmployeeLeaveV1\EmployeeLeaveViewAction::class)
+                ->name('v1/employee-leave/view')
+                ->defaults(['permission' => 'employee-leave.view']),
+            Route::post('/employee-leave/create')
+                ->action(EmployeeLeaveV1\EmployeeLeaveCreateAction::class)
+                ->name('v1/employee-leave/create')
+                ->defaults(['permission' => 'employee-leave.create']),
+            Route::put('/employee-leave/{id:\d+}')
+                ->action(EmployeeLeaveV1\EmployeeLeaveUpdateAction::class)
+                ->name('v1/employee-leave/update')
+                ->defaults(['permission' => 'employee-leave.update']),
+            Route::delete('/employee-leave/{id:\d+}')
+                ->action(EmployeeLeaveV1\EmployeeLeaveDeleteAction::class)
+                ->name('v1/employee-leave/delete')
+                ->defaults(['permission' => 'employee-leave.delete']),
+            Route::post('/employee-leave/{id:\d+}/restore')
+                ->action(EmployeeLeaveV1\EmployeeLeaveRestoreAction::class)
+                ->name('v1/employee-leave/restore')
+                ->defaults(['permission' => 'employee-leave.restore']),
         ),
 ];

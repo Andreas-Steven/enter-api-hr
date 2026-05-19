@@ -176,4 +176,28 @@ return [
     // Attendance Reporting System
     'attendance.show' => $isKasir,
     'attendance.report' => $isKasir,
+
+    // Branch Access Rules
+    'branch.index' => static fn (Actor $actor): bool => true,
+    'branch.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'branch.view' => $isKasir,
+    'branch.create' => $isKasir,
+    'branch.update' => $isKasir,
+    'branch.delete' => $isKasir,
+    'branch.restore' => $isSuperAdmin,
+
+    // EmployeeLeave Access Rules
+    'employee-leave.index' => static fn (Actor $actor): bool => true,
+    'employee-leave.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'employee-leave.view' => $isKasir,
+    'employee-leave.create' => $isKasir,
+    'employee-leave.update' => $isKasir,
+    'employee-leave.delete' => $isKasir,
+    'employee-leave.restore' => $isSuperAdmin,
 ];

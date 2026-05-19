@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
+use App\Domain\EmployeeLeaveType\Repository\EmployeeLeaveTypeRepositoryInterface;
+use App\Domain\EmployeeLeave\Repository\EmployeeLeaveRepositoryInterface;
+use App\Domain\Branch\Repository\BranchRepositoryInterface;
 use App\Domain\GeneralAffair\Repository\GeneralAffairRepositoryInterface;
 use App\Domain\GeneralAffairLocation\Repository\GeneralAffairLocationRepositoryInterface;
 use App\Domain\GeneralAffairCategory\Repository\GeneralAffairCategoryRepositoryInterface;
@@ -15,6 +18,8 @@ use App\Domain\EmployeeDivision\Repository\EmployeeDivisionRepositoryInterface;
 use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInterface;
 use App\Domain\WorkTime\Repository\WorkTimeRepositoryInterface;
 use App\Infrastructure\Persistence\Example\ExampleRepository;
+use App\Infrastructure\Persistence\EmployeeLeave\EmployeeLeaveRepository;
+use App\Infrastructure\Persistence\Branch\BranchRepository;
 use App\Infrastructure\Persistence\GeneralAffair\GeneralAffairRepository;
 use App\Infrastructure\Persistence\GeneralAffairLocation\GeneralAffairLocationRepository;
 use App\Infrastructure\Persistence\GeneralAffairCategory\GeneralAffairCategoryRepository;
@@ -131,6 +136,22 @@ return [
     ],
     GeneralAffairRepositoryInterface::class => [
         'class' => GeneralAffairRepository::class,
+        'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
+        'setCurrentUser()' => [Reference::to(CurrentUser::class)],
+        '__construct()' => [
+            'params' => $params['app/optimisticLock'] ?? [],
+        ],
+    ],
+    BranchRepositoryInterface::class => [
+        'class' => BranchRepository::class,
+        'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
+        'setCurrentUser()' => [Reference::to(CurrentUser::class)],
+        '__construct()' => [
+            'params' => $params['app/optimisticLock'] ?? [],
+        ],
+    ],
+    EmployeeLeaveRepositoryInterface::class => [
+        'class' => EmployeeLeaveRepository::class,
         'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
         'setCurrentUser()' => [Reference::to(CurrentUser::class)],
         '__construct()' => [

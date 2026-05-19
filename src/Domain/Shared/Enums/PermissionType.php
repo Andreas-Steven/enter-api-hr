@@ -11,6 +11,8 @@ enum PermissionType: int
     case LEAVE_EARLY = 3;
     case LATE = 4;
     case ANNUAL_LEAVE = 5;
+    case PERMISSION_LEAVE = 6;
+    case UNPAID_LEAVE = 7;
 
     public function getLabel(): string
     {
@@ -20,6 +22,8 @@ enum PermissionType: int
             self::LEAVE_EARLY => 'Leave early',
             self::LATE => 'Late',
             self::ANNUAL_LEAVE => 'Annual leave',
+            self::PERMISSION_LEAVE => 'Permission leave',
+            self::UNPAID_LEAVE => 'Unpaid leave',
         };
     }
 
