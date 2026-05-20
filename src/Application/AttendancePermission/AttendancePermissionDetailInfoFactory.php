@@ -80,10 +80,13 @@ final readonly class AttendancePermissionDetailInfoFactory
             ];
         } catch (\ValueError) {
             throw new BadRequestException(
-                Message::create('attendance_permission.invalid_permission_id', [
-                    'permission_id' => $permissionId,
-                    'must_be' => implode(', ', array_map(fn($case) => $case->value, PermissionType::cases()))
-                ])
+                translate: Message::create(
+                    key: 'attendance_permission.invalid_permission_id', 
+                    params: [
+                        'permission_id' => $permissionId,
+                        'must_be' => implode(', ', array_map(fn($case) => $case->value, PermissionType::cases()))
+                    ]
+                )
             );
         }
     }

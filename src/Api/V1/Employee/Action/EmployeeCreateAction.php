@@ -26,7 +26,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class EmployeeCreateAction 
 {
-    private const ALLOWED_KEYS = ['name', 'username', 'sso_id', 'status', 'sync_mdb'];
+    private const ALLOWED_KEYS = ['name', 'username', 'sso_id', 'branch_id', 'status', 'sync_mdb'];
 
     public function __construct(
         private EmployeeInputValidator $inputValidator,
@@ -59,6 +59,7 @@ final class EmployeeCreateAction
             positionId: EmployeeDefault::POSITION_ID,
             workTimeId: EmployeeDefault::WORK_TIME_ID,
             employeeTypeId: EmployeeDefault::EMPLOYEE_TYPE_ID,
+            branchId: EmployeeDefault::BRANCH_ID,
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );

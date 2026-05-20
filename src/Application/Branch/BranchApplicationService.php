@@ -9,6 +9,7 @@ use App\Application\Branch\Command\CreateBranchCommand;
 use App\Application\Branch\Command\UpdateBranchCommand;
 use App\Application\Branch\Dto\BranchResponse;
 use App\Application\Shared\Factory\DetailInfoFactory;
+use App\Application\Branch\BranchDetailInfoFactory;
 
 // Domain Layer
 use App\Domain\Branch\Entity\Branch;
@@ -33,6 +34,7 @@ final class BranchApplicationService
     public function __construct(
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
+        private BranchDetailInfoFactory $branchInfoFactory,
         private BranchRepositoryInterface $repository,
         private BranchDomainService $domainService
     ) {
@@ -87,9 +89,14 @@ final class BranchApplicationService
 
     public function create(CreateBranchCommand $command): BranchResponse
     {
+        $branchInfo = $this->branchInfoFactory
+            ->buildFromPrimitives(
+                branchId: $command->branchId
+            );
+
         $detailInfo = $this->detailInfoFactory
             ->create(
-                detailInfo: []
+                detailInfo: $branchInfo->toArray()
             )
             ->build();
 
@@ -98,6 +105,7 @@ final class BranchApplicationService
             code: $command->code,
             address: $command->address,
             status: ResourceStatus::from($command->status),
+            branchType: $command->branchId,
             detailInfo: $detailInfo
         );
 
@@ -136,22 +144,42 @@ final class BranchApplicationService
             newName: $command->name
         );
 
-        $data->updateCode(
-            newCode: $command->code
-        );
+        if ($command->code !== null) {
+            $data->updateCode(
+                newCode: $command->code
+            );
+        }
 
-        $data->updateAddress(
-            newAddress: $command->address
-        );
+        if ($command->address !== null) {
+            $data->updateAddress(
+                newAddress: $command->address
+            );
+        }
 
         $data->applyStatus(
             newStatus: $newStatus
         );
+        
+        $branchId = $command->branchId;
+        if ($branchId === null) {
+            $branchId = $data->getType();
+        }
+
+        if ($command->branchId !== null) {
+            $data->updateType(
+                newType: BranchType::tryFrom($command->branchId)
+            );
+        }
+
+        $branchInfo = $this->branchInfoFactory
+            ->buildFromPrimitives(
+                branchId: $branchId
+            );
 
         $detailInfo = $this->detailInfoFactory
             ->update(
                 detailInfo: $data->getDetailInfo(),
-                payload: $command->detailInfo ?? [],
+                payload: $branchInfo->toArray(),
             )
             ->build();
 

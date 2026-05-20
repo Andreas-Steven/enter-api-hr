@@ -191,6 +191,12 @@ final class EmployeeInputValidator extends AbstractValidator
                         min: 1,
                     ),
                 ],
+                'branch_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                        min: 1,
+                    ),
+                ],
                 'email' => [
                     new StringValue(
                         skipOnEmpty: true,
@@ -281,6 +287,11 @@ final class EmployeeInputValidator extends AbstractValidator
                     ),
                 ],
                 'division_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'branch_id' => [
                     new Integer(
                         skipOnEmpty: true,
                     ),

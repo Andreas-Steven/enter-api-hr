@@ -48,6 +48,7 @@ final class M20260224131237CreateEmployeeTable implements RevertibleMigrationInt
             'position_id' => $cb::integer()->notNull()->defaultValue(1),
             'employee_type_id' => $cb::integer()->notNull()->defaultValue(1),
             'work_time_id' => $cb::integer()->defaultValue(1),
+            'branch_id' => $cb::integer()->defaultValue(1),
             'image' => $cb::json()->defaultValue([]),
             'status' => $cb::smallint()->notNull()->defaultValue(1)->comment('Employee status'),
             'detail_info' => $cb::json()->notNull()->defaultValue([
@@ -56,6 +57,7 @@ final class M20260224131237CreateEmployeeTable implements RevertibleMigrationInt
                 'position' => null,
                 'employee_type' => null,
                 'work_time' => null,
+                'branch' => null,
                 'change_log' => [
                     'created_at' => null,
                     'created_by' => null,

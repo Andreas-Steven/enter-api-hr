@@ -16,12 +16,14 @@ use App\Domain\WorkTime\Repository\WorkTimeRepositoryInterface;
 use App\Domain\EmployeeType\Repository\EmployeeTypeRepositoryInterface;
 use App\Domain\EmployeeDivision\Repository\EmployeeDivisionRepositoryInterface;
 use App\Domain\EmployeePosition\Repository\EmployeePositionRepositoryInterface;
+use App\Domain\Branch\Repository\BranchRepositoryInterface;
 
 // Domain Entity
 use App\Domain\WorkTime\Entity\WorkTime;
 use App\Domain\EmployeeType\Entity\EmployeeType;
 use App\Domain\EmployeeDivision\Entity\EmployeeDivision;
 use App\Domain\EmployeePosition\Entity\EmployeePosition;
+use App\Domain\Branch\Entity\Branch;
 
 final readonly class EmployeeDetailInfoFactory
 {
@@ -30,6 +32,7 @@ final readonly class EmployeeDetailInfoFactory
         private EmployeeTypeRepositoryInterface $employeeTypeRepo,
         private EmployeeDivisionRepositoryInterface $employeeDivisionRepo,
         private EmployeePositionRepositoryInterface $employeePositionRepo,
+        private BranchRepositoryInterface $branchRepo,
     ) {}
 
     public function buildFromPrimitives(
@@ -39,6 +42,7 @@ final readonly class EmployeeDetailInfoFactory
         ?int $divisionId,
         ?int $positionId,
         ?int $employeeTypeId,
+        ?int $branchId,
     ): EmployeeDetailInfo {
         $ssoData = [
             'id' => $ssoId,
@@ -167,12 +171,46 @@ final readonly class EmployeeDetailInfoFactory
             );
         }
 
+        $branch = null;
+        if ($branchId !== null) {
+            $branchData = $this->branchRepo->findById(
+                id: $branchId,
+                status: ResourceStatus::active()->value()
+            );
+
+            if ($branchData === null) {
+                throw new NotFoundException(
+                    translate: Message::create(
+                        key: 'resource.not_found',
+                        params: [
+                            'resource' => 'branch',
+                            'field' => 'id',
+                            'value' => $branchId
+                        ]
+                    )
+                );
+            }
+
+            $branch = Branch::reconstitute(
+                id: $branchData->getId(),
+                name: $branchData->getName(),
+                code: $branchData->getCode(),
+                address: $branchData->getAddress(),
+                status: $branchData->getStatus(),
+                branchType: $branchData->getType(),
+                detailInfo: $branchData->getDetailInfo(),
+                syncMdb: $branchData->getSyncMdb(),
+                lockVersion: $branchData->getLockVersion()
+            );
+        }
+
         return new EmployeeDetailInfo(
             sso: $ssoData,
             division: $employeeDivision?->toPersistence(),
             position: $employeePosition?->toPersistence(),
             employeeType: $employeeType?->toPersistence(),
             workTime: $workTime?->toPersistence(),
+            branch: $branch?->toPersistence(),
         );
     }
 }

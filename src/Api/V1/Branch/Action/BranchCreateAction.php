@@ -25,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class BranchCreateAction 
 {
-    private const ALLOWED_KEYS = ['name', 'code', 'address', 'status', 'sync_mdb'];
+    private const ALLOWED_KEYS = ['name', 'code', 'address', 'status', 'sync_mdb', 'branch_type'];
 
     public function __construct(
         private BranchInputValidator $inputValidator,
@@ -45,6 +45,11 @@ final class BranchCreateAction
             )->with('status', RecordStatus::DRAFT->value)
             ->sanitize();
 
+        $code = $params->get('code');
+        if ($code !== null) {
+            $params = $params->with('code', strtoupper((string) $code));
+        }
+
         $this->inputValidator->validate(
             data: $params,
             context: ValidationContext::CREATE,
@@ -55,6 +60,7 @@ final class BranchCreateAction
             code: (string) $params->get('code'),
             address: (string) $params->get('address'),
             status: (int) $params->get('status'),
+            branchId: (int) $params->get('branch_type'),
             detailInfo: $params->get('detail_info')
         );
 

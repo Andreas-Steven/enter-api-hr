@@ -32,6 +32,7 @@ final class Branch
         private string $code,
         private string $address,
         private ResourceStatus $status,
+        private int $branchType,
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
@@ -50,6 +51,7 @@ final class Branch
         string $code,
         string $address,
         ResourceStatus $status,
+        int $branchType,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
     ): self {
@@ -59,13 +61,14 @@ final class Branch
         );
 
         return new self(
-            id: null, 
-            name: $name, 
+            id: null,
+            name: $name,
             code: $code,
             address: $address,
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            status: $status,
+            branchType: $branchType,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: LockVersion::create()
         );
     }
@@ -76,19 +79,21 @@ final class Branch
         string $code,
         string $address,
         ResourceStatus $status,
+        int $branchType,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
     ): self {
 
         return new self(
-            id: $id, 
-            name: $name, 
+            id: $id,
+            name: $name,
             code: $code,
             address: $address,
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            status: $status,
+            branchType: $branchType,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: $lockVersion ?? LockVersion::create()
         );
     }
@@ -101,12 +106,22 @@ final class Branch
             'code' => $this->code,
             'address' => $this->address,
             'status' => $this->status->value(),
+            'branch_type' => $this->branchType,
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
             LockVersion::field() => $this->lockVersion->value(),
         ];
     }
-    
+
+    public function toPersistence(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'code' => $this->code,
+        ];
+    }
+
     public function restore(): void
     {
         if (!$this->status->isDeleted()) {
@@ -161,5 +176,19 @@ final class Branch
         }
 
         $this->address = $newAddress;
+    }
+
+    public function getType(): int
+    {
+        return $this->branchType;
+    }
+
+    public function updateType(?int $newType): void
+    {
+        if ($newType === null) {
+            return;
+        }
+
+        $this->branchType = $newType;
     }
 }

@@ -11,6 +11,7 @@ final readonly class CreateBranchCommand
         public string $code,
         public string $address,
         public int $status,
+        public int $branchId,
         public ?array $detailInfo,
     ) {}
 
@@ -19,6 +20,7 @@ final readonly class CreateBranchCommand
         string $code,
         string $address,
         int $status,
+        int $branchId,
         ?array $detailInfo = null,
     ): self {
         return new self(
@@ -26,6 +28,7 @@ final readonly class CreateBranchCommand
             code: $code,
             address: $address,
             status: $status,
+            branchId: $branchId,
             detailInfo: $detailInfo,
         );
     }

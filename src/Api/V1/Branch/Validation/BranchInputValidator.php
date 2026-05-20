@@ -138,6 +138,13 @@ final class BranchInputValidator extends AbstractValidator
                         RecordStatus::draftOnlyStates(),
                     ),
                 ],
+                'branch_type' => [
+                    new Required(),
+                    new Integer(),
+                    new In(
+                        [1, 2],
+                    ),
+                ],
             ],
             ValidationContext::UPDATE => [
                 'id' => [

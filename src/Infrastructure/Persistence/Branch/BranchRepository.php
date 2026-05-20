@@ -83,8 +83,9 @@ final class BranchRepository implements BranchRepositoryInterface, CurrentUserAw
             code: $row['code'],
             address: $row['address'],
             status: ResourceStatus::from((int)$row['status']),
+            branchType: (int)$row['branch_type'],
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
         );
     }
 
@@ -108,6 +109,7 @@ final class BranchRepository implements BranchRepositoryInterface, CurrentUserAw
             code: $row['code'],
             address: $row['address'],
             status: ResourceStatus::from((int)$row['status']),
+            branchType: (int)$row['branch_type'],
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
         )->updateSyncMdb($row[SyncMdb::field()] ?? null);
@@ -132,6 +134,7 @@ final class BranchRepository implements BranchRepositoryInterface, CurrentUserAw
                 'code',
                 'address',
                 'status',
+                'branch_type',
                 'detail_info',
                 SyncMdb::field(),
                 LockVersion::field(),
@@ -221,6 +224,7 @@ final class BranchRepository implements BranchRepositoryInterface, CurrentUserAw
                 code: $entity->getCode(),
                 address: $entity->getAddress(),
                 status: $entity->getStatus(),
+                branchType: $entity->getType(),
                 detailInfo: $entity->getDetailInfo(),
                 lockVersion: LockVersion::create(),
             );
@@ -313,6 +317,7 @@ final class BranchRepository implements BranchRepositoryInterface, CurrentUserAw
             code: $row['code'],
             address: $row['address'],
             status: ResourceStatus::from((int)$row['status']),
+            branchType: (int)$row['branch_type'],
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()])
         );
@@ -331,6 +336,7 @@ final class BranchRepository implements BranchRepositoryInterface, CurrentUserAw
             'code' => $entity->getCode(),
             'address' => $entity->getAddress(),
             'status' => $entity->getStatus()->value(),
+            'branch_type' => $entity->getType(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             SyncMdb::field() => $entity->getSyncMdbValue(),
             LockVersion::field() => $lockVersion,

@@ -12,6 +12,7 @@ final readonly class EmployeeDetailInfo
         public ?array $position,
         public ?array $employeeType,
         public ?array $workTime,
+        public ?array $branch,
     ) {}
 
     public function toArray(): array
@@ -22,6 +23,7 @@ final readonly class EmployeeDetailInfo
             'position' => $this->position,
             'employee_type' => $this->employeeType,
             'work_time' => $this->workTime,
+            'branch' => $this->branch,
         ];
     }
 
@@ -48,5 +50,10 @@ final readonly class EmployeeDetailInfo
     public function getWorkTime(): ?array
     {
         return $this->workTime;
+    }
+
+    public function getBranch(): ?array
+    {
+        return $this->branch;
     }
 }

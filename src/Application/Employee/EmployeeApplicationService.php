@@ -98,7 +98,8 @@ final class EmployeeApplicationService
             positionId: $command->positionId,
             employeeTypeId: $command->employeeTypeId,
             workTimeId: $command->workTimeId,
-            username: $command->username
+            username: $command->username,
+            branchId: $command->branchId
         );
 
         $detailInfo = $this->detailInfoFactory
@@ -117,6 +118,7 @@ final class EmployeeApplicationService
             positionId: $command->positionId,
             employeeTypeId: $command->employeeTypeId,
             workTimeId: $command->workTimeId,
+            branchId: $command->branchId,
             birthDate: null,
             dateStart: null,
             dateResign: null,
@@ -188,6 +190,12 @@ final class EmployeeApplicationService
             );
         }
 
+        if ($command->branchId !== null) {
+            $data->updateBranch(
+                branchId: $command->branchId
+            );
+        }
+
         if ($command->nik !== null) {
             $data->updateNik(
                 nik: $command->nik
@@ -231,6 +239,7 @@ final class EmployeeApplicationService
             divisionId: $command->divisionId ?? $data->getDivisionId(),
             positionId: $command->positionId ?? $data->getPositionId(),
             employeeTypeId: $command->employeeTypeId ?? $data->getEmployeeTypeId(),
+            branchId: $command->branchId ?? $data->getBranchId(),
         );
 
         $detailInfo = $this->detailInfoFactory

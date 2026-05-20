@@ -42,6 +42,7 @@ final class Employee
         private ?int $positionId,
         private ?int $employeeTypeId,
         private ?int $workTimeId,
+        private ?int $branchId,
         private ?string $birthDate,
         private ?string $dateStart,
         private ?string $dateResign,
@@ -78,6 +79,7 @@ final class Employee
         ?int $positionId = null,
         ?int $employeeTypeId = null,
         ?int $workTimeId = null,
+        ?int $branchId = null,
         ?SyncMdb $syncMdb = null,
     ): self {
         self::guardInitialStatus(
@@ -100,6 +102,7 @@ final class Employee
             positionId: $positionId,
             employeeTypeId: $employeeTypeId,
             workTimeId: $workTimeId,
+            branchId: $branchId,
             image: $image,
             status: $status, 
             detailInfo: $detailInfo, 
@@ -119,6 +122,7 @@ final class Employee
         ?int $positionId,
         ?int $employeeTypeId,
         ?int $workTimeId,
+        ?int $branchId,
         ?string $birthDate,
         ?string $dateStart,
         ?string $dateResign,
@@ -142,6 +146,7 @@ final class Employee
             positionId: $positionId,
             employeeTypeId: $employeeTypeId,
             workTimeId: $workTimeId,
+            branchId: $branchId,
             image: $image,
             birthDate: $birthDate,
             dateStart: $dateStart,
@@ -170,6 +175,7 @@ final class Employee
             'position_id' => $this->positionId,
             'employee_type_id' => $this->employeeTypeId,
             'work_time_id' => $this->workTimeId,
+            'branch_id' => $this->branchId,
             'image' => $this->image?->toArray(),
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
@@ -254,6 +260,11 @@ final class Employee
     public function getWorkTimeId(): ?int
     {
         return $this->workTimeId;
+    }
+
+    public function getBranchId(): ?int
+    {
+        return $this->branchId;
     }
 
     public function getContact(): ?Contact
@@ -389,6 +400,11 @@ final class Employee
     public function updateWorkTime(?int $workTimeId): void
     {
         $this->workTimeId = $workTimeId;
+    }
+
+    public function updateBranch(?int $branchId): void
+    {
+        $this->branchId = $branchId;
     }
 
     public function updateContact(Contact $contact): void

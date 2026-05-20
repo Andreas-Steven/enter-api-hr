@@ -14,6 +14,7 @@ final readonly class UpdateBranchCommand
         public ?int $status,
         public ?array $detailInfo,
         public ?int $lockVersion,
+        public ?int $branchId,
     ) {}
 
     public static function create(
@@ -24,6 +25,7 @@ final readonly class UpdateBranchCommand
         ?int $status = null,
         ?array $detailInfo = null,
         ?int $lockVersion = null,
+        ?int $branchId = null,
     ): self {
         return new self(
             id: $id,
@@ -33,6 +35,7 @@ final readonly class UpdateBranchCommand
             status: $status,
             detailInfo: $detailInfo,
             lockVersion: $lockVersion,
+            branchId: $branchId,
         );
     }
 }
