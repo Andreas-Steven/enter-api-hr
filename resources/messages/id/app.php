@@ -24,6 +24,7 @@ return [
      */
     'invalid.latitude' => 'Latitude harus antara -90 dan 90.',
     'invalid.longitude' => 'Longitude harus antara -180 dan 180.',
+    'invalid.location_zero' => 'Location tidak boleh nol.',
 
     /**
      * Attendance Permission

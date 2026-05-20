@@ -131,10 +131,19 @@ final readonly class DeviceLocation
                 )
             );
         }
+
+        if ($this->latitude === 0.0 && $this->longitude === 0.0) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'invalid.location_zero',
+                    domain: 'app',
+                )
+            );
+        }
     }
 
     public function __toString(): string
     {
-        return "{$this->latitude},{$this->longitude}";
+        return json_encode($this->toArray());
     }
 }

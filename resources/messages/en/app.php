@@ -24,6 +24,7 @@ return [
      */
     'invalid.latitude' => 'Latitude must be between -90 and 90.',
     'invalid.longitude' => 'Longitude must be between -180 and 180.',
+    'invalid.location_zero' => 'Location cannot be zero.',
 
     /**
      * Attendance Permission
