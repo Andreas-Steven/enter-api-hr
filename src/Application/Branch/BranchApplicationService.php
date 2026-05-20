@@ -15,6 +15,7 @@ use App\Application\Branch\BranchDetailInfoFactory;
 use App\Domain\Branch\Entity\Branch;
 use App\Domain\Branch\Repository\BranchRepositoryInterface;
 use App\Domain\Branch\Service\BranchDomainService;
+use App\Domain\Shared\Enums\BranchType;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
@@ -104,8 +105,8 @@ final class BranchApplicationService
             name: $command->name,
             code: $command->code,
             address: $command->address,
+            branchType: (int) $command->branchId,
             status: ResourceStatus::from($command->status),
-            branchType: $command->branchId,
             detailInfo: $detailInfo
         );
 
@@ -167,7 +168,7 @@ final class BranchApplicationService
 
         if ($command->branchId !== null) {
             $data->updateType(
-                newType: BranchType::tryFrom($command->branchId)
+                newType: $command->branchId
             );
         }
 

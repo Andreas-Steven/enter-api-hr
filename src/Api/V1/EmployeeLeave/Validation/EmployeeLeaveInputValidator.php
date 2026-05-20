@@ -101,11 +101,11 @@ final class EmployeeLeaveInputValidator extends AbstractValidator
                             min: 3, 
                             max: 255,
                         ),
-                        new UniqueValue(
-                            table: 'employee_leave', 
-                            column: 'name', 
-                            ignoreId: null
-                        )
+                        // new UniqueValue(
+                        //     table: 'employee_leave', 
+                        //     column: 'name', 
+                        //     ignoreId: null
+                        // )
                     ])
                 ],
                 'leave_type' => [
@@ -167,11 +167,11 @@ final class EmployeeLeaveInputValidator extends AbstractValidator
                             max: 255,
                             skipOnEmpty: true,
                         ),
-                        new UniqueValue(
-                            table: 'employee_leave', 
-                            column: 'name', 
-                            ignoreId: $this->data['id'] ?? null
-                        )
+                        // new UniqueValue(
+                        //     table: 'employee_leave', 
+                        //     column: 'name', 
+                        //     ignoreId: $this->data['id'] ?? null
+                        // )
                     ])
                 ],
                 'leave_type' => [

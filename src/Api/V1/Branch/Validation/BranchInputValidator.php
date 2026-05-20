@@ -207,6 +207,15 @@ final class BranchInputValidator extends AbstractValidator
                         RecordStatus::searchableStates(),
                     ),
                 ],
+                'branch_type' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        [1, 2],
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'lock_version' => [
                     new Required(
                         when: fn() => $this->shouldValidateOptimisticLock()
