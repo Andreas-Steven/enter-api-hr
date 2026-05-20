@@ -145,6 +145,26 @@ final class AttendanceDeviceApplicationService
             newStatus: $newStatus
         );
 
+        if (!empty($command->code)) {
+            $data->updateCode($command->code);
+        }
+
+        if (!empty($command->address)) {
+            $data->updateAddress($command->address);
+        }
+
+        if (!empty($command->ipAddress)) {
+            $data->updateIpAddress(IpAddress::create($command->ipAddress));
+        }
+
+        if (!empty($command->requiresLocation)) {
+            $data->updateRequiresLocation((int) $command->requiresLocation);
+        }
+        
+        if (!empty($command->location)) {
+            $data->updateLocation(DeviceLocation::fromArray($command->location));
+        }
+
         $detailInfo = $this->detailInfoFactory
             ->update(
                 detailInfo: $data->getDetailInfo(),

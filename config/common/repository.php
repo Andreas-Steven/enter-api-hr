@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
+use App\Domain\EmployeeGrade\Repository\EmployeeGradeRepositoryInterface;
 use App\Domain\EmployeeLeaveType\Repository\EmployeeLeaveTypeRepositoryInterface;
 use App\Domain\EmployeeLeave\Repository\EmployeeLeaveRepositoryInterface;
 use App\Domain\Branch\Repository\BranchRepositoryInterface;
@@ -18,6 +19,7 @@ use App\Domain\EmployeeDivision\Repository\EmployeeDivisionRepositoryInterface;
 use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInterface;
 use App\Domain\WorkTime\Repository\WorkTimeRepositoryInterface;
 use App\Infrastructure\Persistence\Example\ExampleRepository;
+use App\Infrastructure\Persistence\EmployeeGrade\EmployeeGradeRepository;
 use App\Infrastructure\Persistence\EmployeeLeave\EmployeeLeaveRepository;
 use App\Infrastructure\Persistence\Branch\BranchRepository;
 use App\Infrastructure\Persistence\GeneralAffair\GeneralAffairRepository;
@@ -152,6 +154,14 @@ return [
     ],
     EmployeeLeaveRepositoryInterface::class => [
         'class' => EmployeeLeaveRepository::class,
+        'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
+        'setCurrentUser()' => [Reference::to(CurrentUser::class)],
+        '__construct()' => [
+            'params' => $params['app/optimisticLock'] ?? [],
+        ],
+    ],
+    EmployeeGradeRepositoryInterface::class => [
+        'class' => EmployeeGradeRepository::class,
         'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
         'setCurrentUser()' => [Reference::to(CurrentUser::class)],
         '__construct()' => [

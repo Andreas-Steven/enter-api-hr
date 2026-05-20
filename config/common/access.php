@@ -200,4 +200,16 @@ return [
     'employee-leave.update' => $isKasir,
     'employee-leave.delete' => $isKasir,
     'employee-leave.restore' => $isSuperAdmin,
+
+    // EmployeeGrade Access Rules
+    'employee-grade.index' => static fn (Actor $actor): bool => true,
+    'employee-grade.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'employee-grade.view' => $isKasir,
+    'employee-grade.create' => $isKasir,
+    'employee-grade.update' => $isKasir,
+    'employee-grade.delete' => $isKasir,
+    'employee-grade.restore' => $isSuperAdmin,
 ];

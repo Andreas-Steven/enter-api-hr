@@ -169,9 +169,29 @@ final class AttendancePermission
         return $this->employeeId;
     }
 
+    public function setEmployeeId(int $employeeId): void
+    {
+        $this->employeeId = $employeeId;
+    }
+
+    public function updateEmployeeId(int $employeeId): void
+    {
+        $this->employeeId = $employeeId;
+    }
+
     public function getPermissionType(): int
     {
         return $this->permissionType;
+    }
+
+    public function setPermissionType(int $permissionType): void
+    {
+        $this->permissionType = $permissionType;
+    }
+
+    public function updatePermissionType(int $permissionType): void
+    {
+        $this->permissionType = $permissionType;
     }
 
         public function getPermission(): PermissionType
@@ -188,9 +208,29 @@ final class AttendancePermission
         return $this->date;
     }
 
+    public function setDate(string $date): void
+    {
+        $this->date = $date;
+    }
+
+    public function updateDate(string $date): void
+    {
+        $this->date = $date;
+    }
+
     public function getNote(): ?string
     {
         return $this->note;
+    }
+
+    public function setNote(string $note): void
+    {
+        $this->note = $note;
+    }
+
+    public function updateNote(string $note): void
+    {
+        $this->note = $note;
     }
 
     public function getRevision(): ?Revision

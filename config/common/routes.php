@@ -7,6 +7,7 @@ use App\Api;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
+use App\Api\V1\EmployeeGrade\Action as EmployeeGradeV1;
 use App\Api\V1\EmployeeLeave\Action as EmployeeLeaveV1;
 use App\Api\V1\Branch\Action as BranchV1;
 use App\Api\V1\GeneralAffair\Action as GeneralAffairV1;
@@ -521,5 +522,36 @@ return [
                 ->action(EmployeeLeaveV1\EmployeeLeaveRestoreAction::class)
                 ->name('v1/employee-leave/restore')
                 ->defaults(['permission' => 'employee-leave.restore']),
+
+            // EmployeeGrade Routes
+            Route::get('/employee-grade')
+                ->action(EmployeeGradeV1\EmployeeGradeDataAction::class)
+                ->name('v1/employee-grade/index')
+                ->defaults(['permission' => 'employee-grade.index']),
+            Route::post('/employee-grade/data')
+                ->action(EmployeeGradeV1\EmployeeGradeDataAction::class)
+                ->name('v1/employee-grade/data')
+                ->defaults(['permission' => 'employee-grade.data']),
+            Route::get('/employee-grade/{id:\d+}')
+                ->action(EmployeeGradeV1\EmployeeGradeViewAction::class)
+                ->name('v1/employee-grade/view')
+                ->defaults(['permission' => 'employee-grade.view']),
+            Route::post('/employee-grade/create')
+                ->action(EmployeeGradeV1\EmployeeGradeCreateAction::class)
+                ->name('v1/employee-grade/create')
+                ->defaults(['permission' => 'employee-grade.create']),
+            Route::put('/employee-grade/{id:\d+}')
+                ->action(EmployeeGradeV1\EmployeeGradeUpdateAction::class)
+                ->name('v1/employee-grade/update')
+                ->defaults(['permission' => 'employee-grade.update']),
+            Route::delete('/employee-grade/{id:\d+}')
+                ->action(EmployeeGradeV1\EmployeeGradeDeleteAction::class)
+                ->name('v1/employee-grade/delete')
+                ->defaults(['permission' => 'employee-grade.delete']),
+            Route::post('/employee-grade/{id:\d+}/restore')
+                ->action(EmployeeGradeV1\EmployeeGradeRestoreAction::class)
+                ->name('v1/employee-grade/restore')
+                ->defaults(['permission' => 'employee-grade.restore']),
+
         ),
 ];

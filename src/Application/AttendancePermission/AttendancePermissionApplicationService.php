@@ -155,6 +155,34 @@ final class AttendancePermissionApplicationService
             date: $command->date ?? $data->getDate()
         );
 
+        if (!empty($command->note)) {
+           $data->updateNote(
+                note: $command->note
+            );
+        }
+
+        if (!empty($command->employeeId)) {
+            $data->updateEmployeeId($command->employeeId);
+        }
+
+        if (!empty($command->permissionType)) {
+            $data->updatePermissionType(
+                permissionType: $command->permissionType
+            );
+        }
+
+        if (!empty($command->date)) {
+            $data->updateDate(
+                date: $command->date
+            );
+        }
+
+        if (!empty($command->revision)) {
+            $data->updateRevision(
+                newRevision: Revision::fromArray($command->revision)
+            );
+        }
+                
         $detailInfo = $this->detailInfoFactory
             ->update(
                 detailInfo: $data->getDetailInfo(),

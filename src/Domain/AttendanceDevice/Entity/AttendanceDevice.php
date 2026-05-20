@@ -182,6 +182,31 @@ final class AttendanceDevice
         return $this->requiresLocation;
     }
 
+    public function updateCode(string $code): void
+    {
+        $this->code = $code;
+    }
+
+    public function updateAddress(string $address): void
+    {
+        $this->address = $address;
+    }
+
+    public function updateIpAddress(IpAddress $ipAddress): void
+    {
+        $this->ipAddress = $ipAddress;
+    }
+
+    public function updateRequiresLocation(int $requiresLocation): void
+    {
+        $this->requiresLocation = $requiresLocation;
+    }
+
+    public function updateLocation(DeviceLocation $location): void
+    {
+        $this->location = $location;
+    }
+
     public static function toUnregisteredSnapshot(): array
     {
         return [
