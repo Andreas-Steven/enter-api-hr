@@ -250,6 +250,11 @@ final class BranchInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'branch_type' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'code' => [
                     new StringValue(
                         skipOnEmpty: true,

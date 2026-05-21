@@ -25,10 +25,11 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class BranchDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'code', 'address', 'status'];
+    private const ALLOWED_KEYS = ['id', 'name', 'branch_type', 'code', 'address', 'status'];
     private const ALLOWED_SORT = [
         'id' => 'id', 
         'name' => 'name', 
+        'branch_type' => 'branch_type',
         'code' => 'code',
         'address' => 'address',
         'status' => 'status',

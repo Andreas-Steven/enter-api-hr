@@ -339,7 +339,7 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                 // ],
                 'approved' => [
                     new In(
-                        [0, 1, '0', '1', null, 'null'], 
+                        [0, 1, 2, '0', '1', '2', null, 'null'], 
                         skipOnEmpty: true
                     ),
                     // new Integer(

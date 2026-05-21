@@ -139,6 +139,12 @@ final class EmployeeDivisionApplicationService
             newStatus: $newStatus
         );
 
+        if ($command->code !== null) {
+            $data->setCode(
+                code: $command->code
+            );
+        }
+
         $detailInfo = $this->detailInfoFactory
             ->update(
                 detailInfo: $data->getDetailInfo(),
