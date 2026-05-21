@@ -49,7 +49,6 @@ final class BranchCreateAction
         if ($code !== null) {
             $params = $params->with('code', strtoupper((string) $code));
         }
-
         $this->inputValidator->validate(
             data: $params,
             context: ValidationContext::CREATE,
@@ -57,10 +56,10 @@ final class BranchCreateAction
 
         $command = CreateBranchCommand::create(
             name: (string) $params->get('name'),
+            branch_type: (int) $params->get('branch_type'),
             code: (string) $params->get('code'),
             address: (string) $params->get('address'),
             status: (int) $params->get('status'),
-            branchId: (int) $params->get('branch_type'),
             detailInfo: $params->get('detail_info')
         );
 

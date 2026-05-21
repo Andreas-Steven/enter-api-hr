@@ -92,7 +92,7 @@ final class BranchApplicationService
     {
         $branchInfo = $this->branchInfoFactory
             ->buildFromPrimitives(
-                branchId: $command->branchId
+                branch_type: (int) $command->branch_type
             );
 
         $detailInfo = $this->detailInfoFactory
@@ -105,7 +105,7 @@ final class BranchApplicationService
             name: $command->name,
             code: $command->code,
             address: $command->address,
-            branchType: (int) $command->branchId,
+            branchType: (int) $command->branch_type,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
         );
@@ -160,21 +160,16 @@ final class BranchApplicationService
         $data->applyStatus(
             newStatus: $newStatus
         );
-        
-        $branchId = $command->branchId;
-        if ($branchId === null) {
-            $branchId = $data->getType();
-        }
 
-        if ($command->branchId !== null) {
+        if ($command->branch_type !== null) {
             $data->updateType(
-                newType: $command->branchId
+                newType: (int) $command->branch_type
             );
         }
 
         $branchInfo = $this->branchInfoFactory
             ->buildFromPrimitives(
-                branchId: $branchId
+                branch_type: (int) $command->branch_type
             );
 
         $detailInfo = $this->detailInfoFactory

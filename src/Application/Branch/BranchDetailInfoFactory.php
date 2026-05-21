@@ -23,15 +23,16 @@ final readonly class BranchDetailInfoFactory
     ) {}
 
     public function buildFromPrimitives(
-        ?int $branchId = null,
+        ?int $branch_type = null,
     ): BranchDetailInfo {
-        $branchType = BranchType::from($branchId);
-        if ($branchType === null) {
+        try {
+            $branchType = BranchType::from($branch_type);
+        } catch (\ValueError $e) {
             throw new BadRequestException(
                 translate: Message::create(
                     key: 'branch.invalid_branch_id', 
                     params: [
-                        'branch_id' => $branchId,
+                        'branch_id' => $branch_type,
                         'must_be' => implode(', ', array_map(fn($case) => $case->value, BranchType::cases()))
                     ]
                 )

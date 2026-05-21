@@ -16,15 +16,4 @@ enum BranchType: int
             self::RETAIL => 'Retail',
         };
     }
-
-    /**
-     * Replaces REVISION_PERMISSION_LIST logic
-     */
-    public function requiresRevision(): bool
-    {
-        return match($this) {
-            self::LEAVE_EARLY, self::LATE => true,
-            default => false,
-        };
-    }
 }

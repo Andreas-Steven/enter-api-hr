@@ -11,6 +11,9 @@ use App\Shared\Context\ValidationContext;
 use App\Shared\Validation\Rules\HasNoDependencies;
 use App\Shared\Validation\Rules\UniqueValue;
 
+// Domain Layer
+use App\Domain\Shared\Enums\BranchType;
+
 // Vendor Layer
 use Yiisoft\Validator\Rule\Required;
 use Yiisoft\Validator\Rule\Integer;
@@ -108,6 +111,10 @@ final class BranchInputValidator extends AbstractValidator
                         )
                     ])
                 ],
+                'branch_type' => [
+                    new Required(),
+                    new Integer(),
+                ],
                 'code' => [
                     new StopOnError([
                         new Required(),
@@ -138,13 +145,6 @@ final class BranchInputValidator extends AbstractValidator
                         RecordStatus::draftOnlyStates(),
                     ),
                 ],
-                'branch_type' => [
-                    new Required(),
-                    new Integer(),
-                    new In(
-                        [1, 2],
-                    ),
-                ],
             ],
             ValidationContext::UPDATE => [
                 'id' => [
@@ -168,6 +168,16 @@ final class BranchInputValidator extends AbstractValidator
                             column: 'name', 
                             ignoreId: $this->data['id'] ?? null
                         )
+                    ])
+                ],
+                'branch_type' => [
+                    new StopOnError([
+                        new Integer(
+                            skipOnEmpty: true,
+                        ),
+                        new In(
+                            values: BranchType::cases(),
+                        ),
                     ])
                 ],
                 'code' => [
@@ -205,15 +215,6 @@ final class BranchInputValidator extends AbstractValidator
                     ),
                     new In(
                         RecordStatus::searchableStates(),
-                    ),
-                ],
-                'branch_type' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                    ),
-                    new In(
-                        [1, 2],
-                        skipOnEmpty: true,
                     ),
                 ],
                 'lock_version' => [

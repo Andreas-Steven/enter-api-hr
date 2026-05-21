@@ -79,10 +79,10 @@ final class BranchUpdateAction
         $command = UpdateBranchCommand::create(
             id: (int) $id,
             name: $params->get('name'),
+            branch_type: $params->get('branch_type'),
             code: $params->get('code'),
             address: $params->get('address'),
             status: (int) $params->get('status'),
-            branchId: (int) $params->get('branch_type'),
             detailInfo: $params->get('detail_info'),
             lockVersion: (int) $params->get('lock_version'),
         );

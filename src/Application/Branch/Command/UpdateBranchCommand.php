@@ -9,33 +9,33 @@ final readonly class UpdateBranchCommand
     public function __construct(
         public int $id,
         public ?string $name,
+        public ?int $branch_type,
         public ?string $code,
         public ?string $address,
         public ?int $status,
         public ?array $detailInfo,
         public ?int $lockVersion,
-        public ?int $branchId,
     ) {}
 
     public static function create(
         int $id,
         ?string $name = null,
+        ?int $branch_type = null,
         ?string $code = null,
         ?string $address = null,
         ?int $status = null,
         ?array $detailInfo = null,
         ?int $lockVersion = null,
-        ?int $branchId = null,
-    ): self {
+        ): self {
         return new self(
             id: $id,
             name: $name,
+            branch_type: $branch_type,
             code: $code,
             address: $address,
             status: $status,
             detailInfo: $detailInfo,
             lockVersion: $lockVersion,
-            branchId: $branchId,
         );
     }
 }
