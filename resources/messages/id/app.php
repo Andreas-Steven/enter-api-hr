@@ -35,6 +35,12 @@ return [
     'attendance_permission.end_time_required' => 'Waktu Selesai Revisi diperlukan untuk jenis izin: {type}',
 
     /**
+     * Attendance Policy
+     */
+    'attendance_policy.invalid_format' => 'Format {resource} tidak valid.',
+    'attendance_policy.invalid_policy_value' => 'Nilai {resource} tidak valid.',
+
+    /**
      *  Work Time
      */
     'work_time.invalid_format' => 'Format {resource} pada hari {day} tidak valid.',

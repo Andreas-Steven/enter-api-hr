@@ -35,6 +35,13 @@ return [
     'attendance_permission.end_time_required' => 'Revision End Time is required for permission type: {type}',
 
     /**
+     * Attendance Policy
+     */
+    'attendance_policy.invalid_format' => 'The {resource} format is invalid.',
+    'attendance_policy.invalid_minutes' => 'The {resource} must be between 0 and 1440 minutes.',
+    'attendance_policy.invalid_policy_value' => 'The {resource} value is invalid.',
+
+    /**
      *  Work Time
      */
     'work_time.invalid_format' => 'The {resource} on {day} format is invalid.',

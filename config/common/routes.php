@@ -7,6 +7,7 @@ use App\Api;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
+use App\Api\V1\AttendancePolicies\Action as AttendancePoliciesV1;
 use App\Api\V1\EmployeeGrade\Action as EmployeeGradeV1;
 use App\Api\V1\EmployeeLeave\Action as EmployeeLeaveV1;
 use App\Api\V1\Branch\Action as BranchV1;
@@ -552,6 +553,37 @@ return [
                 ->action(EmployeeGradeV1\EmployeeGradeRestoreAction::class)
                 ->name('v1/employee-grade/restore')
                 ->defaults(['permission' => 'employee-grade.restore']),
+
+            // AttendancePolicies Routes
+            Route::get('/attendance-policies')
+                ->action(AttendancePoliciesV1\AttendancePoliciesDataAction::class)
+                ->name('v1/attendance-policies/index')
+                ->defaults(['permission' => 'attendance-policies.index']),
+            Route::post('/attendance-policies/data')
+                ->action(AttendancePoliciesV1\AttendancePoliciesDataAction::class)
+                ->name('v1/attendance-policies/data')
+                ->defaults(['permission' => 'attendance-policies.data']),
+            Route::get('/attendance-policies/{id:\d+}')
+                ->action(AttendancePoliciesV1\AttendancePoliciesViewAction::class)
+                ->name('v1/attendance-policies/view')
+                ->defaults(['permission' => 'attendance-policies.view']),
+            Route::post('/attendance-policies/create')
+                ->action(AttendancePoliciesV1\AttendancePoliciesCreateAction::class)
+                ->name('v1/attendance-policies/create')
+                ->defaults(['permission' => 'attendance-policies.create']),
+            Route::put('/attendance-policies/{id:\d+}')
+                ->action(AttendancePoliciesV1\AttendancePoliciesUpdateAction::class)
+                ->name('v1/attendance-policies/update')
+                ->defaults(['permission' => 'attendance-policies.update']),
+            Route::delete('/attendance-policies/{id:\d+}')
+                ->action(AttendancePoliciesV1\AttendancePoliciesDeleteAction::class)
+                ->name('v1/attendance-policies/delete')
+                ->defaults(['permission' => 'attendance-policies.delete']),
+            Route::post('/attendance-policies/{id:\d+}/restore')
+                ->action(AttendancePoliciesV1\AttendancePoliciesRestoreAction::class)
+                ->name('v1/attendance-policies/restore')
+                ->defaults(['permission' => 'attendance-policies.restore']),
+
 
         ),
 ];

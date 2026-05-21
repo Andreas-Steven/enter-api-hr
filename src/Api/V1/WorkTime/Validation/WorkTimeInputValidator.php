@@ -129,6 +129,11 @@ final class WorkTimeInputValidator extends AbstractValidator
                                     skipOnEmpty: true,
                                 ),
                             ],
+                            'break_time' => [
+                                new StringValue(
+                                    skipOnEmpty: true,
+                                ),
+                            ],
                         ]),
                     ]),
                 ],
@@ -180,6 +185,11 @@ final class WorkTimeInputValidator extends AbstractValidator
                                 ),
                             ],
                             'home_time' => [
+                                new StringValue(
+                                    skipOnEmpty: true,
+                                ),
+                            ],
+                            'break_minute' => [
                                 new StringValue(
                                     skipOnEmpty: true,
                                 ),

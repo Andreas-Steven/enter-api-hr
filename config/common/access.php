@@ -212,4 +212,16 @@ return [
     'employee-grade.update' => $isKasir,
     'employee-grade.delete' => $isKasir,
     'employee-grade.restore' => $isSuperAdmin,
+
+    // AttendancePolicies Access Rules
+    'attendance-policies.index' => static fn (Actor $actor): bool => true,
+    'attendance-policies.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'attendance-policies.view' => $isKasir,
+    'attendance-policies.create' => $isKasir,
+    'attendance-policies.update' => $isKasir,
+    'attendance-policies.delete' => $isKasir,
+    'attendance-policies.restore' => $isSuperAdmin,
 ];

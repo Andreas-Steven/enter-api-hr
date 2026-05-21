@@ -26,11 +26,15 @@ final readonly class WorkingDays
 
             $entryTime = self::normalizeTime($dayData['entry_time'], 'Entry Time', $dayName);
             $homeTime = self::normalizeTime($dayData['home_time'], 'Home Time', $dayName);
+            $breakMinutes = self::normalizeBreakMinutes($dayData['break_minutes'] ?? $dayData['break_minute'] ?? null, 'Break Minutes', $dayName);
+            $workMinutes = self::calculateWorkMinutes($entryTime, $homeTime, $breakMinutes, $dayName);
 
             $processed[$index] = [
                 'day_of_week' => $index,
                 'entry_time'  => $entryTime,
                 'home_time'   => $homeTime,
+                'break_minutes' => $breakMinutes,
+                'work_minutes' => $workMinutes,
             ];
         }
 
@@ -88,7 +92,7 @@ final readonly class WorkingDays
                     key: 'array.must_contain', 
                     params: [
                         'resource' => "working_days (day {$index})", 
-                        'field' => 'entry_time, home_time'
+                        'field' => 'entry_time, home_time, break_minutes'
                     ], 
                     domain: 'app'
                 )
@@ -137,6 +141,51 @@ final readonly class WorkingDays
         return null;
     }
 
+    private static function normalizeBreakMinutes(mixed $breakMinutes, string $attribute, string $day): ?int
+    {
+        if ($breakMinutes === null || $breakMinutes === '') {
+            return null;
+        }
+
+        $value = is_numeric($breakMinutes) ? (int)$breakMinutes : null;
+
+        if ($value === null || $value < 0) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'work_time.invalid_format',
+                    params: [
+                        'resource' => $attribute,
+                        'day' => $day,
+                    ],
+                    domain: 'app',
+                )
+            );
+        }
+
+        return $value;
+    }
+
+    private static function calculateWorkMinutes(?string $entryTime, ?string $homeTime, ?int $breakMinutes, string $day): ?int
+    {
+        if ($entryTime === null || $homeTime === null) {
+            return null;
+        }
+
+        $entry = DateTime::createFromFormat('H:i:s', $entryTime);
+        $home = DateTime::createFromFormat('H:i:s', $homeTime);
+
+        if ($entry === false || $home === false) {
+            return null;
+        }
+
+        $diff = $home->getTimestamp() - $entry->getTimestamp();
+        $totalMinutes = (int)($diff / 60);
+
+        $break = $breakMinutes ?? 0;
+
+        return max(0, $totalMinutes - $break);
+    }
+
     public static function fromArray(array $data): self
     {
         return new self($data);
@@ -174,6 +223,6 @@ final readonly class WorkingDays
     public function isOffDay(int $dayIndex): bool
     {
         $day = $this->getDay($dayIndex);
-        return $day && $day['entry_time'] === null && $day['home_time'] === null;
+        return $day && $day['entry_time'] === null && $day['home_time'] === null && $day['break_minutes'] === null;
     }
 }
