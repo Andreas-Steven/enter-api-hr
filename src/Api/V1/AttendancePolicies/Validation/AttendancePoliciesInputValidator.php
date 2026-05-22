@@ -111,48 +111,46 @@ final class AttendancePoliciesInputValidator extends AbstractValidator
                     ])
                 ],
                 'policy_detail' => [
-                    new Each([
-                        new Nested([
-                            'late_grace_in' => [
-                                new Integer(
-                                    min: 0, 
-                                    max: 1440,
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                            'early_grace_out' => [
-                                new Integer(
-                                    min: 0, 
-                                    max: 1440,
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                            'min_work_half_day' => [
-                                new Integer(
-                                    min: 0, 
-                                    max: 1440,
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                            'min_work_full_day' => [
-                                new Integer(
-                                    min: 0, 
-                                    max: 1440,
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                            'missing_in_policy' => [
-                                new StringValue(
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                            'missing_out_policy' => [
-                                new StringValue(
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                        ]),
-                    ]),
+                    new Nested([
+                        'late_grace_in' => [
+                            new Integer(
+                                min: 0,
+                                max: 1440,
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                        'early_grace_out' => [
+                            new Integer(
+                                min: 0,
+                                max: 1440,
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                        'min_work_half_day' => [
+                            new Integer(
+                                min: 0,
+                                max: 1440,
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                        'min_work_full_day' => [
+                            new Integer(
+                                min: 0,
+                                max: 1440,
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                        'missing_in_policy' => [
+                            new StringValue(
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                        'missing_out_policy' => [
+                            new StringValue(
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                    ], skipOnEmpty: true),
                 ],
                 'status' => [
                     new Required(),
@@ -187,48 +185,46 @@ final class AttendancePoliciesInputValidator extends AbstractValidator
                     ])
                 ],
                 'policy_detail' => [
-                    new Each([
-                        new Nested([
-                            'late_grace_in' => [
-                                new Integer(
-                                    min: 0, 
-                                    max: 1440,
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                            'early_grace_out' => [
-                                new Integer(
-                                    min: 0, 
-                                    max: 1440,
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                            'min_work_half_day' => [
-                                new Integer(
-                                    min: 0, 
-                                    max: 1440,
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                            'min_work_full_day' => [
-                                new Integer(
-                                    min: 0, 
-                                    max: 1440,
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                            'missing_in_policy' => [
-                                new StringValue(
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                            'missing_out_policy' => [
-                                new StringValue(
-                                    skipOnEmpty: true,
-                                ),
-                            ],
-                        ]),
-                    ], skipOnEmpty: $this->data['id'] !== null),
+                    new Nested([
+                        'late_grace_in' => [
+                            new Integer(
+                                min: 0,
+                                max: 1440,
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                        'early_grace_out' => [
+                            new Integer(
+                                min: 0,
+                                max: 1440,
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                        'min_work_half_day' => [
+                            new Integer(
+                                min: 0,
+                                max: 1440,
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                        'min_work_full_day' => [
+                            new Integer(
+                                min: 0,
+                                max: 1440,
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                        'missing_in_policy' => [
+                            new StringValue(
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                        'missing_out_policy' => [
+                            new StringValue(
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                    ], skipOnEmpty: true),
                 ],
                 'status' => [
                     new Integer(

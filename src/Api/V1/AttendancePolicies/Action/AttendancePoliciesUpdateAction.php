@@ -79,6 +79,7 @@ final class AttendancePoliciesUpdateAction
         $command = UpdateAttendancePoliciesCommand::create(
             id: (int) $id,
             name: $params->get('name'),
+            policyDetail: $params->get('policy_detail'),
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info'),
             lockVersion: (int) $params->get('lock_version'),

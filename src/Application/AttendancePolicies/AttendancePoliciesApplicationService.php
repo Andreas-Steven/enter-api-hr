@@ -96,7 +96,7 @@ final class AttendancePoliciesApplicationService
 
         $data = AttendancePolicies::create(
             name: $command->name,
-            policyDetail: PolicyDetail::fromArray($command->policyDetail[0] ?? []),
+            policyDetail: PolicyDetail::fromArray($command->policyDetail),
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
         );
@@ -142,7 +142,7 @@ final class AttendancePoliciesApplicationService
 
         if (!empty($command->policyDetail)) {
             $data->updatePolicyDetail(
-                policyDetail: PolicyDetail::fromArray($command->policyDetail[0] ?? [])
+                policyDetail: PolicyDetail::fromArray($command->policyDetail)
             );
         }
 

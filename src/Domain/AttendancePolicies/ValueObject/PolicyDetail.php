@@ -67,7 +67,7 @@ final class PolicyDetail
     {
         $missingIn = self::resolveAndValidateEnum($data['missing_in_policy'] ?? null, 'missing_in_policy');
         $missingOut = self::resolveAndValidateEnum($data['missing_out_policy'] ?? null, 'missing_out_policy');
-        
+
         return new self(
             $data['late_grace_in'] ?? null,
             $data['early_grace_out'] ?? null,

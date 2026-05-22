@@ -95,7 +95,7 @@ final class AttendancePolicies
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'policy_detail' => $this->policyDetail->toArray(),
+            'policy_detail' => $this->getPolicyDetail()->toArray(),
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
