@@ -330,6 +330,44 @@ final class BranchRepository implements BranchRepositoryInterface, CurrentUserAw
         );
     }
 
+    public function existsById(int $id): bool
+    {
+        return (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['id' => $id])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->exists();
+    }
+
+    public function findByIds(array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['id' => $ids])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->all();
+
+        $branches = [];
+        foreach ($rows as $row) {
+            $branches[] = Branch::reconstitute(
+                id: (int) $row['id'],
+                name: $row['name'],
+                branchType: (int) $row['branch_type'],
+                code: $row['code'],
+                address: $row['address'],
+                status: ResourceStatus::from((int)$row['status']),
+                detailInfo: DetailInfo::fromJson($row['detail_info']),
+                lockVersion: LockVersion::fromInt($row[LockVersion::field()])
+            );
+        }
+
+        return $branches;
+    }
+
     private function mapEntityToTable(Branch $entity, int $lockVersion): array
     {
         return [

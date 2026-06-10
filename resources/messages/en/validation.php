@@ -133,4 +133,15 @@ return [
     'input_sanitizer.invalid_array_key_length' => 'The array key is too long. Maximum allowed length for a key is {max_length} characters,',
     'input_sanitizer.invalid_array_key' => 'The array key {key} contains invalid characters or format.',
 
+    // Scope Validation
+    'scope.payload_empty' => 'Scope payload cannot be empty.',
+    'scope.invalid_json' => 'Scope payload must be a valid JSON array.',
+    'scope.branches_empty' => 'Scope branches cannot be empty.',
+    'scope.branch_id_invalid' => 'Each scope branch must include a valid integer ID.',
+    'scope.branch_code_invalid' => 'Each scope branch must have a non-empty code.',
+    'scope.branch_name_invalid' => 'Each scope branch must have a non-empty name.',
+    'scope.branches_empty_after_validation' => 'Scope branches cannot be empty after validation.',
+    'scope.branch_ids_empty' => 'Scope branch IDs cannot be empty.',
+    'scope.branch_not_found' => 'Branch with ID "{id}" does not exist.',
+
 ];

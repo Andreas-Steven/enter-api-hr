@@ -132,4 +132,15 @@ return [
     'input_sanitizer.invalid_array_key_type' => 'Kunci array memiliki tipe yang tidak valid. Kunci harus berupa string atau integer.',
     'input_sanitizer.invalid_array_key_length' => 'Kunci array terlalu panjang. Panjang maksimum yang diizinkan untuk kunci adalah {max_length} karakter,',
     'input_sanitizer.invalid_array_key' => 'Kunci array {key} berisi karakter atau format yang tidak valid.',
+
+    // Scope Validation
+    'scope.payload_empty' => 'Payload scope tidak boleh kosong.',
+    'scope.invalid_json' => 'Payload scope harus berupa array JSON yang valid.',
+    'scope.branches_empty' => 'Daftar cabang pada scope tidak boleh kosong.',
+    'scope.branch_id_invalid' => 'Setiap cabang pada scope harus memiliki ID integer yang valid.',
+    'scope.branch_code_invalid' => 'Setiap cabang pada scope harus memiliki kode yang tidak boleh kosong.',
+    'scope.branch_name_invalid' => 'Setiap cabang pada scope harus memiliki nama yang tidak boleh kosong.',
+    'scope.branches_empty_after_validation' => 'Tidak ada cabang valid yang tersisa setelah proses validasi scope.',
+    'scope.branch_ids_empty' => 'Daftar ID cabang scope tidak boleh kosong.',
+    'scope.branch_not_found' => 'Cabang dengan ID "{id}" tidak ditemukan.',
 ];

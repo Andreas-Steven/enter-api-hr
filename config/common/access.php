@@ -224,4 +224,16 @@ return [
     'attendance-policies.update' => $isKasir,
     'attendance-policies.delete' => $isKasir,
     'attendance-policies.restore' => $isSuperAdmin,
+
+    // AttendanceCalendar Access Rules
+    'attendance-calendar.index' => static fn (Actor $actor): bool => true,
+    'attendance-calendar.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'attendance-calendar.view' => $isKasir,
+    'attendance-calendar.create' => $isKasir,
+    'attendance-calendar.update' => $isKasir,
+    'attendance-calendar.delete' => $isKasir,
+    'attendance-calendar.restore' => $isSuperAdmin,
 ];

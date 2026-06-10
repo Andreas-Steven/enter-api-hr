@@ -37,4 +37,7 @@ interface BranchRepositoryInterface
 
     public function restore(int $id): ?Branch;
 
+    public function findByIds(array $ids): array;
+
+    public function existsById(int $id): bool;
 }

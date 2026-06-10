@@ -7,6 +7,7 @@ use App\Api;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
+use App\Api\V1\AttendanceCalendar\Action as AttendanceCalendarV1;
 use App\Api\V1\AttendancePolicies\Action as AttendancePoliciesV1;
 use App\Api\V1\EmployeeGrade\Action as EmployeeGradeV1;
 use App\Api\V1\EmployeeLeave\Action as EmployeeLeaveV1;
@@ -584,6 +585,34 @@ return [
                 ->name('v1/attendance-policies/restore')
                 ->defaults(['permission' => 'attendance-policies.restore']),
 
-
+            // AttendanceCalendar Routes
+            Route::get('/attendance-calendar')
+                ->action(AttendanceCalendarV1\AttendanceCalendarDataAction::class)
+                ->name('v1/attendance-calendar/index')
+                ->defaults(['permission' => 'attendance-calendar.index']),
+            Route::post('/attendance-calendar/data')
+                ->action(AttendanceCalendarV1\AttendanceCalendarDataAction::class)
+                ->name('v1/attendance-calendar/data')
+                ->defaults(['permission' => 'attendance-calendar.data']),
+            Route::get('/attendance-calendar/{id:\d+}')
+                ->action(AttendanceCalendarV1\AttendanceCalendarViewAction::class)
+                ->name('v1/attendance-calendar/view')
+                ->defaults(['permission' => 'attendance-calendar.view']),
+            Route::post('/attendance-calendar/create')
+                ->action(AttendanceCalendarV1\AttendanceCalendarCreateAction::class)
+                ->name('v1/attendance-calendar/create')
+                ->defaults(['permission' => 'attendance-calendar.create']),
+            Route::put('/attendance-calendar/{id:\d+}')
+                ->action(AttendanceCalendarV1\AttendanceCalendarUpdateAction::class)
+                ->name('v1/attendance-calendar/update')
+                ->defaults(['permission' => 'attendance-calendar.update']),
+            Route::delete('/attendance-calendar/{id:\d+}')
+                ->action(AttendanceCalendarV1\AttendanceCalendarDeleteAction::class)
+                ->name('v1/attendance-calendar/delete')
+                ->defaults(['permission' => 'attendance-calendar.delete']),
+            Route::post('/attendance-calendar/{id:\d+}/restore')
+                ->action(AttendanceCalendarV1\AttendanceCalendarRestoreAction::class)
+                ->name('v1/attendance-calendar/restore')
+                ->defaults(['permission' => 'attendance-calendar.restore']),
         ),
 ];
