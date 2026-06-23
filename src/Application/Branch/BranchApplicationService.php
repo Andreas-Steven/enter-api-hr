@@ -165,23 +165,23 @@ final class BranchApplicationService
             $data->updateType(
                 newType: (int) $command->branch_type
             );
-        }
 
-        $branchInfo = $this->branchInfoFactory
-            ->buildFromPrimitives(
-                branch_type: (int) $command->branch_type
+            $branchInfo = $this->branchInfoFactory
+                ->buildFromPrimitives(
+                    branch_type: (int) $command->branch_type
+                );
+
+            $detailInfo = $this->detailInfoFactory
+                ->update(
+                    detailInfo: $data->getDetailInfo(),
+                    payload: $branchInfo->toArray(),
+                )
+                ->build();
+
+            $data->updateDetailInfo(
+                detailInfo: $detailInfo
             );
-
-        $detailInfo = $this->detailInfoFactory
-            ->update(
-                detailInfo: $data->getDetailInfo(),
-                payload: $branchInfo->toArray(),
-            )
-            ->build();
-
-        $data->updateDetailInfo(
-            detailInfo: $detailInfo
-        );
+        }
 
         return BranchResponse::fromEntity(
             entity: $this->repository->update(

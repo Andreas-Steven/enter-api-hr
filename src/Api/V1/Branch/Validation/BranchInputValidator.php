@@ -176,7 +176,11 @@ final class BranchInputValidator extends AbstractValidator
                             skipOnEmpty: true,
                         ),
                         new In(
-                            values: BranchType::cases(),
+                            values: array_map(
+                                static fn(BranchType $type) => $type->value,
+                                BranchType::cases()
+                            ),
+                            skipOnEmpty: true,
                         ),
                     ])
                 ],

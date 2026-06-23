@@ -112,8 +112,12 @@ final class EmployeeGradeInputValidator extends AbstractValidator
                     new Required(),
                     new Integer(
                         min: 1,
-                        max: 3,
                     ),
+                    new UniqueValue(
+                        table: 'employee_grade', 
+                        column: 'level', 
+                        ignoreId: null
+                    )
                 ],
                 'status' => [
                     new Required(),
@@ -150,9 +154,13 @@ final class EmployeeGradeInputValidator extends AbstractValidator
                 'level' => [
                     new Integer(
                         min: 1,
-                        max: 3,
                         skipOnEmpty: true,
                     ),
+                    new UniqueValue(
+                        table: 'employee_grade', 
+                        column: 'level', 
+                        ignoreId: $this->data['id'] ?? null
+                    )
                 ],
                 'status' => [
                     new Integer(

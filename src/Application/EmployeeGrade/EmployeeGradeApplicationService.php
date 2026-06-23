@@ -178,7 +178,7 @@ final class EmployeeGradeApplicationService
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'employeegrade.delete',
+            permission: 'employee-grade.delete',
             resource: $this->getResource(),
         );
         

@@ -193,7 +193,7 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
         $rows = iterator_to_array(
             $this->streamRows(
                 query: $query, 
-                jsonKeys: []
+                jsonKeys: ['scope']
             )
         );
 
