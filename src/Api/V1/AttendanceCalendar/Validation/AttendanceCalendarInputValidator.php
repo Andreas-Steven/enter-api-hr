@@ -117,6 +117,14 @@ final class AttendanceCalendarInputValidator extends AbstractValidator
                 'holiday_type' => [
                     new Required(),
                     new StringValue(),
+                    new In([
+                        'COMPANY_HOLIDAY',
+                        'WORKING_DAY',
+                        'SPECIAL_DAY',
+                        'WEEKLY_HOLIDAY',
+                        'NATIONAL_HOLIDAY',
+                        'HALF_DAY',
+                    ]),
                 ],
                 'scope' => [
                     new Nested([
@@ -171,6 +179,14 @@ final class AttendanceCalendarInputValidator extends AbstractValidator
                     new StringValue(
                         skipOnEmpty: true,
                     ),
+                    new In([
+                        'COMPANY_HOLIDAY',
+                        'WORKING_DAY',
+                        'SPECIAL_DAY',
+                        'WEEKLY_HOLIDAY',
+                        'NATIONAL_HOLIDAY',
+                        'HALF_DAY',
+                    ], skipOnEmpty: true),
                 ],
                 'scope' => [
                     new Nested([
