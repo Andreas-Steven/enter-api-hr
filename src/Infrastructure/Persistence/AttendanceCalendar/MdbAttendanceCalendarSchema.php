@@ -16,6 +16,7 @@ final class MdbAttendanceCalendarSchema
     {
         return [
             'name' => $entity->getName(),
+            'period' => $entity->getPeriod()->toInt(),
             'date' => $entity->getDate(),
             'holiday_type' => $entity->getHolidayType(),
             'scope' => $entity->getScope()->toArray(),

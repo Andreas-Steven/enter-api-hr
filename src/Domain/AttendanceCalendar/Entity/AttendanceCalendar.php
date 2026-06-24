@@ -19,6 +19,7 @@ use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
 
 use App\Domain\AttendanceCalendar\ValueObject\Scope;
+use App\Domain\AttendanceCalendar\ValueObject\AttendancePeriod;
 
 final class AttendanceCalendar
 {
@@ -32,6 +33,7 @@ final class AttendanceCalendar
         private readonly ?int $id,
         private string $name,
         private string $date,
+        private AttendancePeriod $period,
         private string $holidayType,
         private Scope $scope,
         private ResourceStatus $status,
@@ -62,15 +64,18 @@ final class AttendanceCalendar
             resource: self::RESOURCE
         );
 
+        $period = AttendancePeriod::fromDateString($date);
+
         return new self(
-            id: null, 
-            name: $name, 
+            id: null,
+            name: $name,
             date: $date,
+            period: $period,
             holidayType: $holidayType,
             scope: $scope,
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: LockVersion::create()
         );
     }
@@ -79,6 +84,7 @@ final class AttendanceCalendar
         int $id,
         string $name,
         string $date,
+        int $period,
         string $holidayType,
         Scope $scope,
         ResourceStatus $status,
@@ -88,14 +94,15 @@ final class AttendanceCalendar
     ): self {
 
         return new self(
-            id: $id, 
-            name: $name, 
+            id: $id,
+            name: $name,
             date: $date,
+            period: AttendancePeriod::fromInt($period),
             holidayType: $holidayType,
             scope: $scope,
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: $lockVersion ?? LockVersion::create()
         );
     }
@@ -106,6 +113,7 @@ final class AttendanceCalendar
             'id' => $this->id,
             'name' => $this->name,
             'date' => $this->date,
+            'period' => $this->period->toInt(),
             'holiday_type' => $this->holidayType,
             'scope' => $this->scope->toArray(),
             'status' => $this->status->value(),
@@ -141,6 +149,16 @@ final class AttendanceCalendar
     public function setDate(string $date): void
     {
         $this->date = $date;
+    }
+    
+    public function getPeriod(): AttendancePeriod
+    {
+        return $this->period;
+    }
+    
+    public function setPeriod(AttendancePeriod $period): void
+    {
+        $this->period = $period;
     }
 
     public function getHolidayType(): string

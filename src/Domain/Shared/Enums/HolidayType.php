@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Shared\Enums;
+
+enum HolidayType: string
+{
+    case COMPANY_HOLIDAY = 'COMPANY_HOLIDAY';
+    case WORKING_DAY = 'WORKING_DAY';
+    case SPECIAL_DAY = 'SPECIAL_DAY';
+    case WEEKLY_HOLIDAY = 'WEEKLY_HOLIDAY';
+    case NATIONAL_HOLIDAY = 'NATIONAL_HOLIDAY';
+    case HALF_DAY = 'HALF_DAY';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::COMPANY_HOLIDAY => 'Company Holiday',
+            self::WORKING_DAY => 'Working Day',
+            self::SPECIAL_DAY => 'Special Day',
+            self::WEEKLY_HOLIDAY => 'Weekly Holiday',
+            self::NATIONAL_HOLIDAY => 'National Holiday',
+            self::HALF_DAY => 'Half Day',
+        };
+    }
+}

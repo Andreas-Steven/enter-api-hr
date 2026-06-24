@@ -81,6 +81,7 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
         return AttendanceCalendar::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
+            period: $row['period'],
             date: $row['date'],
             holidayType: $row['holiday_type'],
             scope: Scope::fromJson($row['scope']),
@@ -107,6 +108,7 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
         return AttendanceCalendar::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
+            period: $row['period'],
             date: $row['date'],
             holidayType: $row['holiday_type'],
             scope: Scope::fromJson($row['scope']),
@@ -132,6 +134,7 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
             ->select([
                 'id',
                 'name',
+                'period',
                 'date',
                 'holiday_type',
                 'scope',
@@ -227,6 +230,7 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
             $newEntity = AttendanceCalendar::reconstitute(
                 id: $newId,
                 name: $entity->getName(),
+                period: $entity->getPeriod()->toInt(),
                 date: $entity->getDate(),
                 holidayType: $entity->getHolidayType(),
                 scope: $entity->getScope(),
@@ -320,6 +324,7 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
         $entity = AttendanceCalendar::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
+            period: $row['period'],
             date: $row['date'],
             holidayType: $row['holiday_type'],
             scope: Scope::fromJson($row['scope']),
@@ -339,6 +344,7 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
     {
         return [
             'name' => $entity->getName(),
+            'period' => $entity->getPeriod()->toInt(),
             'date' => $entity->getDate(),
             'holiday_type' => $entity->getHolidayType(),
             'scope' => $entity->getScope()->toArray(),
