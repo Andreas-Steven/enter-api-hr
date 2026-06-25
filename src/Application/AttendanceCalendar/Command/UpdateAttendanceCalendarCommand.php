@@ -15,6 +15,8 @@ final readonly class UpdateAttendanceCalendarCommand
         public ?int $status,
         public ?array $detailInfo,
         public ?int $lockVersion,
+        public ?string $note,
+        public ?int $dayOff,
     ) {}
 
     public static function create(
@@ -26,6 +28,8 @@ final readonly class UpdateAttendanceCalendarCommand
         ?int $status = null,
         ?array $detailInfo = null,
         ?int $lockVersion = null,
+        ?string $note = null,
+        ?int $dayOff = null,
     ): self {
         return new self(
             id: $id,
@@ -36,6 +40,8 @@ final readonly class UpdateAttendanceCalendarCommand
             status: $status,
             detailInfo: $detailInfo,
             lockVersion: $lockVersion,
+            note: $note,
+            dayOff: $dayOff,
         );
     }
 }

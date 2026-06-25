@@ -29,7 +29,7 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class AttendanceCalendarUpdateAction
 {
-    private const ALLOWED_KEYS = ['name', 'date', 'holiday_type', 'scope', 'status', 'lock_version'];
+    private const ALLOWED_KEYS = ['name', 'date', 'holiday_type', 'scope', 'status', 'lock_version', 'note', 'day_off'];
 
     public function __construct(
         private AttendanceCalendarInputValidator $inputValidator,
@@ -85,6 +85,8 @@ final class AttendanceCalendarUpdateAction
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info'),
             lockVersion: (int) $params->get('lock_version'),
+            note: $params->get('note'),
+            dayOff: $params->get('day_off'),
         );
 
         $response = $this->applicationService->update(

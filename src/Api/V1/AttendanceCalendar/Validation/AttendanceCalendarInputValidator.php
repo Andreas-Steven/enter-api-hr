@@ -145,6 +145,16 @@ final class AttendanceCalendarInputValidator extends AbstractValidator
                         RecordStatus::draftOnlyStates(),
                     ),
                 ],
+                'note' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'day_off' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
             ],
             ValidationContext::UPDATE => [
                 'id' => [
@@ -217,6 +227,16 @@ final class AttendanceCalendarInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'note' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'day_off' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
             ],
             ValidationContext::DELETE => [
                 'id' => [
@@ -258,6 +278,11 @@ final class AttendanceCalendarInputValidator extends AbstractValidator
                     ),
                 ],
                 'sync_mdb' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'day_off' => [
                     new Integer(
                         skipOnEmpty: true,
                     ),

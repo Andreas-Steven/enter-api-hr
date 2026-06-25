@@ -13,6 +13,8 @@ final readonly class CreateAttendanceCalendarCommand
         public array $scope,
         public int $status,
         public ?array $detailInfo,
+        public ?string $note,
+        public ?int $dayOff = 0,
     ) {}
 
     public static function create(
@@ -22,6 +24,8 @@ final readonly class CreateAttendanceCalendarCommand
         array $scope,
         int $status,
         ?array $detailInfo = null,
+        ?string $note = null,
+        int $dayOff = 0,
     ): self {
         return new self(
             name: $name,
@@ -30,6 +34,8 @@ final readonly class CreateAttendanceCalendarCommand
             scope: $scope,
             status: $status,
             detailInfo: $detailInfo,
+            note: $note,
+            dayOff: $dayOff,
         );
     }
 }

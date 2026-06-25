@@ -40,6 +40,8 @@ final class AttendanceCalendar
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
+        private ?string $note = null,
+        private int $dayOff = 0,
     ) {
         $this->resource = self::RESOURCE;
         $this->lockVersion = $lockVersion ?? LockVersion::create();
@@ -58,6 +60,8 @@ final class AttendanceCalendar
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
+        ?string $note = null,
+        int $dayOff = 0,
     ): self {
         self::guardInitialStatus(
             status: $status,
@@ -76,7 +80,9 @@ final class AttendanceCalendar
             status: $status,
             detailInfo: $detailInfo,
             syncMdb: $syncMdb,
-            lockVersion: LockVersion::create()
+            lockVersion: LockVersion::create(),
+            note: $note,
+            dayOff: $dayOff
         );
     }
 
@@ -91,6 +97,8 @@ final class AttendanceCalendar
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
+        ?string $note = null,
+        int $dayOff = 0,
     ): self {
 
         return new self(
@@ -103,7 +111,9 @@ final class AttendanceCalendar
             status: $status,
             detailInfo: $detailInfo,
             syncMdb: $syncMdb,
-            lockVersion: $lockVersion ?? LockVersion::create()
+            lockVersion: $lockVersion ?? LockVersion::create(),
+            note: $note,
+            dayOff: $dayOff
         );
     }
 
@@ -116,6 +126,8 @@ final class AttendanceCalendar
             'period' => $this->period->toInt(),
             'holiday_type' => $this->holidayType,
             'scope' => $this->scope->toArray(),
+            'note' => $this->note,
+            'day_off' => $this->dayOff,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
@@ -179,5 +191,25 @@ final class AttendanceCalendar
     public function setScope(Scope $scope): void
     {
         $this->scope = $scope;
+    }
+
+    public function getNote(): ?string
+    {
+        return $this->note;
+    }
+
+    public function setNote(?string $note): void
+    {
+        $this->note = $note;
+    }
+
+    public function getDayOff(): int
+    {
+        return $this->dayOff;
+    }
+
+    public function setDayOff(int $dayOff): void
+    {
+        $this->dayOff = $dayOff;
     }
 }

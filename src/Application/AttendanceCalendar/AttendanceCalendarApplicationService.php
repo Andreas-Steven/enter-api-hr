@@ -102,7 +102,9 @@ final class AttendanceCalendarApplicationService
             holidayType: $command->holidayType,
             scope: Scope::fromArray($scopeData),
             status: ResourceStatus::from($command->status),
-            detailInfo: $detailInfo
+            detailInfo: $detailInfo,
+            note: $command->note,
+            dayOff: $command->dayOff
         );
 
         return AttendanceCalendarResponse::fromEntity(
@@ -155,6 +157,14 @@ final class AttendanceCalendarApplicationService
         if (!empty($command->scope)) {
             $scopeData = $this->domainService->buildScopeFromPayload($command->scope);
             $data->setScope(scope: Scope::fromArray($scopeData));
+        }
+
+        if ($command->note !== null) {
+            $data->setNote(note: $command->note);
+        }
+
+        if ($command->dayOff !== null) {
+            $data->setDayOff(dayOff: $command->dayOff);
         }
 
         $detailInfo = $this->detailInfoFactory

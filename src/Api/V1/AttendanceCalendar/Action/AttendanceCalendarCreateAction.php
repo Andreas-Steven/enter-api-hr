@@ -25,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class AttendanceCalendarCreateAction 
 {
-    private const ALLOWED_KEYS = ['name', 'date', 'holiday_type', 'scope', 'status', 'sync_mdb'];
+    private const ALLOWED_KEYS = ['name', 'date', 'holiday_type', 'scope', 'status', 'sync_mdb', 'note', 'day_off'];
 
     public function __construct(
         private AttendanceCalendarInputValidator $inputValidator,
@@ -56,7 +56,9 @@ final class AttendanceCalendarCreateAction
             holidayType: (string) $params->get('holiday_type'),
             scope: $params->get('scope'),
             status: (int) $params->get('status'),
-            detailInfo: $params->get('detail_info')
+            detailInfo: $params->get('detail_info'),
+            note: $params->get('note'),
+            dayOff: (int) $params->get('day_off', 0)
         );  
 
         $resource = $this->applicationService->getResource();

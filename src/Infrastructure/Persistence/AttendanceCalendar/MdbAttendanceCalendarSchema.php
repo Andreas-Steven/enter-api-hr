@@ -20,6 +20,7 @@ final class MdbAttendanceCalendarSchema
             'date' => $entity->getDate(),
             'holiday_type' => $entity->getHolidayType(),
             'scope' => $entity->getScope()->toArray(),
+            'day_off' => $entity->getDayOff(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             'lock_version' => $entity->getLockVersion()->value(),

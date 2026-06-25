@@ -88,6 +88,8 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+            note: $row['note'] ?? null,
+            dayOff: (int) $row['day_off'],
         );
     }
 
@@ -115,6 +117,8 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+            note: $row['note'] ?? null,
+            dayOff: (int) $row['day_off'],
         )->updateSyncMdb($row[SyncMdb::field()] ?? null);
     }
 
@@ -138,6 +142,8 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
                 'date',
                 'holiday_type',
                 'scope',
+                'note',
+                'day_off',
                 'status',
                 'detail_info',
                 SyncMdb::field(),
@@ -185,6 +191,10 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
         if (!empty($filter['id'])) {
             $branchId = (string) $filter['id'];
             $query->andWhere(['like', 'scope', '%"id":' . $branchId . '%', false]);
+        }
+
+        if (!empty($filter['day_off'])) {
+            $query->andWhere(['day_off' => $filter['day_off']]);
         }
 
         $total = (clone $query)->count();
@@ -237,6 +247,8 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
                 status: $entity->getStatus(),
                 detailInfo: $entity->getDetailInfo(),
                 lockVersion: LockVersion::create(),
+                note: $entity->getNote(),
+                dayOff: $entity->getDayOff(),
             );
 
             $this->syncMongoDB(
@@ -330,7 +342,9 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
             scope: Scope::fromJson($row['scope']),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+            note: $row['note'] ?? null,
+            dayOff: (int)($row['day_off'] ?? 0),
         );
 
         $entity->restore();
@@ -348,6 +362,8 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
             'date' => $entity->getDate(),
             'holiday_type' => $entity->getHolidayType(),
             'scope' => $entity->getScope()->toArray(),
+            'note' => $entity->getNote(),
+            'day_off' => $entity->getDayOff(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             SyncMdb::field() => $entity->getSyncMdbValue(),

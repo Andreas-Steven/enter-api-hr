@@ -40,6 +40,8 @@ final class M20260529055423CreateAttendanceCalendarTable implements RevertibleMi
             'date' => $cb::date()->notNull(),
             'holiday_type' => $cb::string(50)->notNull(),
             'scope' => $cb::json()->notNull()->defaultValue([]),
+            'note' => $cb::text()->null(),
+            'day_off' => $cb::smallint()->notNull()->defaultValue(0)->comment('0: false, 1: true'),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
             'detail_info' => $cb::json()->notNull()->defaultValue([
                 'change_log' => [
