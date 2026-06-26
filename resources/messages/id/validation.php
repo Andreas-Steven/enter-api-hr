@@ -143,4 +143,5 @@ return [
     'scope.branches_empty_after_validation' => 'Tidak ada cabang valid yang tersisa setelah proses validasi scope.',
     'scope.branch_ids_empty' => 'Daftar ID cabang scope tidak boleh kosong.',
     'scope.branch_not_found' => 'Cabang dengan ID "{id}" tidak ditemukan.',
+    'attendance_calendar.branch_conflict' => 'Cabang {branch} sudah memiliki hari libur pada {date}.',
 ];

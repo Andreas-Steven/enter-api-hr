@@ -95,6 +95,10 @@ final class AttendanceCalendarApplicationService
             ->build();
 
         $scopeData = $this->domainService->buildScopeFromPayload($command->scope);
+        $this->domainService->ensureNoBranchConflict(
+            date: $command->date,
+            scopeData: $scopeData,
+        );
 
         $data = AttendanceCalendar::create(
             name: $command->name,
@@ -150,13 +154,26 @@ final class AttendanceCalendarApplicationService
             $data->setDate(date: $command->date);
         }
         
+        $scopeDataForValidation = !empty($command->scope)
+            ? $this->domainService->buildScopeFromPayload($command->scope)
+            : $data->getScope()->toArray();
+
+        if (!empty($scopeDataForValidation)) {
+            $effectiveDate = $command->date ?: $data->getDate();
+
+            $this->domainService->ensureNoBranchConflict(
+                date: $effectiveDate,
+                scopeData: $scopeDataForValidation,
+                excludeId: $data->getId(),
+            );
+        }
+
         if (!empty($command->holidayType)) {
             $data->setHolidayType(holidayType: $command->holidayType);
         }
 
         if (!empty($command->scope)) {
-            $scopeData = $this->domainService->buildScopeFromPayload($command->scope);
-            $data->setScope(scope: Scope::fromArray($scopeData));
+            $data->setScope(scope: Scope::fromArray($scopeDataForValidation));
         }
 
         if ($command->note !== null) {

@@ -120,4 +120,44 @@ final class AttendanceCalendarDomainService
 
         return $scopeData;
     }
+
+    /**
+     * @param array<int, array{id: int, code: string, name: string}> $scopeData
+     */
+    public function ensureNoBranchConflict(string $date, array $scopeData, ?int $excludeId = null): void
+    {
+        $branchIds = array_values(array_filter(array_map(
+            static fn(array $branch) => (int) ($branch['id'] ?? 0),
+            $scopeData
+        ), static fn(int $id) => $id > 0));
+
+        if (empty($branchIds)) {
+            return;
+        }
+
+        $conflictingIds = $this->repository->findConflictingBranchIds(
+            date: $date,
+            branchIds: $branchIds,
+            excludeId: $excludeId,
+        );
+
+        if (empty($conflictingIds)) {
+            return;
+        }
+
+        $primaryBranch = collect($scopeData)
+            ->first(static fn(array $branch) => in_array((int) ($branch['id'] ?? 0), $conflictingIds, true))['name']
+            ?? 'Unknown Branch';
+
+        throw new BadRequestException(
+            translate: Message::create(
+                key: 'attendance_calendar.branch_conflict',
+                domain: 'validation',
+                params: [
+                    'date' => $date,
+                    'branch' => $primaryBranch,
+                ]
+            )
+        );
+    }
 }

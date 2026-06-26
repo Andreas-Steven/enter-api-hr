@@ -143,5 +143,5 @@ return [
     'scope.branches_empty_after_validation' => 'Scope branches cannot be empty after validation.',
     'scope.branch_ids_empty' => 'Scope branch IDs cannot be empty.',
     'scope.branch_not_found' => 'Branch with ID "{id}" does not exist.',
-
+    'attendance_calendar.branch_conflict' => 'Branch {branch} already has a holiday on {date}.',
 ];

@@ -30,6 +30,7 @@ use App\Shared\ValueObject\Message;
 // Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Db\Query\Query;
+use Yiisoft\Db\Expression\Expression;
 
 // use MongoDB\Collection;
 
@@ -130,6 +131,41 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
             ->andWhere($this->scopeWhereNotDeleted())
             ->andWhere($this->scopeByStatus($status))
             ->exists();
+    }
+
+    public function findConflictingBranchIds(string $date, array $branchIds, ?int $excludeId = null): array
+    {
+        if (empty($branchIds)) {
+            return [];
+        }
+
+        $branchIds = array_values(array_unique(array_map(static fn(int $id) => (int) $id, $branchIds)));
+
+        $branchIdExpression = new Expression("(branch_elements->>'id')::int");
+
+        $query = (new Query($this->db))
+            ->select([$branchIdExpression->expression . ' AS branch_id'])
+            ->from(self::TABLE_NAME)
+            ->innerJoin(
+                new Expression('jsonb_array_elements(scope) AS branch_elements'),
+                'TRUE'
+            )
+            ->where(['date' => $date])
+            ->andWhere($this->scopeWhereNotDeleted());
+
+        if ($excludeId !== null) {
+            $query->andWhere(['<>', 'id', $excludeId]);
+        }
+
+        $rows = $query
+            ->andWhere(['in', $branchIdExpression, $branchIds])
+            ->column();
+
+        if (empty($rows)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_map('intval', $rows)));
     }
 
     public function list(SearchCriteria $criteria): PaginatedResult
