@@ -145,9 +145,16 @@ final class AttendanceCalendarDomainService
             return;
         }
 
-        $primaryBranch = collect($scopeData)
-            ->first(static fn(array $branch) => in_array((int) ($branch['id'] ?? 0), $conflictingIds, true))['name']
-            ?? 'Unknown Branch';
+        $primaryBranchName = 'Unknown Branch';
+
+        foreach ($scopeData as $branch) {
+            $branchId = (int) ($branch['id'] ?? 0);
+
+            if (in_array($branchId, $conflictingIds, true)) {
+                $primaryBranchName = $branch['name'] ?? $primaryBranchName;
+                break;
+            }
+        }
 
         throw new BadRequestException(
             translate: Message::create(
@@ -155,7 +162,7 @@ final class AttendanceCalendarDomainService
                 domain: 'validation',
                 params: [
                     'date' => $date,
-                    'branch' => $primaryBranch,
+                    'branch' => $primaryBranchName,
                 ]
             )
         );
