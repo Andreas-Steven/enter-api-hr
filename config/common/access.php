@@ -38,17 +38,17 @@ return [
     'attendance-device.delete' => $isKasir,
     'attendance-device.restore' => $isKasir,
 
-    // WorkTime Access Rules
-    'work-time.index' => static fn (Actor $actor): bool => true,
-    'work-time.data' => [
+    // WorkPattern Access Rules
+    'work-pattern.index' => static fn (Actor $actor): bool => true,
+    'work-pattern.data' => [
         $isSuperAdmin,
         $isKasir,
     ],
-    'work-time.view' => $isKasir,
-    'work-time.create' => $isKasir,
-    'work-time.update' => $isKasir,
-    'work-time.delete' => $isKasir,
-    'work-time.restore' => $isSuperAdmin,
+    'work-pattern.view' => $isKasir,
+    'work-pattern.create' => $isKasir,
+    'work-pattern.update' => $isKasir,
+    'work-pattern.delete' => $isKasir,
+    'work-pattern.restore' => $isSuperAdmin,
 
     // AttendancePermission Access Rules
     'attendance-permission.index' => static fn (Actor $actor): bool => true,
@@ -236,4 +236,16 @@ return [
     'attendance-calendar.update' => $isKasir,
     'attendance-calendar.delete' => $isKasir,
     'attendance-calendar.restore' => $isSuperAdmin,
+
+    // AttendanceShift Access Rules
+    'attendance-shift.index' => static fn (Actor $actor): bool => true,
+    'attendance-shift.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'attendance-shift.view' => $isKasir,
+    'attendance-shift.create' => $isKasir,
+    'attendance-shift.update' => $isKasir,
+    'attendance-shift.delete' => $isKasir,
+    'attendance-shift.restore' => $isSuperAdmin,
 ];

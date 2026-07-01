@@ -16,6 +16,7 @@ use App\Domain\EmployeeDivision\Repository\EmployeeDivisionRepositoryInterface;
 use App\Domain\EmployeeDivision\Service\EmployeeDivisionDomainService;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
+use App\Domain\WorkPattern\Repository\WorkPatternRepositoryInterface;
 
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
@@ -34,7 +35,8 @@ final class EmployeeDivisionApplicationService
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private EmployeeDivisionRepositoryInterface $repository,
-        private EmployeeDivisionDomainService $domainService
+        private EmployeeDivisionDomainService $domainService,
+        private WorkPatternRepositoryInterface $workPatternRepository
     ) {
     }
 
@@ -65,6 +67,37 @@ final class EmployeeDivisionApplicationService
         
         return $data;
     }
+
+    private function getWorkPatternSnapshot(?int $workPatternId): ?array
+    {
+        if ($workPatternId === null) {
+            return null;
+        }
+
+        $workPattern = $this->workPatternRepository->findById(
+            id: $workPatternId,
+            status: null
+        );
+
+        if ($workPattern === null) {
+            throw new NotFoundException(
+                translate: Message::create(
+                    key: 'resource.not_found',
+                    params: [
+                        'resource' => $this->workPatternRepository->getResource(),
+                        'field' => 'id',
+                        'value' => $workPatternId
+                    ]
+                )
+            );
+        }
+
+        return [
+            'id' => $workPattern->getId(),
+            'name' => $workPattern->getName(),
+            'working_days' => $workPattern->getWorkingDays()->toArray(),
+        ];
+    }
     
     public function list(SearchCriteria $criteria): PaginatedResult
     {
@@ -89,13 +122,18 @@ final class EmployeeDivisionApplicationService
     {
         $detailInfo = $this->detailInfoFactory
             ->create(
-                detailInfo: []
+                detailInfo: [
+                    'work_pattern' => $this->getWorkPatternSnapshot(
+                        workPatternId: $command->workPatternId
+                    ),
+                ]
             )
             ->build();
 
         $data = EmployeeDivision::create(
             name: $command->name,
             code: $command->code,
+            workPatternId: $command->workPatternId,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
         );

@@ -17,8 +17,8 @@ final readonly class AttendanceItem
         public ?array $division,
         public ?string $startTime,
         public ?string $endTime,
-        // UBAH: string menjadi array karena kita menyimpan snapshot jadwal
-        public ?array $workTime, 
+        // Changed from workTime to workPattern to reflect new structure
+        public ?array $workPattern,
         public ?array $location = null
     ) {
         if (!isset($info['in'], $info['out'])) {
@@ -26,28 +26,10 @@ final readonly class AttendanceItem
         }
     }
 
-    // public static function fromArray(array $data): self
-    // {
-    //     $startTime = isset($data['start_time']) && $data['start_time'] !== '' ? $data['start_time'] : null;
-
-    //     return new self(
-    //         employeeId: (int) $data['employee_id'],
-    //         employeeName: $data['employee_name'] ?? null, 
-    //         info: $data['info'] ?? ['in' => true, 'out' => false, 'detail' => []],
-    //         device: $data['device'],
-    //         division: $data['division'] ?? null,
-    //         startTime: $startTime,
-    //         endTime: $data['end_time'] ?? null,
-    //         // Pastikan mapping di sini menerima array dari Domain Service
-    //         workTime: $data['work_time'] ?? null, 
-    //         location: $data['location'] ?? null
-    //     );
-    // }
-
     public static function fromArray(array $data): self
     {
-        $startTime = isset($data['start_time']) && $data['start_time'] !== '' 
-            ? $data['start_time'] 
+        $startTime = isset($data['start_time']) && $data['start_time'] !== ''
+            ? $data['start_time']
             : null;
 
         $info = $data['info'] ?? [];
@@ -67,7 +49,7 @@ final readonly class AttendanceItem
             division: $data['division'] ?? null,
             startTime: $startTime,
             endTime: $data['end_time'] ?? null,
-            workTime: $data['work_time'] ?? null,
+            workPattern: $data['work_pattern'] ?? $data['division']['work_pattern'] ?? null,
             location: $data['location'] ?? null
         );
     }
@@ -81,9 +63,9 @@ final readonly class AttendanceItem
         $newInfo = $this->info;
         // Ambil detail yang sudah ada, jika belum ada inisialisasi array kosong
         $currentDetails = $newInfo['detail'] ?? [];
-        
+
         $dayOfWeek = (int) date('N', strtotime($date));
-        $workingDays = $this->workTime['working_days'] ?? [];
+        $workingDays = $this->workPattern['working_days'] ?? [];
 
         $todaySchedule = null;
         foreach ($workingDays as $dayData) {
@@ -101,8 +83,8 @@ final readonly class AttendanceItem
             return $this->withInfo($newInfo);
         }
 
-        $entryTime = $todaySchedule['entry_time'] ?? null;
-        $homeTime = $todaySchedule['home_time'] ?? null;
+        $entryTime = $todaySchedule['shift']['start_time'] ?? null;
+        $homeTime = $todaySchedule['shift']['end_time'] ?? null;
 
         // 🔥 Tambahan: ambil waktu sekarang (untuk MACHINE_STATUS & MISSED_CHECKIN)
         $currentTime = date('H:i:s');
@@ -227,7 +209,7 @@ final readonly class AttendanceItem
             $this->division,
             $this->startTime,
             $this->endTime,
-            $this->workTime,
+            $this->workPattern,
             $this->location
         );
     }
@@ -247,7 +229,7 @@ final readonly class AttendanceItem
             'division' => $this->division,
             'start_time' => $this->startTime,
             'end_time' => $this->endTime,
-            'work_time' => $this->workTime,
+            'work_pattern' => $this->workPattern,
             'location' => $this->location,
         ];
     }
@@ -283,7 +265,7 @@ final readonly class AttendanceItem
 
         // Aturan Bisnis: Jika sudah ada nilainya, jangan ubah
         if ($this->startTime !== null) {
-            return $this; 
+            return $this;
         }
 
         // Hanya jika startTime aslinya null, baru kita buat objek baru
@@ -295,7 +277,7 @@ final readonly class AttendanceItem
             $this->division,
             $time, // Menimpa hanya jika kosong
             $this->endTime,
-            $this->workTime,
+            $this->workPattern,
             $this->location
         );
     }
@@ -311,7 +293,7 @@ final readonly class AttendanceItem
             $this->division,
             $time, // Memaksa isi dengan 08:00:00
             $this->endTime,
-            $this->workTime,
+            $this->workPattern,
             $this->location
         );
     }
@@ -323,7 +305,7 @@ final readonly class AttendanceItem
             return $this;
         }
 
-        // Tidak perlu cek apakah sudah ada nilainya, 
+        // Tidak perlu cek apakah sudah ada nilainya,
         // karena endTime memang harus selalu update ke yang paling baru (terakhir)
         return new self(
             $this->employeeId,
@@ -333,7 +315,7 @@ final readonly class AttendanceItem
             $this->division,
             $this->startTime,
             $time, // Menimpa dengan waktu terbaru
-            $this->workTime,
+            $this->workPattern,
             $this->location
         );
     }

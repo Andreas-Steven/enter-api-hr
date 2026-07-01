@@ -50,4 +50,11 @@ return [
      * Employee
      */
     'employee.invalid_phone' => 'Phone Number is required, must start with 62, minimum 9 digits, and maximum 15 digits.',
+
+    /**
+     * Work Pattern
+     */
+    'work_pattern.invalid_format' => 'The {resource} format is invalid.',
+    'work_pattern.invalid_shift_id' => 'Invalid shift ID. Must be a positive number.',
+    'work_pattern.shift_not_found' => 'Shift with ID {id} not found.',
 ];

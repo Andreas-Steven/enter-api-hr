@@ -26,7 +26,6 @@ final class MdbEmployeeSchema
             'division_id' => $entity->getDivisionId(),
             'position_id' => $entity->getPositionId(),
             'employee_type_id' => $entity->getEmployeeTypeId(),
-            'work_time_id' => $entity->getWorkTimeId(),
             'image' => $entity->getImage()->toArray(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),

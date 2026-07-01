@@ -17,6 +17,7 @@ final class MdbEmployeeDivisionSchema
         return [
             'name' => $entity->getName(),
             'code' => $entity->getCode(),
+            'work_pattern_id' => $entity->getWorkPatternId(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             'lock_version' => $entity->getLockVersion()->value(),

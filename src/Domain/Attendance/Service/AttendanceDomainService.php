@@ -135,16 +135,16 @@ final class AttendanceDomainService
     }
 
     private function createSnapshot(
-        AttendanceItem $item, 
+        AttendanceItem $item,
         ?Employee $employee,
         ?AttendanceDevice $device,
         string $date
     ): array {
         // 1. Ambil snapshot jadwal dan data master
-        $workTimeSnapshot = $employee?->toDailyScheduleSnapshot($date);
-        
+        $workPatternSnapshot = $employee?->toDailyScheduleSnapshot($date);
+
         // 2. Buat objek item baru yang sudah diperkaya dengan data master
-        // Ini penting agar withEvaluatedStatus() punya data workTime untuk dicek
+        // Ini penting agar withEvaluatedStatus() punya data workPattern untuk dicek
         $enrichedItem = new AttendanceItem(
             employeeId: $item->employeeId,
             employeeName: $employee?->getName() ?? $item->employeeName,
@@ -153,7 +153,7 @@ final class AttendanceDomainService
             division: $employee?->toDivisionSnapshot() ?? Employee::toUnassignedDivisionSnapshot(),
             startTime: $item->startTime,
             endTime: $item->endTime,
-            workTime: $workTimeSnapshot,
+            workPattern: $workPatternSnapshot,
             location: $item->location
         );
 
@@ -210,7 +210,7 @@ final class AttendanceDomainService
         $time = $itemData['start_time'] ?? $itemData['end_time'];
         $isIn = $status === AttendanceStatus::MANUAL_IN;
 
-        $workTimeSnapshot = $employee?->toDailyScheduleSnapshot($date);
+        $workPatternSnapshot = $employee?->toDailyScheduleSnapshot($date);
 
         return new AttendanceItem(
             employeeId: $employeeId,
@@ -220,7 +220,7 @@ final class AttendanceDomainService
             division: $employee?->toDivisionSnapshot() ?? Employee::toUnassignedDivisionSnapshot(),
             startTime: $isIn ? $time : null,
             endTime: !$isIn ? $time : null,
-            workTime: $workTimeSnapshot,
+            workPattern: $workPatternSnapshot,
             location: null
         );
     }

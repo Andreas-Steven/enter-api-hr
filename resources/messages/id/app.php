@@ -49,4 +49,11 @@ return [
      * Employee
      */
     'employee.invalid_phone' => 'Nomor Telepon wajib diisi, harus diawali dengan 62, minimal 9 digit, dan maksimal 15 digit.',
+
+    /**
+     * Work Pattern
+     */
+    'work_pattern.invalid_format' => 'Format {resource} tidak valid.',
+    'work_pattern.invalid_shift_id' => 'ID shift tidak valid. Harus berupa angka positif.',
+    'work_pattern.shift_not_found' => 'Shift dengan ID {id} tidak ditemukan.',
 ];

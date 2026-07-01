@@ -57,7 +57,6 @@ final class EmployeeCreateAction
             ssoId: (int) $params->get('sso_id'),
             divisionId: EmployeeDefault::DIVISION_ID,
             positionId: EmployeeDefault::POSITION_ID,
-            workTimeId: EmployeeDefault::WORK_TIME_ID,
             employeeTypeId: EmployeeDefault::EMPLOYEE_TYPE_ID,
             branchId: EmployeeDefault::BRANCH_ID,
             status: (int) $params->get('status'),

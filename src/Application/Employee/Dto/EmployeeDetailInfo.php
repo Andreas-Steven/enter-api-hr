@@ -11,7 +11,6 @@ final readonly class EmployeeDetailInfo
         public ?array $division,
         public ?array $position,
         public ?array $employeeType,
-        public ?array $workTime,
         public ?array $branch,
     ) {}
 
@@ -22,7 +21,6 @@ final readonly class EmployeeDetailInfo
             'division' => $this->division,
             'position' => $this->position,
             'employee_type' => $this->employeeType,
-            'work_time' => $this->workTime,
             'branch' => $this->branch,
         ];
     }
@@ -45,11 +43,6 @@ final readonly class EmployeeDetailInfo
     public function getEmployeeType(): ?array
     {
         return $this->employeeType;
-    }
-
-    public function getWorkTime(): ?array
-    {
-        return $this->workTime;
     }
 
     public function getBranch(): ?array

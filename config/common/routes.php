@@ -7,6 +7,7 @@ use App\Api;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
+use App\Api\V1\AttendanceShift\Action as AttendanceShiftV1;
 use App\Api\V1\AttendanceCalendar\Action as AttendanceCalendarV1;
 use App\Api\V1\AttendancePolicies\Action as AttendancePoliciesV1;
 use App\Api\V1\EmployeeGrade\Action as EmployeeGradeV1;
@@ -22,7 +23,8 @@ use App\Api\V1\EmployeeType\Action as EmployeeTypeV1;
 use App\Api\V1\EmployeePosition\Action as EmployeePositionV1;
 use App\Api\V1\EmployeeDivision\Action as EmployeeDivisionV1;
 use App\Api\V1\AttendancePermission\Action as AttendancePermissionV1;
-use App\Api\V1\WorkTime\Action as WorkTimeV1;
+use App\Api\V1\Shift\Action as ShiftV1;
+use App\Api\V1\WorkPattern\Action as WorkPatternV1;
 use App\Api\V1\AttendanceDevice\Action as AttendanceDeviceV1;
 
 // Shared Layer
@@ -103,35 +105,35 @@ return [
                 ->name('v1/attendance-device/restore')
                 ->defaults(['permission' => 'attendance-device.restore']),
 
-            // WorkTime Routes
-            Route::get('/work-time')
-                ->action(WorkTimeV1\WorkTimeDataAction::class)
-                ->name('v1/work-time/index')
-                ->defaults(['permission' => 'work-time.index']),
-            Route::post('/work-time/data')
-                ->action(WorkTimeV1\WorkTimeDataAction::class)
-                ->name('v1/work-time/data')
-                ->defaults(['permission' => 'work-time.data']),
-            Route::get('/work-time/{id:\d+}')
-                ->action(WorkTimeV1\WorkTimeViewAction::class)
-                ->name('v1/work-time/view')
-                ->defaults(['permission' => 'work-time.view']),
-            Route::post('/work-time/create')
-                ->action(WorkTimeV1\WorkTimeCreateAction::class)
-                ->name('v1/work-time/create')
-                ->defaults(['permission' => 'work-time.create']),
-            Route::put('/work-time/{id:\d+}')
-                ->action(WorkTimeV1\WorkTimeUpdateAction::class)
-                ->name('v1/work-time/update')
-                ->defaults(['permission' => 'work-time.update']),
-            Route::delete('/work-time/{id:\d+}')
-                ->action(WorkTimeV1\WorkTimeDeleteAction::class)
-                ->name('v1/work-time/delete')
-                ->defaults(['permission' => 'work-time.delete']),
-            Route::post('/work-time/{id:\d+}/restore')
-                ->action(WorkTimeV1\WorkTimeRestoreAction::class)
-                ->name('v1/work-time/restore')
-                ->defaults(['permission' => 'work-time.restore']),
+            // WorkPattern Routes
+            Route::get('/work-pattern')
+                ->action(WorkPatternV1\WorkPatternDataAction::class)
+                ->name('v1/work-pattern/index')
+                ->defaults(['permission' => 'work-pattern.index']),
+            Route::post('/work-pattern/data')
+                ->action(WorkPatternV1\WorkPatternDataAction::class)
+                ->name('v1/work-pattern/data')
+                ->defaults(['permission' => 'work-pattern.data']),
+            Route::get('/work-pattern/{id:\d+}')
+                ->action(WorkPatternV1\WorkPatternViewAction::class)
+                ->name('v1/work-pattern/view')
+                ->defaults(['permission' => 'work-pattern.view']),
+            Route::post('/work-pattern/create')
+                ->action(WorkPatternV1\WorkPatternCreateAction::class)
+                ->name('v1/work-pattern/create')
+                ->defaults(['permission' => 'work-pattern.create']),
+            Route::put('/work-pattern/{id:\d+}')
+                ->action(WorkPatternV1\WorkPatternUpdateAction::class)
+                ->name('v1/work-pattern/update')
+                ->defaults(['permission' => 'work-pattern.update']),
+            Route::delete('/work-pattern/{id:\d+}')
+                ->action(WorkPatternV1\WorkPatternDeleteAction::class)
+                ->name('v1/work-pattern/delete')
+                ->defaults(['permission' => 'work-pattern.delete']),
+            Route::post('/work-pattern/{id:\d+}/restore')
+                ->action(WorkPatternV1\WorkPatternRestoreAction::class)
+                ->name('v1/work-pattern/restore')
+                ->defaults(['permission' => 'work-pattern.restore']),
 
             // AttendancePermission Routes
             Route::get('/attendance-permission')
@@ -614,5 +616,35 @@ return [
                 ->action(AttendanceCalendarV1\AttendanceCalendarRestoreAction::class)
                 ->name('v1/attendance-calendar/restore')
                 ->defaults(['permission' => 'attendance-calendar.restore']),
+
+            // AttendanceShift Routes
+            Route::get('/attendance-shift')
+                ->action(AttendanceShiftV1\AttendanceShiftDataAction::class)
+                ->name('v1/attendance-shift/index')
+                ->defaults(['permission' => 'attendance-shift.index']),
+            Route::post('/attendance-shift/data')
+                ->action(AttendanceShiftV1\AttendanceShiftDataAction::class)
+                ->name('v1/attendance-shift/data')
+                ->defaults(['permission' => 'attendance-shift.data']),
+            Route::get('/attendance-shift/{id:\d+}')
+                ->action(AttendanceShiftV1\AttendanceShiftViewAction::class)
+                ->name('v1/attendance-shift/view')
+                ->defaults(['permission' => 'attendance-shift.view']),
+            Route::post('/attendance-shift/create')
+                ->action(AttendanceShiftV1\AttendanceShiftCreateAction::class)
+                ->name('v1/attendance-shift/create')
+                ->defaults(['permission' => 'attendance-shift.create']),
+            Route::put('/attendance-shift/{id:\d+}')
+                ->action(AttendanceShiftV1\AttendanceShiftUpdateAction::class)
+                ->name('v1/attendance-shift/update')
+                ->defaults(['permission' => 'attendance-shift.update']),
+            Route::delete('/attendance-shift/{id:\d+}')
+                ->action(AttendanceShiftV1\AttendanceShiftDeleteAction::class)
+                ->name('v1/attendance-shift/delete')
+                ->defaults(['permission' => 'attendance-shift.delete']),
+            Route::post('/attendance-shift/{id:\d+}/restore')
+                ->action(AttendanceShiftV1\AttendanceShiftRestoreAction::class)
+                ->name('v1/attendance-shift/restore')
+                ->defaults(['permission' => 'attendance-shift.restore']),
         ),
 ];

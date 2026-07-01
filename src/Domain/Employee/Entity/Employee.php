@@ -41,7 +41,6 @@ final class Employee
         private ?int $divisionId,
         private ?int $positionId,
         private ?int $employeeTypeId,
-        private ?int $workTimeId,
         private ?int $branchId,
         private ?string $birthDate,
         private ?string $dateStart,
@@ -78,7 +77,6 @@ final class Employee
         ?int $divisionId = null,
         ?int $positionId = null,
         ?int $employeeTypeId = null,
-        ?int $workTimeId = null,
         ?int $branchId = null,
         ?SyncMdb $syncMdb = null,
     ): self {
@@ -88,10 +86,10 @@ final class Employee
         );
 
         return new self(
-            id: null, 
-            name: $name, 
-            username: $username, 
-            ssoId: $ssoId, 
+            id: null,
+            name: $name,
+            username: $username,
+            ssoId: $ssoId,
             nik: $nik,
             email: $email,
             contact: $contact,
@@ -101,12 +99,11 @@ final class Employee
             divisionId: $divisionId,
             positionId: $positionId,
             employeeTypeId: $employeeTypeId,
-            workTimeId: $workTimeId,
             branchId: $branchId,
             image: $image,
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: LockVersion::create()
         );
     }
@@ -121,7 +118,6 @@ final class Employee
         ?int $divisionId,
         ?int $positionId,
         ?int $employeeTypeId,
-        ?int $workTimeId,
         ?int $branchId,
         ?string $birthDate,
         ?string $dateStart,
@@ -135,8 +131,8 @@ final class Employee
     ): self {
 
         return new self(
-            id: $id, 
-            name: $name, 
+            id: $id,
+            name: $name,
             username: $username,
             ssoId: $ssoId,
             nik: $nik,
@@ -145,15 +141,14 @@ final class Employee
             divisionId: $divisionId,
             positionId: $positionId,
             employeeTypeId: $employeeTypeId,
-            workTimeId: $workTimeId,
             branchId: $branchId,
             image: $image,
             birthDate: $birthDate,
             dateStart: $dateStart,
             dateResign: $dateResign,
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: $lockVersion ?? LockVersion::create()
         );
     }
@@ -174,7 +169,6 @@ final class Employee
             'division_id' => $this->divisionId,
             'position_id' => $this->positionId,
             'employee_type_id' => $this->employeeTypeId,
-            'work_time_id' => $this->workTimeId,
             'branch_id' => $this->branchId,
             'image' => $this->image?->toArray(),
             'status' => $this->status->value(),
@@ -257,11 +251,6 @@ final class Employee
         return $this->employeeTypeId;
     }
 
-    public function getWorkTimeId(): ?int
-    {
-        return $this->workTimeId;
-    }
-
     public function getBranchId(): ?int
     {
         return $this->branchId;
@@ -283,6 +272,7 @@ final class Employee
         
         return [
             'id' => $division['id'] ?? $this->divisionId,
+            'code' => $division['code'] ?? null,
             'name' => $division['name'] ?? 'N/A',
         ];
     }
@@ -297,7 +287,9 @@ final class Employee
 
     public function toWorkScheduleSnapshot(): array
     {
-        return $this->detailInfo->get('work_time') ?? [];
+        $division = $this->detailInfo->get('division') ?? [];
+
+        return $division['work_pattern'] ?? [];
     }
 
     private function getDayOfWeek(string $date): int
@@ -307,8 +299,8 @@ final class Employee
 
     public function toDailyScheduleSnapshot(string $date): array
     {
-        $workTime = $this->toWorkScheduleSnapshot();
-        $workingDays = $workTime['working_days'] ?? [];
+        $workPattern = $this->toWorkScheduleSnapshot();
+        $workingDays = $workPattern['working_days'] ?? [];
         $dayIndex = $this->getDayOfWeek($date);
 
         // 1. Ambil semua nilai 'day_of_week' menjadi array flat [1, 2, 3, 4, 5, 6, 7]
@@ -318,13 +310,12 @@ final class Employee
         // 3. Ambil datanya berdasarkan key yang ditemukan, atau default jika false
         $schedule = ($key !== false) ? $workingDays[$key] : [
             'day_of_week' => $dayIndex,
-            'entry_time'  => null,
-            'home_time'   => null
+            'shift' => null
         ];
 
         return [
-            'id'   => $workTime['id'] ?? 0,
-            'name' => $workTime['name'] ?? 'N/A',
+            'id' => $workPattern['id'] ?? 0,
+            'name' => $workPattern['name'] ?? 'N/A',
             'working_days' => [
                 $schedule
             ]
@@ -335,17 +326,18 @@ final class Employee
     {
         // Ambil snapshot jadwal hari tersebut
         $dailySchedule = $this->toDailyScheduleSnapshot($date);
-        
+
         // Ambil elemen pertama dari working_days (karena sudah difilter oleh toDailyScheduleSnapshot)
         $schedule = $dailySchedule['working_days'][0] ?? null;
 
-        // Jika tidak ada entry_time, maka tidak bisa ditentukan apakah terlambat
-        if (!$schedule || !isset($schedule['entry_time'])) {
+        $startTime = $schedule['shift']['start_time'] ?? null;
+
+        if ($startTime === null) {
             return ['is_late' => false];
         }
 
         return [
-            'is_late' => $clockInTime > $schedule['entry_time']
+            'is_late' => strtotime($clockInTime) > strtotime($startTime)
         ];
     }
 
@@ -395,11 +387,6 @@ final class Employee
     public function updateEmployeeType(?int $employeeTypeId): void
     {
         $this->employeeTypeId = $employeeTypeId;
-    }
-
-    public function updateWorkTime(?int $workTimeId): void
-    {
-        $this->workTimeId = $workTimeId;
     }
 
     public function updateBranch(?int $branchId): void

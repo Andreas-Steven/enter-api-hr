@@ -12,14 +12,12 @@ use App\Shared\ValueObject\Message;
 use App\Application\Employee\Dto\EmployeeDetailInfo;
 
 // Domain Repository
-use App\Domain\WorkTime\Repository\WorkTimeRepositoryInterface;
 use App\Domain\EmployeeType\Repository\EmployeeTypeRepositoryInterface;
 use App\Domain\EmployeeDivision\Repository\EmployeeDivisionRepositoryInterface;
 use App\Domain\EmployeePosition\Repository\EmployeePositionRepositoryInterface;
 use App\Domain\Branch\Repository\BranchRepositoryInterface;
 
 // Domain Entity
-use App\Domain\WorkTime\Entity\WorkTime;
 use App\Domain\EmployeeType\Entity\EmployeeType;
 use App\Domain\EmployeeDivision\Entity\EmployeeDivision;
 use App\Domain\EmployeePosition\Entity\EmployeePosition;
@@ -28,7 +26,6 @@ use App\Domain\Branch\Entity\Branch;
 final readonly class EmployeeDetailInfoFactory
 {
     public function __construct(
-        private WorkTimeRepositoryInterface $workTimeRepo,
         private EmployeeTypeRepositoryInterface $employeeTypeRepo,
         private EmployeeDivisionRepositoryInterface $employeeDivisionRepo,
         private EmployeePositionRepositoryInterface $employeePositionRepo,
@@ -38,7 +35,6 @@ final readonly class EmployeeDetailInfoFactory
     public function buildFromPrimitives(
         ?int $ssoId,
         ?string $username,
-        ?int $workTimeId,
         ?int $divisionId,
         ?int $positionId,
         ?int $employeeTypeId,
@@ -48,37 +44,6 @@ final readonly class EmployeeDetailInfoFactory
             'id' => $ssoId,
             'name' => $username,
         ];
-
-        $workTime = null;
-        if ($workTimeId !== null) {
-            $workTimeData = $this->workTimeRepo->findById(
-                id: $workTimeId,
-                status: ResourceStatus::active()->value()
-            );
-
-            if ($workTimeData === null) {
-                throw new NotFoundException(
-                    translate: Message::create(
-                        key: 'resource.not_found',
-                        params: [
-                            'resource' => 'work_time',
-                            'field' => 'id',
-                            'value' => $workTimeId
-                        ]
-                    )
-                );
-            }
-
-            $workTime = WorkTime::reconstitute(
-                id: $workTimeData->getId(),
-                name: $workTimeData->getName(),
-                workingDays: $workTimeData->getWorkingDays(),
-                status: $workTimeData->getStatus(),
-                detailInfo: $workTimeData->getDetailInfo(),
-                syncMdb: $workTimeData->getSyncMdb(),
-                lockVersion: $workTimeData->getLockVersion()
-            );
-        }
 
         $employeeType = null;
         if ($employeeTypeId !== null) {
@@ -166,6 +131,7 @@ final readonly class EmployeeDetailInfoFactory
                 code: $employeeDivisionData->getCode(),
                 status: $employeeDivisionData->getStatus(),
                 detailInfo: $employeeDivisionData->getDetailInfo(),
+                workPatternId: $employeeDivisionData->getWorkPatternId(),
                 syncMdb: $employeeDivisionData->getSyncMdb(),
                 lockVersion: $employeeDivisionData->getLockVersion()
             );
@@ -204,12 +170,16 @@ final readonly class EmployeeDetailInfoFactory
             );
         }
 
+        $divisionSnapshot = $employeeDivision?->toPersistence();
+        if ($employeeDivision !== null) {
+            $divisionSnapshot['work_pattern'] = $employeeDivision->getDetailInfo()->get('work_pattern');
+        }
+
         return new EmployeeDetailInfo(
             sso: $ssoData,
-            division: $employeeDivision?->toPersistence(),
+            division: $divisionSnapshot,
             position: $employeePosition?->toPersistence(),
             employeeType: $employeeType?->toPersistence(),
-            workTime: $workTime?->toPersistence(),
             branch: $branch?->toPersistence(),
         );
     }

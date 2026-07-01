@@ -97,7 +97,6 @@ final class EmployeeApplicationService
             divisionId: $command->divisionId,
             positionId: $command->positionId,
             employeeTypeId: $command->employeeTypeId,
-            workTimeId: $command->workTimeId,
             username: $command->username,
             branchId: $command->branchId
         );
@@ -117,7 +116,6 @@ final class EmployeeApplicationService
             divisionId: $command->divisionId,
             positionId: $command->positionId,
             employeeTypeId: $command->employeeTypeId,
-            workTimeId: $command->workTimeId,
             branchId: $command->branchId,
             birthDate: null,
             dateStart: null,
@@ -184,12 +182,6 @@ final class EmployeeApplicationService
             );
         }
 
-        if ($command->workTimeId !== null) {
-            $data->updateWorkTime(
-                workTimeId: $command->workTimeId
-            );
-        }
-
         if ($command->branchId !== null) {
             $data->updateBranch(
                 branchId: $command->branchId
@@ -235,7 +227,6 @@ final class EmployeeApplicationService
         $employeeInfoFactory = $this->employeeInfoFactory->buildFromPrimitives(
             ssoId: $data->getSsoId(),
             username: $data->getUsername(),
-            workTimeId: $command->workTimeId ?? $data->getWorkTimeId(),
             divisionId: $command->divisionId ?? $data->getDivisionId(),
             positionId: $command->positionId ?? $data->getPositionId(),
             employeeTypeId: $command->employeeTypeId ?? $data->getEmployeeTypeId(),

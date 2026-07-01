@@ -81,6 +81,7 @@ final class EmployeeDivisionRepository implements EmployeeDivisionRepositoryInte
             id: (int) $row['id'],
             name: $row['name'],
             code: $row['code'],
+            workPatternId: $row['work_pattern_id'] !== null ? (int)$row['work_pattern_id'] : null,
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
@@ -105,6 +106,7 @@ final class EmployeeDivisionRepository implements EmployeeDivisionRepositoryInte
             id: (int) $row['id'],
             name: $row['name'],
             code: $row['code'],
+            workPatternId: $row['work_pattern_id'] !== null ? (int)$row['work_pattern_id'] : null,
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
@@ -128,6 +130,7 @@ final class EmployeeDivisionRepository implements EmployeeDivisionRepositoryInte
                 'id',
                 'name',
                 'code',
+                'work_pattern_id',
                 'status',
                 'detail_info',
                 SyncMdb::field(),
@@ -210,6 +213,7 @@ final class EmployeeDivisionRepository implements EmployeeDivisionRepositoryInte
                 code: $entity->getCode(),
                 status: $entity->getStatus(),
                 detailInfo: $entity->getDetailInfo(),
+                workPatternId: $entity->getWorkPatternId(),
                 lockVersion: LockVersion::create(),
             );
 
@@ -298,6 +302,8 @@ final class EmployeeDivisionRepository implements EmployeeDivisionRepositoryInte
         $entity = EmployeeDivision::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
+            code: $row['code'],
+            workPatternId: $row['work_pattern_id'] !== null ? (int)$row['work_pattern_id'] : null,
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()])
@@ -315,6 +321,7 @@ final class EmployeeDivisionRepository implements EmployeeDivisionRepositoryInte
         return [
             'name' => $entity->getName(),
             'code' => $entity->getCode(),
+            'work_pattern_id' => $entity->getWorkPatternId(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             SyncMdb::field() => $entity->getSyncMdbValue(),

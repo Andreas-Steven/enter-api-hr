@@ -25,7 +25,7 @@ final readonly class AttendanceRecords
                 division: $data['division'],
                 startTime: $data['start_time'] ?? null,
                 endTime: $data['end_time'] ?? null,
-                workTime: $data['work_time'] ?? null,
+                workPattern: $data['work_pattern'] ?? $data['division']['work_pattern'] ?? null,
                 location: $data['location'] ?? null
             );
         }, $rawItems);
