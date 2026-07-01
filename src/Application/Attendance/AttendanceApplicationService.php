@@ -33,6 +33,14 @@ use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
 
 /**
+ * TODO: 
+ * - [ ] Implement AttendancePolicies to Attendance when Create
+ * - [ ] Implement AttendanceCalendar to check holiday before create Attendance 
+ * - [ ] Implement EmployeeGrade to Employee field table
+ * - [ ] Implement Permission to trim the EmployeeLeave balance when Permission is approved
+ */
+
+/**
  * Attendance Application Service (Mandor/Alur Kerja)
  * 
  * Orchestrates use cases and coordinates domain & infrastructure
