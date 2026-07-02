@@ -219,4 +219,14 @@ final class AttendanceShift
         $this->crossDay = $crossDay;
         $this->recalculateDefaultWorkTime();
     }
+
+    private function recalculateDefaultWorkTime(): void
+    {
+        $this->defaultWorkTime = DefaultWorkTime::fromTimeRange(
+            startTime: $this->startTime,
+            endTime: $this->endTime,
+            breakMinutes: $this->breakMinutes,
+            crossDay: $this->crossDay
+        );
+    }
 }

@@ -200,7 +200,7 @@ final class AttendanceShiftApplicationService
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'attendanceshift.delete',
+            permission: 'attendance-shift.delete',
             resource: $this->getResource(),
         );
         
