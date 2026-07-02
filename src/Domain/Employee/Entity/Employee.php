@@ -277,7 +277,26 @@ final class Employee
         ];
     }
 
+    public function toBranchSnapshot(): array
+    {
+        $branch = $this->detailInfo->get('branch');
+        
+        return [
+            'id' => $branch['id'] ?? $this->branchId,
+            'code' => $branch['code'] ?? null,
+            'name' => $branch['name'] ?? 'N/A',
+        ];
+    }
+
     public static function toUnassignedDivisionSnapshot(): array
+    {
+        return [
+            'id'   => 0,
+            'name' => 'Unassigned',
+        ];
+    }
+
+    public static function toUnassignedBranchSnapshot(): array
     {
         return [
             'id'   => 0,

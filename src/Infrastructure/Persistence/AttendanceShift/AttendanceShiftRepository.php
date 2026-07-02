@@ -158,7 +158,6 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
             filters: $filter, 
             allowedColumns: [
                 'id',
-                'name',
                 'status', 
                 SyncMdb::field(),
             ]

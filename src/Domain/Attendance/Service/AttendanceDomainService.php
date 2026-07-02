@@ -142,19 +142,26 @@ final class AttendanceDomainService
     ): array {
         // 1. Ambil snapshot jadwal dan data master
         $workPatternSnapshot = $employee?->toDailyScheduleSnapshot($date);
+        $branchSnapshot = $employee?->toBranchSnapshot() ?? Employee::toUnassignedBranchSnapshot();
+        
+        // 2. Ambil attendance_policies dari detail_info employee
+        $attendancePolicies = $employee?->getDetailInfo()?->get('branch')['attendance_policies'] ?? null;
 
-        // 2. Buat objek item baru yang sudah diperkaya dengan data master
+        // 3. Buat objek item baru yang sudah diperkaya dengan data master
         // Ini penting agar withEvaluatedStatus() punya data workPattern untuk dicek
         $enrichedItem = new AttendanceItem(
             employeeId: $item->employeeId,
             employeeName: $employee?->getName() ?? $item->employeeName,
-            info: $item->info,
+            info: $item->info, // Info should already be normalized from the original item
             device: $device?->toSnapshot() ?? AttendanceDevice::toUnregisteredSnapshot(),
             division: $employee?->toDivisionSnapshot() ?? Employee::toUnassignedDivisionSnapshot(),
             startTime: $item->startTime,
             endTime: $item->endTime,
             workPattern: $workPatternSnapshot,
-            location: $item->location
+            location: $item->location,
+            branch: $branchSnapshot,
+            attendancePolicies: $attendancePolicies,
+            totalWorkMinutes: $item->totalWorkMinutes
         );
 
         // 3. Jalankan evaluasi status (Late, Leave Early, dll)
@@ -211,6 +218,8 @@ final class AttendanceDomainService
         $isIn = $status === AttendanceStatus::MANUAL_IN;
 
         $workPatternSnapshot = $employee?->toDailyScheduleSnapshot($date);
+        $branchSnapshot = $employee?->toBranchSnapshot() ?? Employee::toUnassignedBranchSnapshot();
+        $attendancePolicies = $employee?->getDetailInfo()?->get('branch')['attendance_policies'] ?? null;
 
         return new AttendanceItem(
             employeeId: $employeeId,
@@ -221,7 +230,10 @@ final class AttendanceDomainService
             startTime: $isIn ? $time : null,
             endTime: !$isIn ? $time : null,
             workPattern: $workPatternSnapshot,
-            location: null
+            location: null,
+            branch: $branchSnapshot,
+            attendancePolicies: $attendancePolicies,
+            totalWorkMinutes: null
         );
     }
 

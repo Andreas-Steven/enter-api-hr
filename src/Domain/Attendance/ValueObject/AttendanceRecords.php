@@ -26,7 +26,10 @@ final readonly class AttendanceRecords
                 startTime: $data['start_time'] ?? null,
                 endTime: $data['end_time'] ?? null,
                 workPattern: $data['work_pattern'] ?? $data['division']['work_pattern'] ?? null,
-                location: $data['location'] ?? null
+                location: $data['location'] ?? null,
+                branch: $data['branch'] ?? null,
+                attendancePolicies: $data['attendance_policies'] ?? null,
+                totalWorkMinutes: $data['total_work_minutes'] ?? null
             );
         }, $rawItems);
 

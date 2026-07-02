@@ -16,6 +16,8 @@ final class AttendanceStatus
     public const MACHINE_STATUS = 'machine_status';
     public const MISSED_CHECKIN = 'missed_checkin';
     public const MISSED_CHECKOUT = 'missed_checkout';
+    public const FULL_DAY = 'full_day';
+    public const HALF_DAY = 'half_day';
 
     // Config Constants (Business Rules)
     public const TIME_NOON = '12:00:00';

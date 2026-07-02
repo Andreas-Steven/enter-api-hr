@@ -19,11 +19,12 @@ final readonly class AttendanceItem
         public ?string $endTime,
         // Changed from workTime to workPattern to reflect new structure
         public ?array $workPattern,
-        public ?array $location = null
+        public ?array $location = null,
+        public ?array $branch = null,
+        public ?array $attendancePolicies = null,
+        public ?int $totalWorkMinutes = null
     ) {
-        if (!isset($info['in'], $info['out'])) {
-            throw new InvalidArgumentException("Struktur 'info' tidak lengkap.");
-        }
+        // No validation needed - normalization happens in fromArray()
     }
 
     public static function fromArray(array $data): self
@@ -33,13 +34,9 @@ final readonly class AttendanceItem
             : null;
 
         $info = $data['info'] ?? [];
-
-        // 🔥 FIX: pastikan struktur selalu lengkap & tidak overwrite detail lama
-        $info = [
-            'in' => $info['in'] ?? true,
-            'out' => $info['out'] ?? false,
-            'detail' => $info['detail'] ?? [],
-        ];
+        
+        // Normalize info structure before passing to constructor
+        $info = self::normalizeInfoStatic($info);
 
         return new self(
             employeeId: (int) $data['employee_id'],
@@ -50,8 +47,89 @@ final readonly class AttendanceItem
             startTime: $startTime,
             endTime: $data['end_time'] ?? null,
             workPattern: $data['work_pattern'] ?? $data['division']['work_pattern'] ?? null,
-            location: $data['location'] ?? null
+            location: $data['location'] ?? null,
+            branch: $data['branch'] ?? null,
+            attendancePolicies: $data['attendance_policies'] ?? null,
+            totalWorkMinutes: $data['total_work_minutes'] ?? null
         );
+    }
+
+    private static function normalizeInfoStatic(array $info): array
+    {
+        // Handle old structure (detail as array of strings)
+        if (isset($info['detail']) && is_array($info['detail']) && !empty($info['detail'])) {
+            $firstDetail = $info['detail'][0] ?? null;
+            if (is_string($firstDetail)) {
+                // Convert old structure to new
+                return [
+                    'in' => $info['in'] ?? true,
+                    'out' => $info['out'] ?? false,
+                    'summary' => self::determineSummaryFromOldDetailStatic($info['detail']),
+                    'detail' => self::convertOldDetailToNewStatic($info['detail'])
+                ];
+            }
+        }
+        
+        // Check if detail is already in new structure (object with boolean keys)
+        if (isset($info['detail']) && is_array($info['detail']) && isset($info['detail']['late'])) {
+            // Already in new structure, just ensure all fields exist
+            return [
+                'in' => $info['in'] ?? true,
+                'out' => $info['out'] ?? false,
+                'summary' => $info['summary'] ?? null,
+                'detail' => array_merge([
+                    'late' => false,
+                    'late_minutes' => 0,
+                    'early_in' => 0,
+                    'early_out' => 0,
+                    'half_day' => false,
+                    'full_day' => false,
+                    'missing_in' => false,
+                    'missing_out' => false
+                ], $info['detail'])
+            ];
+        }
+        
+        // Empty or incomplete info - initialize with default structure
+        return [
+            'in' => $info['in'] ?? true,
+            'out' => $info['out'] ?? false,
+            'summary' => $info['summary'] ?? null,
+            'detail' => [
+                'late' => false,
+                'late_minutes' => 0,
+                'early_in' => 0,
+                'early_out' => 0,
+                'half_day' => false,
+                'full_day' => false,
+                'missing_in' => false,
+                'missing_out' => false
+            ]
+        ];
+    }
+
+    private static function determineSummaryFromOldDetailStatic(array $oldDetails): ?string
+    {
+        if (in_array('Full Day', $oldDetails)) return 'FULL_DAY';
+        if (in_array('Half Day', $oldDetails)) return 'HALF_DAY';
+        if (in_array('Missed Checkin', $oldDetails)) return 'MISSING_IN';
+        if (in_array('Missed Checkout', $oldDetails)) return 'MISSING_OUT';
+        if (in_array('Work Holiday', $oldDetails)) return 'WORK_HOLIDAY';
+        return null;
+    }
+
+    private static function convertOldDetailToNewStatic(array $oldDetails): array
+    {
+        return [
+            'late' => in_array('Late', $oldDetails),
+            'late_minutes' => 0, // Cannot determine from old structure
+            'early_in' => 0, // Cannot determine from old structure
+            'early_out' => in_array('Leave Early', $oldDetails) ? 0 : 0, // Cannot determine exact minutes
+            'half_day' => in_array('Half Day', $oldDetails),
+            'full_day' => in_array('Full Day', $oldDetails),
+            'missing_in' => in_array('Missed Checkin', $oldDetails),
+            'missing_out' => in_array('Missed Checkout', $oldDetails)
+        ];
     }
 
     /**
@@ -61,8 +139,18 @@ final readonly class AttendanceItem
     public function withEvaluatedStatus(string $date): self
     {
         $newInfo = $this->info;
-        // Ambil detail yang sudah ada, jika belum ada inisialisasi array kosong
-        $currentDetails = $newInfo['detail'] ?? [];
+        
+        // Initialize new detail structure
+        $detail = [
+            'late' => false,
+            'late_minutes' => 0,
+            'early_in' => 0,
+            'early_out' => 0,
+            'half_day' => false,
+            'full_day' => false,
+            'missing_in' => false,
+            'missing_out' => false
+        ];
 
         $dayOfWeek = (int) date('N', strtotime($date));
         $workingDays = $this->workPattern['working_days'] ?? [];
@@ -76,10 +164,11 @@ final readonly class AttendanceItem
         }
 
         if (!$todaySchedule) {
-            if ($this->startTime && !in_array('Work Holiday', $currentDetails)) {
-                $currentDetails[] = 'Work Holiday';
-            }
-            $newInfo['detail'] = $currentDetails;
+            // Work Holiday
+            $newInfo['summary'] = 'WORK_HOLIDAY';
+            $newInfo['detail'] = $detail;
+            $newInfo['in'] = !empty($this->startTime);
+            $newInfo['out'] = !empty($this->endTime);
             return $this->withInfo($newInfo);
         }
 
@@ -92,83 +181,123 @@ final readonly class AttendanceItem
         // =========================================
         // 1. MACHINE STATUS
         // =========================================
+        $machineStatus = false;
         if (empty($this->startTime) && !empty($this->endTime)) {
             if (
                 strtotime($currentTime) >= strtotime('12:00:00') &&
                 strtotime($currentTime) <= strtotime('15:00:00')
             ) {
-                if (!in_array('Machine Status', $currentDetails)) {
-                    $currentDetails[] = 'Machine Status';
-                }
+                $machineStatus = true;
             }
         }
 
         // =========================================
-        // 2. MISSED CHECKIN (langsung)
+        // 2. MISSED CHECKIN
         // =========================================
         if (empty($this->startTime) && !empty($this->endTime)) {
-            if (strtotime($currentTime) > strtotime('15:00:00')) {
-                if (!in_array('Missed Checkin', $currentDetails)) {
-                    $currentDetails[] = 'Missed Checkin';
-                }
+            if (strtotime($currentTime) > strtotime('15:00:00') || $machineStatus) {
+                $detail['missing_in'] = true;
             }
         }
 
         // =========================================
-        // 3. MISSED CHECKIN (dari MACHINE STATUS - UPDATE MODE)
-        // =========================================
-        if (in_array('Machine Status', $currentDetails)) {
-            if (!in_array('Missed Checkin', $currentDetails)) {
-                $currentDetails[] = 'Missed Checkin';
-            }
-        }
-
-        // =========================================
-        // 4. LATE (SUDAH ADA - tetap)
+        // 3. LATE (dengan grace period dari attendance_policies)
         // =========================================
         if ($entryTime && $this->startTime) {
-            if (strtotime($this->startTime) > strtotime($entryTime)) {
-                if (!in_array('Late', $currentDetails) && !in_array('Missed Checkin', $currentDetails)) {
-                    $currentDetails[] = 'Late';
-                }
-            } else {
-                $currentDetails = array_values(array_diff($currentDetails, ['Late']));
+            $lateGraceIn = 0;
+            if ($this->attendancePolicies) {
+                $policyDetail = $this->attendancePolicies['policy_detail'] ?? null;
+                $lateGraceIn = $policyDetail['late_grace_in'] ?? 0;
+            }
+
+            // Hitung batas waktu masuk dengan grace period
+            $lateThreshold = strtotime($entryTime) + ($lateGraceIn * 60);
+
+            if (strtotime($this->startTime) > $lateThreshold) {
+                $detail['late'] = true;
+                $detail['late_minutes'] = (int) round((strtotime($this->startTime) - strtotime($entryTime)) / 60);
             }
         }
 
         // =========================================
-        // 5. LEAVE EARLY (NEW + UPDATE MODE)
+        // 4. EARLY IN (calculate if came before shift start)
+        // =========================================
+        if ($entryTime && $this->startTime) {
+            if (strtotime($this->startTime) < strtotime($entryTime)) {
+                $detail['early_in'] = (int) round((strtotime($entryTime) - strtotime($this->startTime)) / 60);
+            }
+        }
+
+        // =========================================
+        // 5. LEAVE EARLY (dengan grace period dari attendance_policies)
         // =========================================
         if ($homeTime && $this->endTime) {
-            if (strtotime($this->endTime) < strtotime($homeTime)) {
-                if (!in_array('Leave Early', $currentDetails) && !in_array('Machine Status', $currentDetails)) {
-                    $currentDetails[] = 'Leave Early';
-                }
-            } else {
-                // UPDATE MODE: remove jika sudah valid
-                $currentDetails = array_values(array_diff($currentDetails, ['Leave Early']));
+            $earlyGraceOut = 0;
+            if ($this->attendancePolicies) {
+                $policyDetail = $this->attendancePolicies['policy_detail'] ?? null;
+                $earlyGraceOut = $policyDetail['early_grace_out'] ?? 0;
+            }
+
+            // Hitung batas waktu pulang dengan grace period
+            $earlyThreshold = strtotime($homeTime) - ($earlyGraceOut * 60);
+
+            if (strtotime($this->endTime) < $earlyThreshold) {
+                $detail['early_out'] = (int) round((strtotime($homeTime) - strtotime($this->endTime)) / 60);
             }
         }
 
         // =========================================
-        // 6. WORK HOLIDAY (sudah sebagian di atas, tapi ini versi lengkap Yii)
+        // 6. CALCULATE TOTAL WORK MINUTES
         // =========================================
-        if (($entryTime === null && $homeTime === null)) {
-            if (!empty($this->startTime) && !in_array('Work Holiday', $currentDetails)) {
-                $currentDetails[] = 'Work Holiday';
+        $totalWorkMinutes = null;
+        if ($this->startTime && $this->endTime) {
+            $startTimestamp = strtotime($this->startTime);
+            $endTimestamp = strtotime($this->endTime);
+            $totalWorkMinutes = (int) round(($endTimestamp - $startTimestamp) / 60);
+        }
+
+        // =========================================
+        // 7. DETERMINE FULL_DAY / HALF_DAY based on attendance_policies
+        // =========================================
+        if ($totalWorkMinutes !== null && $this->attendancePolicies) {
+            $policyDetail = $this->attendancePolicies['policy_detail'] ?? null;
+            $minWorkFullDay = $policyDetail['min_work_full_day'] ?? null;
+            $minWorkHalfDay = $policyDetail['min_work_half_day'] ?? null;
+
+            if ($minWorkFullDay !== null && $totalWorkMinutes >= $minWorkFullDay) {
+                $detail['full_day'] = true;
+            } elseif ($minWorkHalfDay !== null && $totalWorkMinutes >= $minWorkHalfDay) {
+                $detail['half_day'] = true;
             }
         }
 
         // =========================================
-        // FINAL CLEANUP
+        // DETERMINE SUMMARY
         // =========================================
-        $newInfo['detail'] = array_values(array_unique($currentDetails));
-        
-        // 🔥 FIX IN/OUT
+        $summary = null;
+        if ($detail['missing_in']) {
+            $summary = 'MISSING_IN';
+        } elseif ($detail['missing_out']) {
+            $summary = 'MISSING_OUT';
+        } elseif ($detail['full_day']) {
+            $summary = 'FULL_DAY';
+        } elseif ($detail['half_day']) {
+            $summary = 'HALF_DAY';
+        } elseif ($detail['late']) {
+            $summary = 'LATE';
+        } elseif ($detail['early_out'] > 0) {
+            $summary = 'EARLY_OUT';
+        }
+
+        // =========================================
+        // FINAL UPDATE
+        // =========================================
+        $newInfo['summary'] = $summary;
+        $newInfo['detail'] = $detail;
         $newInfo['in'] = !empty($this->startTime);
         $newInfo['out'] = !empty($this->endTime);
 
-        return $this->withInfo($newInfo);
+        return $this->withInfo($newInfo)->withTotalWorkMinutes($totalWorkMinutes);
     }
 
     /**
@@ -179,21 +308,28 @@ final readonly class AttendanceItem
     public function withClosingEvaluated(): self
     {
         $newInfo = $this->info;
-        $currentDetails = $newInfo['detail'] ?? [];
+        $detail = $newInfo['detail'] ?? [
+            'late' => false,
+            'late_minutes' => 0,
+            'early_in' => 0,
+            'early_out' => 0,
+            'half_day' => false,
+            'full_day' => false,
+            'missing_in' => false,
+            'missing_out' => false
+        ];
 
         // Logika: Jika ada jam masuk tapi TIDAK ADA jam pulang
         if (!empty($this->startTime) && empty($this->endTime)) {
-            if (!in_array('Missed Checkout', $currentDetails)) {
-                $currentDetails[] = 'Missed Checkout';
-            }
+            $detail['missing_out'] = true;
+            $newInfo['summary'] = 'MISSING_OUT';
         }
 
         // Sinkronisasi status boolean out jika missed checkout
-        // (opsional, tergantung apakah 'out' tetap false atau dianggap true setelah missed)
-        $newInfo['detail'] = array_values(array_unique($currentDetails));
+        $newInfo['detail'] = $detail;
         $newInfo['out'] = !empty($this->endTime);
 
-        return $this->withInfo($newInfo);
+        return $this->withInfo($newInfo)->withTotalWorkMinutes($this->totalWorkMinutes);
     }
 
     /**
@@ -210,7 +346,10 @@ final readonly class AttendanceItem
             $this->startTime,
             $this->endTime,
             $this->workPattern,
-            $this->location
+            $this->location,
+            $this->branch,
+            $this->attendancePolicies,
+            $this->totalWorkMinutes
         );
     }
 
@@ -231,6 +370,9 @@ final readonly class AttendanceItem
             'end_time' => $this->endTime,
             'work_pattern' => $this->workPattern,
             'location' => $this->location,
+            'branch' => $this->branch,
+            'attendance_policies' => $this->attendancePolicies,
+            'total_work_minutes' => $this->totalWorkMinutes,
         ];
     }
 
@@ -278,7 +420,10 @@ final readonly class AttendanceItem
             $time, // Menimpa hanya jika kosong
             $this->endTime,
             $this->workPattern,
-            $this->location
+            $this->location,
+            $this->branch,
+            $this->attendancePolicies,
+            $this->totalWorkMinutes
         );
     }
 
@@ -294,7 +439,10 @@ final readonly class AttendanceItem
             $time, // Memaksa isi dengan 08:00:00
             $this->endTime,
             $this->workPattern,
-            $this->location
+            $this->location,
+            $this->branch,
+            $this->attendancePolicies,
+            $this->totalWorkMinutes
         );
     }
 
@@ -316,7 +464,28 @@ final readonly class AttendanceItem
             $this->startTime,
             $time, // Menimpa dengan waktu terbaru
             $this->workPattern,
-            $this->location
+            $this->location,
+            $this->branch,
+            $this->attendancePolicies,
+            $this->totalWorkMinutes
+        );
+    }
+
+    public function withTotalWorkMinutes(?int $minutes): self
+    {
+        return new self(
+            $this->employeeId,
+            $this->employeeName,
+            $this->info,
+            $this->device,
+            $this->division,
+            $this->startTime,
+            $this->endTime,
+            $this->workPattern,
+            $this->location,
+            $this->branch,
+            $this->attendancePolicies,
+            $minutes
         );
     }
 
@@ -328,7 +497,17 @@ final readonly class AttendanceItem
         return [
             'in' => $isIn,
             'out' => !$isIn,
-            'detail' => [$isIn ? AttendanceStatus::MANUAL_IN : AttendanceStatus::MANUAL_OUT]
+            'summary' => $isIn ? 'MANUAL_IN' : 'MANUAL_OUT',
+            'detail' => [
+                'late' => false,
+                'late_minutes' => 0,
+                'early_in' => 0,
+                'early_out' => 0,
+                'half_day' => false,
+                'full_day' => false,
+                'missing_in' => false,
+                'missing_out' => false
+            ]
         ];
     }
 }
