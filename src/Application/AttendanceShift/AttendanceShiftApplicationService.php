@@ -14,6 +14,7 @@ use App\Application\Shared\Factory\DetailInfoFactory;
 use App\Domain\AttendanceShift\Entity\AttendanceShift;
 use App\Domain\AttendanceShift\Repository\AttendanceShiftRepositoryInterface;
 use App\Domain\AttendanceShift\Service\AttendanceShiftDomainService;
+use App\Domain\AttendanceShift\ValueObject\DefaultWorkTime;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
@@ -93,10 +94,20 @@ final class AttendanceShiftApplicationService
             )
             ->build();
 
+        $defaultWorkTime = DefaultWorkTime::fromTimeRange(
+            startTime: $command->startTime,
+            endTime: $command->endTime,
+            breakMinutes: $command->breakMinutes,
+            crossDay: $command->crossDay
+        );
+
         $data = AttendanceShift::create(
             name: $command->name,
             startTime: $command->startTime,
             endTime: $command->endTime,
+            breakMinutes: $command->breakMinutes,
+            crossDay: $command->crossDay,
+            defaultWorkTime: $defaultWorkTime,
             note: $command->note,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
@@ -137,21 +148,18 @@ final class AttendanceShiftApplicationService
             newName: $command->name
         );
 
-        if ($command->startTime !== null) {
-            $data->updateStartTime(
-                newStartTime: $command->startTime
-            );
-        }
-
-        if ($command->endTime !== null) {
-            $data->updateEndTime(
-                newEndTime: $command->endTime
+        if ($command->startTime !== null || $command->endTime !== null || $command->breakMinutes !== null || $command->crossDay !== null) {
+            $data->updateTimes(
+                startTime: $command->startTime ?? $data->getStartTime(),
+                endTime: $command->endTime ?? $data->getEndTime(),
+                breakMinutes: $command->breakMinutes ?? $data->getBreakMinutes(),
+                crossDay: $command->crossDay ?? $data->getCrossDay()
             );
         }
 
         if ($command->note !== null) {
-            $data->updateNote(
-                newNote: $command->note
+            $data->setNote(
+                note: $command->note
             );
         }
 

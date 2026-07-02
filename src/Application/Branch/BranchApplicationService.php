@@ -15,6 +15,7 @@ use App\Application\Branch\BranchDetailInfoFactory;
 use App\Domain\Branch\Entity\Branch;
 use App\Domain\Branch\Repository\BranchRepositoryInterface;
 use App\Domain\Branch\Service\BranchDomainService;
+use App\Domain\AttendancePolicies\Repository\AttendancePoliciesRepositoryInterface;
 use App\Domain\Shared\Enums\BranchType;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
@@ -37,7 +38,8 @@ final class BranchApplicationService
         private DetailInfoFactory $detailInfoFactory,
         private BranchDetailInfoFactory $branchInfoFactory,
         private BranchRepositoryInterface $repository,
-        private BranchDomainService $domainService
+        private BranchDomainService $domainService,
+        private AttendancePoliciesRepositoryInterface $attendancePoliciesRepository
     ) {
     }
 
@@ -88,11 +90,47 @@ final class BranchApplicationService
         );
     }
 
+    private function buildAttendancePoliciesInfo(?int $attendancePoliciesId): ?array
+    {
+        if ($attendancePoliciesId === null) {
+            return null;
+        }
+
+        $attendancePolicies = $this->attendancePoliciesRepository->findById(
+            id: $attendancePoliciesId,
+            status: null
+        );
+
+        if ($attendancePolicies === null) {
+            throw new NotFoundException(
+                translate: Message::create(
+                    key: 'resource.not_found',
+                    params: [
+                        'resource' => 'AttendancePolicies',
+                        'field' => 'id',
+                        'value' => $attendancePoliciesId
+                    ]
+                )
+            );
+        }
+
+        return [
+            'id' => $attendancePolicies->getId(),
+            'name' => $attendancePolicies->getName(),
+            'policy_detail' => $attendancePolicies->getPolicyDetail()->toArray(),
+        ];
+    }
+
     public function create(CreateBranchCommand $command): BranchResponse
     {
+        $attendancePolicies = $this->buildAttendancePoliciesInfo(
+            attendancePoliciesId: $command->attendance_policies_id
+        );
+
         $branchInfo = $this->branchInfoFactory
             ->buildFromPrimitives(
-                branch_type: (int) $command->branch_type
+                branch_type: (int) $command->branch_type,
+                attendance_policies: $attendancePolicies
             );
 
         $detailInfo = $this->detailInfoFactory
@@ -105,6 +143,7 @@ final class BranchApplicationService
             name: $command->name,
             code: $command->code,
             address: $command->address,
+            attendancePoliciesId: $command->attendance_policies_id,
             branchType: (int) $command->branch_type,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
@@ -161,14 +200,25 @@ final class BranchApplicationService
             newStatus: $newStatus
         );
 
-        if ($command->branch_type !== null) {
+        if ($command->attendance_policies_id !== null) {
+            $data->updateAttendancePoliciesId(
+                attendancePoliciesId: $command->attendance_policies_id
+            );
+        }
+
+        if ($command->branch_type !== null || $command->attendance_policies_id !== null) {
             $data->updateType(
-                newType: (int) $command->branch_type
+                newType: $command->branch_type
+            );
+
+            $attendancePolicies = $this->buildAttendancePoliciesInfo(
+                attendancePoliciesId: $command->attendance_policies_id ?? $data->getAttendancePoliciesId()
             );
 
             $branchInfo = $this->branchInfoFactory
                 ->buildFromPrimitives(
-                    branch_type: (int) $command->branch_type
+                    branch_type: $command->branch_type ?? $data->getType(),
+                    attendance_policies: $attendancePolicies
                 );
 
             $detailInfo = $this->detailInfoFactory

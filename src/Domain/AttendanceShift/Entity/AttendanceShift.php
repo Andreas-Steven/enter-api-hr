@@ -17,6 +17,7 @@ use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
+use App\Domain\AttendanceShift\ValueObject\DefaultWorkTime;
 
 final class AttendanceShift
 {
@@ -31,6 +32,9 @@ final class AttendanceShift
         private string $name,
         private string $startTime,
         private string $endTime,
+        private int $breakMinutes,
+        private int $crossDay,
+        private DefaultWorkTime $defaultWorkTime,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
         private ?string $note = null,
@@ -50,6 +54,9 @@ final class AttendanceShift
         string $name,
         string $startTime,
         string $endTime,
+        int $breakMinutes,
+        int $crossDay,
+        DefaultWorkTime $defaultWorkTime,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?string $note = null,
@@ -65,6 +72,9 @@ final class AttendanceShift
             name: $name, 
             startTime: $startTime,
             endTime: $endTime,
+            breakMinutes: $breakMinutes,
+            crossDay: $crossDay,
+            defaultWorkTime: $defaultWorkTime,
             note: $note,
             status: $status, 
             detailInfo: $detailInfo, 
@@ -78,6 +88,9 @@ final class AttendanceShift
         string $name,
         string $startTime,
         string $endTime,
+        int $breakMinutes,
+        int $crossDay,
+        int $defaultWorkTime,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?string $note = null,
@@ -90,6 +103,9 @@ final class AttendanceShift
             name: $name, 
             startTime: $startTime,
             endTime: $endTime,
+            breakMinutes: $breakMinutes,
+            crossDay: $crossDay,
+            defaultWorkTime: DefaultWorkTime::fromInt($defaultWorkTime),
             note: $note,
             status: $status, 
             detailInfo: $detailInfo, 
@@ -105,6 +121,9 @@ final class AttendanceShift
             'name' => $this->name,
             'start_time' => $this->startTime,
             'end_time' => $this->endTime,
+            'break_minutes' => $this->breakMinutes,
+            'cross_day' => $this->crossDay,
+            'default_work_time' => $this->defaultWorkTime->value(),
             'note' => $this->note,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
@@ -159,5 +178,45 @@ final class AttendanceShift
     public function setNote(?string $note): void
     {
         $this->note = $note;
+    }
+
+    public function getBreakMinutes(): int
+    {
+        return $this->breakMinutes;
+    }
+
+    public function setBreakMinutes(int $breakMinutes): void
+    {
+        $this->breakMinutes = $breakMinutes;
+        $this->recalculateDefaultWorkTime();
+    }
+
+    public function getCrossDay(): int
+    {
+        return $this->crossDay;
+    }
+
+    public function setCrossDay(int $crossDay): void
+    {
+        $this->crossDay = $crossDay;
+        $this->recalculateDefaultWorkTime();
+    }
+
+    public function getDefaultWorkTime(): DefaultWorkTime
+    {
+        return $this->defaultWorkTime;
+    }
+
+    public function updateTimes(
+        string $startTime,
+        string $endTime,
+        int $breakMinutes,
+        int $crossDay
+    ): void {
+        $this->startTime = $startTime;
+        $this->endTime = $endTime;
+        $this->breakMinutes = $breakMinutes;
+        $this->crossDay = $crossDay;
+        $this->recalculateDefaultWorkTime();
     }
 }

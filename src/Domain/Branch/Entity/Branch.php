@@ -31,6 +31,7 @@ final class Branch
         private string $name,
         private string $code,
         private string $address,
+        private ?int $attendancePoliciesId,
         private ResourceStatus $status,
         private int $branchType,
         private DetailInfo $detailInfo,
@@ -50,6 +51,7 @@ final class Branch
         string $name,
         string $code,
         string $address,
+        ?int $attendancePoliciesId,
         ResourceStatus $status,
         int $branchType,
         DetailInfo $detailInfo,
@@ -65,6 +67,7 @@ final class Branch
             name: $name,
             code: $code,
             address: $address,
+            attendancePoliciesId: $attendancePoliciesId,
             status: $status,
             branchType: $branchType,
             detailInfo: $detailInfo,
@@ -78,6 +81,7 @@ final class Branch
         string $name,
         string $code,
         string $address,
+        ?int $attendancePoliciesId,
         ResourceStatus $status,
         int $branchType,
         DetailInfo $detailInfo,
@@ -90,6 +94,7 @@ final class Branch
             name: $name,
             code: $code,
             address: $address,
+            attendancePoliciesId: $attendancePoliciesId,
             status: $status,
             branchType: $branchType,
             detailInfo: $detailInfo,
@@ -105,6 +110,7 @@ final class Branch
             'name' => $this->name,
             'code' => $this->code,
             'address' => $this->address,
+            'attendance_policies_id' => $this->attendancePoliciesId,
             'status' => $this->status->value(),
             'branch_type' => $this->branchType,
             'detail_info' => $this->detailInfo->toArray(),
@@ -181,6 +187,20 @@ final class Branch
     public function getType(): int
     {
         return $this->branchType;
+    }
+
+    public function getAttendancePoliciesId(): ?int
+    {
+        return $this->attendancePoliciesId;
+    }
+
+    public function updateAttendancePoliciesId(?int $attendancePoliciesId): void
+    {
+        if ($attendancePoliciesId === null) {
+            return;
+        }
+
+        $this->attendancePoliciesId = $attendancePoliciesId;
     }
 
     public function updateType(?int $newType): void

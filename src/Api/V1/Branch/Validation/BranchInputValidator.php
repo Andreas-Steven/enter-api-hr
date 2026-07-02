@@ -138,6 +138,12 @@ final class BranchInputValidator extends AbstractValidator
                         max: 255,
                     ),
                 ],
+                'attendance_policies_id' => [
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Required(),
                     new Integer(),
@@ -213,6 +219,12 @@ final class BranchInputValidator extends AbstractValidator
                         ),
                     ])
                 ],
+                'attendance_policies_id' => [
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,
@@ -277,6 +289,12 @@ final class BranchInputValidator extends AbstractValidator
                     new Length(
                         min: 1,
                         max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'attendance_policies_id' => [
+                    new Integer(
+                        min: 1,
                         skipOnEmpty: true,
                     ),
                 ],

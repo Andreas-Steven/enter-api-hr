@@ -25,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class AttendanceShiftCreateAction 
 {
-    private const ALLOWED_KEYS = ['name', 'start_time', 'end_time', 'note', 'status', 'sync_mdb'];
+    private const ALLOWED_KEYS = ['name', 'start_time', 'end_time', 'break_minutes', 'cross_day', 'note', 'status', 'sync_mdb'];
 
     public function __construct(
         private AttendanceShiftInputValidator $inputValidator,
@@ -54,6 +54,8 @@ final class AttendanceShiftCreateAction
             name: (string) $params->get('name'),
             startTime: $params->get('start_time'),
             endTime: $params->get('end_time'),
+            breakMinutes: (int) $params->get('break_minutes', 0),
+            crossDay: (int) $params->get('cross_day', 0),
             note: $params->get('note'),
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')

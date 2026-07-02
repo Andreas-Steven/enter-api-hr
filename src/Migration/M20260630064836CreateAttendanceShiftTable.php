@@ -38,6 +38,9 @@ final class M20260630064836CreateAttendanceShiftTable implements RevertibleMigra
             'name' => $cb::string(255)->notNull(),
             'start_time' => $cb::time()->notNull(),
             'end_time' => $cb::time()->notNull(),
+            'break_minutes' => $cb::integer()->notNull()->defaultValue(0)->comment('Break time in minutes'),
+            'cross_day' => $cb::smallint()->notNull()->defaultValue(0)->comment('0: same day, 1: crosses to next day'),
+            'default_work_time' => $cb::integer()->notNull()->defaultValue(0)->comment('Default work time in minutes (calculated from start_time to end_time minus break_minutes)'),
             'note' => $cb::text()->null(),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
             'detail_info' => $cb::json()->notNull()->defaultValue([

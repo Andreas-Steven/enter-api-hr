@@ -29,7 +29,7 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class BranchUpdateAction
 {
-    private const ALLOWED_KEYS = ['name', 'code', 'address', 'status', 'branch_type', 'lock_version'];
+    private const ALLOWED_KEYS = ['name', 'code', 'address', 'attendance_policies_id', 'status', 'branch_type', 'lock_version'];
 
     public function __construct(
         private BranchInputValidator $inputValidator,
@@ -82,6 +82,7 @@ final class BranchUpdateAction
             branch_type: $params->get('branch_type') !== null ? (int) $params->get('branch_type') : null,
             code: $params->get('code'),
             address: $params->get('address'),
+            attendance_policies_id: $params->get('attendance_policies_id') !== null ? (int) $params->get('attendance_policies_id') : null,
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info'),
             lockVersion: (int) $params->get('lock_version'),

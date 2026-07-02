@@ -162,6 +162,7 @@ final readonly class EmployeeDetailInfoFactory
                 name: $branchData->getName(),
                 code: $branchData->getCode(),
                 address: $branchData->getAddress(),
+                attendancePoliciesId: $branchData->getAttendancePoliciesId(),
                 status: $branchData->getStatus(),
                 branchType: $branchData->getType(),
                 detailInfo: $branchData->getDetailInfo(),
@@ -173,6 +174,12 @@ final readonly class EmployeeDetailInfoFactory
         $divisionSnapshot = $employeeDivision?->toPersistence();
         if ($employeeDivision !== null) {
             $divisionSnapshot['work_pattern'] = $employeeDivision->getDetailInfo()->get('work_pattern');
+            unset($divisionSnapshot['work_pattern_id']);
+        }
+
+        $branchSnapshot = $branch?->toPersistence();
+        if ($branch !== null) {
+            $branchSnapshot['attendance_policies'] = $branch->getDetailInfo()->get('attendance_policies');
         }
 
         return new EmployeeDetailInfo(
@@ -180,7 +187,7 @@ final readonly class EmployeeDetailInfoFactory
             division: $divisionSnapshot,
             position: $employeePosition?->toPersistence(),
             employeeType: $employeeType?->toPersistence(),
-            branch: $branch?->toPersistence(),
+            branch: $branchSnapshot,
         );
     }
 }

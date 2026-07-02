@@ -34,10 +34,10 @@ use App\Shared\ValueObject\Message;
 
 /**
  * TODO: 
- * - [ ] Implement AttendancePolicies to Attendance when Create
- * - [ ] Implement AttendanceCalendar to check holiday before create Attendance 
+ * - [ ] Implement AttendanceCalendar to check holiday and set Attendance Status on Detail Info to WORK_HOLIDAY
  * - [ ] Implement EmployeeGrade to Employee field table
  * - [ ] Implement Permission to trim the EmployeeLeave balance when Permission is approved
+ * - [ ] Implement AttendancePolicies to Attendance when Create
  */
 
 /**

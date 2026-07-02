@@ -50,9 +50,13 @@ final class SeedBranchData extends AbstractSeederData
     {
         // Create new entity with proper DetailInfo
         $newEntity = Branch::create(
-            $entity->getName(),
-            $entity->getStatus(),
-            $detailInfo
+            name: $entity->getName(),
+            code: $entity->getCode(),
+            address: $entity->getAddress(),
+            attendancePoliciesId: $entity->getAttendancePoliciesId(),
+            status: $entity->getStatus(),
+            branchType: $entity->getType(),
+            detailInfo: $detailInfo
         );
         
         // Use repository to insert

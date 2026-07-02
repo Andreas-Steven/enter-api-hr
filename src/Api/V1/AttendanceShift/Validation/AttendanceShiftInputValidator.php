@@ -116,12 +116,22 @@ final class AttendanceShiftInputValidator extends AbstractValidator
                     new Required(),
                     new StringValue(),
                 ],
+                'break_minutes' => [
+                    new Required(),
+                    new Integer(min: 0),
+                ],
+                'cross_day' => [
+                    new Required(),
+                    new Integer(min: 0, max: 1),
+                ],
                 'note' => [
                     new StopOnError([
-                        new Required(),
-                        new StringValue(),
+                        new StringValue(
+                            skipOnEmpty: true,
+                        ),
                         new Length(
                             max: 255,
+                            skipOnEmpty: true,
                         ),
                     ]),
                 ],
@@ -164,6 +174,19 @@ final class AttendanceShiftInputValidator extends AbstractValidator
                 ],
                 'end_time' => [
                     new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'break_minutes' => [
+                    new Integer(
+                        min: 0,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'cross_day' => [
+                    new Integer(
+                        min: 0,
+                        max: 1,
                         skipOnEmpty: true,
                     ),
                 ],

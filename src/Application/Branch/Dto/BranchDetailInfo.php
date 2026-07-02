@@ -8,12 +8,14 @@ final readonly class BranchDetailInfo
 {
     public function __construct(
         public ?array $branch,
+        public ?array $attendance_policies = null,
     ) {}
 
     public function toArray(): array
     {
         return [
             'branch' => $this->branch,
+            'attendance_policies' => $this->attendance_policies,
         ];
     }
 
