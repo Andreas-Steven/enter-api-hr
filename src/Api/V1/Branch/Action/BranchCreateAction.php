@@ -25,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class BranchCreateAction 
 {
-    private const ALLOWED_KEYS = ['name', 'code', 'address', 'attendance_policies_id', 'status', 'sync_mdb', 'branch_type'];
+    private const ALLOWED_KEYS = ['name', 'code', 'address', 'attendance_policies_id', 'work_pattern_id', 'status', 'sync_mdb', 'branch_type'];
 
     public function __construct(
         private BranchInputValidator $inputValidator,
@@ -56,10 +56,11 @@ final class BranchCreateAction
 
         $command = CreateBranchCommand::create(
             name: (string) $params->get('name'),
-            branch_type: (int) $params->get('branch_type'),
+            branch_type: $params->get('branch_type') !== null ? (int) $params->get('branch_type') : null,
             code: (string) $params->get('code'),
             address: (string) $params->get('address'),
             attendance_policies_id: $params->get('attendance_policies_id') !== null ? (int) $params->get('attendance_policies_id') : null,
+            work_pattern_id: $params->get('work_pattern_id') !== null ? (int) $params->get('work_pattern_id') : null,
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );

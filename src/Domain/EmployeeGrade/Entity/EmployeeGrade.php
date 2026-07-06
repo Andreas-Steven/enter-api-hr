@@ -100,6 +100,15 @@ final class EmployeeGrade
             LockVersion::field() => $this->lockVersion->value(),
         ];
     }
+
+    public function toPersistence(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'level' => $this->level,
+        ];
+    }
     
     public function restore(): void
     {

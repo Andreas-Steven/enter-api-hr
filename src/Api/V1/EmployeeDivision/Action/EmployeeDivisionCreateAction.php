@@ -25,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class EmployeeDivisionCreateAction 
 {
-    private const ALLOWED_KEYS = ['name', 'code', 'work_pattern_id', 'status', 'sync_mdb'];
+    private const ALLOWED_KEYS = ['name', 'code', 'status', 'sync_mdb'];
 
     public function __construct(
         private EmployeeDivisionInputValidator $inputValidator,
@@ -53,7 +53,6 @@ final class EmployeeDivisionCreateAction
         $command = CreateEmployeeDivisionCommand::create(
             name: (string) $params->get('name'),
             code: (string) $params->get('code'),
-            workPatternId: $params->get('work_pattern_id') !== null ? (int) $params->get('work_pattern_id') : null,
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );

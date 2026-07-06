@@ -94,11 +94,12 @@ final class EmployeeApplicationService
     {
         $employeeInfoFactory = $this->employeeInfoFactory->buildFromPrimitives(
             ssoId: $command->ssoId,
+            username: $command->username,
             divisionId: $command->divisionId,
             positionId: $command->positionId,
             employeeTypeId: $command->employeeTypeId,
-            username: $command->username,
-            branchId: $command->branchId
+            branchId: $command->branchId,
+            gradeId: $command->gradeId
         );
 
         $detailInfo = $this->detailInfoFactory
@@ -117,6 +118,7 @@ final class EmployeeApplicationService
             positionId: $command->positionId,
             employeeTypeId: $command->employeeTypeId,
             branchId: $command->branchId,
+            gradeId: $command->gradeId,
             birthDate: null,
             dateStart: null,
             dateResign: null,
@@ -188,6 +190,12 @@ final class EmployeeApplicationService
             );
         }
 
+        if ($command->gradeId !== null) {
+            $data->updateGrade(
+                gradeId: $command->gradeId
+            );
+        }
+
         if ($command->nik !== null) {
             $data->updateNik(
                 nik: $command->nik
@@ -231,6 +239,7 @@ final class EmployeeApplicationService
             positionId: $command->positionId ?? $data->getPositionId(),
             employeeTypeId: $command->employeeTypeId ?? $data->getEmployeeTypeId(),
             branchId: $command->branchId ?? $data->getBranchId(),
+            gradeId: $command->gradeId ?? $data->getGradeId(),
         );
 
         $detailInfo = $this->detailInfoFactory

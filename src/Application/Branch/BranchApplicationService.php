@@ -16,6 +16,7 @@ use App\Domain\Branch\Entity\Branch;
 use App\Domain\Branch\Repository\BranchRepositoryInterface;
 use App\Domain\Branch\Service\BranchDomainService;
 use App\Domain\AttendancePolicies\Repository\AttendancePoliciesRepositoryInterface;
+use App\Domain\WorkPattern\Repository\WorkPatternRepositoryInterface;
 use App\Domain\Shared\Enums\BranchType;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
@@ -39,7 +40,8 @@ final class BranchApplicationService
         private BranchDetailInfoFactory $branchInfoFactory,
         private BranchRepositoryInterface $repository,
         private BranchDomainService $domainService,
-        private AttendancePoliciesRepositoryInterface $attendancePoliciesRepository
+        private AttendancePoliciesRepositoryInterface $attendancePoliciesRepository,
+        private WorkPatternRepositoryInterface $workPatternRepository
     ) {
     }
 
@@ -121,16 +123,52 @@ final class BranchApplicationService
         ];
     }
 
+    private function buildWorkPatternInfo(?int $workPatternId): ?array
+    {
+        if ($workPatternId === null) {
+            return null;
+        }
+
+        $workPattern = $this->workPatternRepository->findById(
+            id: $workPatternId,
+            status: null
+        );
+
+        if ($workPattern === null) {
+            throw new NotFoundException(
+                translate: Message::create(
+                    key: 'resource.not_found',
+                    params: [
+                        'resource' => 'WorkPattern',
+                        'field' => 'id',
+                        'value' => $workPatternId
+                    ]
+                )
+            );
+        }
+
+        return [
+            'id' => $workPattern->getId(),
+            'name' => $workPattern->getName(),
+            'working_days' => $workPattern->getWorkingDays()->toArray(),
+        ];
+    }
+
     public function create(CreateBranchCommand $command): BranchResponse
     {
         $attendancePolicies = $this->buildAttendancePoliciesInfo(
             attendancePoliciesId: $command->attendance_policies_id
         );
 
+        $workPattern = $this->buildWorkPatternInfo(
+            workPatternId: $command->work_pattern_id
+        );
+
         $branchInfo = $this->branchInfoFactory
             ->buildFromPrimitives(
-                branch_type: (int) $command->branch_type,
-                attendance_policies: $attendancePolicies
+                branch_type: $command->branch_type,
+                attendance_policies: $attendancePolicies,
+                work_pattern: $workPattern
             );
 
         $detailInfo = $this->detailInfoFactory
@@ -144,7 +182,8 @@ final class BranchApplicationService
             code: $command->code,
             address: $command->address,
             attendancePoliciesId: $command->attendance_policies_id,
-            branchType: (int) $command->branch_type,
+            workPatternId: $command->work_pattern_id,
+            branchType: $command->branch_type,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
         );
@@ -206,7 +245,13 @@ final class BranchApplicationService
             );
         }
 
-        if ($command->branch_type !== null || $command->attendance_policies_id !== null) {
+        if ($command->work_pattern_id !== null) {
+            $data->updateWorkPatternId(
+                workPatternId: $command->work_pattern_id
+            );
+        }
+
+        if ($command->branch_type !== null || $command->attendance_policies_id !== null || $command->work_pattern_id !== null) {
             $data->updateType(
                 newType: $command->branch_type
             );
@@ -215,10 +260,15 @@ final class BranchApplicationService
                 attendancePoliciesId: $command->attendance_policies_id ?? $data->getAttendancePoliciesId()
             );
 
+            $workPattern = $this->buildWorkPatternInfo(
+                workPatternId: $command->work_pattern_id ?? $data->getWorkPatternId()
+            );
+
             $branchInfo = $this->branchInfoFactory
                 ->buildFromPrimitives(
                     branch_type: $command->branch_type ?? $data->getType(),
-                    attendance_policies: $attendancePolicies
+                    attendance_policies: $attendancePolicies,
+                    work_pattern: $workPattern
                 );
 
             $detailInfo = $this->detailInfoFactory

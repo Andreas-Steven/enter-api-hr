@@ -112,8 +112,9 @@ final class BranchInputValidator extends AbstractValidator
                     ])
                 ],
                 'branch_type' => [
-                    new Required(),
-                    new Integer(),
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'code' => [
                     new StopOnError([
@@ -139,6 +140,12 @@ final class BranchInputValidator extends AbstractValidator
                     ),
                 ],
                 'attendance_policies_id' => [
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'work_pattern_id' => [
                     new Integer(
                         min: 1,
                         skipOnEmpty: true,
@@ -225,6 +232,12 @@ final class BranchInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'work_pattern_id' => [
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,
@@ -293,6 +306,12 @@ final class BranchInputValidator extends AbstractValidator
                     ),
                 ],
                 'attendance_policies_id' => [
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'work_pattern_id' => [
                     new Integer(
                         min: 1,
                         skipOnEmpty: true,

@@ -42,6 +42,7 @@ final class Employee
         private ?int $positionId,
         private ?int $employeeTypeId,
         private ?int $branchId,
+        private ?int $gradeId,
         private ?string $birthDate,
         private ?string $dateStart,
         private ?string $dateResign,
@@ -78,6 +79,7 @@ final class Employee
         ?int $positionId = null,
         ?int $employeeTypeId = null,
         ?int $branchId = null,
+        ?int $gradeId = null,
         ?SyncMdb $syncMdb = null,
     ): self {
         self::guardInitialStatus(
@@ -100,6 +102,7 @@ final class Employee
             positionId: $positionId,
             employeeTypeId: $employeeTypeId,
             branchId: $branchId,
+            gradeId: $gradeId,
             image: $image,
             status: $status,
             detailInfo: $detailInfo,
@@ -119,6 +122,7 @@ final class Employee
         ?int $positionId,
         ?int $employeeTypeId,
         ?int $branchId,
+        ?int $gradeId,
         ?string $birthDate,
         ?string $dateStart,
         ?string $dateResign,
@@ -142,6 +146,7 @@ final class Employee
             positionId: $positionId,
             employeeTypeId: $employeeTypeId,
             branchId: $branchId,
+            gradeId: $gradeId,
             image: $image,
             birthDate: $birthDate,
             dateStart: $dateStart,
@@ -170,6 +175,7 @@ final class Employee
             'position_id' => $this->positionId,
             'employee_type_id' => $this->employeeTypeId,
             'branch_id' => $this->branchId,
+            'grade_id' => $this->gradeId,
             'image' => $this->image?->toArray(),
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
@@ -256,6 +262,11 @@ final class Employee
         return $this->branchId;
     }
 
+    public function getGradeId(): ?int
+    {
+        return $this->gradeId;
+    }
+
     public function getContact(): ?Contact
     {
         return $this->contact;
@@ -306,9 +317,9 @@ final class Employee
 
     public function toWorkScheduleSnapshot(): array
     {
-        $division = $this->detailInfo->get('division') ?? [];
+        $branch = $this->detailInfo->get('branch') ?? [];
 
-        return $division['work_pattern'] ?? [];
+        return $branch['work_pattern'] ?? [];
     }
 
     private function getDayOfWeek(string $date): int
@@ -411,6 +422,11 @@ final class Employee
     public function updateBranch(?int $branchId): void
     {
         $this->branchId = $branchId;
+    }
+
+    public function updateGrade(?int $gradeId): void
+    {
+        $this->gradeId = $gradeId;
     }
 
     public function updateContact(Contact $contact): void

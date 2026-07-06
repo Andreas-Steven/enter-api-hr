@@ -10,5 +10,6 @@ final class EmployeeDefault
     public const DIVISION_ID = 1;
     public const POSITION_ID = 1;
     public const BRANCH_ID = 1;
+    public const GRADE_ID = 1;
     public const WORK_TIME_ID = 1;
 }

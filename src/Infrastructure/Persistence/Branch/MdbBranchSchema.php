@@ -19,6 +19,7 @@ final class MdbBranchSchema
             'code' => $entity->getCode(),
             'address' => $entity->getAddress(),
             'attendance_policies_id' => $entity->getAttendancePoliciesId(),
+            'work_pattern_id' => $entity->getWorkPatternId(),
             'branch_type' => $entity->getType(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),

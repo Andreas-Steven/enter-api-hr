@@ -25,7 +25,16 @@ final readonly class BranchDetailInfoFactory
     public function buildFromPrimitives(
         ?int $branch_type = null,
         ?array $attendance_policies = null,
+        ?array $work_pattern = null,
     ): BranchDetailInfo {
+        if ($branch_type === null) {
+            return new BranchDetailInfo(
+                branch_type: null,
+                attendance_policies: $attendance_policies,
+                work_pattern: $work_pattern,
+            );
+        }
+
         try {
             $branchType = BranchType::from($branch_type);
         } catch (\ValueError $e) {
@@ -41,11 +50,12 @@ final readonly class BranchDetailInfoFactory
         }
 
         return new BranchDetailInfo(
-            branch: [
+            branch_type: [
                 'id' => $branchType->value,
                 'name' => $branchType->getLabel(),
             ],
             attendance_policies: $attendance_policies,
+            work_pattern: $work_pattern,
         );
     }
 }

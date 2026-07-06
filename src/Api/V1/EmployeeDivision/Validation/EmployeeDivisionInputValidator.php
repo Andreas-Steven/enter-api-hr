@@ -123,12 +123,6 @@ final class EmployeeDivisionInputValidator extends AbstractValidator
                         )
                     ])
                 ],
-                'work_pattern_id' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                        min: 1,
-                    ),
-                ],
                 'status' => [
                     new Required(),
                     new Integer(),
@@ -177,12 +171,6 @@ final class EmployeeDivisionInputValidator extends AbstractValidator
                             ignoreId: $this->data['id'] ?? null
                         )
                     ])
-                ],
-                'work_pattern_id' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                        min: 1,
-                    ),
                 ],
                 'status' => [
                     new Integer(

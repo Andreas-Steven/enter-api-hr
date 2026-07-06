@@ -54,6 +54,7 @@ final class SeedBranchData extends AbstractSeederData
             code: $entity->getCode(),
             address: $entity->getAddress(),
             attendancePoliciesId: $entity->getAttendancePoliciesId(),
+            workPatternId: $entity->getWorkPatternId(),
             status: $entity->getStatus(),
             branchType: $entity->getType(),
             detailInfo: $detailInfo

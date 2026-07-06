@@ -59,6 +59,7 @@ final class EmployeeCreateAction
             positionId: EmployeeDefault::POSITION_ID,
             employeeTypeId: EmployeeDefault::EMPLOYEE_TYPE_ID,
             branchId: EmployeeDefault::BRANCH_ID,
+            gradeId: EmployeeDefault::GRADE_ID,
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );

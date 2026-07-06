@@ -46,7 +46,7 @@ final readonly class AttendanceItem
             division: $data['division'] ?? null,
             startTime: $startTime,
             endTime: $data['end_time'] ?? null,
-            workPattern: $data['work_pattern'] ?? $data['division']['work_pattern'] ?? null,
+            workPattern: $data['work_pattern'] ?? $data['branch']['work_pattern'] ?? null,
             location: $data['location'] ?? null,
             branch: $data['branch'] ?? null,
             attendancePolicies: $data['attendance_policies'] ?? null,

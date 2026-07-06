@@ -34,7 +34,6 @@ final class EmployeeDivision
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
-        private ?int $workPatternId = null,
     ) {
         $this->resource = self::RESOURCE;
         $this->lockVersion = $lockVersion ?? LockVersion::create();
@@ -50,7 +49,6 @@ final class EmployeeDivision
         string $code,
         ResourceStatus $status,
         DetailInfo $detailInfo,
-        ?int $workPatternId = null,
         ?SyncMdb $syncMdb = null,
     ): self {
         self::guardInitialStatus(
@@ -64,7 +62,6 @@ final class EmployeeDivision
             code: $code,
             status: $status,
             detailInfo: $detailInfo,
-            workPatternId: $workPatternId,
             syncMdb: $syncMdb,
             lockVersion: LockVersion::create()
         );
@@ -76,7 +73,6 @@ final class EmployeeDivision
         string $code,
         ResourceStatus $status,
         DetailInfo $detailInfo,
-        ?int $workPatternId = null,
         ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
     ): self {
@@ -87,7 +83,6 @@ final class EmployeeDivision
             code: $code,
             status: $status,
             detailInfo: $detailInfo,
-            workPatternId: $workPatternId,
             syncMdb: $syncMdb,
             lockVersion: $lockVersion ?? LockVersion::create()
         );
@@ -99,7 +94,6 @@ final class EmployeeDivision
             'id' => $this->id,
             'name' => $this->name,
             'code' => $this->code,
-            'work_pattern_id' => $this->workPatternId,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
@@ -113,7 +107,6 @@ final class EmployeeDivision
             'id' => $this->id,
             'name' => $this->name,
             'code' => $this->code,
-            'work_pattern_id' => $this->workPatternId,
         ];
     }
     
@@ -144,16 +137,6 @@ final class EmployeeDivision
     public function getCode(): string
     {
         return $this->code;
-    }
-
-    public function getWorkPatternId(): ?int
-    {
-        return $this->workPatternId;
-    }
-
-    public function setWorkPatternId(?int $workPatternId): void
-    {
-        $this->workPatternId = $workPatternId;
     }
 
 }

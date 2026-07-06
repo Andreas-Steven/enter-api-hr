@@ -14,6 +14,7 @@ final readonly class CreateEmployeeCommand
         public int $positionId,
         public int $employeeTypeId,
         public int $branchId,
+        public ?int $gradeId,
         public int $status,
         public ?array $detailInfo,
     ) {}
@@ -26,6 +27,7 @@ final readonly class CreateEmployeeCommand
         int $positionId,
         int $employeeTypeId,
         int $branchId,
+        ?int $gradeId,
         int $status,
         ?array $detailInfo = null,
     ): self {
@@ -37,6 +39,7 @@ final readonly class CreateEmployeeCommand
             positionId: $positionId,
             employeeTypeId: $employeeTypeId,
             branchId: $branchId,
+            gradeId: $gradeId,
             status: $status,
             detailInfo: $detailInfo,
         );

@@ -16,12 +16,14 @@ use App\Domain\EmployeeType\Repository\EmployeeTypeRepositoryInterface;
 use App\Domain\EmployeeDivision\Repository\EmployeeDivisionRepositoryInterface;
 use App\Domain\EmployeePosition\Repository\EmployeePositionRepositoryInterface;
 use App\Domain\Branch\Repository\BranchRepositoryInterface;
+use App\Domain\EmployeeGrade\Repository\EmployeeGradeRepositoryInterface;
 
 // Domain Entity
 use App\Domain\EmployeeType\Entity\EmployeeType;
 use App\Domain\EmployeeDivision\Entity\EmployeeDivision;
 use App\Domain\EmployeePosition\Entity\EmployeePosition;
 use App\Domain\Branch\Entity\Branch;
+use App\Domain\EmployeeGrade\Entity\EmployeeGrade;
 
 final readonly class EmployeeDetailInfoFactory
 {
@@ -30,6 +32,7 @@ final readonly class EmployeeDetailInfoFactory
         private EmployeeDivisionRepositoryInterface $employeeDivisionRepo,
         private EmployeePositionRepositoryInterface $employeePositionRepo,
         private BranchRepositoryInterface $branchRepo,
+        private EmployeeGradeRepositoryInterface $employeeGradeRepo,
     ) {}
 
     public function buildFromPrimitives(
@@ -39,6 +42,7 @@ final readonly class EmployeeDetailInfoFactory
         ?int $positionId,
         ?int $employeeTypeId,
         ?int $branchId,
+        ?int $gradeId,
     ): EmployeeDetailInfo {
         $ssoData = [
             'id' => $ssoId,
@@ -131,7 +135,6 @@ final readonly class EmployeeDetailInfoFactory
                 code: $employeeDivisionData->getCode(),
                 status: $employeeDivisionData->getStatus(),
                 detailInfo: $employeeDivisionData->getDetailInfo(),
-                workPatternId: $employeeDivisionData->getWorkPatternId(),
                 syncMdb: $employeeDivisionData->getSyncMdb(),
                 lockVersion: $employeeDivisionData->getLockVersion()
             );
@@ -163,6 +166,7 @@ final readonly class EmployeeDetailInfoFactory
                 code: $branchData->getCode(),
                 address: $branchData->getAddress(),
                 attendancePoliciesId: $branchData->getAttendancePoliciesId(),
+                workPatternId: $branchData->getWorkPatternId(),
                 status: $branchData->getStatus(),
                 branchType: $branchData->getType(),
                 detailInfo: $branchData->getDetailInfo(),
@@ -171,15 +175,32 @@ final readonly class EmployeeDetailInfoFactory
             );
         }
 
-        $divisionSnapshot = $employeeDivision?->toPersistence();
-        if ($employeeDivision !== null) {
-            $divisionSnapshot['work_pattern'] = $employeeDivision->getDetailInfo()->get('work_pattern');
-            unset($divisionSnapshot['work_pattern_id']);
+        $employeeGrade = null;
+        if ($gradeId !== null) {
+            $employeeGradeData = $this->employeeGradeRepo->findById(
+                id: $gradeId,
+                status: ResourceStatus::active()->value()
+            );
+
+            if ($employeeGradeData !== null) {
+                $employeeGrade = EmployeeGrade::reconstitute(
+                    id: $employeeGradeData->getId(),
+                    name: $employeeGradeData->getName(),
+                    level: $employeeGradeData->getLevel(),
+                    status: $employeeGradeData->getStatus(),
+                    detailInfo: $employeeGradeData->getDetailInfo(),
+                    syncMdb: $employeeGradeData->getSyncMdb(),
+                    lockVersion: $employeeGradeData->getLockVersion()
+                );
+            }
         }
+
+        $divisionSnapshot = $employeeDivision?->toPersistence();
 
         $branchSnapshot = $branch?->toPersistence();
         if ($branch !== null) {
             $branchSnapshot['attendance_policies'] = $branch->getDetailInfo()->get('attendance_policies');
+            $branchSnapshot['work_pattern'] = $branch->getDetailInfo()->get('work_pattern');
         }
 
         return new EmployeeDetailInfo(
@@ -188,6 +209,7 @@ final readonly class EmployeeDetailInfoFactory
             position: $employeePosition?->toPersistence(),
             employeeType: $employeeType?->toPersistence(),
             branch: $branchSnapshot,
+            grade: $employeeGrade?->toPersistence(),
         );
     }
 }

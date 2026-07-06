@@ -32,8 +32,9 @@ final class Branch
         private string $code,
         private string $address,
         private ?int $attendancePoliciesId,
+        private ?int $workPatternId,
         private ResourceStatus $status,
-        private int $branchType,
+        private ?int $branchType,
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
@@ -52,8 +53,9 @@ final class Branch
         string $code,
         string $address,
         ?int $attendancePoliciesId,
+        ?int $workPatternId,
         ResourceStatus $status,
-        int $branchType,
+        ?int $branchType,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
     ): self {
@@ -68,6 +70,7 @@ final class Branch
             code: $code,
             address: $address,
             attendancePoliciesId: $attendancePoliciesId,
+            workPatternId: $workPatternId,
             status: $status,
             branchType: $branchType,
             detailInfo: $detailInfo,
@@ -82,8 +85,9 @@ final class Branch
         string $code,
         string $address,
         ?int $attendancePoliciesId,
+        ?int $workPatternId,
         ResourceStatus $status,
-        int $branchType,
+        ?int $branchType,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
@@ -95,6 +99,7 @@ final class Branch
             code: $code,
             address: $address,
             attendancePoliciesId: $attendancePoliciesId,
+            workPatternId: $workPatternId,
             status: $status,
             branchType: $branchType,
             detailInfo: $detailInfo,
@@ -111,6 +116,7 @@ final class Branch
             'code' => $this->code,
             'address' => $this->address,
             'attendance_policies_id' => $this->attendancePoliciesId,
+            'work_pattern_id' => $this->workPatternId,
             'status' => $this->status->value(),
             'branch_type' => $this->branchType,
             'detail_info' => $this->detailInfo->toArray(),
@@ -184,7 +190,7 @@ final class Branch
         $this->address = $newAddress;
     }
 
-    public function getType(): int
+    public function getType(): ?int
     {
         return $this->branchType;
     }
@@ -196,19 +202,21 @@ final class Branch
 
     public function updateAttendancePoliciesId(?int $attendancePoliciesId): void
     {
-        if ($attendancePoliciesId === null) {
-            return;
-        }
-
         $this->attendancePoliciesId = $attendancePoliciesId;
+    }
+
+    public function getWorkPatternId(): ?int
+    {
+        return $this->workPatternId;
+    }
+
+    public function updateWorkPatternId(?int $workPatternId): void
+    {
+        $this->workPatternId = $workPatternId;
     }
 
     public function updateType(?int $newType): void
     {
-        if ($newType === null) {
-            return;
-        }
-
         $this->branchType = $newType;
     }
 }

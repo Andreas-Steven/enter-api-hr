@@ -12,6 +12,7 @@ final readonly class EmployeeDetailInfo
         public ?array $position,
         public ?array $employeeType,
         public ?array $branch,
+        public ?array $grade,
     ) {}
 
     public function toArray(): array
@@ -22,6 +23,7 @@ final readonly class EmployeeDetailInfo
             'position' => $this->position,
             'employee_type' => $this->employeeType,
             'branch' => $this->branch,
+            'grade' => $this->grade,
         ];
     }
 
@@ -48,5 +50,10 @@ final readonly class EmployeeDetailInfo
     public function getBranch(): ?array
     {
         return $this->branch;
+    }
+
+    public function getGrade(): ?array
+    {
+        return $this->grade;
     }
 }
