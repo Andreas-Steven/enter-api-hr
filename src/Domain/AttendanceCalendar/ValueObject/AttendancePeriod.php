@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\AttendanceCalendar\ValueObject;
 
+use App\Domain\Shared\Enums\AttendancePeriodConfig;
 use App\Shared\ValueObject\Message;
 use InvalidArgumentException;
 use DateTimeImmutable;
@@ -11,8 +12,6 @@ use Yiisoft\FriendlyException\BadRequestException;
 
 final readonly class AttendancePeriod
 {
-    private const LAST_DATE = 26;
-
     private int $value;
 
     private function __construct(int $value)
@@ -37,7 +36,7 @@ final readonly class AttendancePeriod
             throw new InvalidArgumentException("Format tanggal tidak valid: $date. Gunakan Y-m-d.");
         }
 
-        if ((int) $dateTime->format('d') >= self::LAST_DATE) {
+        if ((int) $dateTime->format('d') >= AttendancePeriodConfig::LAST_DATE) {
             $dateTime = $dateTime
                 ->setDate(
                     (int) $dateTime->format('Y'),

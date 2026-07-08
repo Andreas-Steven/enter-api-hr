@@ -248,4 +248,16 @@ return [
     'attendance-shift.update' => $isKasir,
     'attendance-shift.delete' => $isKasir,
     'attendance-shift.restore' => $isSuperAdmin,
+
+    // AttendancePeriod Access Rules
+    'attendance-period.index' => static fn (Actor $actor): bool => true,
+    'attendance-period.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'attendance-period.view' => $isKasir,
+    'attendance-period.create' => $isKasir,
+    'attendance-period.update' => $isKasir,
+    'attendance-period.delete' => $isKasir,
+    'attendance-period.restore' => $isSuperAdmin,
 ];

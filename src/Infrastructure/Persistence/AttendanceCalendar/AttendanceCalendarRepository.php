@@ -224,9 +224,27 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
             );
         }
 
-        if (!empty($filter['id'])) {
-            $branchId = (string) $filter['id'];
-            $query->andWhere(['like', 'scope', '%"id":' . $branchId . '%', false]);
+        if (!empty($filter['scope'])) {
+            $scopeFilter = $filter['scope'];
+            $branchIds = [];
+            
+            if (is_array($scopeFilter)) {
+                foreach ($scopeFilter as $item) {
+                    if (isset($item['id']) && is_numeric($item['id'])) {
+                        $branchIds[] = (int) $item['id'];
+                    }
+                }
+            }
+            
+            if (!empty($branchIds)) {
+                $branchIds = array_values(array_unique($branchIds));
+                $branchIdExpression = new Expression("(branch_elements->>'id')::int");
+                $query->andWhere(['in', $branchIdExpression, $branchIds]);
+                $query->innerJoin(
+                    new Expression('jsonb_array_elements(scope) AS branch_elements'),
+                    'TRUE'
+                );
+            }
         }
 
         if (!empty($filter['day_off'])) {

@@ -25,11 +25,23 @@ final readonly class AttendancePermissionDetailInfoFactory
     public function buildFromPrimitives(
         ?int $employeeId = null,
         ?int $permissionId = null,
-        ?string $date = null,
+        ?string $startDate = null,
+        ?string $endDate = null,
     ): AttendancePermissionDetailInfo {
         
         $permission = $this->buildPermissionArray($permissionId);
         $permissionType = PermissionType::from($permissionId);
+        
+        // Calculate total_day
+        $totalDay = null;
+        if ($startDate !== null && $endDate !== null) {
+            $start = new \DateTime($startDate);
+            $end = new \DateTime($endDate);
+            $interval = $start->diff($end);
+            $totalDay = $interval->days + 1; // Include both start and end dates
+        } elseif ($startDate !== null) {
+            $totalDay = 1; // Single day
+        }
         
         // 1. Build Employee Info
         $employee = null;
@@ -44,8 +56,8 @@ final readonly class AttendancePermissionDetailInfoFactory
         }
 
         $attendanceData = null;
-        if ($permissionType !== null && $permissionType->requiresRevision() && $date !== null && $employeeId !== null) {
-            $attendanceEntity = $this->attendanceRepository->findByDate($date);
+        if ($permissionType !== null && $permissionType->requiresRevision() && $startDate !== null && $employeeId !== null) {
+            $attendanceEntity = $this->attendanceRepository->findByDate($startDate);
             
             if ($attendanceEntity !== null) {
                 $recordsCollection = $attendanceEntity->getAttendanceRecords();
@@ -65,6 +77,7 @@ final readonly class AttendancePermissionDetailInfoFactory
             employee: $employee,
             permission: $permission,
             attendance: $attendanceData,
+            totalDay: $totalDay,
         );
     }
 

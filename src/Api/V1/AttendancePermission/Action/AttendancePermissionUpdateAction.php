@@ -29,7 +29,7 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class AttendancePermissionUpdateAction
 {
-    private const ALLOWED_KEYS = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'status', 'lock_version'];
+    private const ALLOWED_KEYS = ['employee_id', 'permission_type', 'start_date', 'end_date', 'note', 'revision', 'status', 'lock_version'];
 
     public function __construct(
         private AttendancePermissionInputValidator $inputValidator,
@@ -80,7 +80,8 @@ final class AttendancePermissionUpdateAction
             id: (int) $id,
             employeeId: $params->get('employee_id'),
             permissionType: $params->get('permission_type'),
-            date: $params->get('date'),
+            startDate: $params->get('start_date'),
+            endDate: $params->get('end_date'),
             note: $params->get('note'),
             approved: null,
             approvedNote: null,

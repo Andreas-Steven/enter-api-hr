@@ -6,6 +6,8 @@ namespace App\Application\AttendanceCalendar\Command;
 
 final readonly class UpdateAttendanceCalendarCommand
 {
+    public const UNSET = '__UNSET__';
+
     public function __construct(
         public int $id,
         public ?string $name,
@@ -15,7 +17,7 @@ final readonly class UpdateAttendanceCalendarCommand
         public ?int $status,
         public ?array $detailInfo,
         public ?int $lockVersion,
-        public ?string $note,
+        public string|null $note,
         public ?int $dayOff,
     ) {}
 

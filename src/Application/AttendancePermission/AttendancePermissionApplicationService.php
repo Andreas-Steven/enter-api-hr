@@ -18,6 +18,7 @@ use App\Domain\AttendancePermission\Entity\AttendancePermission;
 use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInterface;
 use App\Domain\AttendancePermission\Service\AttendancePermissionDomainService;
 use App\Domain\AttendancePermission\ValueObject\Revision;
+use App\Domain\AttendancePermission\ValueObject\AttendancePeriod;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\Enums\ApprovalStatus;
@@ -89,7 +90,8 @@ final class AttendancePermissionApplicationService
         $permissionInfo = $this->permissionInfoFactory->buildFromPrimitives(
             employeeId: $command->employeeId,
             permissionId: $command->permissionType,
-            date: $command->date
+            startDate: $command->startDate,
+            endDate: $command->endDate
         );
         
         $detailInfo = $this->detailInfoFactory
@@ -103,7 +105,9 @@ final class AttendancePermissionApplicationService
         $data = AttendancePermission::create(
             employeeId: $command->employeeId,
             permissionType: (int) $command->permissionType,
-            date: $command->date,
+            startDate: $command->startDate,
+            endDate: $command->endDate,
+            period: AttendancePeriod::fromDateString($command->startDate)->toInt(),
             note: $command->note,
             approved: null,
             approvedNote: null,
@@ -152,7 +156,8 @@ final class AttendancePermissionApplicationService
         $permissionInfo = $this->permissionInfoFactory->buildFromPrimitives(
             employeeId: $command->employeeId ?? $data->getEmployeeId(),
             permissionId: $command->permissionType ?? $data->getPermissionType(),
-            date: $command->date ?? $data->getDate()
+            startDate: $command->startDate ?? $data->getStartDate(),
+            endDate: $command->endDate ?? $data->getEndDate()
         );
 
         if (!empty($command->note)) {
@@ -171,9 +176,15 @@ final class AttendancePermissionApplicationService
             );
         }
 
-        if (!empty($command->date)) {
-            $data->updateDate(
-                date: $command->date
+        if (!empty($command->startDate)) {
+            $data->updateStartDate(
+                startDate: $command->startDate
+            );
+        }
+
+        if (!empty($command->endDate)) {
+            $data->updateEndDate(
+                endDate: $command->endDate
             );
         }
 
@@ -398,10 +409,10 @@ final class AttendancePermissionApplicationService
             ],
             page: 1,
             pageSize: 200,
-            sortBy: 'date',
+            sortBy: 'start_date',
             sortDir: 'asc',
             allowedSort: [
-                'date' => 'date',
+                'start_date' => 'start_date',
                 'id' => 'id',
             ]
         );

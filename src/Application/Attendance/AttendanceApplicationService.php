@@ -34,7 +34,6 @@ use App\Shared\ValueObject\Message;
 
 /**
  * TODO: 
- * - [ ] Implement EmployeeGrade to Employee field table
  * - [ ] Implement AttendanceCalendar to check holiday and set Attendance Status on Detail Info to WORK_HOLIDAY
  * - [ ] Implement Permission to trim the EmployeeLeave balance when Permission is approved
  */

@@ -176,11 +176,11 @@ final class AttendanceCalendarApplicationService
             $data->setScope(scope: Scope::fromArray($scopeDataForValidation));
         }
 
-        if ($command->note !== null) {
+        if ($command->note !== UpdateAttendanceCalendarCommand::UNSET) {
             $data->setNote(note: $command->note);
         }
 
-        if ($command->dayOff !== null) {
+        if ($command->dayOff) {
             $data->setDayOff(dayOff: $command->dayOff);
         }
 

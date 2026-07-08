@@ -20,6 +20,7 @@ use App\Domain\Shared\ValueObject\SyncMdb;
 use App\Domain\Shared\Enums\PermissionType;
 use App\Domain\Shared\Enums\ApprovalStatus;
 use App\Domain\AttendancePermission\ValueObject\Revision;
+use App\Domain\Attendance\ValueObject\AttendancePeriod;
 
 final class AttendancePermission
 {
@@ -33,7 +34,9 @@ final class AttendancePermission
         private readonly ?int $id,
         private int $employeeId,
         private int $permissionType,
-        private string $date,
+        private string $startDate,
+        private ?string $endDate,
+        private int $period,
         private string $note,
         private ?int $approved,
         private ?string $approvedNote,
@@ -55,7 +58,9 @@ final class AttendancePermission
     public static function create(
         int $employeeId,
         int $permissionType,
-        string $date,
+        string $startDate,
+        ?string $endDate,
+        int $period,
         string $note,
         ?int $approved,
         ?string $approvedNote,
@@ -73,7 +78,9 @@ final class AttendancePermission
             id: null, 
             employeeId: $employeeId,
             permissionType: $permissionType,
-            date: $date,
+            startDate: $startDate,
+            endDate: $endDate,
+            period: $period,
             note: $note,
             approved: $approved,
             approvedNote: $approvedNote,
@@ -89,7 +96,9 @@ final class AttendancePermission
         int $id,
         int $employeeId,
         int $permissionType,
-        string $date,
+        string $startDate,
+        ?string $endDate,
+        int $period,
         string $note,
         ?int $approved,
         ?string $approvedNote,
@@ -104,7 +113,9 @@ final class AttendancePermission
             id: $id, 
             employeeId: $employeeId,
             permissionType: $permissionType,
-            date: $date,
+            startDate: $startDate,
+            endDate: $endDate,
+            period: $period,
             note: $note,
             approved: $approved,
             approvedNote: $approvedNote,
@@ -122,7 +133,9 @@ final class AttendancePermission
             'id' => $this->id,
             'employee_id' => $this->employeeId,
             'permission_type' => $this->permissionType,
-            'date' => $this->date,
+            'start_date' => $this->startDate,
+            'end_date' => $this->endDate,
+            'period' => $this->period,
             'note' => $this->note,
             'revision' => $this->revision?->toArray(),
             'approved' => $this->approved,
@@ -203,19 +216,35 @@ final class AttendancePermission
         return $this->permissionType;
     }
 
-    public function getDate(): ?string
+    public function getStartDate(): ?string
     {
-        return $this->date;
+        return $this->startDate;
     }
 
-    public function setDate(string $date): void
+    public function setStartDate(string $startDate): void
     {
-        $this->date = $date;
+        $this->startDate = $startDate;
     }
 
-    public function updateDate(string $date): void
+    public function updateStartDate(string $startDate): void
     {
-        $this->date = $date;
+        $this->startDate = $startDate;
+        $this->period = AttendancePeriod::fromDateString($startDate)->toInt();
+    }
+
+    public function getEndDate(): ?string
+    {
+        return $this->endDate;
+    }
+
+    public function setEndDate(?string $endDate): void
+    {
+        $this->endDate = $endDate;
+    }
+
+    public function updateEndDate(?string $endDate): void
+    {
+        $this->endDate = $endDate;
     }
 
     public function getNote(): ?string
@@ -283,5 +312,15 @@ final class AttendancePermission
         // 3. Jika valid, update state
         $this->approved = $newStatus->value;
         $this->approvedNote = $note;
+    }
+
+    public function getPeriod(): int
+    {
+        return $this->period;
+    }
+
+    public function setPeriod(int $period): void
+    {
+        $this->period = $period;
     }
 }

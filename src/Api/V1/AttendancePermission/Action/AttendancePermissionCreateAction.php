@@ -25,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class AttendancePermissionCreateAction 
 {
-    private const ALLOWED_KEYS = ['employee_id', 'permission_type', 'date', 'note', 'revision', 'status', 'detail_info', 'sync_mdb'];
+    private const ALLOWED_KEYS = ['employee_id', 'permission_type', 'start_date', 'end_date', 'note', 'revision', 'status', 'detail_info', 'sync_mdb'];
 
     public function __construct(
         private AttendancePermissionInputValidator $inputValidator,
@@ -54,7 +54,8 @@ final class AttendancePermissionCreateAction
             // name: (string) $params->get('name'),
             employeeId: (int) $params->get('employee_id'),
             permissionType: (int) $params->get('permission_type'),
-            date: $params->get('date'),
+            startDate: $params->get('start_date'),
+            endDate: $params->get('end_date'),
             note: (string) $params->get('note'),
             revision: $params->get('revision'),
             status: (int) $params->get('status'),

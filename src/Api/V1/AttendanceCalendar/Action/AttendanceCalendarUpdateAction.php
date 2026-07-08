@@ -85,7 +85,7 @@ final class AttendanceCalendarUpdateAction
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info'),
             lockVersion: (int) $params->get('lock_version'),
-            note: $params->get('note'),
+            note: $params->has('note') ? $params->get('note') : UpdateAttendanceCalendarCommand::UNSET,
             dayOff: $params->get('day_off'),
         );
 

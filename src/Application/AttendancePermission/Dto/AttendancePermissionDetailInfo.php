@@ -10,6 +10,7 @@ final readonly class AttendancePermissionDetailInfo
         public ?array $employee,
         public ?array $attendance,
         public ?array $permission,
+        public ?int $totalDay,
     ) {}
 
     public function toArray(): array
@@ -18,6 +19,7 @@ final readonly class AttendancePermissionDetailInfo
             'employee' => $this->employee,
             'attendance' => $this->attendance,
             'permission' => $this->permission,
+            'total_day' => $this->totalDay,
         ];
     }
 
@@ -34,5 +36,10 @@ final readonly class AttendancePermissionDetailInfo
     public function getPermission(): ?array
     {
         return $this->permission;
+    }
+
+    public function getTotalDay(): ?int
+    {
+        return $this->totalDay;
     }
 }

@@ -124,9 +124,14 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                         min: 1, 
                     ),
                 ],
-                'date' => [
+                'start_date' => [
                     new Required(),
                     new StringValue(),
+                ],
+                'end_date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'note' => [
                     new StringValue(),
@@ -155,6 +160,11 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                     new Integer(),
                     new In(
                         RecordStatus::draftOnlyStates(),
+                    ),
+                ],
+                'period' => [
+                    new Integer(
+                        skipOnEmpty: true,
                     ),
                 ],
             ],
@@ -193,7 +203,12 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
-                'date' => [
+                'start_date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'end_date' => [
                     new StringValue(
                         skipOnEmpty: true,
                     ),
@@ -237,6 +252,11 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                     ),
                     new Integer(
                         min: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'period' => [
+                    new Integer(
                         skipOnEmpty: true,
                     ),
                 ],
@@ -322,8 +342,18 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
-                'date' => [
+                'start_date' => [
                     new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'end_date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'period' => [
+                    new Integer(
                         skipOnEmpty: true,
                     ),
                 ],
@@ -352,6 +382,11 @@ final class AttendancePermissionInputValidator extends AbstractValidator
                     ),
                 ],
                 'sync_mdb' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'period' => [
                     new Integer(
                         skipOnEmpty: true,
                     ),

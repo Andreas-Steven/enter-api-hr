@@ -8,6 +8,7 @@ use App\Api;
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
 use App\Api\V1\AttendanceShift\Action as AttendanceShiftV1;
+use App\Api\V1\AttendancePeriod\Action as AttendancePeriodV1;
 use App\Api\V1\AttendanceCalendar\Action as AttendanceCalendarV1;
 use App\Api\V1\AttendancePolicies\Action as AttendancePoliciesV1;
 use App\Api\V1\EmployeeGrade\Action as EmployeeGradeV1;
@@ -646,5 +647,35 @@ return [
                 ->action(AttendanceShiftV1\AttendanceShiftRestoreAction::class)
                 ->name('v1/attendance-shift/restore')
                 ->defaults(['permission' => 'attendance-shift.restore']),
+
+            // AttendancePeriod Routes
+            Route::get('/attendance-period')
+                ->action(AttendancePeriodV1\AttendancePeriodDataAction::class)
+                ->name('v1/attendance-period/index')
+                ->defaults(['permission' => 'attendance-period.index']),
+            Route::post('/attendance-period/data')
+                ->action(AttendancePeriodV1\AttendancePeriodDataAction::class)
+                ->name('v1/attendance-period/data')
+                ->defaults(['permission' => 'attendance-period.data']),
+            Route::get('/attendance-period/{id:\d+}')
+                ->action(AttendancePeriodV1\AttendancePeriodViewAction::class)
+                ->name('v1/attendance-period/view')
+                ->defaults(['permission' => 'attendance-period.view']),
+            Route::post('/attendance-period/create')
+                ->action(AttendancePeriodV1\AttendancePeriodCreateAction::class)
+                ->name('v1/attendance-period/create')
+                ->defaults(['permission' => 'attendance-period.create']),
+            Route::put('/attendance-period/{id:\d+}')
+                ->action(AttendancePeriodV1\AttendancePeriodUpdateAction::class)
+                ->name('v1/attendance-period/update')
+                ->defaults(['permission' => 'attendance-period.update']),
+            Route::delete('/attendance-period/{id:\d+}')
+                ->action(AttendancePeriodV1\AttendancePeriodDeleteAction::class)
+                ->name('v1/attendance-period/delete')
+                ->defaults(['permission' => 'attendance-period.delete']),
+            Route::post('/attendance-period/{id:\d+}/restore')
+                ->action(AttendancePeriodV1\AttendancePeriodRestoreAction::class)
+                ->name('v1/attendance-period/restore')
+                ->defaults(['permission' => 'attendance-period.restore']),
         ),
 ];

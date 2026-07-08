@@ -21,7 +21,7 @@ use Yiisoft\Db\Connection\Connection;
 /**
  * Creates attendancepermission table with status tracking and JSON detail_info.
  */
-final class M20260219105119CreateAttendancePermissionTable implements RevertibleMigrationInterface
+final class M20260707054420CreateAttendancePermissionTable implements RevertibleMigrationInterface
 {
     private const TABLE_NAME = 'attendance_permission';
     
@@ -38,13 +38,16 @@ final class M20260219105119CreateAttendancePermissionTable implements Revertible
             // 'name' => $cb::string(255)->notNull(),
             'employee_id' => $cb::integer()->notNull(),
             'permission_type' => $cb::smallint()->notNull()->comment('1: Sick, 2: Sick with receipt, 3: Leave early, 4: Late, 5: Annual leave'),
-            'date' => $cb::date()->defaultValue(null),
+            'start_date' => $cb::date()->defaultValue(null),
+            'end_date' => $cb::date()->defaultValue(null),
+            'period' => $cb::integer()->notNull(),
             'note' => $cb::string(255)->defaultValue(null),
             'approved' => $cb::smallint()->defaultValue(null)->comment('0: Unapproved, 1: Approved'),
             'approved_note' => $cb::string(255)->defaultValue(null),
             'revision' => $cb::json()->defaultValue([]),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
             'detail_info' => $cb::json()->notNull()->defaultValue([
+                'total_day' => null,
                 'change_log' => [
                     'created_at' => null,
                     'created_by' => null,

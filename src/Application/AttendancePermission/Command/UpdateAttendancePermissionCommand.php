@@ -11,7 +11,8 @@ final readonly class UpdateAttendancePermissionCommand
         // public ?string $name,
         public ?int $employeeId,
         public ?int $permissionType,
-        public ?string $date,
+        public ?string $startDate,
+        public ?string $endDate,
         public ?string $note,
         public ?bool $approved,
         public ?string $approvedNote,
@@ -19,6 +20,7 @@ final readonly class UpdateAttendancePermissionCommand
         public ?int $status,
         public ?array $detailInfo,
         public ?int $lockVersion,
+        public ?int $period = null,
     ) {}
 
     public static function create(
@@ -26,7 +28,8 @@ final readonly class UpdateAttendancePermissionCommand
         // ?string $name,
         ?int $employeeId = null,
         ?int $permissionType = null,
-        ?string $date = null,
+        ?string $startDate = null,
+        ?string $endDate = null,
         ?string $note = null,
         ?bool $approved = null,
         ?string $approvedNote = null,
@@ -34,13 +37,16 @@ final readonly class UpdateAttendancePermissionCommand
         ?int $status = null,
         ?array $detailInfo = null,
         ?int $lockVersion = null,
+        ?int $period = null,
     ): self {
         return new self(
             id: $id,
             // name: $name,
             employeeId: $employeeId,
             permissionType: $permissionType,
-            date: $date,
+            startDate: $startDate,
+            endDate: $endDate,
+            period: $period,
             note: $note,
             approved: $approved,
             approvedNote: $approvedNote,

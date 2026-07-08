@@ -84,13 +84,15 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
             // name: $row['name'],
             employeeId: (int) $row['employee_id'],
             permissionType: (int) $row['permission_type'],
-            date: $row['date'],
+            startDate: $row['start_date'],
+            endDate: $row['end_date'],
             note: $row['note'],
             approved: $row['approved'] !== null ? (int) $row['approved'] : null,
             approvedNote: $row['approved_note'],
             revision: Revision::fromJson($row['revision']),
             status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
+            period: (int) $row['period'],
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
         );
     }
@@ -114,12 +116,14 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
             // name: $row['name'],
             employeeId: $row['employee_id'],
             permissionType: $row['permission_type'],
-            date: $row['date'],
+            startDate: $row['start_date'],
+            endDate: $row['end_date'],
             note: $row['note'],
             approved: $row['approved'],
             approvedNote: $row['approved_note'],
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
+            period: (int) $row['period'],
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
         )->updateSyncMdb($row[SyncMdb::field()] ?? null);
     }
@@ -142,7 +146,9 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
                 // 'name',
                 'employee_id',
                 'permission_type',
-                'date',
+                'start_date',
+                'end_date',
+                'period',
                 'note',
                 'approved',
                 'approved_note',
@@ -203,10 +209,20 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
         }
 
         // Date range fields
-        if (!empty($filter['date'])) {
-            $range = DateRange::fromFilterString($filter['date']);
-            $query->andWhere(['>=', 'date', $range->startDate])
-                  ->andWhere(['<=', 'date', $range->endDate]);
+        if (!empty($filter['start_date'])) {
+            $range = DateRange::fromFilterString($filter['start_date']);
+            $query->andWhere(['>=', 'start_date', $range->startDate])
+                  ->andWhere(['<=', 'start_date', $range->endDate]);
+        }
+        
+        if (!empty($filter['end_date'])) {
+            $range = DateRange::fromFilterString($filter['end_date']);
+            $query->andWhere(['>=', 'end_date', $range->startDate])
+                  ->andWhere(['<=', 'end_date', $range->endDate]);
+        }
+
+        if (!empty($filter['period'])) {
+            $query->andWhere(['period' => (int) $filter['period']]);
         }
 
         // Detail Info fields
@@ -235,10 +251,6 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
 
         $rows = array_map(
             static function (array $row): array {
-                $row['period'] = isset($row['date']) && $row['date'] !== null
-                    ? AttendancePeriod::fromDateString((string) $row['date'])->toInt()
-                    : null;
-
                 return $row;
             },
             $rows
@@ -275,7 +287,9 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
                 id: $newId,
                 employeeId: $entity->getEmployeeId(),
                 permissionType: $entity->getPermissionType(),
-                date: $entity->getDate(),
+                startDate: $entity->getStartDate(),
+                endDate: $entity->getEndDate(),
+                period: $entity->getPeriod(),
                 note: $entity->getNote(),
                 approved: $entity->getApproved(),
                 approvedNote: $entity->getApprovedNote(),
@@ -372,7 +386,9 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
             // name: $row['name'],
             employeeId: $row['employee_id'],
             permissionType: $row['permission_type'],
-            date: $row['date'],
+            startDate: $row['start_date'],
+            endDate: $row['end_date'],
+            period: (int) $row['period'],
             note: $row['note'],
             approved: $row['approved'],
             approvedNote: $row['approved_note'],
@@ -394,7 +410,9 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
             // 'name' => $entity->getName(),
             'employee_id' => $entity->getEmployeeId(),
             'permission_type' => $entity->getPermissionType(),
-            'date' => $entity->getDate(),
+            'start_date' => $entity->getStartDate(),
+            'end_date' => $entity->getEndDate(),
+            'period' => $entity->getPeriod(),
             'note' => $entity->getNote(),
             'approved' => $entity->getApproved(),
             'approved_note' => $entity->getApprovedNote(),
