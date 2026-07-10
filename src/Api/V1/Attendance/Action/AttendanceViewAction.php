@@ -22,10 +22,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Http\Status;
 use Yiisoft\Router\CurrentRoute;
 
-/**
- * TODO: 
- * [ ] Make params date and employee_id req to show attendance today
- */
 final readonly class AttendanceViewAction
 {
     public function __construct(

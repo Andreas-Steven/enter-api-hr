@@ -12,9 +12,14 @@ use App\Application\AttendancePeriod\Command\UpdateAttendancePeriodCommand;
 use App\Api\Shared\ResponseFactory;
 use App\Api\V1\AttendancePeriod\Validation\AttendancePeriodInputValidator;
 
+// Domain Layer
+use App\Domain\AttendancePeriod\ValueObject\DateFormat;
+
 // Shared Layer
 use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
+
+use DateTimeImmutable;
 
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
@@ -29,7 +34,7 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class AttendancePeriodUpdateAction
 {
-    private const ALLOWED_KEYS = ['name', 'status', 'lock_version'];
+    private const ALLOWED_KEYS = ['name', 'start_date', 'end_date', 'status', 'lock_version',];
 
     public function __construct(
         private AttendancePeriodInputValidator $inputValidator,
@@ -79,6 +84,8 @@ final class AttendancePeriodUpdateAction
         $command = UpdateAttendancePeriodCommand::create(
             id: (int) $id,
             name: $params->get('name'),
+            startDate: $params->get('start_date'),
+            endDate: $params->get('end_date'),
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info'),
             lockVersion: (int) $params->get('lock_version'),

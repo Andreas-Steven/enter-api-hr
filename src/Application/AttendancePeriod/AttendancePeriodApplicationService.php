@@ -129,13 +129,27 @@ final class AttendancePeriodApplicationService
             newStatus: $newStatus
         );
 
+        $data->applyStatus(
+            newStatus: $newStatus
+        );
+
         $data->updateName(
             newName: $command->name
         );
 
-        $data->applyStatus(
-            newStatus: $newStatus
-        );
+        if (!empty($command->startDate)) {
+            $data->updateStartDate(
+                newStartDate: DateFormat::fromString($command->startDate)
+            );
+        }
+
+        if (!empty($command->endDate)) {
+            $data->updateEndDate(
+                newEndDate: DateFormat::fromString($command->endDate)
+            );
+        }
+
+        $this->domainService->ensurePeriodConsistency($data);
 
         $detailInfo = $this->detailInfoFactory
             ->update(
@@ -243,5 +257,4 @@ final class AttendancePeriodApplicationService
             entity: $restoredData
         );
     }
-
 }

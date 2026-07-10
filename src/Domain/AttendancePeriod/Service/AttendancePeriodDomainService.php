@@ -15,6 +15,7 @@ use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
 // Shared Layer
+use App\Shared\Exception\BadRequestException;
 use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
 
@@ -70,6 +71,32 @@ final class AttendancePeriodDomainService
         }
 
         return $generated;
+    }
+
+    public function ensurePeriodConsistency(AttendancePeriod $attendancePeriod): void
+    {
+        $endDate = $attendancePeriod->getEndDate();
+
+        if ($endDate === null) {
+            return;
+        }
+
+        $period = $attendancePeriod->getPeriod();
+        $expectedPeriod = (int) $endDate->toDateTime()->format('Ym');
+
+        if ($period !== $expectedPeriod) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'validation.period.mismatch',
+                    domain: 'validation',
+                    params: [
+                        'resource' => AttendancePeriod::getResource(),
+                        'expected' => $expectedPeriod,
+                        'actual' => $period,
+                    ]
+                )
+            );
+        }
     }
 
     private function resolveDetailInfo(callable $detailInfoFactory): DetailInfo

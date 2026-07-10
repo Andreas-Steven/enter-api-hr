@@ -22,6 +22,11 @@ final readonly class EndDate
         return new self($date);
     }
 
+    public static function fromDateTimeImmutable(DateTimeImmutable $dateTime): self
+    {
+        return new self($dateTime);
+    }
+
     public static function fromDateTime(DateTimeImmutable $dateTime): self
     {
         // If date >= 25, it belongs to next month's period

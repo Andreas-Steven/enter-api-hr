@@ -8,6 +8,8 @@ namespace App\Domain\AttendancePeriod\Entity;
 use App\Shared\ValueObject\Message;
 use App\Shared\Exception\BadRequestException;
 
+use DateTimeImmutable;
+
 // Domain Layer
 use App\Domain\Shared\Concerns\Entity\Stateful;
 use App\Domain\Shared\Concerns\Entity\Identifiable;
@@ -34,10 +36,10 @@ final class AttendancePeriod
         private int $period,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
-        private ?SyncMdb $syncMdb = null,
-        ?LockVersion $lockVersion = null,
         private ?StartDate $startDate = null,
         private ?EndDate $endDate = null,
+        private ?SyncMdb $syncMdb = null,
+        ?LockVersion $lockVersion = null,
     ) {
         $this->resource = self::RESOURCE;
         $this->lockVersion = $lockVersion ?? LockVersion::create();
@@ -53,9 +55,9 @@ final class AttendancePeriod
         int $period,
         ResourceStatus $status,
         DetailInfo $detailInfo,
-        ?SyncMdb $syncMdb = null,
         ?StartDate $startDate = null,
         ?EndDate $endDate = null,
+        ?SyncMdb $syncMdb = null,
     ): self {
         self::guardInitialStatus(
             status: $status,
@@ -81,10 +83,10 @@ final class AttendancePeriod
         int $period,
         ResourceStatus $status,
         DetailInfo $detailInfo,
-        ?SyncMdb $syncMdb = null,
-        ?LockVersion $lockVersion = null,
         ?StartDate $startDate = null,
         ?EndDate $endDate = null,
+        ?SyncMdb $syncMdb = null,
+        ?LockVersion $lockVersion = null,
     ): self {
 
         return new self(
@@ -147,4 +149,15 @@ final class AttendancePeriod
     {
         return $this->endDate;
     }
+
+    public function updateStartDate(?DateTimeImmutable $newStartDate): void
+    {
+        $this->startDate = StartDate::fromDateTimeImmutable($newStartDate);
+    }
+
+    public function updateEndDate(?DateTimeImmutable $newEndDate): void
+    {
+        $this->endDate = EndDate::fromDateTimeImmutable($newEndDate);
+    }
+
 }

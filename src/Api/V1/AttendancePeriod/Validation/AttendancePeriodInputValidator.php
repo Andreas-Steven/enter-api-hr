@@ -134,6 +134,16 @@ final class AttendancePeriodInputValidator extends AbstractValidator
                         )
                     ])
                 ],
+                'start_date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'end_date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,
@@ -176,6 +186,21 @@ final class AttendancePeriodInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'period' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'start_date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'end_date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,
@@ -211,7 +236,6 @@ final class AttendancePeriodInputValidator extends AbstractValidator
                     ),
                 ],
             ],
-
             default => [],
         };
     }
