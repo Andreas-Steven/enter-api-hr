@@ -25,11 +25,12 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class AttendanceCalendarDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'date', 'holiday_type', 'scope', 'status'];
+    private const ALLOWED_KEYS = ['id', 'name', 'date', 'period', 'holiday_type', 'scope', 'status'];
     private const ALLOWED_SORT = [
         'id' => 'id', 
         'name' => 'name', 
         'date' => 'date',
+        'period' => 'period',
         'holiday_type' => 'holiday_type',
         'scope' => 'scope',
         'status' => 'status',

@@ -207,6 +207,11 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
             )
         );
 
+        $rows = array_map(
+            static fn(array $row): array => self::sanitizeAttendanceRows($row),
+            $rows
+        );
+
         return new PaginatedResult(
             data: $rows,
             total: $total,
@@ -218,6 +223,34 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
                 'dir' => $criteria->sortDir
             ]
         );
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private static function sanitizeAttendanceRows(array $row): array
+    {
+        if (!is_array($row['attendance'] ?? null)) {
+            return $row;
+        }
+
+        $row['attendance'] = array_map(
+            static function (array $item): array {
+                unset($item['attendance_policies']);
+
+                if (array_key_exists('total_work_minutes', $item) && !array_key_exists('work_duration', $item)) {
+                    $item['work_duration'] = $item['total_work_minutes'];
+                }
+
+                unset($item['total_work_minutes']);
+
+                return $item;
+            },
+            $row['attendance']
+        );
+
+        return $row;
     }
 
     public function insert(Attendance $entity): Attendance 

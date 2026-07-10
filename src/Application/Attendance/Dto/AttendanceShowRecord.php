@@ -27,7 +27,10 @@ final readonly class AttendanceShowRecord
 
     public function toArray(): array
     {
-        return $this->item->toArray();
+        $data = $this->item->toArray();
+        unset($data['attendance_policies']);
+
+        return $data;
     }
 
     public function matchesFilters(?string $name, ?int $divisionId): bool

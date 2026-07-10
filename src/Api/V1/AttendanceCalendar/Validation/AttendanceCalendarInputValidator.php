@@ -19,6 +19,7 @@ use Yiisoft\Validator\Rule\StringValue;
 use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
 use Yiisoft\Validator\Rule\StopOnError;
+use Yiisoft\Validator\Rule\Each;
 use Yiisoft\Validator\Rule\Nested;
 
 /**
@@ -267,10 +268,27 @@ final class AttendanceCalendarInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'period' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'holiday_type' => [
                     new StringValue(
                         skipOnEmpty: true,
                     ),
+                ],
+                'scope' => [
+                    new Each([
+                        new Nested([
+                            'id' => [
+                                new Integer(
+                                    min: 1,
+                                    skipOnEmpty: true,
+                                ),
+                            ],
+                        ]),
+                    ], skipOnEmpty: true),
                 ],
                 'status' => [
                     new Integer(

@@ -25,12 +25,26 @@ final readonly class AttendanceResponse
             id: $entity->getId(),
             date: $entity->getDate(),
             period: $entity->getPeriod(),
-            attendance: $entity->getAttendance(),
+            attendance: array_map(
+                static fn(array $item): array => self::sanitizeAttendanceItem($item),
+                $entity->getAttendance()
+            ),
             status: $entity->getStatus()->value(),
             detail_info: $entity->getDetailInfo()->toArray(),
             sync_mdb: $entity->getSyncMdbValue(),
             lock_version: $entity->getLockVersion()->value(),
         );
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     * @return array<string, mixed>
+     */
+    private static function sanitizeAttendanceItem(array $item): array
+    {
+        unset($item['attendance_policies']);
+
+        return $item;
     }
 
     public function toArray(): array

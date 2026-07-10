@@ -29,7 +29,7 @@ final readonly class AttendanceRecords
                 location: $data['location'] ?? null,
                 branch: $data['branch'] ?? null,
                 attendancePolicies: $data['attendance_policies'] ?? null,
-                totalWorkMinutes: $data['total_work_minutes'] ?? null
+                totalWorkMinutes: $data['work_duration'] ?? $data['total_work_minutes'] ?? null
             );
         }, $rawItems);
 

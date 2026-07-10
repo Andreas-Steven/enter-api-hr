@@ -50,7 +50,7 @@ final readonly class AttendanceItem
             location: $data['location'] ?? null,
             branch: $data['branch'] ?? null,
             attendancePolicies: $data['attendance_policies'] ?? null,
-            totalWorkMinutes: $data['total_work_minutes'] ?? null
+            totalWorkMinutes: $data['work_duration'] ?? $data['total_work_minutes'] ?? null
         );
     }
 
@@ -64,7 +64,7 @@ final readonly class AttendanceItem
                 return [
                     'in' => $info['in'] ?? true,
                     'out' => $info['out'] ?? false,
-                    'summary' => self::determineSummaryFromOldDetailStatic($info['detail']),
+                    'summary' => self::summaryFromOldDetailStatic($info['detail']),
                     'detail' => self::convertOldDetailToNewStatic($info['detail'])
                 ];
             }
@@ -76,7 +76,7 @@ final readonly class AttendanceItem
             return [
                 'in' => $info['in'] ?? true,
                 'out' => $info['out'] ?? false,
-                'summary' => $info['summary'] ?? null,
+                'summary' => self::normalizeSummaryStatic($info['summary'] ?? null),
                 'detail' => array_merge([
                     'late' => false,
                     'late_minutes' => 0,
@@ -94,7 +94,7 @@ final readonly class AttendanceItem
         return [
             'in' => $info['in'] ?? true,
             'out' => $info['out'] ?? false,
-            'summary' => $info['summary'] ?? null,
+            'summary' => self::normalizeSummaryStatic($info['summary'] ?? null),
             'detail' => [
                 'late' => false,
                 'late_minutes' => 0,
@@ -108,14 +108,59 @@ final readonly class AttendanceItem
         ];
     }
 
-    private static function determineSummaryFromOldDetailStatic(array $oldDetails): ?string
+    private static function normalizeSummaryStatic(mixed $summary): array
     {
-        if (in_array('Full Day', $oldDetails)) return 'FULL_DAY';
-        if (in_array('Half Day', $oldDetails)) return 'HALF_DAY';
-        if (in_array('Missed Checkin', $oldDetails)) return 'MISSING_IN';
-        if (in_array('Missed Checkout', $oldDetails)) return 'MISSING_OUT';
-        if (in_array('Work Holiday', $oldDetails)) return 'WORK_HOLIDAY';
-        return null;
+        if (is_string($summary)) {
+            $summary = trim($summary);
+
+            return $summary === '' ? [] : [$summary];
+        }
+
+        if (!is_array($summary)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($summary as $item) {
+            if (!is_string($item)) {
+                continue;
+            }
+
+            $item = trim($item);
+            if ($item === '' || in_array($item, $normalized, true)) {
+                continue;
+            }
+
+            $normalized[] = $item;
+        }
+
+        return $normalized;
+    }
+
+    private static function summaryFromOldDetailStatic(array $oldDetails): array
+    {
+        $map = [
+            'Full Day' => AttendanceStatus::FULL_DAY,
+            'Half Day' => AttendanceStatus::HALF_DAY,
+            'Missed Checkin' => AttendanceStatus::MISSED_CHECKIN,
+            'Missed Checkout' => AttendanceStatus::MISSED_CHECKOUT,
+            'Work Holiday' => AttendanceStatus::WORK_HOLIDAY,
+            'Late' => AttendanceStatus::LATE,
+            'Leave Early' => AttendanceStatus::LEAVE_EARLY,
+            'Manual In' => AttendanceStatus::MANUAL_IN,
+            'Manual Out' => AttendanceStatus::MANUAL_OUT,
+        ];
+
+        $summary = [];
+
+        foreach ($map as $label => $status) {
+            if (in_array($label, $oldDetails, true) && !in_array($status, $summary, true)) {
+                $summary[] = $status;
+            }
+        }
+
+        return $summary;
     }
 
     private static function convertOldDetailToNewStatic(array $oldDetails): array
@@ -165,7 +210,7 @@ final readonly class AttendanceItem
 
         if (!$todaySchedule) {
             // Work Holiday
-            $newInfo['summary'] = 'WORK_HOLIDAY';
+            $newInfo['summary'] = [AttendanceStatus::WORK_HOLIDAY];
             $newInfo['detail'] = $detail;
             $newInfo['in'] = !empty($this->startTime);
             $newInfo['out'] = !empty($this->endTime);
@@ -274,19 +319,19 @@ final readonly class AttendanceItem
         // =========================================
         // DETERMINE SUMMARY
         // =========================================
-        $summary = null;
+        $summary = [];
         if ($detail['missing_in']) {
-            $summary = 'MISSING_IN';
+            $summary[] = AttendanceStatus::MISSED_CHECKIN;
         } elseif ($detail['missing_out']) {
-            $summary = 'MISSING_OUT';
+            $summary[] = AttendanceStatus::MISSED_CHECKOUT;
         } elseif ($detail['full_day']) {
-            $summary = 'FULL_DAY';
+            $summary[] = AttendanceStatus::FULL_DAY;
         } elseif ($detail['half_day']) {
-            $summary = 'HALF_DAY';
+            $summary[] = AttendanceStatus::HALF_DAY;
         } elseif ($detail['late']) {
-            $summary = 'LATE';
+            $summary[] = AttendanceStatus::LATE;
         } elseif ($detail['early_out'] > 0) {
-            $summary = 'EARLY_OUT';
+            $summary[] = AttendanceStatus::LEAVE_EARLY;
         }
 
         // =========================================
@@ -322,7 +367,7 @@ final readonly class AttendanceItem
         // Logika: Jika ada jam masuk tapi TIDAK ADA jam pulang
         if (!empty($this->startTime) && empty($this->endTime)) {
             $detail['missing_out'] = true;
-            $newInfo['summary'] = 'MISSING_OUT';
+            $newInfo['summary'] = [AttendanceStatus::MISSED_CHECKOUT];
         }
 
         // Sinkronisasi status boolean out jika missed checkout
@@ -372,7 +417,7 @@ final readonly class AttendanceItem
             'location' => $this->location,
             'branch' => $this->branch,
             'attendance_policies' => $this->attendancePolicies,
-            'total_work_minutes' => $this->totalWorkMinutes,
+            'work_duration' => $this->totalWorkMinutes,
         ];
     }
 
@@ -497,7 +542,7 @@ final readonly class AttendanceItem
         return [
             'in' => $isIn,
             'out' => !$isIn,
-            'summary' => $isIn ? 'MANUAL_IN' : 'MANUAL_OUT',
+            'summary' => [$isIn ? AttendanceStatus::MANUAL_IN : AttendanceStatus::MANUAL_OUT],
             'detail' => [
                 'late' => false,
                 'late_minutes' => 0,

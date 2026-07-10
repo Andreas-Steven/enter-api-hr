@@ -33,12 +33,6 @@ use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
 
 /**
- * TODO: 
- * - [ ] Implement AttendanceCalendar to check holiday and set Attendance Status on Detail Info to WORK_HOLIDAY
- * - [ ] Implement Permission to trim the EmployeeLeave balance when Permission is approved
- */
-
-/**
  * Attendance Application Service (Mandor/Alur Kerja)
  * 
  * Orchestrates use cases and coordinates domain & infrastructure
@@ -152,11 +146,25 @@ final class AttendanceApplicationService
             entries: $command->attendance,
             existingEntries: $existingEntries
         );
+        $dayOff = $this->resolveDayOffFromAttendance($enrichedAttendance);
 
         if ($existingAttendance) {
             // LOGIKA UPDATE (Data tanggal yang sama sudah ada)
             $existingAttendance->updateEntries(
                 entries: $enrichedAttendance
+            );
+
+            $detailInfo = $this->detailInfoFactory
+                ->update(
+                    detailInfo: $existingAttendance->getDetailInfo(),
+                    payload: [
+                        'day_off' => $dayOff,
+                    ],
+                )
+                ->build();
+
+            $existingAttendance->updateDetailInfo(
+                detailInfo: $detailInfo
             );
 
             $data = $this->repository->update(
@@ -194,7 +202,7 @@ final class AttendanceApplicationService
             // --- AKHIR LOGIKA AUTO-COMPLETE ---
 
             $detailInfoDTO = $this->attendanceDetailInfoFactory->buildFromPrimitives(
-                dayoff: false,
+                dayoff: $dayOff,
                 blacklist: [],
             );
 
@@ -217,6 +225,22 @@ final class AttendanceApplicationService
         return AttendanceResponse::fromEntity(
             entity: $data
         );
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $attendance
+     */
+    private function resolveDayOffFromAttendance(array $attendance): bool
+    {
+        foreach ($attendance as $entry) {
+            $summary = $entry['info']['summary'] ?? [];
+
+            if (in_array(AttendanceStatus::WORK_HOLIDAY, $summary, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
  
     public function update(int $id, UpdateAttendanceCommand $command): AttendanceResponse

@@ -9,6 +9,7 @@ use App\Application\Shared\Factory\DetailInfoFactory;
 // Domain Layer
 use App\Domain\Attendance\Entity\Attendance;
 
+use App\Domain\AttendanceCalendar\Repository\AttendanceCalendarRepositoryInterface;
 use App\Domain\AttendanceDevice\Repository\AttendanceDeviceRepositoryInterface;
 use App\Domain\AttendanceDevice\Entity\AttendanceDevice;
 use App\Domain\Attendance\Repository\AttendanceRepositoryInterface;
@@ -37,6 +38,7 @@ final class AttendanceDomainService
         private DetailInfoFactory $detailInfoFactory,
         private AttendanceRepositoryInterface $repository,
         private EmployeeRepositoryInterface $employeeRepository,
+        private AttendanceCalendarRepositoryInterface $attendanceCalendarRepository,
         private AttendanceDeviceRepositoryInterface $attendanceDeviceRepository
     ) {}
 
@@ -87,6 +89,7 @@ final class AttendanceDomainService
 
         $employeeMasterData = $this->employeeRepository->findAllByIds($employeeIds);
         $deviceMasterData = $this->attendanceDeviceRepository->findAllByCodes($deviceCodes);
+        $workHolidayBranchIds = $this->resolveWorkHolidayBranchIds($date, $employeeMasterData);
 
         // 2. Create map for existing entries
         $existingMap = [];
@@ -95,7 +98,7 @@ final class AttendanceDomainService
         }
 
         return array_map(
-            function (AttendanceItem $item) use ($employeeMasterData, $deviceMasterData, $date, $existingMap) {
+            function (AttendanceItem $item) use ($employeeMasterData, $deviceMasterData, $date, $existingMap, $workHolidayBranchIds) {
 
                 $deviceCode = $item->device['code'] ?? '';
 
@@ -112,7 +115,8 @@ final class AttendanceDomainService
                     $item,
                     $employeeMasterData[$item->employeeId] ?? null,
                     $deviceMasterData[$deviceCode] ?? null,
-                    $date
+                    $date,
+                    $workHolidayBranchIds
                 );
             },
             $itemObjects
@@ -138,7 +142,8 @@ final class AttendanceDomainService
         AttendanceItem $item,
         ?Employee $employee,
         ?AttendanceDevice $device,
-        string $date
+        string $date,
+        array $workHolidayBranchIds = []
     ): array {
         // 1. Ambil snapshot jadwal dan data master
         $workPatternSnapshot = $employee?->toDailyScheduleSnapshot($date);
@@ -164,11 +169,70 @@ final class AttendanceDomainService
             totalWorkMinutes: $item->totalWorkMinutes
         );
 
-        // 3. Jalankan evaluasi status (Late, Leave Early, dll)
-        $finalItem = $enrichedItem->withEvaluatedStatus($date);
+        // 3. Jalankan evaluasi status (Late, Leave Early, dll) lalu overlay holiday bila perlu
+        $evaluatedItem = $enrichedItem->withEvaluatedStatus($date);
+        $isWorkHoliday = $this->isWorkHolidayForBranch($employee, $workHolidayBranchIds);
+        $finalItem = $isWorkHoliday
+            ? $this->applyWorkHolidayStatus($evaluatedItem)
+            : $evaluatedItem;
 
         // 4. Return array format database/snapshot
         return $finalItem->toArray();
+    }
+
+    /**
+     * @param array<int, Employee> $employeeMasterData
+     * @return array<int, bool>
+     */
+    private function resolveWorkHolidayBranchIds(string $date, array $employeeMasterData): array
+    {
+        $branchIds = array_values(array_unique(array_filter(
+            array_map(
+                static fn(?Employee $employee) => $employee?->getBranchId() ?? 0,
+                $employeeMasterData
+            ),
+            static fn(int $branchId): bool => $branchId > 0
+        )));
+
+        if (empty($branchIds)) {
+            return [];
+        }
+
+        $holidayBranchIds = $this->attendanceCalendarRepository->findConflictingBranchIds(
+            date: $date,
+            branchIds: $branchIds
+        );
+
+        return array_fill_keys($holidayBranchIds, true);
+    }
+
+    /**
+     * @param array<int, bool> $workHolidayBranchIds
+     */
+    private function isWorkHolidayForBranch(?Employee $employee, array $workHolidayBranchIds): bool
+    {
+        $branchId = $employee?->getBranchId();
+
+        return $branchId !== null && isset($workHolidayBranchIds[$branchId]);
+    }
+
+    private function applyWorkHolidayStatus(AttendanceItem $item): AttendanceItem
+    {
+        $info = $item->info;
+        $summary = $info['summary'] ?? [];
+
+        if (!is_array($summary)) {
+            $summary = [];
+        }
+
+        $summary[] = AttendanceStatus::WORK_HOLIDAY;
+        $info['summary'] = array_values(array_unique($summary));
+        $info['in'] = !empty($item->startTime);
+        $info['out'] = !empty($item->endTime);
+
+        return $item
+            ->withInfo($info)
+            ->withTotalWorkMinutes($item->totalWorkMinutes);
     }
 
     private function evaluateStatus(AttendanceItem $item, ?Employee $employee, string $date): array

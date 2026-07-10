@@ -195,6 +195,7 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
             filters: $filter, 
             allowedColumns: [
                 'id', 
+                'period',
                 'status', 
                 SyncMdb::field(),
             ]
