@@ -7,6 +7,7 @@ use App\Api;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
+use App\Api\V1\AttendanceReport\Action as AttendanceReportV1;
 use App\Api\V1\AttendanceShift\Action as AttendanceShiftV1;
 use App\Api\V1\AttendancePeriod\Action as AttendancePeriodV1;
 use App\Api\V1\AttendanceCalendar\Action as AttendanceCalendarV1;
@@ -677,5 +678,36 @@ return [
                 ->action(AttendancePeriodV1\AttendancePeriodRestoreAction::class)
                 ->name('v1/attendance-period/restore')
                 ->defaults(['permission' => 'attendance-period.restore']),
+
+            // AttendanceReport Routes
+            Route::get('/attendance-report')
+                ->action(AttendanceReportV1\AttendanceReportDataAction::class)
+                ->name('v1/attendance-report/index')
+                ->defaults(['permission' => 'attendance-report.index']),
+            Route::post('/attendance-report/data')
+                ->action(AttendanceReportV1\AttendanceReportDataAction::class)
+                ->name('v1/attendance-report/data')
+                ->defaults(['permission' => 'attendance-report.data']),
+            Route::get('/attendance-report/{id:\d+}')
+                ->action(AttendanceReportV1\AttendanceReportViewAction::class)
+                ->name('v1/attendance-report/view')
+                ->defaults(['permission' => 'attendance-report.view']),
+            Route::post('/attendance-report/create')
+                ->action(AttendanceReportV1\AttendanceReportCreateAction::class)
+                ->name('v1/attendance-report/create')
+                ->defaults(['permission' => 'attendance-report.create']),
+            Route::put('/attendance-report/{id:\d+}')
+                ->action(AttendanceReportV1\AttendanceReportUpdateAction::class)
+                ->name('v1/attendance-report/update')
+                ->defaults(['permission' => 'attendance-report.update']),
+            Route::delete('/attendance-report/{id:\d+}')
+                ->action(AttendanceReportV1\AttendanceReportDeleteAction::class)
+                ->name('v1/attendance-report/delete')
+                ->defaults(['permission' => 'attendance-report.delete']),
+            Route::post('/attendance-report/{id:\d+}/restore')
+                ->action(AttendanceReportV1\AttendanceReportRestoreAction::class)
+                ->name('v1/attendance-report/restore')
+                ->defaults(['permission' => 'attendance-report.restore']),
+
         ),
 ];

@@ -241,6 +241,7 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
                 'position_id',
                 'employee_type_id',
                 'branch_id',
+                'grade_id',
                 'status', 
                 SyncMdb::field(),
             ]

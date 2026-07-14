@@ -260,4 +260,16 @@ return [
     'attendance-period.update' => $isKasir,
     'attendance-period.delete' => $isKasir,
     'attendance-period.restore' => $isSuperAdmin,
+
+    // AttendanceReport Access Rules
+    'attendance-report.index' => static fn (Actor $actor): bool => true,
+    'attendance-report.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'attendance-report.view' => $isKasir,
+    'attendance-report.create' => $isKasir,
+    'attendance-report.update' => $isKasir,
+    'attendance-report.delete' => $isKasir,
+    'attendance-report.restore' => $isSuperAdmin,
 ];
