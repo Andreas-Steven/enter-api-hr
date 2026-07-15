@@ -171,7 +171,7 @@ final class GeneralAffairLocationApplicationService
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'generalaffairlocation.delete',
+            permission: 'general-affair-location.delete',
             resource: $this->getResource(),
         );
         

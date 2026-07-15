@@ -231,7 +231,7 @@ final class EmployeeLeaveApplicationService
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'employeeleave.delete',
+            permission: 'employee-leave.delete',
             resource: $this->getResource(),
         );
         

@@ -171,7 +171,7 @@ final class AttendanceReportApplicationService
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'attendancereport.delete',
+            permission: 'attendance-report.delete',
             resource: $this->getResource(),
         );
         

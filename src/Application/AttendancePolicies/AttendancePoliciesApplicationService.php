@@ -179,7 +179,7 @@ final class AttendancePoliciesApplicationService
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'attendancepolicies.delete',
+            permission: 'attendance-policies.delete',
             resource: $this->getResource(),
         );
         

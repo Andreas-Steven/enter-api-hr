@@ -171,7 +171,7 @@ final class GeneralAffairProductApplicationService
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'generalaffairproduct.delete',
+            permission: 'general-affair-product.delete',
             resource: $this->getResource(),
         );
         
