@@ -253,6 +253,16 @@ final class AttendanceShiftInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'break_minutes' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'cross_day' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'note' => [
                     new StopOnError([
                         new StringValue(

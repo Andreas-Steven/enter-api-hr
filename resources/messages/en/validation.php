@@ -15,7 +15,7 @@ return [
     'required.without' => 'The {resource} field is required when {other} is not present',
     'filled' => 'The {resource} field must have a value',
     'present' => 'The {resource} field must be present',
-    
+
     // String Prefix
     'string.invalid' => 'The {field} field must be a string',
     'string.min' => 'The {field} field must be at least {min} characters',
@@ -29,7 +29,7 @@ return [
     'string.ends_with' => 'The {field} field must end with: {values}',
     'string.lowercase' => 'The {field} field must be lowercase',
     'string.uppercase' => 'The {field} field must be uppercase',
-    
+
     // Number Prefix
     'number.invalid' => 'The {field} field must be a number',
     'number.integer' => 'The {field} field must be an integer',
@@ -40,7 +40,7 @@ return [
     'number.positive' => 'The {field} field must be a positive number',
     'number.negative' => 'The {field} field must be a negative number',
     'number.divisible_by' => 'The {field} field must be divisible by {divisor}',
-    
+
     // Format
     'format.email' => 'The {field} field must be a valid email address',
     'format.url' => 'The {field} field must be a valid URL',
@@ -51,7 +51,7 @@ return [
     'format.uuid' => 'The {field} field must be a valid UUID',
     'format.json' => 'The {field} field must be a valid JSON string',
     'format.regex' => 'The {field} field format is invalid',
-    
+
     // Date & Time
     'date.invalid' => 'The {field} field must be a valid date',
     'date.format' => 'The {field} field must match the format {format}',
@@ -60,14 +60,16 @@ return [
     'date.before_or_equal' => 'The {field} field must be a date before or equal to {date}',
     'date.after_or_equal' => 'The {field} field must be a date after or equal to {date}',
     'date.timezone' => 'The {field} field must be a valid timezone',
-    
+    'time.format' => 'The {field} field must match the format {format}',
+    'time.range_format' => 'The {field} field must be a valid time range in {format}',
+
     // File Prefix
     'file.invalid' => 'The {resource} must be a valid file',
     'file.mimes' => 'The {resource} must be a file of type: {types}',
     'file.mimetypes' => 'The {resource} must be a file of type: {types}',
     'file.max_size' => 'The {resource} must not exceed {size} KB',
     'file.min_size' => 'The {resource} must be at least {size} KB',
-    
+
     // Image Prefix
     'image.invalid' => 'The {resource} must be an image',
     'image.dimensions' => 'The {resource} has invalid image dimensions',
@@ -75,26 +77,26 @@ return [
     'image.max_width' => 'The {resource} must not exceed {width} pixels wide',
     'image.min_height' => 'The {resource} must be at least {height} pixels high',
     'image.max_height' => 'The {resource} must not exceed {height} pixels high',
-    
+
     // Comparison Prefix
     'compare.same' => 'The {resource} must match {other}',
     'compare.different' => 'The {resource} must be different from {other}',
     'compare.confirmed' => 'The {resource} confirmation does not match',
     'compare.in' => 'The selected {resource} is invalid',
     'compare.not_in' => 'The selected {resource} is invalid',
-    
+
     // Boolean Prefix
     'boolean.invalid' => 'The {resource} field must be true or false',
     'boolean.accepted' => 'The {resource} must be accepted',
     'boolean.declined' => 'The {resource} must be declined',
-    
+
     // Array Prefix
     'array.invalid' => 'The {resource} must be an array',
     'array.min' => 'The {resource} must have at least {min} items',
     'array.max' => 'The {resource} must not have more than {max} items',
     'array.between' => 'The {resource} must have between {min} and {max} items',
     'array.distinct' => 'The {resource} field has duplicate values',
-    
+
     // Existence Prefix
     'exists.invalid' => 'The selected {resource} does not exist',
     'exists.unique' => 'The {resource} has already been taken',

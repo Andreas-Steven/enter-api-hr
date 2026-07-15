@@ -15,7 +15,7 @@ return [
     'required.without' => 'Kolom {resource} wajib diisi jika tidak terdapat {other}',
     'filled' => 'Kolom {resource} tidak boleh kosong',
     'present' => 'Kolom {resource} harus tersedia',
-    
+
     // String Prefix
     'string.invalid' => 'Kolom {field} harus berupa teks',
     'string.min' => 'Kolom {field} minimal harus {min} karakter',
@@ -29,7 +29,7 @@ return [
     'string.ends_with' => 'Kolom {field} harus diakhiri dengan: {values}',
     'string.lowercase' => 'Kolom {field} harus menggunakan huruf kecil',
     'string.uppercase' => 'Kolom {field} harus menggunakan huruf besar',
-    
+
     // Number Prefix
     'number.invalid' => 'Kolom {field} harus berupa angka',
     'number.integer' => 'Kolom {field} harus berupa bilangan bulat',
@@ -40,7 +40,7 @@ return [
     'number.positive' => 'Kolom {field} harus berupa angka positif',
     'number.negative' => 'Kolom {field} harus berupa angka negatif',
     'number.divisible_by' => 'Kolom {field} harus habis dibagi dengan {divisor}',
-    
+
     // Format
     'format.email' => 'Kolom {field} harus berupa alamat email yang valid',
     'format.url' => 'Kolom {field} harus berupa URL yang valid',
@@ -51,7 +51,7 @@ return [
     'format.uuid' => 'Kolom {field} harus berupa UUID yang valid',
     'format.json' => 'Kolom {field} harus berupa string JSON yang valid',
     'format.regex' => 'Format kolom {field} tidak valid',
-    
+
     // Date & Time
     'date.invalid' => 'Kolom {field} harus berupa tanggal yang valid',
     'date.format' => 'Kolom {field} harus sesuai dengan format {format}',
@@ -60,14 +60,16 @@ return [
     'date.before_or_equal' => 'Kolom {field} harus berupa tanggal sebelum atau sama dengan {date}',
     'date.after_or_equal' => 'Kolom {field} harus berupa tanggal setelah atau sama dengan {date}',
     'date.timezone' => 'Kolom {field} harus berupa zona waktu yang valid',
-    
+    'time.format' => 'Kolom {field} harus sesuai dengan format {format}',
+    'time.range_format' => 'Kolom {field} harus berupa rentang waktu yang valid dalam format {format}',
+
     // File Prefix
     'file.invalid' => 'Kolom {resource} harus berupa berkas yang valid',
     'file.mimes' => 'Kolom {resource} harus berupa berkas dengan tipe: {types}',
     'file.mimetypes' => 'Kolom {resource} harus berupa berkas dengan tipe: {types}',
     'file.max_size' => 'Ukuran {resource} tidak boleh lebih dari {size} KB',
     'file.min_size' => 'Ukuran {resource} minimal harus {size} KB',
-    
+
     // Image Prefix
     'image.invalid' => 'Kolom {resource} harus berupa gambar',
     'image.dimensions' => 'Dimensi gambar {resource} tidak valid',
@@ -75,26 +77,26 @@ return [
     'image.max_width' => 'Lebar {resource} tidak boleh lebih dari {width} piksel',
     'image.min_height' => 'Tinggi {resource} minimal harus {height} piksel',
     'image.max_height' => 'Tinggi {resource} tidak boleh lebih dari {height} piksel',
-    
+
     // Comparison Prefix
     'compare.same' => 'Kolom {resource} harus sama dengan {other}',
     'compare.different' => 'Kolom {resource} harus berbeda dengan {other}',
     'compare.confirmed' => 'Konfirmasi {resource} tidak cocok',
     'compare.in' => '{resource} yang dipilih tidak valid',
     'compare.not_in' => '{resource} yang dipilih tidak valid',
-    
+
     // Boolean Prefix
     'boolean.invalid' => 'Kolom {resource} harus bernilai true atau false',
     'boolean.accepted' => 'Kolom {resource} harus disetujui',
     'boolean.declined' => 'Kolom {resource} harus ditolak',
-    
+
     // Array Prefix
     'array.invalid' => 'Kolom {resource} harus berupa array',
     'array.min' => 'Kolom {resource} minimal harus memiliki {min} item',
     'array.max' => 'Kolom {resource} tidak boleh memiliki lebih dari {max} item',
     'array.between' => 'Kolom {resource} harus memiliki antara {min} dan {max} item',
     'array.distinct' => 'Kolom {resource} memiliki nilai duplikat',
-    
+
     // Existence Prefix
     'exists.invalid' => '{resource} yang dipilih tidak ditemukan',
     'exists.unique' => '{resource} sudah digunakan',

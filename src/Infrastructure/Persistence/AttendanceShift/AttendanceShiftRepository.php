@@ -11,21 +11,16 @@ use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
-
 // Infrastructure Layer
 use App\Infrastructure\Concerns\HasCoreFeatures;
 use App\Infrastructure\Concerns\HasMongoDBSync;
 use App\Infrastructure\Concerns\ManagesPersistence;
 use App\Infrastructure\Database\MongoDB\MongoDBService;
-use App\Infrastructure\Persistence\AttendanceShift\MdbAttendanceShiftSchema;
 use App\Infrastructure\Security\CurrentUserAwareInterface;
-
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
 use App\Shared\Query\QueryConditionApplier;
-use App\Shared\ValueObject\Message;
-
 // Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Db\Query\Query;
@@ -34,12 +29,14 @@ use Yiisoft\Db\Query\Query;
 
 /**
  * AttendanceShift Repository using Yiisoft/Db Query Builder
- * 
+ *
  * Pure query implementation using Yiisoft/Db for database operations
  */
 final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterface, CurrentUserAwareInterface
 {
-    use HasCoreFeatures, HasMongoDBSync, ManagesPersistence;
+    use HasCoreFeatures;
+    use HasMongoDBSync;
+    use ManagesPersistence;
 
     public const TABLE_NAME = 'attendance_shift';
     public const SEQUENCE_ID = 'attendance_shift_id_seq';
@@ -52,7 +49,7 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
     ) {
         $this->initMongoDBSync(
             service: $mongoDBService,
-            collection: self::TABLE_NAME
+            collection: self::TABLE_NAME,
         );
     }
 
@@ -85,7 +82,7 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
             breakMinutes: (int) $row['break_minutes'],
             crossDay: (int) $row['cross_day'],
             defaultWorkTime: (int) $row['default_work_time'],
-            status: ResourceStatus::from((int)$row['status']),
+            status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             note: $row['note'],
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
@@ -114,7 +111,7 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
             breakMinutes: (int) $row['break_minutes'],
             crossDay: (int) $row['cross_day'],
             defaultWorkTime: (int) $row['default_work_time'],
-            status: ResourceStatus::from((int)$row['status']),
+            status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             note: $row['note'],
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
@@ -153,21 +150,43 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
 
         $filter = $criteria->filter;
 
+        $rangeFilters = $this->extractTimeRangeFilters($filter);
+
+        if (!empty($rangeFilters)) {
+            $this->queryConditionApplier->andRange(
+                query: $query,
+                ranges: $rangeFilters,
+            );
+        }
+
         $this->queryConditionApplier->filterByExactMatch(
-            query: $query, 
-            filters: $filter, 
+            query: $query,
+            filters: $filter,
             allowedColumns: [
                 'id',
-                'status', 
+                'start_time',
+                'end_time',
+                'break_minutes',
+                'cross_day',
+                'default_work_time',
+                'status',
                 SyncMdb::field(),
-            ]
+            ],
         );
 
         if (!empty($filter['name'])) {
             $this->queryConditionApplier->orLike(
-                query: $query, 
+                query: $query,
                 operator: self::LIKE_OPERATOR,
-                conditions: ['name' => '%' . $filter['name'] . '%']
+                conditions: ['name' => '%' . $filter['name'] . '%'],
+            );
+        }
+
+        if (!empty($filter['note'])) {
+            $this->queryConditionApplier->orLike(
+                query: $query,
+                operator: self::LIKE_OPERATOR,
+                conditions: ['note' => '%' . $filter['note'] . '%'],
             );
         }
 
@@ -179,9 +198,9 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
 
         $rows = iterator_to_array(
             $this->streamRows(
-                query: $query, 
-                jsonKeys: []
-            )
+                query: $query,
+                jsonKeys: [],
+            ),
         );
 
         return new PaginatedResult(
@@ -192,20 +211,21 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
             filter: $criteria->filter,
             sort: [
                 'by' => $criteria->sortBy,
-                'dir' => $criteria->sortDir
-            ]
+                'dir' => $criteria->sortDir,
+            ],
         );
     }
 
-    public function insert(AttendanceShift $entity): AttendanceShift 
+    public function insert(AttendanceShift $entity): AttendanceShift
     {
-        return $this->db->transaction(function() use ($entity) {
+        return $this->db->transaction(function () use ($entity) {
             $this->db->createCommand()
-                ->insert(self::TABLE_NAME, 
+                ->insert(
+                    self::TABLE_NAME,
                     $this->mapEntityToTable(
-                        entity: $entity, 
-                        lockVersion: LockVersion::create()->value()
-                    )
+                        entity: $entity,
+                        lockVersion: LockVersion::create()->value(),
+                    ),
                 )
                 ->execute();
 
@@ -227,7 +247,7 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
 
             $this->syncMongoDB(
                 entity: $newEntity,
-                schemaClass: MdbAttendanceShiftSchema::class
+                schemaClass: MdbAttendanceShiftSchema::class,
             );
 
             return $newEntity;
@@ -236,45 +256,45 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
 
     public function update(AttendanceShift $entity): AttendanceShift
     {
-        return $this->db->transaction(function() use ($entity) {
+        return $this->db->transaction(function () use ($entity) {
             $currentLock = $entity->getLockVersion();
             $newLock = $this->upgradeEntityLockVersion($entity);
 
             $result = $this->db->createCommand()
                 ->update(
-                    self::TABLE_NAME, 
+                    self::TABLE_NAME,
                     $this->mapEntityToTable(
-                        entity: $entity, 
-                        lockVersion: $newLock->value()
-                    ), 
+                        entity: $entity,
+                        lockVersion: $newLock->value(),
+                    ),
                     $this->buildLockCondition(
-                        entity: $entity, 
-                        currentLockVersion: $currentLock->value()
-                    )
+                        entity: $entity,
+                        currentLockVersion: $currentLock->value(),
+                    ),
                 )
                 ->execute();
-            
+
             if ($result === 0) {
                 $this->handlePersistenceFailure($entity);
             }
-            
+
             $this->syncMongoDB(
                 entity: $entity,
-                schemaClass: MdbAttendanceShiftSchema::class
+                schemaClass: MdbAttendanceShiftSchema::class,
             );
-            
+
             return $entity;
         });
     }
 
     public function delete(AttendanceShift $entity): AttendanceShift
     {
-        return $this->db->transaction(function() use ($entity) {
+        return $this->db->transaction(function () use ($entity) {
             $result = $this->db->createCommand()
                 ->update(
                     self::TABLE_NAME,
-                    $this->getDeletedState(), 
-                    $this->buildSimpleCondition($entity)
+                    $this->getDeletedState(),
+                    $this->buildSimpleCondition($entity),
                 )
                 ->execute();
 
@@ -285,8 +305,8 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
             $deletedEntity = $entity->markAsDeleted();
 
             $this->syncMongoDB(
-                entity: $deletedEntity, 
-                schemaClass: MdbAttendanceShiftSchema::class
+                entity: $deletedEntity,
+                schemaClass: MdbAttendanceShiftSchema::class,
             );
 
             return $deletedEntity;
@@ -315,10 +335,10 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
             breakMinutes: (int) $row['break_minutes'],
             crossDay: (int) $row['cross_day'],
             defaultWorkTime: (int) $row['default_work_time'],
-            status: ResourceStatus::from((int)$row['status']),
+            status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             note: $row['note'],
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
         );
 
         $entity->restore();
@@ -326,6 +346,27 @@ final class AttendanceShiftRepository implements AttendanceShiftRepositoryInterf
         return $this->update(
             entity: $entity,
         );
+    }
+
+    /**
+     * Extract array-based time range filters so they can be applied via andRange
+     * instead of exact match.
+     *
+     * @param array<string, mixed> $filter
+     * @return array<string, array{min?: string, max?: string}>
+     */
+    private function extractTimeRangeFilters(array &$filter): array
+    {
+        $ranges = [];
+
+        foreach (['start_time', 'end_time'] as $field) {
+            if (isset($filter[$field]) && is_array($filter[$field])) {
+                $ranges[$field] = $filter[$field];
+                unset($filter[$field]);
+            }
+        }
+
+        return $ranges;
     }
 
     private function mapEntityToTable(AttendanceShift $entity, int $lockVersion): array

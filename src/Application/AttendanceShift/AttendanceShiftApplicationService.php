@@ -9,15 +9,15 @@ use App\Application\AttendanceShift\Command\CreateAttendanceShiftCommand;
 use App\Application\AttendanceShift\Command\UpdateAttendanceShiftCommand;
 use App\Application\AttendanceShift\Dto\AttendanceShiftResponse;
 use App\Application\Shared\Factory\DetailInfoFactory;
-
 // Domain Layer
 use App\Domain\AttendanceShift\Entity\AttendanceShift;
 use App\Domain\AttendanceShift\Repository\AttendanceShiftRepositoryInterface;
 use App\Domain\AttendanceShift\Service\AttendanceShiftDomainService;
 use App\Domain\AttendanceShift\ValueObject\DefaultWorkTime;
+use App\Domain\AttendanceShift\ValueObject\StartTime;
+use App\Domain\AttendanceShift\ValueObject\EndTime;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
-
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
@@ -26,7 +26,7 @@ use App\Shared\ValueObject\Message;
 
 /**
  * AttendanceShift Application Service (Mandor/Alur Kerja)
- * 
+ *
  * Orchestrates use cases and coordinates domain & infrastructure
  */
 final class AttendanceShiftApplicationService
@@ -35,9 +35,8 @@ final class AttendanceShiftApplicationService
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private AttendanceShiftRepositoryInterface $repository,
-        private AttendanceShiftDomainService $domainService
-    ) {
-    }
+        private AttendanceShiftDomainService $domainService,
+    ) {}
 
     public function getResource(): string
     {
@@ -48,29 +47,29 @@ final class AttendanceShiftApplicationService
     {
         $data = $this->repository->findById(
             id: $id,
-            status: $status
+            status: $status,
         );
 
         if ($data === null) {
             throw new NotFoundException(
                 translate: Message::create(
-                    key: 'resource.not_found', 
+                    key: 'resource.not_found',
                     params: [
                         'resource' => $this->getResource(),
                         'field' => 'id',
-                        'value' => $id
-                    ]
-                )
+                        'value' => $id,
+                    ],
+                ),
             );
         }
-        
+
         return $data;
     }
-    
+
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         return $this->repository->list(
-            criteria: $criteria
+            criteria: $criteria,
         );
     }
 
@@ -78,11 +77,11 @@ final class AttendanceShiftApplicationService
     {
         $data = $this->getEntityById(
             id: $id,
-            status: null
+            status: null,
         );
-        
+
         return AttendanceShiftResponse::fromEntity(
-            entity: $data
+            entity: $data,
         );
     }
 
@@ -90,33 +89,36 @@ final class AttendanceShiftApplicationService
     {
         $detailInfo = $this->detailInfoFactory
             ->create(
-                detailInfo: []
+                detailInfo: [],
             )
             ->build();
+
+        $startTime = StartTime::fromString($command->startTime);
+        $endTime = EndTime::fromString($command->endTime);
 
         $defaultWorkTime = DefaultWorkTime::fromTimeRange(
             startTime: $command->startTime,
             endTime: $command->endTime,
             breakMinutes: $command->breakMinutes,
-            crossDay: $command->crossDay
+            crossDay: $command->crossDay,
         );
 
         $data = AttendanceShift::create(
             name: $command->name,
-            startTime: $command->startTime,
-            endTime: $command->endTime,
+            startTime: $startTime,
+            endTime: $endTime,
             breakMinutes: $command->breakMinutes,
             crossDay: $command->crossDay,
             defaultWorkTime: $defaultWorkTime,
             note: $command->note,
             status: ResourceStatus::from($command->status),
-            detailInfo: $detailInfo
+            detailInfo: $detailInfo,
         );
 
         return AttendanceShiftResponse::fromEntity(
             entity: $this->repository->insert(
-                entity: $data
-            )
+                entity: $data,
+            ),
         );
     }
 
@@ -124,28 +126,28 @@ final class AttendanceShiftApplicationService
     {
         $data = $this->getEntityById(
             id: $id,
-            status: null
+            status: null,
         );
 
         $this->repository->verifyLockVersion(
             entity: $data,
-            version: $command->lockVersion ?? null
+            version: $command->lockVersion ?? null,
         );
 
         $newStatus = ResourceStatus::tryFrom($command->status);
 
         $hasFieldChanges = $data->hasFieldChanges(
             data: (array) $command,
-            removeNulls: true
+            removeNulls: true,
         );
 
         $data->guardAgainstInvalidTransition(
             hasFieldChanges: $hasFieldChanges,
-            newStatus: $newStatus
+            newStatus: $newStatus,
         );
 
         $data->updateName(
-            newName: $command->name
+            newName: $command->name,
         );
 
         if ($command->startTime !== null || $command->endTime !== null || $command->breakMinutes !== null || $command->crossDay !== null) {
@@ -153,18 +155,18 @@ final class AttendanceShiftApplicationService
                 startTime: $command->startTime ?? $data->getStartTime(),
                 endTime: $command->endTime ?? $data->getEndTime(),
                 breakMinutes: $command->breakMinutes ?? $data->getBreakMinutes(),
-                crossDay: $command->crossDay ?? $data->getCrossDay()
+                crossDay: $command->crossDay ?? $data->getCrossDay(),
             );
         }
 
         if ($command->note !== null) {
             $data->setNote(
-                note: $command->note
+                note: $command->note,
             );
         }
 
         $data->applyStatus(
-            newStatus: $newStatus
+            newStatus: $newStatus,
         );
 
         $detailInfo = $this->detailInfoFactory
@@ -175,13 +177,13 @@ final class AttendanceShiftApplicationService
             ->build();
 
         $data->updateDetailInfo(
-            detailInfo: $detailInfo
+            detailInfo: $detailInfo,
         );
 
         return AttendanceShiftResponse::fromEntity(
             entity: $this->repository->update(
-                entity: $data
-            )
+                entity: $data,
+            ),
         );
     }
 
@@ -189,11 +191,11 @@ final class AttendanceShiftApplicationService
     {
         $data = $this->getEntityById(
             id: $id,
-            status: null
+            status: null,
         );
 
         $this->repository->verifyLockVersion(
-            entity: $data, 
+            entity: $data,
             version: $lockVersion,
         );
 
@@ -203,7 +205,7 @@ final class AttendanceShiftApplicationService
             permission: 'attendance-shift.delete',
             resource: $this->getResource(),
         );
-        
+
         $this->domainService->ensureDeletable(
             entity: $data,
             resource: $this->getResource(),
@@ -217,13 +219,13 @@ final class AttendanceShiftApplicationService
             ->build();
 
         $data->updateDetailInfo(
-            detailInfo: $detailInfo
+            detailInfo: $detailInfo,
         );
 
         return AttendanceShiftResponse::fromEntity(
             entity: $this->repository->delete(
-                entity: $data
-            )
+                entity: $data,
+            ),
         );
     }
 
@@ -231,25 +233,25 @@ final class AttendanceShiftApplicationService
     {
         $data = $this->getEntityById(
             id: $id,
-            status: ResourceStatus::deleted()->value()
+            status: ResourceStatus::deleted()->value(),
         );
-        
+
         if ($data === null) {
             throw new NotFoundException(
                 translate: Message::create(
-                    key: 'resource.not_found', 
+                    key: 'resource.not_found',
                     params: [
                         'resource' => $this->getResource(),
                         'field' => 'id',
-                        'value' => $id
-                    ]
-                )
+                        'value' => $id,
+                    ],
+                ),
             );
         }
 
         $data->guardAgainstInvalidTransition(
             hasFieldChanges: false,
-            newStatus: ResourceStatus::restored()
+            newStatus: ResourceStatus::restored(),
         );
 
         $data->markAsRestored();
@@ -262,15 +264,15 @@ final class AttendanceShiftApplicationService
             ->build();
 
         $data->updateDetailInfo(
-            detailInfo: $detailInfo
+            detailInfo: $detailInfo,
         );
 
         $restoredData = $this->repository->restore(
-            id: $data->getId()
+            id: $data->getId(),
         );
-        
+
         return AttendanceShiftResponse::fromEntity(
-            entity: $restoredData
+            entity: $restoredData,
         );
     }
 }
