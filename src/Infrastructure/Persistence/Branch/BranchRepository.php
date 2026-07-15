@@ -151,16 +151,24 @@ final class BranchRepository implements BranchRepositoryInterface, CurrentUserAw
         $filter = $criteria->filter;
 
         $this->queryConditionApplier->filterByExactMatch(
-            query: $query, 
-            filters: $filter, 
+            query: $query,
+            filters: $filter,
             allowedColumns: [
                 'id',
                 'branch_type',
                 'attendance_policies_id',
+                'work_pattern_id',
                 'status',
                 SyncMdb::field(),
             ]
         );
+
+        if (array_key_exists('attendance_policies_id', $filter) && $filter['attendance_policies_id'] === null) {
+            $query->andWhere(['attendance_policies_id' => null]);
+        }
+        if (array_key_exists('work_pattern_id', $filter) && $filter['work_pattern_id'] === null) {
+            $query->andWhere(['work_pattern_id' => null]);
+        }
 
         if (!empty($filter['name'])) {
             $this->queryConditionApplier->orLike(

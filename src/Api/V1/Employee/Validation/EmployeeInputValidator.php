@@ -168,12 +168,18 @@ final class EmployeeInputValidator extends AbstractValidator
                     ])
                 ],
                 'division_id' => [
+                    new Required(
+                        when: fn() => $this->isActivatingStatus()
+                    ),
                     new Integer(
                         skipOnEmpty: true,
                         min: 1,
                     ),
                 ],
                 'position_id' => [
+                    new Required(
+                        when: fn() => $this->isActivatingStatus()
+                    ),
                     new Integer(
                         skipOnEmpty: true,
                         min: 1,
@@ -186,18 +192,27 @@ final class EmployeeInputValidator extends AbstractValidator
                     ),
                 ],
                 'employee_type_id' => [
+                    new Required(
+                        when: fn() => $this->isActivatingStatus()
+                    ),
                     new Integer(
                         skipOnEmpty: true,
                         min: 1,
                     ),
                 ],
                 'branch_id' => [
+                    new Required(
+                        when: fn() => $this->isActivatingStatus()
+                    ),
                     new Integer(
                         skipOnEmpty: true,
                         min: 1,
                     ),
                 ],
                 'email' => [
+                    new Required(
+                        when: fn() => $this->isActivatingStatus()
+                    ),
                     new StringValue(
                         skipOnEmpty: true,
                     ),
@@ -207,6 +222,9 @@ final class EmployeeInputValidator extends AbstractValidator
                     ),
                 ],
                 'nik' => [
+                    new Required(
+                        when: fn() => $this->isActivatingStatus()
+                    ),
                     new StringValue(
                         skipOnEmpty: true,
                     ),
@@ -216,13 +234,24 @@ final class EmployeeInputValidator extends AbstractValidator
                     ),
                 ],
                 'birth_date' => [
+                    new Required(
+                        when: fn() => $this->isActivatingStatus()
+                    ),
                     new StringValue(
                         skipOnEmpty: true,
                     ),
                 ],
                 'date_start' => [
+                    new Required(
+                        when: fn() => $this->isActivatingStatus()
+                    ),
                     new StringValue(
                         skipOnEmpty: true,
+                    ),
+                ],
+                'contact' => [
+                    new Required(
+                        when: fn() => $this->isActivatingStatus()
                     ),
                 ],
                 'date_resign' => [
@@ -349,5 +378,10 @@ final class EmployeeInputValidator extends AbstractValidator
 
             default => [],
         };
+    }
+
+    private function isActivatingStatus(): bool
+    {
+        return ($this->data['status'] ?? null) == RecordStatus::ACTIVE->value;
     }
 }

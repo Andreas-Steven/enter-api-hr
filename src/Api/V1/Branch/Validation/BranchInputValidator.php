@@ -228,7 +228,7 @@ final class BranchInputValidator extends AbstractValidator
                 ],
                 'attendance_policies_id' => [
                     new Required(
-                        when: fn() => ($this->data['status'] ?? null) == RecordStatus::ACTIVE->value
+                        when: fn() => $this->isActivatingStatus()
                     ),
                     new Integer(
                         min: 1,
@@ -237,7 +237,7 @@ final class BranchInputValidator extends AbstractValidator
                 ],
                 'work_pattern_id' => [
                     new Required(
-                        when: fn() => ($this->data['status'] ?? null) == RecordStatus::ACTIVE->value
+                        when: fn() => $this->isActivatingStatus()
                     ),
                     new Integer(
                         min: 1,
@@ -313,13 +313,11 @@ final class BranchInputValidator extends AbstractValidator
                 ],
                 'attendance_policies_id' => [
                     new Integer(
-                        min: 1,
                         skipOnEmpty: true,
                     ),
                 ],
                 'work_pattern_id' => [
                     new Integer(
-                        min: 1,
                         skipOnEmpty: true,
                     ),
                 ],
@@ -361,5 +359,10 @@ final class BranchInputValidator extends AbstractValidator
 
             default => [],
         };
+    }
+
+    private function isActivatingStatus(): bool
+    {
+        return ($this->data['status'] ?? null) == RecordStatus::ACTIVE->value;
     }
 }

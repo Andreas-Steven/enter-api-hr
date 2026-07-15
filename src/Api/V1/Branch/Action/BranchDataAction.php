@@ -25,14 +25,16 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class BranchDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'branch_type', 'code', 'address', 'status'];
+    private const ALLOWED_KEYS = ['id', 'name', 'branch_type', 'code', 'address', 'status', 'attendance_policies_id', 'work_pattern_id'];
     private const ALLOWED_SORT = [
-        'id' => 'id', 
-        'name' => 'name', 
+        'id' => 'id',
+        'name' => 'name',
         'branch_type' => 'branch_type',
         'code' => 'code',
         'address' => 'address',
         'status' => 'status',
+        'attendance_policies_id' => 'attendance_policies_id',
+        'work_pattern_id' => 'work_pattern_id',
     ];
 
     public function __construct(
