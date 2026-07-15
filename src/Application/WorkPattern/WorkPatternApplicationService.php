@@ -103,6 +103,10 @@ final class WorkPatternApplicationService
             detailInfo: $detailInfo
         );
 
+        if ($data->isActive()) {
+            $this->domainService->ensureCanActivate($data);
+        }
+
         return WorkPatternResponse::fromEntity(
             entity: $this->repository->insert(
                 entity: $data
@@ -147,6 +151,10 @@ final class WorkPatternApplicationService
             $data->updateWorkingDays(
                 workingDays: WorkingDays::fromArray($command->workingDays, $this->attendanceShiftRepository)
             );
+        }
+
+        if ($data->isActive()) {
+            $this->domainService->ensureCanActivate($data);
         }
 
         $detailInfo = $this->detailInfoFactory

@@ -144,4 +144,12 @@ return [
     'scope.branch_ids_empty' => 'Daftar ID cabang scope tidak boleh kosong.',
     'scope.branch_not_found' => 'Cabang dengan ID "{id}" tidak ditemukan.',
     'attendance_calendar.branch_conflict' => 'Cabang {branch} sudah memiliki hari libur pada {date}.',
+
+    // Employee Prefix
+    'employee.cannot_activate' => 'Tidak dapat mengaktifkan karyawan. Field wajib hilang atau tidak valid: {fields}',
+    'branch.cannot_activate' => 'Tidak dapat mengaktifkan cabang. Field wajib hilang atau tidak valid: {fields}',
+
+    // Work Pattern Prefix
+    'work_pattern.cannot_activate.no_working_day' => 'Tidak dapat mengaktifkan {resource}. Setidaknya harus ada satu hari kerja yang terdefinisi.',
+    'work_pattern.cannot_activate.inactive_shifts' => 'Tidak dapat mengaktifkan {resource}. Shift tidak aktif: {shifts}.',
 ];

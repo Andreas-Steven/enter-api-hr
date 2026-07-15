@@ -158,6 +158,10 @@ final class EmployeeApplicationService
             newStatus: $newStatus
         );
 
+        if (!empty($newStatus) && $newStatus->isActive()) {
+            $this->domainService->ensureCanActivate($data);
+        }
+
         $data->updateName(
             newName: $command->name
         );

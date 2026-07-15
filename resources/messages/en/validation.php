@@ -144,4 +144,12 @@ return [
     'scope.branch_ids_empty' => 'Scope branch IDs cannot be empty.',
     'scope.branch_not_found' => 'Branch with ID "{id}" does not exist.',
     'attendance_calendar.branch_conflict' => 'Branch {branch} already has a holiday on {date}.',
+
+    // Employee Prefix
+    'employee.cannot_activate' => 'Cannot activate employee. Missing or invalid required fields: {fields}',
+    'branch.cannot_activate' => 'Cannot activate branch. Missing or invalid required fields: {fields}',
+
+    // Work Pattern Prefix
+    'work_pattern.cannot_activate.no_working_day' => 'Cannot activate {resource}. At least one working day must be defined.',
+    'work_pattern.cannot_activate.inactive_shifts' => 'Cannot activate {resource}. Inactive shifts: {shifts}.',
 ];

@@ -144,6 +144,10 @@ final class BranchApplicationService
             newStatus: $newStatus
         );
 
+        if (!empty($newStatus) && $newStatus->isActive()) {
+            $this->domainService->ensureCanActivate($data);
+        }
+
         $data->updateName(
             newName: $command->name
         );
@@ -176,11 +180,13 @@ final class BranchApplicationService
             );
         }
 
-        if ($command->branch_type !== null || $command->attendance_policies_id !== null || $command->work_pattern_id !== null) {
+        if ($command->branch_type !== null) {
             $data->updateType(
                 newType: $command->branch_type
             );
+        }
 
+        if ($command->branch_type !== null || $command->attendance_policies_id !== null || $command->work_pattern_id !== null) {
             $branchInfo = $this->branchInfoFactory
                 ->buildFromIds(
                     branch_type: $command->branch_type ?? $data->getType(),

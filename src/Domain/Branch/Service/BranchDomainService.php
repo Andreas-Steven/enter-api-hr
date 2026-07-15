@@ -12,6 +12,7 @@ use App\Domain\Shared\ValueObject\ResourceStatus;
 
 // Shared Layer
 use App\Shared\ValueObject\Message;
+use App\Shared\Exception\BadRequestException;
 
 /**
  * Branch Domain Service
@@ -21,19 +22,82 @@ use App\Shared\ValueObject\Message;
 final class BranchDomainService
 {
     use DomainValidator;
-    
+
+    private const ACTIVATION_REQUIRED_FIELDS = [
+        'attendance_policies_id',
+        'work_pattern_id',
+    ];
+
     public function __construct(
         private BranchRepositoryInterface $repository
     ) {}
 
+
     /**
      * Place Branch-specific business logic here, in addition to those
      * provided by common traits/concerns (Identifiable, Stateful, etc.).
-     * 
+     *
      * Branchs:
      * - Complex validation rules
      * - Business calculations
      * - Domain-specific operations
      * - Cross-entity business rules
-     */ 
+     */
+
+    /**
+     * Validate that Branch has all required fields before activation
+     */
+    public function ensureCanActivate(Branch $Branch): void
+    {
+        $missingFields = $this->getMissingActivationFields($Branch);
+
+        if (!empty($missingFields)) {
+            $fieldList = implode(', ', $missingFields);
+
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'branch.cannot_activate',
+                    params: ['fields' => $fieldList],
+                    domain: 'validation'
+                )
+            );
+        }
+    }
+
+        /**
+     * @return string[]
+     */
+    private function getMissingActivationFields(Branch $Branch): array
+    {
+        $missingFields = [];
+
+        foreach (self::ACTIVATION_REQUIRED_FIELDS as $field) {
+            $value = $this->getActivationFieldValue($Branch, $field);
+
+            if ($this->isMissingActivationField($field, $value)) {
+                $missingFields[] = $field;
+            }
+        }
+
+        return $missingFields;
+    }
+
+    private function getActivationFieldValue(Branch $Branch, string $field): mixed
+    {
+        return match ($field) {
+            'attendance_policies_id' => $Branch->getAttendancePoliciesId(),
+            'work_pattern_id' => $Branch->getWorkPatternId(),
+            default => null,
+        };
+    }
+
+    private function isMissingActivationField(string $field, mixed $value): bool
+    {
+        return $this->isEmptyActivationValue($value);
+    }
+
+    private function isEmptyActivationValue(mixed $value): bool
+    {
+        return $value === null || $value === '' || (is_array($value) && $value === []);
+    }
 }

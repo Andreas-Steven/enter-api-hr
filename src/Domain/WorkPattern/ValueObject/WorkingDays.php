@@ -184,4 +184,43 @@ final readonly class WorkingDays
         $day = $this->getDay($dayIndex);
         return $day && $day['shift'] === null;
     }
+
+    public function hasWorkingDay(): bool
+    {
+        foreach ($this->days as $day) {
+            if ($day['shift'] !== null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function getWorkingDayCount(): int
+    {
+        $count = 0;
+
+        foreach ($this->days as $day) {
+            if ($day['shift'] !== null) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    public function getInactiveShiftNames(): array
+    {
+        $names = [];
+
+        foreach ($this->days as $day) {
+            $shift = $day['shift'];
+
+            if ($shift !== null && !$shift->isActive()) {
+                $names[] = $shift->getName();
+            }
+        }
+
+        return $names;
+    }
 }
