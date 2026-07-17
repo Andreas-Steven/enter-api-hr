@@ -272,4 +272,16 @@ return [
     'attendance-report.update' => $isKasir,
     'attendance-report.delete' => $isKasir,
     'attendance-report.restore' => $isSuperAdmin,
+
+    // DeductionType Access Rules
+    'deduction-type.index' => static fn (Actor $actor): bool => true,
+    'deduction-type.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'deduction-type.view' => $isKasir,
+    'deduction-type.create' => $isKasir,
+    'deduction-type.update' => $isKasir,
+    'deduction-type.delete' => $isKasir,
+    'deduction-type.restore' => $isSuperAdmin,
 ];

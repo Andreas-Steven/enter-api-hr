@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
+use App\Domain\EmployeeDebt\Repository\EmployeeDebtRepositoryInterface;
+use App\Domain\DeductionType\Repository\DeductionTypeRepositoryInterface;
 use App\Domain\AttendanceReport\Repository\AttendanceReportRepositoryInterface;
 use App\Domain\AttendancePeriod\Repository\AttendancePeriodRepositoryInterface;
 use App\Domain\AttendanceShift\Repository\AttendanceShiftRepositoryInterface;
@@ -24,6 +26,8 @@ use App\Domain\EmployeeDivision\Repository\EmployeeDivisionRepositoryInterface;
 use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInterface;
 use App\Domain\WorkPattern\Repository\WorkPatternRepositoryInterface;
 use App\Infrastructure\Persistence\Example\ExampleRepository;
+use App\Infrastructure\Persistence\EmployeeDebt\EmployeeDebtRepository;
+use App\Infrastructure\Persistence\DeductionType\DeductionTypeRepository;
 use App\Infrastructure\Persistence\AttendanceReport\AttendanceReportRepository;
 use App\Infrastructure\Persistence\AttendancePeriod\AttendancePeriodRepository;
 use App\Infrastructure\Persistence\AttendanceShift\AttendanceShiftRepository;
@@ -212,6 +216,14 @@ return [
     ],
     AttendanceReportRepositoryInterface::class => [
         'class' => AttendanceReportRepository::class,
+        'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
+        'setCurrentUser()' => [Reference::to(CurrentUser::class)],
+        '__construct()' => [
+            'params' => $params['app/optimisticLock'] ?? [],
+        ],
+    ],
+    DeductionTypeRepositoryInterface::class => [
+        'class' => DeductionTypeRepository::class,
         'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
         'setCurrentUser()' => [Reference::to(CurrentUser::class)],
         '__construct()' => [

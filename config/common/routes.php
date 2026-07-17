@@ -7,6 +7,8 @@ use App\Api;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
+use App\Api\V1\EmployeeDebt\Action as EmployeeDebtV1;
+use App\Api\V1\DeductionType\Action as DeductionTypeV1;
 use App\Api\V1\AttendanceReport\Action as AttendanceReportV1;
 use App\Api\V1\AttendanceShift\Action as AttendanceShiftV1;
 use App\Api\V1\AttendancePeriod\Action as AttendancePeriodV1;
@@ -709,5 +711,34 @@ return [
                 ->name('v1/attendance-report/restore')
                 ->defaults(['permission' => 'attendance-report.restore']),
 
+            // DeductionType Routes
+            Route::get('/deduction-type')
+                ->action(DeductionTypeV1\DeductionTypeDataAction::class)
+                ->name('v1/deduction-type/index')
+                ->defaults(['permission' => 'deduction-type.index']),
+            Route::post('/deduction-type/data')
+                ->action(DeductionTypeV1\DeductionTypeDataAction::class)
+                ->name('v1/deduction-type/data')
+                ->defaults(['permission' => 'deduction-type.data']),
+            Route::get('/deduction-type/{id:\d+}')
+                ->action(DeductionTypeV1\DeductionTypeViewAction::class)
+                ->name('v1/deduction-type/view')
+                ->defaults(['permission' => 'deduction-type.view']),
+            Route::post('/deduction-type/create')
+                ->action(DeductionTypeV1\DeductionTypeCreateAction::class)
+                ->name('v1/deduction-type/create')
+                ->defaults(['permission' => 'deduction-type.create']),
+            Route::put('/deduction-type/{id:\d+}')
+                ->action(DeductionTypeV1\DeductionTypeUpdateAction::class)
+                ->name('v1/deduction-type/update')
+                ->defaults(['permission' => 'deduction-type.update']),
+            Route::delete('/deduction-type/{id:\d+}')
+                ->action(DeductionTypeV1\DeductionTypeDeleteAction::class)
+                ->name('v1/deduction-type/delete')
+                ->defaults(['permission' => 'deduction-type.delete']),
+            Route::post('/deduction-type/{id:\d+}/restore')
+                ->action(DeductionTypeV1\DeductionTypeRestoreAction::class)
+                ->name('v1/deduction-type/restore')
+                ->defaults(['permission' => 'deduction-type.restore']),
         ),
 ];
