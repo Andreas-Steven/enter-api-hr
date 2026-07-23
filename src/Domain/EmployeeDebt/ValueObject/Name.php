@@ -34,7 +34,7 @@ final readonly class Name
             throw new BadRequestException(
                 translate: Message::create(
                     key: 'required',
-                    params: ['resource' => 'AWB Number'],
+                    params: ['resource' => 'Name'],
                     domain: 'app',
                 )
             );
