@@ -96,7 +96,7 @@ final class DeductionTypeApplicationService
         $data = DeductionType::create(
             name: $command->name,
             category: $command->category,
-            createsLoan: $command->createsLoan,
+            createsDebt: $command->createsDebt,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
         );
@@ -146,9 +146,9 @@ final class DeductionTypeApplicationService
             );
         }
 
-        if (!empty($command->createsLoan)) {
-            $data->updateCreatesLoan(
-                newCreatesLoan: $command->createsLoan
+        if ($command->createsDebt !== null) {
+            $data->updateCreatesDebt(
+                newCreatesDebt: $command->createsDebt
             );
         }
 

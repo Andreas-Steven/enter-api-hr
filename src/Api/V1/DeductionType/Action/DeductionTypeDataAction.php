@@ -25,12 +25,12 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class DeductionTypeDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'category', 'creates_loan', 'status'];
+    private const ALLOWED_KEYS = ['id', 'name', 'category', 'creates_debt', 'status'];
     private const ALLOWED_SORT = [
         'id' => 'id', 
         'name' => 'name', 
         'category' => 'category',
-        'creates_loan' => 'creates_loan',
+        'creates_debt' => 'creates_debt',
         'status' => 'status',
     ];
 

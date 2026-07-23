@@ -124,7 +124,7 @@ final class AttendanceCalendar
             'name' => $this->name,
             'date' => $this->date,
             'period' => $this->period->toInt(),
-            'holiday_type' => $this->holidayType,
+            'holiday_type' => $this->holidayType(),
             'scope' => $this->scope->toArray(),
             'note' => $this->note,
             'day_off' => $this->dayOff,

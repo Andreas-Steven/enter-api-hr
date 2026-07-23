@@ -29,7 +29,7 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class DeductionTypeUpdateAction
 {
-    private const ALLOWED_KEYS = ['name', 'category', 'creates_loan', 'status', 'lock_version'];
+    private const ALLOWED_KEYS = ['name', 'category', 'creates_debt', 'status', 'lock_version'];
 
     public function __construct(
         private DeductionTypeInputValidator $inputValidator,
@@ -80,7 +80,7 @@ final class DeductionTypeUpdateAction
             id: (int) $id,
             name: $params->get('name'),
             category: $params->get('category'),
-            createsLoan: (int) $params->get('creates_loan'),
+            createsDebt: (int) $params->get('creates_debt'),
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info'),
             lockVersion: (int) $params->get('lock_version'),

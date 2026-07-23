@@ -284,4 +284,16 @@ return [
     'deduction-type.update' => $isKasir,
     'deduction-type.delete' => $isKasir,
     'deduction-type.restore' => $isSuperAdmin,
+
+    // EmployeeDebt Access Rules
+    'employee-debt.index' => static fn (Actor $actor): bool => true,
+    'employee-debt.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'employee-debt.view' => $isKasir,
+    'employee-debt.create' => $isKasir,
+    'employee-debt.update' => $isKasir,
+    'employee-debt.delete' => $isKasir,
+    'employee-debt.restore' => $isSuperAdmin,
 ];

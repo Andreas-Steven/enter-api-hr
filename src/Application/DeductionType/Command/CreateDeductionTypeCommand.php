@@ -9,7 +9,7 @@ final readonly class CreateDeductionTypeCommand
     public function __construct(
         public string $name,
         public string $category,
-        public int $createsLoan,
+        public int $createsDebt,
         public int $status,
         public ?array $detailInfo,
     ) {}
@@ -17,14 +17,14 @@ final readonly class CreateDeductionTypeCommand
     public static function create(
         string $name,
         string $category,
-        int $createsLoan,
+        int $createsDebt,
         int $status,
         ?array $detailInfo = null,
     ): self {
         return new self(
             name: $name,
             category: $category,
-            createsLoan: $createsLoan,
+            createsDebt: $createsDebt,
             status: $status,
             detailInfo: $detailInfo,
         );

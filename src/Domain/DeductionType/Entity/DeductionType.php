@@ -30,7 +30,7 @@ final class DeductionType
         private readonly ?int $id,
         private string $name,
         private string $category,
-        private int $createsLoan,
+        private int $createsDebt,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
@@ -48,7 +48,7 @@ final class DeductionType
     public static function create(
         string $name,
         string $category,
-        int $createsLoan,
+        int $createsDebt,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
@@ -62,10 +62,10 @@ final class DeductionType
             id: null, 
             name: $name, 
             category: $category, 
-            createsLoan: $createsLoan, 
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            createsDebt: $createsDebt,
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: LockVersion::create()
         );
     }
@@ -74,7 +74,7 @@ final class DeductionType
         int $id,
         string $name,
         string $category,
-        int $createsLoan,
+        int $createsDebt,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
@@ -82,10 +82,10 @@ final class DeductionType
     ): self {
 
         return new self(
-            id: $id, 
-            name: $name, 
-            category: $category, 
-            createsLoan: $createsLoan, 
+            id: $id,
+            name: $name,
+            category: $category,
+            createsDebt: $createsDebt, 
             status: $status, 
             detailInfo: $detailInfo, 
             syncMdb: $syncMdb, 
@@ -99,7 +99,7 @@ final class DeductionType
             'id' => $this->id,
             'name' => $this->name,
             'category' => $this->category,
-            'creates_loan' => $this->createsLoan,
+            'creates_debt' => $this->createsDebt,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
@@ -130,18 +130,35 @@ final class DeductionType
         return $this->category;
     }
 
-    public function setCategory(string $category): void
+    public function updateCategory(?string $newCategory): void
     {
-        $this->category = $category;
+        if ($newCategory === null) {
+            return;
+        }
+
+        $newCategory = trim($newCategory);
+        if ($this->category === $newCategory) {
+            return;
+        }
+
+        $this->category = $newCategory;
     }
 
-    public function getCreatesLoan(): int
+    public function getCreatesDebt(): int
     {
-        return $this->createsLoan;
+        return $this->createsDebt;
     }
 
-    public function setCreatesLoan(int $createsLoan): void
+    public function updateCreatesDebt(?int $newCreatesDebt): void
     {
-        $this->createsLoan = $createsLoan;
+        if ($newCreatesDebt === null) {
+            return;
+        }
+
+        if ($this->createsDebt === $newCreatesDebt) {
+            return;
+        }
+
+        $this->createsDebt = $newCreatesDebt;
     }
 }

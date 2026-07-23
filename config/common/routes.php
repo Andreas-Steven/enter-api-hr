@@ -740,5 +740,35 @@ return [
                 ->action(DeductionTypeV1\DeductionTypeRestoreAction::class)
                 ->name('v1/deduction-type/restore')
                 ->defaults(['permission' => 'deduction-type.restore']),
+
+            // EmployeeDebt Routes
+            Route::get('/employee-debt')
+                ->action(EmployeeDebtV1\EmployeeDebtDataAction::class)
+                ->name('v1/employee-debt/index')
+                ->defaults(['permission' => 'employee-debt.index']),
+            Route::post('/employee-debt/data')
+                ->action(EmployeeDebtV1\EmployeeDebtDataAction::class)
+                ->name('v1/employee-debt/data')
+                ->defaults(['permission' => 'employee-debt.data']),
+            Route::get('/employee-debt/{id:\d+}')
+                ->action(EmployeeDebtV1\EmployeeDebtViewAction::class)
+                ->name('v1/employee-debt/view')
+                ->defaults(['permission' => 'employee-debt.view']),
+            Route::post('/employee-debt/create')
+                ->action(EmployeeDebtV1\EmployeeDebtCreateAction::class)
+                ->name('v1/employee-debt/create')
+                ->defaults(['permission' => 'employee-debt.create']),
+            Route::put('/employee-debt/{id:\d+}')
+                ->action(EmployeeDebtV1\EmployeeDebtUpdateAction::class)
+                ->name('v1/employee-debt/update')
+                ->defaults(['permission' => 'employee-debt.update']),
+            Route::delete('/employee-debt/{id:\d+}')
+                ->action(EmployeeDebtV1\EmployeeDebtDeleteAction::class)
+                ->name('v1/employee-debt/delete')
+                ->defaults(['permission' => 'employee-debt.delete']),
+            Route::post('/employee-debt/{id:\d+}/restore')
+                ->action(EmployeeDebtV1\EmployeeDebtRestoreAction::class)
+                ->name('v1/employee-debt/restore')
+                ->defaults(['permission' => 'employee-debt.restore']),
         ),
 ];

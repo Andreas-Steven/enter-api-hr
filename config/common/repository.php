@@ -230,4 +230,12 @@ return [
             'params' => $params['app/optimisticLock'] ?? [],
         ],
     ],
+    EmployeeDebtRepositoryInterface::class => [
+        'class' => EmployeeDebtRepository::class,
+        'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
+        'setCurrentUser()' => [Reference::to(CurrentUser::class)],
+        '__construct()' => [
+            'params' => $params['app/optimisticLock'] ?? [],
+        ],
+    ],
 ];

@@ -124,7 +124,7 @@ final class DeductionTypeInputValidator extends AbstractValidator
                         ),
                     ])
                 ],
-                'creates_loan' => [
+                'creates_debt' => [
                     new Required(),
                     new Integer(),
                     new In(
@@ -179,7 +179,7 @@ final class DeductionTypeInputValidator extends AbstractValidator
                         ),
                     ])
                 ],
-                'creates_loan' => [
+                'creates_debt' => [
                     new Integer(
                         skipOnEmpty: true,
                     ),
@@ -246,7 +246,7 @@ final class DeductionTypeInputValidator extends AbstractValidator
                         ),
                     ])
                 ],
-                'creates_loan' => [
+                'creates_debt' => [
                     new Integer(
                         skipOnEmpty: true,
                     ),

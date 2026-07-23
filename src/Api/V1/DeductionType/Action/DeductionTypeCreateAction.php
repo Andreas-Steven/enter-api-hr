@@ -25,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class DeductionTypeCreateAction 
 {
-    private const ALLOWED_KEYS = ['name', 'category', 'creates_loan','status', 'sync_mdb'];
+    private const ALLOWED_KEYS = ['name', 'category', 'creates_debt','status', 'sync_mdb'];
 
     public function __construct(
         private DeductionTypeInputValidator $inputValidator,
@@ -53,7 +53,7 @@ final class DeductionTypeCreateAction
         $command = CreateDeductionTypeCommand::create(
             name: (string) $params->get('name'),
             category: (string) $params->get('category'),
-            createsLoan: (int) $params->get('creates_loan'),
+            createsDebt: (int) $params->get('creates_debt'),
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );
