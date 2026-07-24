@@ -6,10 +6,12 @@ namespace App\Domain\AttendanceReport\Service;
 
 // Domain Layer
 use App\Domain\Attendance\Repository\AttendanceRepositoryInterface;
+use App\Domain\AttendanceCalendar\Repository\AttendanceCalendarRepositoryInterface;
 use App\Domain\AttendanceReport\Repository\AttendanceReportRepositoryInterface;
 use App\Domain\AttendanceReport\ValueObject\Name;
 use App\Domain\AttendanceReport\ValueObject\ReportData;
 use App\Domain\AttendanceReport\ValueObject\Summary;
+use App\Domain\AttendancePeriod\Entity\AttendancePeriod;
 use App\Domain\AttendancePeriod\Repository\AttendancePeriodRepositoryInterface;
 use App\Domain\Employee\Entity\Employee;
 use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
@@ -32,6 +34,7 @@ final class AttendanceReportDomainService
     public function __construct(
         private AttendanceReportRepositoryInterface $repository,
         private AttendancePeriodRepositoryInterface $attendancePeriodRepository,
+        private AttendanceCalendarRepositoryInterface $attendanceCalendarRepository,
         private EmployeeRepositoryInterface $employeeRepository,
         private AttendanceRepositoryInterface $attendanceRepository,
     ) {}
@@ -63,12 +66,15 @@ final class AttendanceReportDomainService
         }
 
         $attendanceRecords = $this->attendanceRepository->findByPeriod($period);
+        $calendars = $this->attendanceCalendarRepository->findByPeriod($period);
 
         $summaries = [];
         foreach ($employees as $employee) {
             $summaries[$employee->getId()] = $this->buildReportData(
                 employee: $employee,
                 attendanceRecords: $attendanceRecords,
+                attendancePeriod: $attendancePeriod,
+                calendars: $calendars,
                 period: $period,
             );
         }
@@ -78,9 +84,15 @@ final class AttendanceReportDomainService
 
     /**
      * @param array<int, \App\Domain\Attendance\Entity\Attendance> $attendanceRecords
+     * @param array<int, \App\Domain\AttendanceCalendar\Entity\AttendanceCalendar> $calendars
      */
-    private function buildReportData(Employee $employee, array $attendanceRecords, int $period): ReportData
-    {
+    private function buildReportData(
+        Employee $employee,
+        array $attendanceRecords,
+        AttendancePeriod $attendancePeriod,
+        array $calendars,
+        int $period,
+    ): ReportData {
         $workPattern = $employee->toWorkScheduleSnapshot();
         $workPatternId = (int) ($workPattern['id'] ?? 0);
         $branchSnapshot = $employee->toBranchSnapshot();
@@ -103,6 +115,8 @@ final class AttendanceReportDomainService
                 employee: $employee,
                 period: $period,
                 attendanceRecords: $attendanceRecords,
+                attendancePeriod: $attendancePeriod,
+                calendars: $calendars,
             ),
             reportType: 'HEK',
             employee: $employee,

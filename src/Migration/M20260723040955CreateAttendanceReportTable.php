@@ -54,11 +54,11 @@ final class M20260723040955CreateAttendanceReportTable implements RevertibleMigr
                     'national_holidays' => 0,
                     'company_holidays' => 0,
                     'work_holidays' => 0,
-                    'full_work_days' => 0,
-                    'half_work_days' => 0,
                     'effective_work_days' => 0.00,
                 ],
                 'attendance' => [
+                    'full_work_days' => 0,
+                    'half_work_days' => 0,
                     'present_days' => 0.00,
                     'absent_days' => 0.00,
                     'late_days' => 0,

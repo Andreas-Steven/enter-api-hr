@@ -25,6 +25,11 @@ interface AttendanceCalendarRepositoryInterface
 
     public function findByName(string $name, ?int $status = null): ?AttendanceCalendar;
 
+    /**
+     * @return array<int, AttendanceCalendar>
+     */
+    public function findByPeriod(int $period): array;
+
     public function existsByName(string $name, ?int $status = null): bool;
 
     /**

@@ -24,6 +24,7 @@ use App\Infrastructure\Security\CurrentUserAwareInterface;
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
+use App\Shared\Enums\RecordStatus;
 use App\Shared\Query\QueryConditionApplier;
 use App\Shared\ValueObject\Message;
 
@@ -131,6 +132,36 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
             ->andWhere($this->scopeWhereNotDeleted())
             ->andWhere($this->scopeByStatus($status))
             ->exists();
+    }
+
+    public function findByPeriod(int $period): array
+    {
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['period' => $period])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus(RecordStatus::ACTIVE->value))
+            ->all();
+
+        $calendars = [];
+        foreach ($rows as $row) {
+            $calendar = AttendanceCalendar::reconstitute(
+                id: (int) $row['id'],
+                name: $row['name'],
+                date: $row['date'],
+                period: $row['period'],
+                holidayType: $row['holiday_type'],
+                scope: Scope::fromJson($row['scope']),
+                status: ResourceStatus::from((int)$row['status']),
+                detailInfo: DetailInfo::fromJson($row['detail_info']),
+                note: $row['note'] ?? null,
+                dayOff: (int) $row['day_off'],
+            );
+            $calendar->updateSyncMdb($row[SyncMdb::field()] ?? null);
+            $calendars[] = $calendar;
+        }
+
+        return $calendars;
     }
 
     public function findConflictingBranchIds(string $date, array $branchIds, ?int $excludeId = null): array
