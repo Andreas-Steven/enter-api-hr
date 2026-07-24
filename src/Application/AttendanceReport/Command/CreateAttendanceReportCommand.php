@@ -7,20 +7,14 @@ namespace App\Application\AttendanceReport\Command;
 final readonly class CreateAttendanceReportCommand
 {
     public function __construct(
-        public string $name,
-        public int $status,
-        public ?array $detailInfo,
+        public int $period,
     ) {}
 
     public static function create(
-        string $name,
-        int $status,
-        ?array $detailInfo = null,
+        int $period,
     ): self {
         return new self(
-            name: $name,
-            status: $status,
-            detailInfo: $detailInfo,
+            period: $period,
         );
     }
 }

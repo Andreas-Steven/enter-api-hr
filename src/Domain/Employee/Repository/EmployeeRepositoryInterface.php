@@ -25,6 +25,11 @@ interface EmployeeRepositoryInterface
 
     public function findByName(string $name, ?int $status = null): ?Employee;
 
+    /**
+     * @return array<int, Employee>
+     */
+    public function findAllActive(): array;
+
     public function existsByName(string $name, ?int $status = null): bool;
     
     public function list(SearchCriteria $criteria): PaginatedResult;

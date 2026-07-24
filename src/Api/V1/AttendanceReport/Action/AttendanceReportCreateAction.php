@@ -11,21 +11,19 @@ use App\Application\AttendanceReport\AttendanceReportApplicationService;
 use App\Api\Shared\ResponseFactory;
 use App\Api\V1\AttendanceReport\Validation\AttendanceReportInputValidator;
 use App\Application\AttendanceReport\Command\CreateAttendanceReportCommand;
+use App\Application\AttendanceReport\Dto\AttendanceReportResponse;
 
 // Shared Layer
-use App\Shared\Enums\RecordStatus;
-use App\Shared\Request\RawParams;
 use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
-use App\Shared\Security\InputSanitizer;
 
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class AttendanceReportCreateAction 
+final class AttendanceReportCreateAction
 {
-    private const ALLOWED_KEYS = ['name', 'status', 'sync_mdb'];
+    private const ALLOWED_KEYS = ['period'];
 
     public function __construct(
         private AttendanceReportInputValidator $inputValidator,
@@ -40,9 +38,7 @@ final class AttendanceReportCreateAction
         $payload = $request->getAttribute('payload');
 
         $params = $payload->getRawParams()
-            ->onlyAllowed(
-                allowedKeys: self::ALLOWED_KEYS
-            )->with('status', RecordStatus::DRAFT->value)
+            ->onlyAllowed(allowedKeys: self::ALLOWED_KEYS)
             ->sanitize();
 
         $this->inputValidator->validate(
@@ -51,16 +47,17 @@ final class AttendanceReportCreateAction
         );
 
         $command = CreateAttendanceReportCommand::create(
-            name: (string) $params->get('name'),
-            status: (int) $params->get('status'),
-            detailInfo: $params->get('detail_info')
+            period: (int) $params->get('period'),
         );
 
         $resource = $this->applicationService->getResource();
-        $response = $this->applicationService->create(command: $command);
+        $reports = $this->applicationService->create(command: $command);
 
         return $this->responseFactory->success(
-            data: $response->toArray(),
+            data: array_map(
+                static fn(AttendanceReportResponse $response): array => $response->toArray(),
+                $reports
+            ),
             translate: Message::create(
                 key: 'resource.created',
                 params: [

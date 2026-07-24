@@ -10,9 +10,6 @@ use App\Domain\Employee\Entity\Employee;
 use App\Domain\Employee\ValueObject\DateRange;
 use App\Domain\Employee\ValueObject\Contact;
 use App\Domain\Employee\ValueObject\Image;
-use App\Domain\Employee\ValueObject\BirthDate;
-use App\Domain\Employee\ValueObject\DateStart;
-use App\Domain\Employee\ValueObject\DateResign;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
@@ -175,9 +172,9 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             nik: $row['nik'],
             email: $row['email'],
             contact: Contact::fromArray($this->castToArray($row['contact'])),
-            birthDate: $row['birth_date'] ? BirthDate::fromString($row['birth_date']) : null,
-            dateStart: $row['date_start'] ? DateStart::fromString($row['date_start']) : null,
-            dateResign: $row['date_resign'] ? DateResign::fromString($row['date_resign']) : null,
+            birthDate: $row['birth_date'],
+            dateStart: $row['date_start'],
+            dateResign: $row['date_resign'],
             ssoId: (int) $row['sso_id'],
             divisionId: (int) $row['division_id'],
             positionId: (int) $row['position_id'],
@@ -187,8 +184,9 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             image: Image::fromArray($this->castToArray($row['image'])),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        );
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -199,6 +197,56 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             ->andWhere($this->scopeWhereNotDeleted())
             ->andWhere($this->scopeByStatus($status))
             ->exists();
+    }
+
+    /**
+     * @return array<int, Employee>
+     */
+    public function findAllActive(): array
+    {
+        /** @var array<int, array<string, mixed>> $rows */
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where($this->scopeWhereNotDeleted())
+            ->andWhere(['status' => ResourceStatus::active()->value()])
+            ->all();
+
+        $employees = [];
+        foreach ($rows as $row) {
+            $employee = $this->reconstituteFromRow($row);
+            $employees[$employee->getId()] = $employee;
+        }
+
+        return $employees;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function reconstituteFromRow(array $row): Employee
+    {
+        return Employee::reconstitute(
+            id: (int) $row['id'],
+            name: $row['name'],
+            username: $row['username'],
+            nik: $row['nik'],
+            email: $row['email'],
+            contact: Contact::fromArray($this->castToArray($row['contact'])),
+            birthDate: $row['birth_date'],
+            dateStart: $row['date_start'],
+            dateResign: $row['date_resign'],
+            ssoId: (int) $row['sso_id'],
+            divisionId: (int) $row['division_id'],
+            positionId: (int) $row['position_id'],
+            employeeTypeId: (int) $row['employee_type_id'],
+            branchId: (int) $row['branch_id'],
+            gradeId: isset($row['grade_id']) ? (int) $row['grade_id'] : null,
+            image: Image::fromArray($this->castToArray($row['image'])),
+            status: ResourceStatus::from((int)$row['status']),
+            detailInfo: DetailInfo::fromJson($row['detail_info']),
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+        );
     }
 
     public function list(SearchCriteria $criteria): PaginatedResult
@@ -453,9 +501,9 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             nik: $row['nik'],
             email: $row['email'],
             contact: Contact::fromArray($this->castToArray($row['contact'])),
-            birthDate: $row['birth_date'] ? BirthDate::fromString($row['birth_date']) : null,
-            dateStart: $row['date_start'] ? DateStart::fromString($row['date_start']) : null,
-            dateResign: $row['date_resign'] ? DateResign::fromString($row['date_resign']) : null,
+            birthDate: $row['birth_date'],
+            dateStart: $row['date_start'],
+            dateResign: $row['date_resign'],
             divisionId: (int) $row['division_id'],
             positionId: (int) $row['position_id'],
             employeeTypeId: (int) $row['employee_type_id'],
@@ -464,6 +512,7 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             image: Image::fromArray($this->castToArray($row['image'])),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()])
         );
 

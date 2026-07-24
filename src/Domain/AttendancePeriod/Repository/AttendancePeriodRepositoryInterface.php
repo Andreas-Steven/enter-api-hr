@@ -25,6 +25,8 @@ interface AttendancePeriodRepositoryInterface
 
     public function findByName(string $name, ?int $status = null): ?AttendancePeriod;
 
+    public function findByPeriod(int $period, ?int $status = null): ?AttendancePeriod;
+
     public function existsByName(string $name, ?int $status = null): bool;
     
     public function list(SearchCriteria $criteria): PaginatedResult;

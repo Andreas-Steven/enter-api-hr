@@ -8,6 +8,7 @@ namespace App\Application\AttendanceReport;
 use App\Application\AttendanceReport\Command\CreateAttendanceReportCommand;
 use App\Application\AttendanceReport\Command\UpdateAttendanceReportCommand;
 use App\Application\AttendanceReport\Dto\AttendanceReportResponse;
+use App\Application\AttendanceReport\AttendanceReportDetailInfoFactory;
 use App\Application\Shared\Factory\DetailInfoFactory;
 
 // Domain Layer
@@ -33,6 +34,7 @@ final class AttendanceReportApplicationService
     public function __construct(
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
+        private AttendanceReportDetailInfoFactory $reportDetailInfoFactory,
         private AttendanceReportRepositoryInterface $repository,
         private AttendanceReportDomainService $domainService
     ) {
@@ -85,25 +87,72 @@ final class AttendanceReportApplicationService
         );
     }
 
-    public function create(CreateAttendanceReportCommand $command): AttendanceReportResponse
+    /**
+     * @return AttendanceReportResponse[]
+     */
+    public function create(CreateAttendanceReportCommand $command): array
     {
-        $detailInfo = $this->detailInfoFactory
-            ->create(
-                detailInfo: []
-            )
-            ->build();
+        $summaries = $this->domainService->generateSummariesForPeriod($command->period);
 
-        $data = AttendanceReport::create(
-            name: $command->name,
-            status: ResourceStatus::from($command->status),
-            detailInfo: $detailInfo
-        );
+        $responses = [];
+        foreach ($summaries as $reportData) {
+            $existing = $this->repository->findByPeriodAndEmployeeId(
+                period: $reportData->getPeriod(),
+                employeeId: $reportData->getEmployeeId()
+            );
 
-        return AttendanceReportResponse::fromEntity(
-            entity: $this->repository->insert(
-                entity: $data
-            )
-        );
+            $detailInfo = $this->reportDetailInfoFactory
+                ->toDetailInfo(
+                    $this->reportDetailInfoFactory->createFromEmployee(
+                        employee: $reportData->getEmployee(),
+                        period: $reportData->getPeriod(),
+                    )
+                );
+
+            if ($existing !== null) {
+                $report = AttendanceReport::reconstitute(
+                    id: $existing->getId(),
+                    name: $reportData->getName(),
+                    period: $reportData->getPeriod(),
+                    employeeId: $reportData->getEmployeeId(),
+                    branchId: $reportData->getBranchId(),
+                    divisionId: $reportData->getDivisionId(),
+                    positionId: $reportData->getPositionId(),
+                    employeeTypeId: $reportData->getEmployeeTypeId(),
+                    workPatternId: $reportData->getWorkPatternId(),
+                    summary: $reportData->getSummary(),
+                    reportType: $reportData->getReportType(),
+                    status: $existing->getStatus(),
+                    detailInfo: $detailInfo,
+                    lockVersion: $existing->getLockVersion(),
+                );
+
+                $responses[] = AttendanceReportResponse::fromEntity(
+                    entity: $this->repository->update($report)
+                );
+            } else {
+                $report = AttendanceReport::create(
+                    name: $reportData->getName(),
+                    period: $reportData->getPeriod(),
+                    employeeId: $reportData->getEmployeeId(),
+                    branchId: $reportData->getBranchId(),
+                    divisionId: $reportData->getDivisionId(),
+                    positionId: $reportData->getPositionId(),
+                    employeeTypeId: $reportData->getEmployeeTypeId(),
+                    workPatternId: $reportData->getWorkPatternId(),
+                    summary: $reportData->getSummary(),
+                    reportType: $reportData->getReportType(),
+                    status: ResourceStatus::draft(),
+                    detailInfo: $detailInfo,
+                );
+
+                $responses[] = AttendanceReportResponse::fromEntity(
+                    entity: $this->repository->insert($report)
+                );
+            }
+        }
+
+        return $responses;
     }
 
     public function update(int $id, UpdateAttendanceReportCommand $command): AttendanceReportResponse

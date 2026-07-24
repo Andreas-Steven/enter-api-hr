@@ -7,6 +7,7 @@ namespace App\Infrastructure\Persistence\AttendanceReport;
 // Domain Layer
 use App\Domain\AttendanceReport\Entity\AttendanceReport;
 use App\Domain\AttendanceReport\Repository\AttendanceReportRepositoryInterface;
+use App\Domain\AttendanceReport\ValueObject\Summary;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
@@ -77,13 +78,7 @@ final class AttendanceReportRepository implements AttendanceReportRepositoryInte
             return null;
         }
 
-        return AttendanceReport::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        );
+        return $this->reconstituteFromRow($row);
     }
 
     public function findByName(string $name, ?int $status = null): ?AttendanceReport
@@ -100,13 +95,27 @@ final class AttendanceReportRepository implements AttendanceReportRepositoryInte
             return null;
         }
 
-        return AttendanceReport::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        return $this->reconstituteFromRow($row);
+    }
+
+    public function findByPeriodAndEmployeeId(int $period, int $employeeId, ?int $status = null): ?AttendanceReport
+    {
+        /** @var array<string, mixed>|false $row */
+        $row = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where([
+                'period' => $period,
+                'employee_id' => $employeeId,
+            ])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->one();
+
+        if (!$row) {
+            return null;
+        }
+
+        return $this->reconstituteFromRow($row);
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -125,6 +134,15 @@ final class AttendanceReportRepository implements AttendanceReportRepositoryInte
             ->select([
                 'id',
                 'name',
+                'period',
+                'employee_id',
+                'branch_id',
+                'division_id',
+                'position_id',
+                'employee_type_id',
+                'work_pattern_id',
+                'summary',
+                'report_type',
                 'status',
                 'detail_info',
                 SyncMdb::field(),
@@ -140,6 +158,14 @@ final class AttendanceReportRepository implements AttendanceReportRepositoryInte
             filters: $filter, 
             allowedColumns: [
                 'id', 
+                'period',
+                'employee_id',
+                'branch_id',
+                'division_id',
+                'position_id',
+                'employee_type_id',
+                'work_pattern_id',
+                'report_type',
                 'status', 
                 SyncMdb::field(),
             ]
@@ -162,7 +188,7 @@ final class AttendanceReportRepository implements AttendanceReportRepositoryInte
         $rows = iterator_to_array(
             $this->streamRows(
                 query: $query, 
-                jsonKeys: []
+                jsonKeys: ['summary']
             )
         );
 
@@ -196,8 +222,18 @@ final class AttendanceReportRepository implements AttendanceReportRepositoryInte
             $newEntity = AttendanceReport::reconstitute(
                 id: $newId,
                 name: $entity->getName(),
+                period: $entity->getPeriod(),
+                employeeId: $entity->getEmployeeId(),
+                branchId: $entity->getBranchId(),
+                divisionId: $entity->getDivisionId(),
+                positionId: $entity->getPositionId(),
+                employeeTypeId: $entity->getEmployeeTypeId(),
+                workPatternId: $entity->getWorkPatternId(),
+                summary: $entity->getSummary(),
+                reportType: $entity->getReportType(),
                 status: $entity->getStatus(),
                 detailInfo: $entity->getDetailInfo(),
+                syncMdb: $entity->getSyncMdb(),
                 lockVersion: LockVersion::create(),
             );
 
@@ -283,13 +319,7 @@ final class AttendanceReportRepository implements AttendanceReportRepositoryInte
             return null;
         }
 
-        $entity = AttendanceReport::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
-        );
+        $entity = $this->reconstituteFromRow($row);
 
         $entity->restore();
 
@@ -298,10 +328,43 @@ final class AttendanceReportRepository implements AttendanceReportRepositoryInte
         );
     }
 
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function reconstituteFromRow(array $row): AttendanceReport
+    {
+        return AttendanceReport::reconstitute(
+            id: (int) $row['id'],
+            name: $row['name'],
+            period: (int) $row['period'],
+            employeeId: (int) $row['employee_id'],
+            branchId: (int) $row['branch_id'],
+            divisionId: (int) $row['division_id'],
+            positionId: (int) $row['position_id'],
+            employeeTypeId: (int) $row['employee_type_id'],
+            workPatternId: (int) $row['work_pattern_id'],
+            summary: Summary::fromArray($this->castToArray($row['summary'] ?? null)),
+            reportType: $row['report_type'] ?? 'HEK',
+            status: ResourceStatus::from((int)$row['status']),
+            detailInfo: DetailInfo::fromJson($row['detail_info']),
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+        );
+    }
+
     private function mapEntityToTable(AttendanceReport $entity, int $lockVersion): array
     {
         return [
             'name' => $entity->getName(),
+            'period' => $entity->getPeriod(),
+            'employee_id' => $entity->getEmployeeId(),
+            'branch_id' => $entity->getBranchId(),
+            'division_id' => $entity->getDivisionId(),
+            'position_id' => $entity->getPositionId(),
+            'employee_type_id' => $entity->getEmployeeTypeId(),
+            'work_pattern_id' => $entity->getWorkPatternId(),
+            'summary' => $entity->getSummary()->toArray(),
+            'report_type' => $entity->getReportType(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             SyncMdb::field() => $entity->getSyncMdbValue(),

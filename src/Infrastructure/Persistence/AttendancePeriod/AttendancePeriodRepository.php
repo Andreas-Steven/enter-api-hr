@@ -79,17 +79,7 @@ final class AttendancePeriodRepository implements AttendancePeriodRepositoryInte
             return null;
         }
 
-        return AttendancePeriod::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            period: (int) $row['period'],
-            startDate: StartDate::fromJson($row['start_date']),
-            endDate: EndDate::fromJson($row['end_date']),
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        );
+        return $this->reconstituteFromRow($row);
     }
 
     public function findByName(string $name, ?int $status = null): ?AttendancePeriod
@@ -106,6 +96,31 @@ final class AttendancePeriodRepository implements AttendancePeriodRepositoryInte
             return null;
         }
 
+        return $this->reconstituteFromRow($row);
+    }
+
+    public function findByPeriod(int $period, ?int $status = null): ?AttendancePeriod
+    {
+        /** @var array<string, mixed>|false $row */
+        $row = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['period' => $period])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->one();
+
+        if (!$row) {
+            return null;
+        }
+
+        return $this->reconstituteFromRow($row);
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function reconstituteFromRow(array $row): AttendancePeriod
+    {
         return AttendancePeriod::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],

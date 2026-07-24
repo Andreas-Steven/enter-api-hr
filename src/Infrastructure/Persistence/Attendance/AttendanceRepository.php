@@ -96,11 +96,12 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
         return Attendance::reconstitute(
             id: (int) $row['id'],
             date: $row['date'],
-            attendance: $row['attendance'],
+            period: (int) $row['period'],
+            attendance: $this->castToArray($row['attendance'] ?? null),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()]),
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
         );
     }
 
@@ -121,12 +122,13 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
         return Attendance::reconstitute(
             id: (int) $row['id'],
             date: $row['date'],
-            period: $row['period'],
-            attendance: $row['attendance'],
+            period: (int) $row['period'],
+            attendance: $this->castToArray($row['attendance'] ?? null),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
+        );
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -137,6 +139,34 @@ final class AttendanceRepository implements AttendanceRepositoryInterface, Curre
             ->andWhere($this->scopeWhereNotDeleted())
             ->andWhere($this->scopeByStatus($status))
             ->exists();
+    }
+
+    /**
+     * @return Attendance[]
+     */
+    public function findByPeriod(int $period, ?int $status = null): array
+    {
+        /** @var array<int, array<string, mixed>> $rows */
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['period' => $period])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->all();
+
+        return array_map(
+            fn(array $row): Attendance => Attendance::reconstitute(
+                id: (int) $row['id'],
+                date: $row['date'],
+                period: (int) $row['period'],
+                attendance: $this->castToArray($row['attendance'] ?? null),
+                status: ResourceStatus::from((int)$row['status']),
+                detailInfo: DetailInfo::fromJson($row['detail_info']),
+                syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
+                lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+            ),
+            $rows
+        );
     }
 
     public function list(SearchCriteria $criteria): PaginatedResult

@@ -17,6 +17,7 @@ use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
+use App\Domain\AttendanceReport\ValueObject\Summary;
 
 final class AttendanceReport
 {
@@ -29,6 +30,15 @@ final class AttendanceReport
     protected function __construct(
         private readonly ?int $id,
         private string $name,
+        private int $period,
+        private int $employeeId,
+        private int $branchId,
+        private int $divisionId,
+        private int $positionId,
+        private int $employeeTypeId,
+        private int $workPatternId,
+        private Summary $summary,
+        private string $reportType,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
@@ -45,6 +55,15 @@ final class AttendanceReport
 
     public static function create(
         string $name,
+        int $period,
+        int $employeeId,
+        int $branchId,
+        int $divisionId,
+        int $positionId,
+        int $employeeTypeId,
+        int $workPatternId,
+        Summary $summary,
+        string $reportType,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
@@ -55,11 +74,20 @@ final class AttendanceReport
         );
 
         return new self(
-            id: null, 
-            name: $name, 
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            id: null,
+            name: $name,
+            period: $period,
+            employeeId: $employeeId,
+            branchId: $branchId,
+            divisionId: $divisionId,
+            positionId: $positionId,
+            employeeTypeId: $employeeTypeId,
+            workPatternId: $workPatternId,
+            summary: $summary,
+            reportType: $reportType,
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: LockVersion::create()
         );
     }
@@ -67,18 +95,35 @@ final class AttendanceReport
     public static function reconstitute(
         int $id,
         string $name,
+        int $period,
+        int $employeeId,
+        int $branchId,
+        int $divisionId,
+        int $positionId,
+        int $employeeTypeId,
+        int $workPatternId,
+        Summary $summary,
+        string $reportType,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
     ): self {
-
         return new self(
-            id: $id, 
-            name: $name, 
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            id: $id,
+            name: $name,
+            period: $period,
+            employeeId: $employeeId,
+            branchId: $branchId,
+            divisionId: $divisionId,
+            positionId: $positionId,
+            employeeTypeId: $employeeTypeId,
+            workPatternId: $workPatternId,
+            summary: $summary,
+            reportType: $reportType,
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: $lockVersion ?? LockVersion::create()
         );
     }
@@ -88,13 +133,67 @@ final class AttendanceReport
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'period' => $this->period,
+            'employee_id' => $this->employeeId,
+            'branch_id' => $this->branchId,
+            'division_id' => $this->divisionId,
+            'position_id' => $this->positionId,
+            'employee_type_id' => $this->employeeTypeId,
+            'work_pattern_id' => $this->workPatternId,
+            'summary' => $this->summary->toArray(),
+            'report_type' => $this->reportType,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
             LockVersion::field() => $this->lockVersion->value(),
         ];
     }
-    
+
+    public function getPeriod(): int
+    {
+        return $this->period;
+    }
+
+    public function getEmployeeId(): int
+    {
+        return $this->employeeId;
+    }
+
+    public function getBranchId(): int
+    {
+        return $this->branchId;
+    }
+
+    public function getDivisionId(): int
+    {
+        return $this->divisionId;
+    }
+
+    public function getPositionId(): int
+    {
+        return $this->positionId;
+    }
+
+    public function getEmployeeTypeId(): int
+    {
+        return $this->employeeTypeId;
+    }
+
+    public function getWorkPatternId(): int
+    {
+        return $this->workPatternId;
+    }
+
+    public function getSummary(): Summary
+    {
+        return $this->summary;
+    }
+
+    public function getReportType(): string
+    {
+        return $this->reportType;
+    }
+
     public function restore(): void
     {
         if (!$this->status->isDeleted()) {
@@ -105,13 +204,7 @@ final class AttendanceReport
                 )
             );
         }
-        
+
         $this->status = ResourceStatus::restored();
     }
-
-    /**
-     * Place AttendanceReport-specific business functions here, in addition to those
-     * provided by common traits/concerns (Identifiable, Stateful, etc.).
-     */ 
-    
 }

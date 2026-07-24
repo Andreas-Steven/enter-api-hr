@@ -25,6 +25,8 @@ interface AttendanceReportRepositoryInterface
 
     public function findByName(string $name, ?int $status = null): ?AttendanceReport;
 
+    public function findByPeriodAndEmployeeId(int $period, int $employeeId, ?int $status = null): ?AttendanceReport;
+
     public function existsByName(string $name, ?int $status = null): bool;
     
     public function list(SearchCriteria $criteria): PaginatedResult;

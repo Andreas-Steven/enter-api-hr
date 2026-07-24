@@ -93,27 +93,11 @@ final class AttendanceReportInputValidator extends AbstractValidator
     {
         return match ($context) {
             ValidationContext::CREATE => [
-                'name' => [
+                'period' => [
                     new StopOnError([
                         new Required(),
-                        new StringValue(),
-                        new Length(
-                            min: 3, 
-                            max: 255,
-                        ),
-                        new UniqueValue(
-                            table: 'attendance_report', 
-                            column: 'name', 
-                            ignoreId: null
-                        )
+                        new Integer(min: 1),
                     ])
-                ],
-                'status' => [
-                    new Required(),
-                    new Integer(),
-                    new In(
-                        RecordStatus::draftOnlyStates(),
-                    ),
                 ],
             ],
             ValidationContext::UPDATE => [
@@ -179,6 +163,46 @@ final class AttendanceReportInputValidator extends AbstractValidator
                     new Length(
                         min: 1,
                         max: 100,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'period' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'employee_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'branch_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'division_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'position_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'employee_type_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'work_pattern_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'report_type' => [
+                    new StringValue(
                         skipOnEmpty: true,
                     ),
                 ],
