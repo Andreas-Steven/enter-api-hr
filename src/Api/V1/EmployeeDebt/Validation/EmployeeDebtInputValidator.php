@@ -10,6 +10,8 @@ use App\Shared\Validation\AbstractValidator;
 use App\Shared\Context\ValidationContext;
 use App\Shared\Validation\Rules\HasNoDependencies;
 use App\Shared\Validation\Rules\UniqueValue;
+use App\Domain\Shared\Enums\PaymentTerm;
+use App\Domain\Shared\Enums\PaymentMethod;
 
 // Vendor Layer
 use Yiisoft\Validator\Rule\Required;
@@ -137,6 +139,39 @@ final class EmployeeDebtInputValidator extends AbstractValidator
                         max: 255,
                     ),
                 ],
+                'payment_term' => [
+                    new Required(),
+                    new Integer(),
+                    new In(
+                        [PaymentTerm::FULL, PaymentTerm::INSTALLMENT],
+                    ),
+                ],
+                'payment_method' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        [PaymentMethod::CASH, PaymentMethod::TRANSFER, PaymentMethod::PAYROLL_DEDUCTION, PaymentMethod::ADJUSTMENT],
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'installment_count' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                        min: 1,
+                    ),
+                ],
+                'installment_amount' => [
+                    new Number(
+                        skipOnEmpty: true,
+                        min: 0,
+                    ),
+                ],
+                'first_payment_date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Required(),
                     new Integer(),
@@ -198,6 +233,50 @@ final class EmployeeDebtInputValidator extends AbstractValidator
                     ),
                     new Length(
                         max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'allow_installment' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        [0, 1],
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'payment_term' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        ['full', 'installment'],
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'payment_method' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        ['cash', 'transfer', 'payroll_deduction', 'adjustment'],
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'installment_count' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                        min: 1,
+                    ),
+                ],
+                'installment_amount' => [
+                    new Number(
+                        skipOnEmpty: true,
+                        min: 0,
+                    ),
+                ],
+                'first_payment_date' => [
+                    new StringValue(
                         skipOnEmpty: true,
                     ),
                 ],
@@ -264,6 +343,48 @@ final class EmployeeDebtInputValidator extends AbstractValidator
                     ),
                     new Length(
                         max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'payment_term' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        ['full', 'installment'],
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'payment_method' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        ['cash', 'transfer', 'payroll_deduction', 'adjustment'],
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'installment_count' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                        min: 1,
+                    ),
+                ],
+                'is_settled' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        [0, 1],
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'allow_installment' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        [0, 1],
                         skipOnEmpty: true,
                     ),
                 ],

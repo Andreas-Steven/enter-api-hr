@@ -154,4 +154,10 @@ return [
     // Work Pattern Prefix
     'work_pattern.cannot_activate.no_working_day' => 'Tidak dapat mengaktifkan {resource}. Setidaknya harus ada satu hari kerja yang terdefinisi.',
     'work_pattern.cannot_activate.inactive_shifts' => 'Tidak dapat mengaktifkan {resource}. Shift tidak aktif: {shifts}.',
+
+    // Employee Debt Prefix
+    'employee_debt.installment_not_allowed_for_deduction_type' => 'Cicilan tidak diizinkan untuk tipe potongan: {payroll_deduction_type}',
+    'employee_debt.payment_method_required' => 'Metode pembayaran wajib diisi',
+    'employee_debt.installment_count_invalid' => 'Jumlah cicilan minimal {min}',
+    'employee_debt.first_payment_date_required' => 'Tanggal pembayaran pertama wajib diisi',
 ];

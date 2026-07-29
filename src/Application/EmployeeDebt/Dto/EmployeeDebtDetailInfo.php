@@ -15,7 +15,7 @@ final readonly class EmployeeDebtDetailInfo
     {
         return [
             'employee' => $this->employee,
-            'deduction_type' => $this->deduction_type,
+            'payroll_deduction_type' => $this->deduction_type,
         ];
     }
 
@@ -27,5 +27,15 @@ final readonly class EmployeeDebtDetailInfo
     public function getDeductionType(): ?array
     {
         return $this->deduction_type;
+    }
+
+    public function allowsInstallment(): bool
+    {
+        return !empty($this->deduction_type['allow_installment']);
+    }
+
+    public function createsDebt(): bool
+    {
+        return !empty($this->deduction_type['creates_debt']);
     }
 }

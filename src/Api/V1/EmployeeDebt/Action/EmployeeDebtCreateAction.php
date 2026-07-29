@@ -25,7 +25,21 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class EmployeeDebtCreateAction 
 {
-    private const ALLOWED_KEYS = ['employee_id', 'deduction_type_id', 'amount', 'date', 'note', 'status', 'sync_mdb'];
+    private const ALLOWED_KEYS = [
+        'employee_id',
+        'deduction_type_id',
+        'amount',
+        'date',
+        'note',
+        'payment_term',
+        'payment_method',
+        'installment_count',
+        'installment_amount',
+        'first_payment_date',
+        'status',
+        'detail_info',
+        'sync_mdb',
+    ];
 
     public function __construct(
         private EmployeeDebtInputValidator $inputValidator,
@@ -57,6 +71,10 @@ final class EmployeeDebtCreateAction
             date: (string) $params->get('date'),
             note: $params->get('note'),
             status: (int) $params->get('status'),
+            paymentTerm: (int) $params->get('payment_term'),
+            paymentMethod: $params->get('payment_method') ?: null,
+            installmentCount: (int) $params->get('installment_count'),
+            firstPaymentDate: $params->get('first_payment_date'),
             detailInfo: $params->get('detail_info')
         );
 

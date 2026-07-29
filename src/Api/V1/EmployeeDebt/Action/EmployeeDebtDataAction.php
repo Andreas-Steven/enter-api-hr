@@ -25,15 +25,31 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class EmployeeDebtDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'employee_id', 'deduction_type_id', 'amount', 'date', 'note', 'status'];
+    private const ALLOWED_KEYS = [
+        'id',
+        'name',
+        'employee_id',
+        'deduction_type_id',
+        'amount',
+        'date',
+        'note',
+        'allow_installment',
+        'payment_term',
+        'payment_method',
+        'installment_count',
+        'installment_amount',
+        'first_payment_date',
+        'status',
+    ];
     private const ALLOWED_SORT = [
-        'id' => 'id', 
-        'name' => 'name', 
-        'employee_id' => 'employee_id', 
-        'deduction_type_id' => 'deduction_type_id', 
-        'amount' => 'amount', 
-        'date' => 'date', 
-        'note' => 'note', 
+        'id' => 'id',
+        'name' => 'name',
+        'employee_id' => 'employee_id',
+        'deduction_type_id' => 'deduction_type_id',
+        'allow_installment' => 'allow_installment',
+        'amount' => 'amount',
+        'date' => 'date',
+        'note' => 'note',
         'status' => 'status',
     ];
 

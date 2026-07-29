@@ -29,7 +29,21 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class EmployeeDebtUpdateAction
 {
-    private const ALLOWED_KEYS = ['employee_id', 'deduction_type_id', 'amount', 'date', 'note', 'status', 'lock_version'];
+    private const ALLOWED_KEYS = [
+        'employee_id',
+        'deduction_type_id',
+        'amount',
+        'date',
+        'note',
+        'payment_term',
+        'payment_method',
+        'installment_count',
+        'installment_amount',
+        'first_payment_date',
+        'status',
+        'detail_info',
+        'lock_version',
+    ];
 
     public function __construct(
         private EmployeeDebtInputValidator $inputValidator,
@@ -78,12 +92,17 @@ final class EmployeeDebtUpdateAction
 
         $command = UpdateEmployeeDebtCommand::create(
             id: (int) $id,
-            employeeId: $params->get('employee_id'),
-            deductionTypeId: $params->get('deduction_type_id'),
+            employeeId: (int) $params->get('employee_id'),
+            deductionTypeId: (int) $params->get('deduction_type_id'),
             amount: (float) $params->get('amount'),
-            date: $params->get('date'),
+            date: (string) $params->get('date'),
             note: $params->get('note'),
             status: (int) $params->get('status'),
+            paymentTerm: (int) $params->get('payment_term'),
+            paymentMethod: $params->get('payment_method') ?: null,
+            installmentCount: (int) $params->get('installment_count'),
+            firstPaymentDate: $params->get('first_payment_date'),
+            detailInfo: $params->get('detail_info'),
             lockVersion: (int) $params->get('lock_version'),
         );
 

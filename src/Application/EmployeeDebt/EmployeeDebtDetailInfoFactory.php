@@ -6,7 +6,7 @@ namespace App\Application\EmployeeDebt;
 
 use App\Application\EmployeeDebt\Dto\EmployeeDebtDetailInfo;
 use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
-use App\Domain\DeductionType\Repository\DeductionTypeRepositoryInterface;
+use App\Domain\PayrollDeductionType\Repository\PayrollDeductionTypeRepositoryInterface;
 use App\Shared\ValueObject\Message;
 use App\Shared\Exception\NotFoundException;
 
@@ -14,7 +14,7 @@ final readonly class EmployeeDebtDetailInfoFactory
 {
     public function __construct(
         private EmployeeRepositoryInterface $employeeRepository,
-        private DeductionTypeRepositoryInterface $deductionTypeRepository,
+        private PayrollDeductionTypeRepositoryInterface $payrollDeductionTypeRepository,
     ) {}
 
     public function buildFromIds(int $employeeId, int $deductionTypeId): EmployeeDebtDetailInfo
@@ -37,7 +37,7 @@ final readonly class EmployeeDebtDetailInfoFactory
             );
         }
 
-        $deductionType = $this->deductionTypeRepository->findById(
+        $deductionType = $this->payrollDeductionTypeRepository->findById(
             id: $deductionTypeId,
             status: null
         );
@@ -47,7 +47,7 @@ final readonly class EmployeeDebtDetailInfoFactory
                 translate: Message::create(
                     key: 'resource.not_found',
                     params: [
-                        'resource' => 'DeductionType',
+                        'resource' => 'PayrollDeductionType',
                         'field' => 'id',
                         'value' => $deductionTypeId
                     ]

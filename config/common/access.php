@@ -273,17 +273,17 @@ return [
     'attendance-report.delete' => $isKasir,
     'attendance-report.restore' => $isSuperAdmin,
 
-    // DeductionType Access Rules
-    'deduction-type.index' => static fn (Actor $actor): bool => true,
-    'deduction-type.data' => [
+    // PayrollDeductionType Access Rules
+    'payroll-deduction-type.index' => static fn (Actor $actor): bool => true,
+    'payroll-deduction-type.data' => [
         $isSuperAdmin,
         $isKasir,
     ],
-    'deduction-type.view' => $isKasir,
-    'deduction-type.create' => $isKasir,
-    'deduction-type.update' => $isKasir,
-    'deduction-type.delete' => $isKasir,
-    'deduction-type.restore' => $isSuperAdmin,
+    'payroll-deduction-type.view' => $isKasir,
+    'payroll-deduction-type.create' => $isKasir,
+    'payroll-deduction-type.update' => $isKasir,
+    'payroll-deduction-type.delete' => $isKasir,
+    'payroll-deduction-type.restore' => $isSuperAdmin,
 
     // EmployeeDebt Access Rules
     'employee-debt.index' => static fn (Actor $actor): bool => true,
@@ -296,4 +296,40 @@ return [
     'employee-debt.update' => $isKasir,
     'employee-debt.delete' => $isKasir,
     'employee-debt.restore' => $isSuperAdmin,
+
+    // PayrollDeduction Access Rules
+    'payroll-deduction.index' => static fn (Actor $actor): bool => true,
+    'payroll-deduction.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'payroll-deduction.view' => $isKasir,
+    'payroll-deduction.create' => $isKasir,
+    'payroll-deduction.update' => $isKasir,
+    'payroll-deduction.delete' => $isKasir,
+    'payroll-deduction.restore' => $isSuperAdmin,
+
+    // EmployeeDebtInstallment Access Rules
+    'employee-debt-installment.index' => static fn (Actor $actor): bool => true,
+    'employee-debt-installment.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'employee-debt-installment.view' => $isKasir,
+    'employee-debt-installment.create' => $isKasir,
+    'employee-debt-installment.update' => $isKasir,
+    'employee-debt-installment.delete' => $isKasir,
+    'employee-debt-installment.restore' => $isSuperAdmin,
+
+    // EmployeeDebtTransaction Access Rules
+    'employee-debt-transaction.index' => static fn (Actor $actor): bool => true,
+    'employee-debt-transaction.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'employee-debt-transaction.view' => $isKasir,
+    'employee-debt-transaction.create' => $isKasir,
+    'employee-debt-transaction.update' => $isKasir,
+    'employee-debt-transaction.delete' => $isKasir,
+    'employee-debt-transaction.restore' => $isSuperAdmin,
 ];

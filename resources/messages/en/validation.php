@@ -154,4 +154,10 @@ return [
     // Work Pattern Prefix
     'work_pattern.cannot_activate.no_working_day' => 'Cannot activate {resource}. At least one working day must be defined.',
     'work_pattern.cannot_activate.inactive_shifts' => 'Cannot activate {resource}. Inactive shifts: {shifts}.',
+
+    // Employee Debt Prefix
+    'employee_debt.installment_not_allowed_for_deduction_type' => 'Installment not allowed for deduction type: {payroll_deduction_type}',
+    'employee_debt.payment_method_required' => 'Payment method is required',
+    'employee_debt.installment_count_invalid' => 'Installment count must be at least {min}',
+    'employee_debt.first_payment_date_required' => 'First payment date is required',
 ];
