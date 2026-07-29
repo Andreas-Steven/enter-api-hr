@@ -92,18 +92,18 @@ final class EmployeeDebtUpdateAction
 
         $command = UpdateEmployeeDebtCommand::create(
             id: (int) $id,
-            employeeId: (int) $params->get('employee_id'),
-            deductionTypeId: (int) $params->get('deduction_type_id'),
-            amount: (float) $params->get('amount'),
-            date: (string) $params->get('date'),
+            employeeId: $params->get('employee_id') !== null ? (int) $params->get('employee_id') : null,
+            deductionTypeId: $params->get('deduction_type_id') !== null ? (int) $params->get('deduction_type_id') : null,
+            amount: $params->get('amount') !== null ? (float) $params->get('amount') : null,
+            date: $params->get('date'),
             note: $params->get('note'),
-            status: (int) $params->get('status'),
-            paymentTerm: (int) $params->get('payment_term'),
+            status: $params->get('status') !== null ? (int) $params->get('status') : null,
+            paymentTerm: $params->get('payment_term') !== null ? (int) $params->get('payment_term') : null,
             paymentMethod: $params->get('payment_method') ?: null,
-            installmentCount: (int) $params->get('installment_count'),
+            installmentCount: $params->get('installment_count') !== null ? (int) $params->get('installment_count') : null,
             firstPaymentDate: $params->get('first_payment_date'),
             detailInfo: $params->get('detail_info'),
-            lockVersion: (int) $params->get('lock_version'),
+            lockVersion: $params->get('lock_version') !== null ? (int) $params->get('lock_version') : null,
         );
 
         $response = $this->applicationService->update(

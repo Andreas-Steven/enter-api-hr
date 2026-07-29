@@ -71,6 +71,13 @@ final class EmployeeDebtDataAction
                 allowedKeys: self::ALLOWED_KEYS
             )->with('status', RecordStatus::DRAFT->value);
 
+        // Convert integer to string for name field
+        // $filterArray = $filter->toArray();
+        // if (isset($filterArray['name']) && is_int($filterArray['name'])) {
+        //     $filterArray['name'] = (string) $filterArray['name'];
+        //     $filter = new \App\Shared\Request\RawParams($filterArray);
+        // }
+
         $this->inputValidator->validate(
             data: $filter,
             context: ValidationContext::SEARCH,

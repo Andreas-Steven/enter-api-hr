@@ -314,6 +314,15 @@ final class EmployeeDebtInputValidator extends AbstractValidator
                     ),
                 ],
                 'name' => [
+                    // new Callback(
+                    //     skipOnEmpty: true,
+                    //     callback: function ($value) {
+                    //         if (is_int($value)) {
+                    //             return (string) $value;
+                    //         }
+                    //         return $value;
+                    //     },
+                    // ),
                     new StringValue(
                         skipOnEmpty: true,
                     ),
