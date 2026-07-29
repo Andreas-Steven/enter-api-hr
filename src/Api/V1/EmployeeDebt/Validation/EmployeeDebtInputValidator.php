@@ -21,6 +21,7 @@ use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
 use Yiisoft\Validator\Rule\Number;
 use Yiisoft\Validator\Rule\StopOnError;
+use Yiisoft\Validator\Rule\Callback;
 
 /**
  * EmployeeDebt Input Validator

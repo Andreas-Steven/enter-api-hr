@@ -7,6 +7,7 @@ namespace App\Application\EmployeeDebt;
 use App\Application\EmployeeDebt\Dto\EmployeeDebtDetailInfo;
 use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
 use App\Domain\PayrollDeductionType\Repository\PayrollDeductionTypeRepositoryInterface;
+use App\Shared\Enums\RecordStatus;
 use App\Shared\ValueObject\Message;
 use App\Shared\Exception\NotFoundException;
 
@@ -39,7 +40,7 @@ final readonly class EmployeeDebtDetailInfoFactory
 
         $deductionType = $this->payrollDeductionTypeRepository->findById(
             id: $deductionTypeId,
-            status: null
+            status: RecordStatus::ACTIVE->value
         );
 
         if ($deductionType === null) {
