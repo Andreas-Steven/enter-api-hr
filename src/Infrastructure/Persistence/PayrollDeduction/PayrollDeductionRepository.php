@@ -171,16 +171,29 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
                 'employee_debt_id',
                 'employee_debt_installment_id',
                 'period',
+                'amount',
                 'status', 
                 SyncMdb::field(),
             ]
         );
+
+        if (array_key_exists('attendance_report_id', $filter) && $filter['attendance_report_id'] === null) {
+            $query->andWhere(['attendance_report_id' => null]);
+        }
 
         if (!empty($filter['name'])) {
             $this->queryConditionApplier->orLike(
                 query: $query, 
                 operator: self::LIKE_OPERATOR,
                 conditions: ['name' => '%' . $filter['name'] . '%']
+            );
+        }
+
+        if (!empty($filter['description'])) {
+            $this->queryConditionApplier->orLike(
+                query: $query, 
+                operator: self::LIKE_OPERATOR,
+                conditions: ['description' => '%' . $filter['description'] . '%']
             );
         }
 

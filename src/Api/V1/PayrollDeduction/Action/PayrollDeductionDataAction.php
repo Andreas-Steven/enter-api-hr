@@ -25,10 +25,30 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class PayrollDeductionDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'status'];
+    private const ALLOWED_KEYS = [
+        'id',
+        'name',
+        'employee_id',
+        'deduction_type_id',
+        'attendance_report_id',
+        'employee_debt_id',
+        'employee_debt_installment_id',
+        'period',
+        'amount',
+        'description',
+        'status',
+    ];
     private const ALLOWED_SORT = [
-        'id' => 'id', 
-        'name' => 'name', 
+        'id' => 'id',
+        'name' => 'name',
+        'employee_id' => 'employee_id',
+        'deduction_type_id' => 'deduction_type_id',
+        'attendance_report_id' => 'attendance_report_id',
+        'employee_debt_id' => 'employee_debt_id',
+        'employee_debt_installment_id' => 'employee_debt_installment_id',
+        'period' => 'period',
+        'amount' => 'amount',
+        'description' => 'description',
         'status' => 'status',
     ];
 

@@ -288,6 +288,21 @@ final class PayrollDeductionInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'amount' => [
+                    new Number(
+                        skipOnEmpty: true,
+                        min: 0,
+                    ),
+                ],
+                'description' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,

@@ -226,12 +226,34 @@ final class EmployeeDebtInstallmentInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'sequence' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                        min: 1,
+                    ),
+                ],
+                'due_date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'amount' => [
+                    new Number(
+                        skipOnEmpty: true,
+                        min: 0,
+                    ),
+                ],
                 'payment_status' => [
                     new Integer(
                         skipOnEmpty: true,
                     ),
                     new In(
                         [0, 1, 2],
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'paid_at' => [
+                    new StringValue(
                         skipOnEmpty: true,
                     ),
                 ],

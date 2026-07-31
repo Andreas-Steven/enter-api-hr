@@ -187,6 +187,13 @@ final class EmployeeDebtInstallmentRepository implements EmployeeDebtInstallment
 
         $filter = $criteria->filter;
 
+        $paidAtFilterIsNull = array_key_exists('paid_at', $filter)
+            && ($filter['paid_at'] === null || $filter['paid_at'] === 'null');
+
+        if ($paidAtFilterIsNull) {
+            unset($filter['paid_at']);
+        }
+
         $this->queryConditionApplier->filterByExactMatch(
             query: $query, 
             filters: $filter, 
@@ -194,11 +201,19 @@ final class EmployeeDebtInstallmentRepository implements EmployeeDebtInstallment
                 'id', 
                 'employee_debt_id',
                 'payroll_deduction_id',
+                'sequence',
+                'due_date',
+                'amount',
                 'payment_status',
+                'paid_at',
                 'status', 
                 SyncMdb::field(),
             ]
         );
+
+        if ($paidAtFilterIsNull) {
+            $query->andWhere(['paid_at' => null]);
+        }
 
         if (!empty($filter['name'])) {
             $this->queryConditionApplier->orLike(
