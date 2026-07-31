@@ -102,11 +102,13 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                 ],
                 'employee_debt_installment_id' => [
                     new Integer(
+                        skipOnEmpty: true,
                         min: 1,
                     ),
                 ],
                 'payroll_deduction_id' => [
                     new Integer(
+                        skipOnEmpty: true,
                         min: 1,
                     ),
                 ],

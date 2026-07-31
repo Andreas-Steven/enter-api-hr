@@ -77,21 +77,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             return null;
         }
 
-        return PayrollDeduction::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            employeeId: (int) $row['employee_id'],
-            deductionTypeId: (int) $row['deduction_type_id'],
-            attendanceReportId: $row['attendance_report_id'] !== null ? (int) $row['attendance_report_id'] : null,
-            employeeDebtId: $row['employee_debt_id'] !== null ? (int) $row['employee_debt_id'] : null,
-            employeeDebtInstallmentId: $row['employee_debt_installment_id'] !== null ? (int) $row['employee_debt_installment_id'] : null,
-            period: $row['period'],
-            amount: (float) $row['amount'],
-            description: $row['description'] ?? null,
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        );
+        return $this->hydrateRow($row);
     }
 
     public function findByName(string $name, ?int $status = null): ?PayrollDeduction
@@ -108,21 +94,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             return null;
         }
 
-        return PayrollDeduction::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            employeeId: (int) $row['employee_id'],
-            deductionTypeId: (int) $row['deduction_type_id'],
-            attendanceReportId: $row['attendance_report_id'] !== null ? (int) $row['attendance_report_id'] : null,
-            employeeDebtId: $row['employee_debt_id'] !== null ? (int) $row['employee_debt_id'] : null,
-            employeeDebtInstallmentId: $row['employee_debt_installment_id'] !== null ? (int) $row['employee_debt_installment_id'] : null,
-            period: $row['period'],
-            amount: (float) $row['amount'],
-            description: $row['description'] ?? null,
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        return $this->hydrateRow($row);
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -130,6 +102,35 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
         return (new Query($this->db))
             ->from(self::TABLE_NAME)
             ->where(['name' => $name])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->exists();
+    }
+
+    public function findByEmployeeAndPeriod(int $employeeId, string $period, ?int $status = null): array
+    {
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where([
+                'employee_id' => $employeeId,
+                'period' => $period,
+            ])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->orderBy(['id' => SORT_ASC])
+            ->all();
+
+        return array_map(
+            fn (array $row): PayrollDeduction => $this->hydrateRow($row),
+            $rows
+        );
+    }
+
+    public function existsForInstallment(int $employeeDebtInstallmentId, ?int $status = null): bool
+    {
+        return (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['employee_debt_installment_id' => $employeeDebtInstallmentId])
             ->andWhere($this->scopeWhereNotDeleted())
             ->andWhere($this->scopeByStatus($status))
             ->exists();
@@ -321,21 +322,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             return null;
         }
 
-        $entity = PayrollDeduction::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            employeeId: (int) $row['employee_id'],
-            deductionTypeId: (int) $row['deduction_type_id'],
-            attendanceReportId: $row['attendance_report_id'] !== null ? (int) $row['attendance_report_id'] : null,
-            employeeDebtId: $row['employee_debt_id'] !== null ? (int) $row['employee_debt_id'] : null,
-            employeeDebtInstallmentId: $row['employee_debt_installment_id'] !== null ? (int) $row['employee_debt_installment_id'] : null,
-            period: $row['period'],
-            amount: (float) $row['amount'],
-            description: $row['description'] ?? null,
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
-        );
+        $entity = $this->hydrateRow($row);
 
         $entity->restore();
 
@@ -361,5 +348,27 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             SyncMdb::field() => $entity->getSyncMdbValue(),
             LockVersion::field() => $lockVersion,
         ];
+    }
+
+    /**
+     * Hydrate satu baris DB menjadi PayrollDeduction entity.
+     */
+    private function hydrateRow(array $row): PayrollDeduction
+    {
+        return PayrollDeduction::reconstitute(
+            id: (int) $row['id'],
+            name: $row['name'],
+            employeeId: (int) $row['employee_id'],
+            deductionTypeId: (int) $row['deduction_type_id'],
+            attendanceReportId: $row['attendance_report_id'] !== null ? (int) $row['attendance_report_id'] : null,
+            employeeDebtId: $row['employee_debt_id'] !== null ? (int) $row['employee_debt_id'] : null,
+            employeeDebtInstallmentId: $row['employee_debt_installment_id'] !== null ? (int) $row['employee_debt_installment_id'] : null,
+            period: $row['period'],
+            amount: (float) $row['amount'],
+            description: $row['description'] ?? null,
+            status: ResourceStatus::from((int) $row['status']),
+            detailInfo: DetailInfo::fromJson($row['detail_info']),
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
     }
 }

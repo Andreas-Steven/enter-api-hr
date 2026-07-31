@@ -8,6 +8,7 @@ namespace App\Application\EmployeeDebtInstallment;
 use App\Application\EmployeeDebtInstallment\Command\CreateEmployeeDebtInstallmentCommand;
 use App\Application\EmployeeDebtInstallment\Command\UpdateEmployeeDebtInstallmentCommand;
 use App\Application\EmployeeDebtInstallment\Dto\EmployeeDebtInstallmentResponse;
+use App\Application\EmployeeDebtInstallment\EmployeeDebtInstallmentDetailInfoFactory;
 use App\Application\Shared\Factory\DetailInfoFactory;
 
 // Domain Layer
@@ -25,7 +26,7 @@ use App\Shared\ValueObject\Message;
 
 /**
  * EmployeeDebtInstallment Application Service (Mandor/Alur Kerja)
- * 
+ *
  * Orchestrates use cases and coordinates domain & infrastructure
  */
 final class EmployeeDebtInstallmentApplicationService
@@ -33,6 +34,7 @@ final class EmployeeDebtInstallmentApplicationService
     public function __construct(
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
+        private EmployeeDebtInstallmentDetailInfoFactory $installmentInfoFactory,
         private EmployeeDebtInstallmentRepositoryInterface $repository,
         private EmployeeDebtInstallmentDomainService $domainService
     ) {
@@ -87,9 +89,20 @@ final class EmployeeDebtInstallmentApplicationService
 
     public function create(CreateEmployeeDebtInstallmentCommand $command): EmployeeDebtInstallmentResponse
     {
+        $this->domainService->guardCreate(
+            employeeDebtId: $command->employeeDebtId,
+            sequence: $command->sequence,
+            amount: $command->amount,
+        );
+
+        $installmentInfo = $this->installmentInfoFactory->buildFromIds(
+            employeeDebtId: $command->employeeDebtId,
+            payrollDeductionId: $command->payrollDeductionId,
+        );
+
         $detailInfo = $this->detailInfoFactory
             ->create(
-                detailInfo: $command->detailInfo ?? []
+                detailInfo: $installmentInfo->toArray()
             )
             ->build();
 
@@ -135,6 +148,13 @@ final class EmployeeDebtInstallmentApplicationService
             newStatus: $newStatus
         );
 
+        // Domain validation untuk perubahan sequence & employee_debt_id
+        $this->domainService->guardUpdate(
+            installment: $data,
+            newSequence: $command->sequence,
+            newEmployeeDebtId: $command->employeeDebtId,
+        );
+
         if ($command->employeeDebtId !== null) {
             $data->setEmployeeDebtId($command->employeeDebtId);
         }
@@ -159,7 +179,13 @@ final class EmployeeDebtInstallmentApplicationService
 
         if ($command->paymentStatus !== null) {
             match ((int) $command->paymentStatus) {
-                1 => $data->markAsPaid(),
+                1 => (function () use ($data, $command): void {
+                    $this->domainService->guardMarkAsPaid(
+                        installment: $data,
+                        payrollDeductionId: $command->payrollDeductionId,
+                    );
+                    $data->markAsPaid($command->payrollDeductionId);
+                })(),
                 2 => $data->markAsWaived(),
                 default => null,
             };

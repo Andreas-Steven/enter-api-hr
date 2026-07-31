@@ -26,9 +26,23 @@ interface EmployeeDebtTransactionRepositoryInterface
     public function findByName(string $name, ?int $status = null): ?EmployeeDebtTransaction;
 
     public function existsByName(string $name, ?int $status = null): bool;
-    
+
+    /**
+     * Ambil semua transaksi (ledger) milik satu employee_debt, urut by transaction_date ASC.
+     *
+     * @return list<EmployeeDebtTransaction>
+     */
+    public function findByEmployeeDebtId(int $employeeDebtId, ?int $status = null): array;
+
+    /**
+     * Ambil transaksi yang menandai pembayaran untuk satu installment spesifik.
+     *
+     * @return list<EmployeeDebtTransaction>
+     */
+    public function findByEmployeeDebtInstallmentId(int $installmentId, ?int $status = null): array;
+
     public function list(SearchCriteria $criteria): PaginatedResult;
-    
+
     public function insert(EmployeeDebtTransaction $employeeDebtTransaction): EmployeeDebtTransaction;
 
     public function update(EmployeeDebtTransaction $employeeDebtTransaction): EmployeeDebtTransaction;

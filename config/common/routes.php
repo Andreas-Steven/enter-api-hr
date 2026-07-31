@@ -803,6 +803,10 @@ return [
                 ->action(PayrollDeductionV1\PayrollDeductionRestoreAction::class)
                 ->name('v1/payroll-deduction/restore')
                 ->defaults(['permission' => 'payroll-deduction.restore']),
+            Route::post('/payroll-deduction/generate')
+                ->action(PayrollDeductionV1\PayrollDeductionGenerateAction::class)
+                ->name('v1/payroll-deduction/generate')
+                ->defaults(['permission' => 'payroll-deduction.generate']),
 
             // EmployeeDebtInstallment Routes
             Route::get('/employee-debt-installment')

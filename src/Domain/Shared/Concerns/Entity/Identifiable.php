@@ -75,9 +75,10 @@ trait Identifiable
         return $this;
     }
 
-    public function updateSyncMdb(?SyncMdb $syncMdb): void
+    public function updateSyncMdb(?SyncMdb $syncMdb): self
     {
         $this->syncMdb = $syncMdb;
+        return $this;
     }
 
     public function getLockVersion(): LockVersion

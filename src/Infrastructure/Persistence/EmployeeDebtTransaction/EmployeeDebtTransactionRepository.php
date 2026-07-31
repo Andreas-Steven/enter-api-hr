@@ -77,20 +77,7 @@ final class EmployeeDebtTransactionRepository implements EmployeeDebtTransaction
             return null;
         }
 
-        return EmployeeDebtTransaction::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            employeeDebtId: (int) $row['employee_debt_id'],
-            employeeDebtInstallmentId: $row['employee_debt_installment_id'] !== null ? (int) $row['employee_debt_installment_id'] : null,
-            payrollDeductionId: $row['payroll_deduction_id'] !== null ? (int) $row['payroll_deduction_id'] : null,
-            type: $row['type'],
-            amount: (float) $row['amount'],
-            transactionDate: $row['transaction_date'],
-            note: $row['note'] ?? null,
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        );
+        return $this->hydrateRow($row);
     }
 
     public function findByName(string $name, ?int $status = null): ?EmployeeDebtTransaction
@@ -107,20 +94,7 @@ final class EmployeeDebtTransactionRepository implements EmployeeDebtTransaction
             return null;
         }
 
-        return EmployeeDebtTransaction::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            employeeDebtId: (int) $row['employee_debt_id'],
-            employeeDebtInstallmentId: $row['employee_debt_installment_id'] !== null ? (int) $row['employee_debt_installment_id'] : null,
-            payrollDeductionId: $row['payroll_deduction_id'] !== null ? (int) $row['payroll_deduction_id'] : null,
-            type: $row['type'],
-            amount: (float) $row['amount'],
-            transactionDate: $row['transaction_date'],
-            note: $row['note'] ?? null,
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        return $this->hydrateRow($row);
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -131,6 +105,38 @@ final class EmployeeDebtTransactionRepository implements EmployeeDebtTransaction
             ->andWhere($this->scopeWhereNotDeleted())
             ->andWhere($this->scopeByStatus($status))
             ->exists();
+    }
+
+    public function findByEmployeeDebtId(int $employeeDebtId, ?int $status = null): array
+    {
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['employee_debt_id' => $employeeDebtId])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->orderBy(['transaction_date' => SORT_ASC, 'id' => SORT_ASC])
+            ->all();
+
+        return array_map(
+            fn (array $row): EmployeeDebtTransaction => $this->hydrateRow($row),
+            $rows
+        );
+    }
+
+    public function findByEmployeeDebtInstallmentId(int $installmentId, ?int $status = null): array
+    {
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['employee_debt_installment_id' => $installmentId])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->orderBy(['transaction_date' => SORT_ASC, 'id' => SORT_ASC])
+            ->all();
+
+        return array_map(
+            fn (array $row): EmployeeDebtTransaction => $this->hydrateRow($row),
+            $rows
+        );
     }
 
     public function list(SearchCriteria $criteria): PaginatedResult
@@ -315,20 +321,7 @@ final class EmployeeDebtTransactionRepository implements EmployeeDebtTransaction
             return null;
         }
 
-        $entity = EmployeeDebtTransaction::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            employeeDebtId: (int) $row['employee_debt_id'],
-            employeeDebtInstallmentId: $row['employee_debt_installment_id'] !== null ? (int) $row['employee_debt_installment_id'] : null,
-            payrollDeductionId: $row['payroll_deduction_id'] !== null ? (int) $row['payroll_deduction_id'] : null,
-            type: $row['type'],
-            amount: (float) $row['amount'],
-            transactionDate: $row['transaction_date'],
-            note: $row['note'] ?? null,
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
-        );
+        $entity = $this->hydrateRow($row);
 
         $entity->restore();
 
@@ -353,5 +346,26 @@ final class EmployeeDebtTransactionRepository implements EmployeeDebtTransaction
             SyncMdb::field() => $entity->getSyncMdbValue(),
             LockVersion::field() => $lockVersion,
         ];
+    }
+
+    /**
+     * Hydrate satu baris DB menjadi EmployeeDebtTransaction entity.
+     */
+    private function hydrateRow(array $row): EmployeeDebtTransaction
+    {
+        return EmployeeDebtTransaction::reconstitute(
+            id: (int) $row['id'],
+            name: $row['name'],
+            employeeDebtId: (int) $row['employee_debt_id'],
+            employeeDebtInstallmentId: $row['employee_debt_installment_id'] !== null ? (int) $row['employee_debt_installment_id'] : null,
+            payrollDeductionId: $row['payroll_deduction_id'] !== null ? (int) $row['payroll_deduction_id'] : null,
+            type: $row['type'],
+            amount: (float) $row['amount'],
+            transactionDate: $row['transaction_date'],
+            note: $row['note'] ?? null,
+            status: ResourceStatus::from((int) $row['status']),
+            detailInfo: DetailInfo::fromJson($row['detail_info']),
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
     }
 }

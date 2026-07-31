@@ -137,6 +137,11 @@ final class EmployeeDebtApplicationService
             );
         }
 
+        $this->domainService->generatePayrollDeductionSchedule(
+            debt: $data,
+            debtInfo: $debtInfo,
+        );
+
         return EmployeeDebtResponse::fromEntity(
             entity: $data
         );

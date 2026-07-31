@@ -77,20 +77,7 @@ final class EmployeeDebtInstallmentRepository implements EmployeeDebtInstallment
             return null;
         }
 
-        return EmployeeDebtInstallment::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            employeeDebtId: (int) $row['employee_debt_id'],
-            payrollDeductionId: $row['payroll_deduction_id'] !== null ? (int) $row['payroll_deduction_id'] : null,
-            sequence: (int) $row['sequence'],
-            dueDate: $row['due_date'],
-            amount: (float) $row['amount'],
-            paymentStatus: (int) $row['payment_status'],
-            paidAt: $row['paid_at'] ?? null,
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        );
+        return $this->hydrateRow($row);
     }
 
     public function findByName(string $name, ?int $status = null): ?EmployeeDebtInstallment
@@ -107,20 +94,7 @@ final class EmployeeDebtInstallmentRepository implements EmployeeDebtInstallment
             return null;
         }
 
-        return EmployeeDebtInstallment::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            employeeDebtId: (int) $row['employee_debt_id'],
-            payrollDeductionId: $row['payroll_deduction_id'] !== null ? (int) $row['payroll_deduction_id'] : null,
-            sequence: (int) $row['sequence'],
-            dueDate: $row['due_date'],
-            amount: (float) $row['amount'],
-            paymentStatus: (int) $row['payment_status'],
-            paidAt: $row['paid_at'] ?? null,
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        return $this->hydrateRow($row);
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -131,6 +105,63 @@ final class EmployeeDebtInstallmentRepository implements EmployeeDebtInstallment
             ->andWhere($this->scopeWhereNotDeleted())
             ->andWhere($this->scopeByStatus($status))
             ->exists();
+    }
+
+    public function findByEmployeeDebtId(int $employeeDebtId, ?int $status = null): array
+    {
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['employee_debt_id' => $employeeDebtId])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->orderBy(['sequence' => SORT_ASC])
+            ->all();
+
+        return array_map(
+            fn (array $row): EmployeeDebtInstallment => $this->hydrateRow($row),
+            $rows
+        );
+    }
+
+    public function findPendingByEmployeeDebtId(int $employeeDebtId, ?int $status = null): array
+    {
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where([
+                'employee_debt_id' => $employeeDebtId,
+                'payment_status' => 0,
+            ])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->orderBy(['sequence' => SORT_ASC])
+            ->all();
+
+        return array_map(
+            fn (array $row): EmployeeDebtInstallment => $this->hydrateRow($row),
+            $rows
+        );
+    }
+
+    public function findDueForPeriod(string $period, ?int $status = null): array
+    {
+        // Periode YYYY-MM: due_date jatuh di bulan itu, payment_status = 0 (pending).
+        $start = $period . '-01';
+        $end = $period . '-' . date('t', strtotime($start));
+
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['payment_status' => 0])
+            ->andWhere(['>=', 'due_date', $start])
+            ->andWhere(['<=', 'due_date', $end])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->orderBy(['due_date' => SORT_ASC, 'sequence' => SORT_ASC])
+            ->all();
+
+        return array_map(
+            fn (array $row): EmployeeDebtInstallment => $this->hydrateRow($row),
+            $rows
+        );
     }
 
     public function list(SearchCriteria $criteria): PaginatedResult
@@ -314,20 +345,7 @@ final class EmployeeDebtInstallmentRepository implements EmployeeDebtInstallment
             return null;
         }
 
-        $entity = EmployeeDebtInstallment::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            employeeDebtId: (int) $row['employee_debt_id'],
-            payrollDeductionId: $row['payroll_deduction_id'] !== null ? (int) $row['payroll_deduction_id'] : null,
-            sequence: (int) $row['sequence'],
-            dueDate: $row['due_date'],
-            amount: (float) $row['amount'],
-            paymentStatus: (int) $row['payment_status'],
-            paidAt: $row['paid_at'] ?? null,
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
-        );
+        $entity = $this->hydrateRow($row);
 
         $entity->restore();
 
@@ -352,5 +370,27 @@ final class EmployeeDebtInstallmentRepository implements EmployeeDebtInstallment
             SyncMdb::field() => $entity->getSyncMdbValue(),
             LockVersion::field() => $lockVersion,
         ];
+    }
+
+    /**
+     * Hydrate satu baris DB menjadi EmployeeDebtInstallment entity.
+     * Digunakan bersama oleh findById / findByName / findByEmployeeDebtId / dst.
+     */
+    private function hydrateRow(array $row): EmployeeDebtInstallment
+    {
+        return EmployeeDebtInstallment::reconstitute(
+            id: (int) $row['id'],
+            name: $row['name'],
+            employeeDebtId: (int) $row['employee_debt_id'],
+            payrollDeductionId: $row['payroll_deduction_id'] !== null ? (int) $row['payroll_deduction_id'] : null,
+            sequence: (int) $row['sequence'],
+            dueDate: $row['due_date'],
+            amount: (float) $row['amount'],
+            paymentStatus: (int) $row['payment_status'],
+            paidAt: $row['paid_at'] ?? null,
+            status: ResourceStatus::from((int) $row['status']),
+            detailInfo: DetailInfo::fromJson($row['detail_info']),
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
     }
 }

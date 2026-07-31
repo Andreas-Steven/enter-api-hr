@@ -9,6 +9,8 @@ use App\Domain\EmployeeDebt\Entity\EmployeeDebt;
 use App\Domain\EmployeeDebt\Repository\EmployeeDebtRepositoryInterface;
 use App\Domain\EmployeeDebtInstallment\Entity\EmployeeDebtInstallment;
 use App\Domain\EmployeeDebtInstallment\Repository\EmployeeDebtInstallmentRepositoryInterface;
+use App\Domain\PayrollDeduction\Entity\PayrollDeduction;
+use App\Domain\PayrollDeduction\Repository\PayrollDeductionRepositoryInterface;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\ResourceStatus;
@@ -33,6 +35,7 @@ final class EmployeeDebtDomainService
     public function __construct(
         private EmployeeDebtRepositoryInterface $repository,
         private EmployeeDebtInstallmentRepositoryInterface $installmentRepository,
+        private PayrollDeductionRepositoryInterface $payrollDeductionRepository,
     ) {}
 
     public function guardDebtCreation(
@@ -133,5 +136,113 @@ final class EmployeeDebtDomainService
 
             $this->installmentRepository->insert($installment);
         }
+    }
+
+    /**
+     * Auto-generate PayrollDeduction records saat debt dibuat dengan
+     * payment_method = payroll_deduction.
+     *
+     * - INSTALLMENT: buat PayrollDeduction per installment, period dari due_date.
+     * - FULL: buat 1 PayrollDeduction untuk full amount, period dari first_payment_date.
+     *
+     * Status = DRAFT karena periode gaji belum tiba.
+     * Installment.payrollDeductionId di-link ke PayrollDeduction yang dibuat.
+     */
+    public function generatePayrollDeductionSchedule(
+        EmployeeDebt $debt,
+        EmployeeDebtDetailInfo $debtInfo,
+    ): void {
+        if ($debt->getPaymentMethod() !== 'payroll_deduction') {
+            return;
+        }
+
+        if ($debt->getPaymentTerm() === PaymentTerm::FULL) {
+            $this->generateSinglePayrollDeduction($debt, $debtInfo);
+            return;
+        }
+
+        $installments = $this->installmentRepository->findByEmployeeDebtId(
+            employeeDebtId: $debt->getId(),
+            status: null,
+        );
+
+        foreach ($installments as $installment) {
+            $period = substr($installment->getDueDate(), 0, 7);
+
+            $deduction = PayrollDeduction::create(
+                name: sprintf('DED-%d-%s-INS%d', $debt->getEmployeeId(), $period, $installment->getId()),
+                employeeId: $debt->getEmployeeId(),
+                deductionTypeId: $debt->getDeductionTypeId(),
+                attendanceReportId: null,
+                employeeDebtId: $debt->getId(),
+                employeeDebtInstallmentId: $installment->getId(),
+                period: $period,
+                amount: $installment->getAmount(),
+                description: sprintf(
+                    'Auto-generated installment #%d for %s (due %s)',
+                    $installment->getSequence(),
+                    $debt->getName(),
+                    $installment->getDueDate(),
+                ),
+                status: ResourceStatus::draft(),
+                detailInfo: DetailInfo::fromArray([
+                    'employee' => $debtInfo->employee,
+                    'payroll_deduction_type' => $debtInfo->deduction_type,
+                    'employee_debt' => [
+                        'id' => $debt->getId(),
+                        'name' => $debt->getName(),
+                    ],
+                    'employee_debt_installment' => [
+                        'id' => $installment->getId(),
+                        'name' => $installment->getName(),
+                        'sequence' => $installment->getSequence(),
+                    ],
+                ]),
+            );
+
+            $deduction = $this->payrollDeductionRepository->insert($deduction);
+
+            $installment->linkPayrollDeduction($deduction->getId());
+            $this->installmentRepository->update($installment);
+        }
+    }
+
+    private function generateSinglePayrollDeduction(
+        EmployeeDebt $debt,
+        EmployeeDebtDetailInfo $debtInfo,
+    ): void {
+        $firstPaymentDate = $debt->getFirstPaymentDate();
+        if ($firstPaymentDate === null) {
+            return;
+        }
+
+        $period = substr($firstPaymentDate, 0, 7);
+
+        $deduction = PayrollDeduction::create(
+            name: sprintf('DED-%d-%s', $debt->getEmployeeId(), $period),
+            employeeId: $debt->getEmployeeId(),
+            deductionTypeId: $debt->getDeductionTypeId(),
+            attendanceReportId: null,
+            employeeDebtId: $debt->getId(),
+            employeeDebtInstallmentId: null,
+            period: $period,
+            amount: $debt->getAmount(),
+            description: sprintf(
+                'Auto-generated full payment for %s (due %s)',
+                $debt->getName(),
+                $firstPaymentDate,
+            ),
+            status: ResourceStatus::draft(),
+            detailInfo: DetailInfo::fromArray([
+                'employee' => $debtInfo->employee,
+                'payroll_deduction_type' => $debtInfo->deduction_type,
+                'employee_debt' => [
+                    'id' => $debt->getId(),
+                    'name' => $debt->getName(),
+                ],
+            ]),
+        );
+
+        $this->payrollDeductionRepository->insert($deduction);
     }
 }

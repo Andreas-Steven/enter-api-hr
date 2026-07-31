@@ -66,10 +66,10 @@ final class EmployeeDebtTransactionCreateAction
             type: (string) $params->get('type'),
             amount: (float) $params->get('amount'),
             transactionDate: (string) $params->get('transaction_date'),
-            status: (int) $params->get('status'),
-            employeeDebtInstallmentId: (int) $params->get('employee_debt_installment_id'),
-            payrollDeductionId: (int) $params->get('payroll_deduction_id'),
+            employeeDebtInstallmentId: $params->get('employee_debt_installment_id'),
+            payrollDeductionId: $params->get('payroll_deduction_id'),
             note: $params->get('note'),
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info')
         );
 
