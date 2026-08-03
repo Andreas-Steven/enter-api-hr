@@ -22,7 +22,7 @@ use App\Shared\Exception\ConflictException;
  * Pure business logic and domain rules untuk baris potongan di slip gaji.
  *
  * Aturan utama:
- * - period format YYYY-MM
+ * - period format YYYYMM (int)
  * - amount > 0
  * - Untuk potongan yang berasal dari installment: installment harus pending,
  *   dan belum pernah dibuat payroll_deduction untuk installment tersebut
@@ -37,11 +37,14 @@ final class PayrollDeductionDomainService
     ) {}
 
     /**
-     * Validasi format periode YYYY-MM.
+     * Validasi format periode YYYYMM (integer).
      */
-    public function guardPeriod(string $period): void
+    public function guardPeriod(int $period): void
     {
-        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $period)) {
+        $year = intdiv($period, 100);
+        $month = $period % 100;
+
+        if ($month < 1 || $month > 12 || $year < 2000 || $year > 9999) {
             throw new BadRequestException(
                 translate: Message::create(
                     key: 'payroll_deduction.invalid_period',
@@ -58,7 +61,7 @@ final class PayrollDeductionDomainService
     public function guardCreate(
         int $employeeId,
         int $deductionTypeId,
-        string $period,
+        int $period,
         float $amount,
         ?int $employeeDebtInstallmentId = null,
     ): void {

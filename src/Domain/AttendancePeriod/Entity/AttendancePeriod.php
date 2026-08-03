@@ -16,6 +16,7 @@ use App\Domain\Shared\Concerns\Entity\Identifiable;
 use App\Domain\Shared\Concerns\Entity\Descriptive;
 use App\Domain\AttendancePeriod\ValueObject\StartDate;
 use App\Domain\AttendancePeriod\ValueObject\EndDate;
+use App\Domain\AttendancePeriod\ValueObject\PayoutDate;
 
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
@@ -38,6 +39,7 @@ final class AttendancePeriod
         private DetailInfo $detailInfo,
         private ?StartDate $startDate = null,
         private ?EndDate $endDate = null,
+        private ?PayoutDate $payoutDate = null,
         private ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
     ) {
@@ -57,6 +59,7 @@ final class AttendancePeriod
         DetailInfo $detailInfo,
         ?StartDate $startDate = null,
         ?EndDate $endDate = null,
+        ?PayoutDate $payoutDate = null,
         ?SyncMdb $syncMdb = null,
     ): self {
         self::guardInitialStatus(
@@ -70,6 +73,7 @@ final class AttendancePeriod
             period: $period,
             startDate: $startDate,
             endDate: $endDate,
+            payoutDate: $payoutDate,
             status: $status, 
             detailInfo: $detailInfo, 
             syncMdb: $syncMdb, 
@@ -85,6 +89,7 @@ final class AttendancePeriod
         DetailInfo $detailInfo,
         ?StartDate $startDate = null,
         ?EndDate $endDate = null,
+        ?PayoutDate $payoutDate = null,
         ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
     ): self {
@@ -95,6 +100,7 @@ final class AttendancePeriod
             period: $period,
             startDate: $startDate,
             endDate: $endDate,
+            payoutDate: $payoutDate,
             status: $status, 
             detailInfo: $detailInfo, 
             syncMdb: $syncMdb, 
@@ -110,6 +116,7 @@ final class AttendancePeriod
             'period' => $this->period,
             'start_date' => $this->getStartDate()?->toString(),
             'end_date' => $this->getEndDate()?->toString(),
+            'payout_date' => $this->getPayoutDate()?->toString(),
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
@@ -148,6 +155,11 @@ final class AttendancePeriod
     public function getEndDate(): ?EndDate
     {
         return $this->endDate;
+    }
+
+    public function getPayoutDate(): ?PayoutDate
+    {
+        return $this->payoutDate;
     }
 
     public function updateStartDate(?DateTimeImmutable $newStartDate): void

@@ -19,6 +19,7 @@ final class MdbAttendancePeriodSchema
             'period' => (int) $entity->getPeriod(),
             'start_date' => $entity->getStartDate()?->toDateTime(),
             'end_date' => $entity->getEndDate()?->toDateTime(),
+            'payout_date' => $entity->getPayoutDate()?->toDateTime(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             'lock_version' => $entity->getLockVersion()->value(),

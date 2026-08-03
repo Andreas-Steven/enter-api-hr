@@ -7,12 +7,16 @@ namespace App\Domain\EmployeeDebt\Service;
 // Domain Layer
 use App\Domain\EmployeeDebt\Entity\EmployeeDebt;
 use App\Domain\EmployeeDebt\Repository\EmployeeDebtRepositoryInterface;
+use App\Domain\AttendancePeriod\Repository\AttendancePeriodRepositoryInterface;
 use App\Domain\EmployeeDebtInstallment\Entity\EmployeeDebtInstallment;
 use App\Domain\EmployeeDebtInstallment\Repository\EmployeeDebtInstallmentRepositoryInterface;
+use App\Domain\EmployeeDebtInstallment\ValueObject\Name as InstallmentName;
 use App\Domain\PayrollDeduction\Entity\PayrollDeduction;
 use App\Domain\PayrollDeduction\Repository\PayrollDeductionRepositoryInterface;
+use App\Domain\PayrollDeduction\ValueObject\Name as DeductionName;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
 use App\Domain\Shared\ValueObject\DetailInfo;
+use App\Domain\AttendancePeriod\ValueObject\PayrollPeriod;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
 // Application Layer
@@ -36,7 +40,41 @@ final class EmployeeDebtDomainService
         private EmployeeDebtRepositoryInterface $repository,
         private EmployeeDebtInstallmentRepositoryInterface $installmentRepository,
         private PayrollDeductionRepositoryInterface $payrollDeductionRepository,
+        private AttendancePeriodRepositoryInterface $attendancePeriodRepository,
     ) {}
+
+    /**
+     * Resolve first payment date: use provided value, or auto-derive
+     * from the AttendancePeriod's payout_date for the debt date's period.
+     * Falls back to PayrollPeriod::payoutDate() if no AttendancePeriod exists.
+     */
+    public function resolveFirstPaymentDate(
+        ?string $firstPaymentDate,
+        string $debtDate,
+        int $paymentTerm,
+    ): ?string {
+        if ($firstPaymentDate !== null) {
+            return $firstPaymentDate;
+        }
+
+        if ($paymentTerm !== PaymentTerm::INSTALLMENT) {
+            return null;
+        }
+
+        $period = PayrollPeriod::fromDateTime(
+            new \DateTimeImmutable($debtDate)
+        );
+
+        $attendancePeriod = $this->attendancePeriodRepository->findByPeriod(
+            $period->toInt()
+        );
+
+        if ($attendancePeriod !== null && $attendancePeriod->getPayoutDate() !== null) {
+            return $attendancePeriod->getPayoutDate()->toString();
+        }
+
+        return $period->payoutDate()->format('Y-m-d');
+    }
 
     public function guardDebtCreation(
         EmployeeDebtDetailInfo $debtInfo,
@@ -87,6 +125,51 @@ final class EmployeeDebtDomainService
         return $paymentTerm;
     }
 
+    /**
+     * Reconfigure installment settings on an existing EmployeeDebt entity.
+     *
+     * Resolves firstPaymentDate (auto-derive if missing), validates via
+     * guardDebtCreation, then applies the new configuration to the entity.
+     */
+    public function reconfigureInstallment(
+        EmployeeDebt $debt,
+        EmployeeDebtDetailInfo $debtInfo,
+        ?int $paymentTerm,
+        ?string $paymentMethod,
+        ?int $installmentCount,
+        ?string $firstPaymentDate,
+    ): void {
+        if ($paymentTerm === null
+            && empty($paymentMethod)
+            && $installmentCount === null
+            && $firstPaymentDate === null
+        ) {
+            return;
+        }
+
+        $resolvedPaymentTerm = $paymentTerm ?? $debt->getPaymentTerm();
+        $resolvedFirstPaymentDate = $this->resolveFirstPaymentDate(
+            firstPaymentDate: $firstPaymentDate ?? $debt->getFirstPaymentDate(),
+            debtDate: $debt->getDate(),
+            paymentTerm: $resolvedPaymentTerm,
+        );
+
+        $this->guardDebtCreation(
+            debtInfo: $debtInfo,
+            paymentTerm: $resolvedPaymentTerm,
+            paymentMethod: !empty($paymentMethod) ? $paymentMethod : $debt->getPaymentMethod(),
+            installmentCount: (int) ($installmentCount ?? $debt->getInstallmentCount()),
+            firstPaymentDate: $resolvedFirstPaymentDate,
+        );
+
+        $debt->updateInstallmentConfiguration(
+            paymentTerm: $resolvedPaymentTerm,
+            paymentMethod: !empty($paymentMethod) ? $paymentMethod : $debt->getPaymentMethod(),
+            installmentCount: (int) ($installmentCount ?? $debt->getInstallmentCount()),
+            firstPaymentDate: $resolvedFirstPaymentDate,
+        );
+    }
+
     public function generateInstallmentSchedule(
         EmployeeDebt $debt,
         EmployeeDebtDetailInfo $debtInfo,
@@ -118,7 +201,7 @@ final class EmployeeDebtDomainService
             }
 
             $installment = EmployeeDebtInstallment::create(
-                name: sprintf('INS-%d-%d', $debt->getId(), $sequence),
+                name: InstallmentName::generate($debt->getId())->toString(),
                 employeeDebtId: $debt->getId(),
                 payrollDeductionId: null,
                 sequence: $sequence,
@@ -167,10 +250,10 @@ final class EmployeeDebtDomainService
         );
 
         foreach ($installments as $installment) {
-            $period = substr($installment->getDueDate(), 0, 7);
+            $period = PayrollPeriod::fromDateTime(new \DateTimeImmutable($installment->getDueDate()))->toInt();
 
             $deduction = PayrollDeduction::create(
-                name: sprintf('DED-%d-%s-INS%d', $debt->getEmployeeId(), $period, $installment->getId()),
+                name: DeductionName::generate($debt->getEmployeeId(), $installment->getSequence())->toString(),
                 employeeId: $debt->getEmployeeId(),
                 deductionTypeId: $debt->getDeductionTypeId(),
                 attendanceReportId: null,
@@ -216,10 +299,10 @@ final class EmployeeDebtDomainService
             return;
         }
 
-        $period = substr($firstPaymentDate, 0, 7);
+        $period = PayrollPeriod::fromDateTime(new \DateTimeImmutable($firstPaymentDate))->toInt();
 
         $deduction = PayrollDeduction::create(
-            name: sprintf('DED-%d-%s', $debt->getEmployeeId(), $period),
+            name: DeductionName::generate($debt->getEmployeeId(), 0)->toString(),
             employeeId: $debt->getEmployeeId(),
             deductionTypeId: $debt->getDeductionTypeId(),
             attendanceReportId: null,

@@ -11,15 +11,13 @@ use App\Domain\AttendanceReport\Repository\AttendanceReportRepositoryInterface;
 use App\Domain\AttendanceReport\ValueObject\Name;
 use App\Domain\AttendanceReport\ValueObject\ReportData;
 use App\Domain\AttendanceReport\ValueObject\Summary;
-use App\Domain\AttendancePeriod\Entity\AttendancePeriod;
 use App\Domain\AttendancePeriod\Repository\AttendancePeriodRepositoryInterface;
 use App\Domain\Employee\Entity\Employee;
 use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
+use App\Domain\AttendancePeriod\ValueObject\PayrollPeriod;
 
-// Shared Layer
-use App\Shared\Exception\NotFoundException;
-use App\Shared\ValueObject\Message;
+use DateTimeImmutable;
 
 /**
  * AttendanceReport Domain Service
@@ -46,19 +44,14 @@ final class AttendanceReportDomainService
      */
     public function generateSummariesForPeriod(int $period): array
     {
+        $payrollPeriod = PayrollPeriod::fromInt($period);
+
+        // AttendancePeriod entity is optional enrichment — if it exists,
+        // use its custom date range; otherwise derive from PayrollPeriod.
         $attendancePeriod = $this->attendancePeriodRepository->findByPeriod($period);
-        if ($attendancePeriod === null) {
-            throw new NotFoundException(
-                translate: Message::create(
-                    key: 'resource.not_found',
-                    params: [
-                        'resource' => 'AttendancePeriod',
-                        'field' => 'period',
-                        'value' => $period,
-                    ]
-                )
-            );
-        }
+
+        $startDate = $attendancePeriod?->getStartDate()?->toDateTime() ?? $payrollPeriod->startDate();
+        $endDate = $attendancePeriod?->getEndDate()?->toDateTime() ?? $payrollPeriod->endDate();
 
         $employees = $this->employeeRepository->findAllActive();
         if (empty($employees)) {
@@ -73,7 +66,8 @@ final class AttendanceReportDomainService
             $summaries[$employee->getId()] = $this->buildReportData(
                 employee: $employee,
                 attendanceRecords: $attendanceRecords,
-                attendancePeriod: $attendancePeriod,
+                startDate: $startDate,
+                endDate: $endDate,
                 calendars: $calendars,
                 period: $period,
             );
@@ -89,7 +83,8 @@ final class AttendanceReportDomainService
     private function buildReportData(
         Employee $employee,
         array $attendanceRecords,
-        AttendancePeriod $attendancePeriod,
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate,
         array $calendars,
         int $period,
     ): ReportData {
@@ -115,7 +110,8 @@ final class AttendanceReportDomainService
                 employee: $employee,
                 period: $period,
                 attendanceRecords: $attendanceRecords,
-                attendancePeriod: $attendancePeriod,
+                startDate: $startDate,
+                endDate: $endDate,
                 calendars: $calendars,
             ),
             reportType: 'HEK',

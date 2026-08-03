@@ -12,7 +12,7 @@ final readonly class CreatePayrollDeductionCommand
         public ?int $attendanceReportId,
         public ?int $employeeDebtId,
         public ?int $employeeDebtInstallmentId,
-        public string $period,
+        public int $period,
         public float $amount,
         public ?string $description,
         public int $status,
@@ -22,7 +22,7 @@ final readonly class CreatePayrollDeductionCommand
     public static function create(
         int $employeeId,
         int $deductionTypeId,
-        string $period,
+        int $period,
         float $amount,
         int $status,
         ?int $attendanceReportId = null,

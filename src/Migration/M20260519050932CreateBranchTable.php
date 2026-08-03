@@ -38,10 +38,10 @@ final class M20260519050932CreateBranchTable implements RevertibleMigrationInter
             'name' => $cb::string(255)->null(),
             'code' => $cb::string(255)->null(),
             'address' => $cb::text()->null(),
+            'branch_type' => $cb::smallint()->null()->defaultValue(1),
             'attendance_policies_id' => $cb::integer()->null(),
             'work_pattern_id' => $cb::integer()->null(),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
-            'branch_type' => $cb::smallint()->notNull()->defaultValue(1),
             'detail_info' => $cb::json()->notNull()->defaultValue([
                 'attendance_policies' => null,
                 'work_pattern' => null,

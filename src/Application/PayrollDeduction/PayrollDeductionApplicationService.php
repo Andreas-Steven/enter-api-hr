@@ -20,6 +20,9 @@ use App\Domain\EmployeeDebtInstallment\Repository\EmployeeDebtInstallmentReposit
 use App\Domain\PayrollDeduction\Entity\PayrollDeduction;
 use App\Domain\PayrollDeduction\Repository\PayrollDeductionRepositoryInterface;
 use App\Domain\PayrollDeduction\Service\PayrollDeductionDomainService;
+use App\Domain\PayrollDeduction\ValueObject\Name as DeductionName;
+use App\Domain\AttendancePeriod\Repository\AttendancePeriodRepositoryInterface;
+use App\Domain\AttendancePeriod\ValueObject\PayrollPeriod;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
@@ -52,7 +55,26 @@ final class PayrollDeductionApplicationService
         private EmployeeDebtInstallmentRepositoryInterface $installmentRepository,
         private PayrollDeductionDomainService $domainService,
         private EmployeeDebtTransactionApplicationService $transactionService,
+        private AttendancePeriodRepositoryInterface $attendancePeriodRepository,
     ) {
+    }
+
+    /**
+     * Resolve payout_date for a period from AttendancePeriod entity.
+     * Falls back to PayrollPeriod::payoutDate() if no AttendancePeriod exists.
+     */
+    private function resolvePayoutDate(int $period): string
+    {
+        $payrollPeriod = PayrollPeriod::fromInt($period);
+        $attendancePeriod = $this->attendancePeriodRepository->findByPeriod(
+            $payrollPeriod->toInt()
+        );
+
+        if ($attendancePeriod !== null && $attendancePeriod->getPayoutDate() !== null) {
+            return $attendancePeriod->getPayoutDate()->toString();
+        }
+
+        return $payrollPeriod->payoutDate()->format('Y-m-d');
     }
 
     public function getResource(): string
@@ -123,7 +145,7 @@ final class PayrollDeductionApplicationService
             ->create(detailInfo: $info->toArray())
             ->build();
 
-        $name = sprintf('DED-%d-%s', $command->employeeId, $command->period);
+        $name = DeductionName::generate($command->employeeId, 0)->toString();
 
         $data = PayrollDeduction::create(
             name: $name,
@@ -149,8 +171,8 @@ final class PayrollDeductionApplicationService
                 installmentId: $command->employeeDebtInstallmentId,
                 payrollDeductionId: $deduction->getId(),
                 amount: $command->amount,
-                transactionDate: $command->period . '-01',
-                note: sprintf('Auto-deducted via payroll %s', $command->period),
+                transactionDate: $this->resolvePayoutDate($command->period),
+                note: sprintf('Auto-deducted via payroll %d', $command->period),
             );
         }
 
@@ -169,10 +191,10 @@ final class PayrollDeductionApplicationService
      *    c. Buat payroll_deduction (amount = installment.amount)
      *    d. Cascade ke EmployeeDebtTransaction.applyPaymentFromPayrollDeduction
      *
-     * @param string $period Format YYYY-MM
+     * @param int $period Format YYYYMM
      * @return list<PayrollDeductionResponse>
      */
-    public function generateFromInstallments(string $period): array
+    public function generateFromInstallments(int $period): array
     {
         $this->domainService->guardPeriod($period);
 
@@ -212,7 +234,7 @@ final class PayrollDeductionApplicationService
                 ->create(detailInfo: $info->toArray())
                 ->build();
 
-            $name = sprintf('DED-%d-%s-INS%d', $debt->getEmployeeId(), $period, $installment->getId());
+            $name = DeductionName::generate($debt->getEmployeeId(), $installment->getSequence())->toString();
 
             $deduction = PayrollDeduction::create(
                 name: $name,
@@ -241,8 +263,8 @@ final class PayrollDeductionApplicationService
                 installmentId: $installment->getId(),
                 payrollDeductionId: $deduction->getId(),
                 amount: $installment->getAmount(),
-                transactionDate: $period . '-01',
-                note: sprintf('Auto-deducted via payroll %s (installment #%d)', $period, $installment->getSequence()),
+                transactionDate: $this->resolvePayoutDate($period),
+                note: sprintf('Auto-deducted via payroll %d (installment #%d)', $period, $installment->getSequence()),
             );
 
             $results[] = PayrollDeductionResponse::fromEntity(entity: $deduction);
@@ -295,11 +317,11 @@ final class PayrollDeductionApplicationService
             $data->setEmployeeDebtInstallmentId($command->employeeDebtInstallmentId);
         }
 
-        if (!empty($command->period)) {
+        if ($command->period !== null) {
             $this->domainService->guardPeriod($command->period);
             $data->setPeriod($command->period);
             $data->updateName(
-                newName: sprintf('DED-%d-%s', $command->employeeId ?? $data->getEmployeeId(), $command->period)
+                newName: DeductionName::generate($command->employeeId ?? $data->getEmployeeId(), 0)->toString()
             );
         }
 

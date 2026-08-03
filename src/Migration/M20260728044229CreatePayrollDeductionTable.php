@@ -41,7 +41,7 @@ final class M20260728044229CreatePayrollDeductionTable implements RevertibleMigr
             'attendance_report_id' => $cb::integer()->null(),
             'employee_debt_id' => $cb::integer()->null(),
             'employee_debt_installment_id' => $cb::integer()->null(),
-            'period' => $cb::string(20)->notNull()->comment('YYYY-MM'),
+            'period' => $cb::integer(20)->notNull()->comment('YYYY-MM'),
             'amount' => $cb::decimal(14, 2)->notNull(),
             'description' => $cb::text()->null(),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),

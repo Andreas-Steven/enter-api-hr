@@ -34,7 +34,7 @@ final class PayrollDeduction
         private ?int $attendanceReportId,
         private ?int $employeeDebtId,
         private ?int $employeeDebtInstallmentId,
-        private string $period,
+        private int $period,
         private float $amount,
         private ?string $description,
         private ResourceStatus $status,
@@ -58,7 +58,7 @@ final class PayrollDeduction
         ?int $attendanceReportId,
         ?int $employeeDebtId,
         ?int $employeeDebtInstallmentId,
-        string $period,
+        int $period,
         float $amount,
         ?string $description,
         ResourceStatus $status,
@@ -96,7 +96,7 @@ final class PayrollDeduction
         ?int $attendanceReportId,
         ?int $employeeDebtId,
         ?int $employeeDebtInstallmentId,
-        string $period,
+        int $period,
         float $amount,
         ?string $description,
         ResourceStatus $status,
@@ -181,7 +181,7 @@ final class PayrollDeduction
         return $this->employeeDebtInstallmentId;
     }
 
-    public function getPeriod(): string
+    public function getPeriod(): int
     {
         return $this->period;
     }
@@ -221,7 +221,7 @@ final class PayrollDeduction
         $this->employeeDebtInstallmentId = $employeeDebtInstallmentId;
     }
 
-    public function setPeriod(string $period): void
+    public function setPeriod(int $period): void
     {
         $this->period = $period;
     }

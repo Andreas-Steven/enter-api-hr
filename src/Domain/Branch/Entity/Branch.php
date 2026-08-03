@@ -24,6 +24,13 @@ final class Branch
 
     public const RESOURCE = 'Branch';
 
+    /**
+     * Code that identifies the placeholder branch used when an employee
+     * has not been assigned to a real branch yet. This branch is allowed
+     * to be activated without the usual required fields.
+     */
+    public const UNASSIGN_CODE = 'UNASSIGN';
+
     private LockVersion $lockVersion;
 
     protected function __construct(

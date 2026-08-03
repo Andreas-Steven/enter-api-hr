@@ -65,7 +65,7 @@ final class PayrollDeductionCreateAction
         $command = CreatePayrollDeductionCommand::create(
             employeeId: (int) $params->get('employee_id'),
             deductionTypeId: (int) $params->get('deduction_type_id'),
-            period: (string) $params->get('period'),
+            period: (int) $params->get('period'),
             amount: (float) $params->get('amount'),
             status: (int) $params->get('status'),
             attendanceReportId: (int) $params->get('attendance_report_id'),

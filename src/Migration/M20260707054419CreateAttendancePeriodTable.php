@@ -39,6 +39,7 @@ final class M20260707054419CreateAttendancePeriodTable implements RevertibleMigr
             'period' => $cb::integer()->notNull(),
             'start_date' => $cb::date()->notNull(),
             'end_date' => $cb::date()->notNull(),
+            'payout_date' => $cb::date()->notNull(),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
             'detail_info' => $cb::json()->notNull()->defaultValue([
                 'change_log' => [

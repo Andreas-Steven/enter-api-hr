@@ -123,11 +123,7 @@ final class PayrollDeductionInputValidator extends AbstractValidator
                 ],
                 'period' => [
                     new Required(),
-                    new StringValue(),
-                    new Length(
-                        min: 7,
-                        max: 20,
-                    ),
+                    new Integer(),
                 ],
                 'amount' => [
                     new Required(),
@@ -187,12 +183,7 @@ final class PayrollDeductionInputValidator extends AbstractValidator
                     ),
                 ],
                 'period' => [
-                    new StringValue(
-                        skipOnEmpty: true,
-                    ),
-                    new Length(
-                        min: 7,
-                        max: 20,
+                    new Integer(
                         skipOnEmpty: true,
                     ),
                 ],
@@ -279,12 +270,7 @@ final class PayrollDeductionInputValidator extends AbstractValidator
                     ),
                 ],
                 'period' => [
-                    new StringValue(
-                        skipOnEmpty: true,
-                    ),
-                    new Length(
-                        min: 7,
-                        max: 20,
+                    new Integer(
                         skipOnEmpty: true,
                     ),
                 ],

@@ -9,6 +9,7 @@ use App\Domain\AttendancePeriod\Entity\AttendancePeriod;
 use App\Domain\AttendancePeriod\Repository\AttendancePeriodRepositoryInterface;
 use App\Domain\AttendancePeriod\ValueObject\StartDate;
 use App\Domain\AttendancePeriod\ValueObject\EndDate;
+use App\Domain\AttendancePeriod\ValueObject\PayoutDate;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
@@ -127,6 +128,7 @@ final class AttendancePeriodRepository implements AttendancePeriodRepositoryInte
             period: (int) $row['period'],
             startDate: StartDate::fromJson($row['start_date']),
             endDate: EndDate::fromJson($row['end_date']),
+            payoutDate: PayoutDate::fromJson($row['payout_date'] ?? null),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
@@ -153,12 +155,11 @@ final class AttendancePeriodRepository implements AttendancePeriodRepositoryInte
                 'period',
                 'start_date',
                 'end_date',
+                'payout_date',
                 'status',
                 'detail_info',
                 SyncMdb::field(),
                 LockVersion::field(),
-                'start_date',
-                'end_date',
             ])
             ->from(self::TABLE_NAME)
             ->where($this->scopeWhereNotDeleted());
@@ -229,6 +230,7 @@ final class AttendancePeriodRepository implements AttendancePeriodRepositoryInte
                 period: (int) $entity->getPeriod(),
                 startDate: $entity->getStartDate(),
                 endDate: $entity->getEndDate(),
+                payoutDate: $entity->getPayoutDate(),
                 status: $entity->getStatus(),
                 detailInfo: $entity->getDetailInfo(),
                 syncMdb: $entity->getSyncMdb(),
@@ -323,6 +325,7 @@ final class AttendancePeriodRepository implements AttendancePeriodRepositoryInte
             period: (int) $row['period'],
             startDate: StartDate::fromJson($row['start_date']),
             endDate: EndDate::fromJson($row['end_date']),
+            payoutDate: PayoutDate::fromJson($row['payout_date'] ?? null),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
@@ -350,6 +353,7 @@ final class AttendancePeriodRepository implements AttendancePeriodRepositoryInte
             period: $entity->getPeriod(),
             startDate: $entity->getStartDate(),
             endDate: $entity->getEndDate(),
+            payoutDate: $entity->getPayoutDate(),
             status: $entity->getStatus(),
             detailInfo: $entity->getDetailInfo(),
             syncMdb: $entity->getSyncMdb(),
@@ -366,6 +370,7 @@ final class AttendancePeriodRepository implements AttendancePeriodRepositoryInte
             'period' => (int) $entity->getPeriod(),
             'start_date' => $entity->getStartDate()?->toString(),
             'end_date' => $entity->getEndDate()?->toString(),
+            'payout_date' => $entity->getPayoutDate()?->toString(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             SyncMdb::field() => $entity->getSyncMdbValue(),

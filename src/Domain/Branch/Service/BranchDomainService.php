@@ -45,10 +45,18 @@ final class BranchDomainService
      */
 
     /**
-     * Validate that Branch has all required fields before activation
+     * Validate that Branch has all required fields before activation.
+     *
+     * The placeholder "Unassign" branch (identified by its code) is exempt
+     * from the required-fields check, since it exists only to represent the
+     * absence of a real branch assignment.
      */
     public function ensureCanActivate(Branch $Branch): void
     {
+        if ($Branch->getCode() === Branch::UNASSIGN_CODE) {
+            return;
+        }
+
         $missingFields = $this->getMissingActivationFields($Branch);
 
         if (!empty($missingFields)) {

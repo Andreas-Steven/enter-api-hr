@@ -158,10 +158,6 @@ final class EmployeeApplicationService
             newStatus: $newStatus
         );
 
-        if (!empty($newStatus) && $newStatus->isActive()) {
-            $this->domainService->ensureCanActivate($data);
-        }
-
         $data->updateName(
             newName: $command->name
         );
@@ -234,6 +230,10 @@ final class EmployeeApplicationService
             $data->updateImage(
                 image: Image::fromArray($command->image)
             );
+        }
+
+        if (!empty($newStatus) && $newStatus->isActive()) {
+            $this->domainService->ensureCanActivate($data);
         }
 
         $employeeInfoFactory = $this->employeeInfoFactory->buildFromPrimitives(

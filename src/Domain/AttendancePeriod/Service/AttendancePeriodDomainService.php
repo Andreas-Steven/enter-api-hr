@@ -9,6 +9,7 @@ use App\Domain\AttendancePeriod\Entity\AttendancePeriod;
 use App\Domain\AttendancePeriod\Repository\AttendancePeriodRepositoryInterface;
 use App\Domain\AttendancePeriod\ValueObject\AttendancePeriodName;
 use App\Domain\AttendancePeriod\ValueObject\EndDate;
+use App\Domain\AttendancePeriod\ValueObject\PayoutDate;
 use App\Domain\AttendancePeriod\ValueObject\StartDate;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
 use App\Domain\Shared\ValueObject\DetailInfo;
@@ -62,6 +63,7 @@ final class AttendancePeriodDomainService
                 period: $periodNumber,
                 startDate: StartDate::fromYearMonth($year, $month),
                 endDate: EndDate::fromYearMonth($year, $month),
+                payoutDate: PayoutDate::fromYearMonth($year, $month),
                 status: $status,
                 detailInfo: $this->resolveDetailInfo($detailInfoFactory)
             );

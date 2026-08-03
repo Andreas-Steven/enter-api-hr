@@ -107,7 +107,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             ->exists();
     }
 
-    public function findByEmployeeAndPeriod(int $employeeId, string $period, ?int $status = null): array
+    public function findByEmployeeAndPeriod(int $employeeId, int $period, ?int $status = null): array
     {
         $rows = (new Query($this->db))
             ->from(self::TABLE_NAME)
@@ -376,7 +376,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             attendanceReportId: $row['attendance_report_id'] !== null ? (int) $row['attendance_report_id'] : null,
             employeeDebtId: $row['employee_debt_id'] !== null ? (int) $row['employee_debt_id'] : null,
             employeeDebtInstallmentId: $row['employee_debt_installment_id'] !== null ? (int) $row['employee_debt_installment_id'] : null,
-            period: $row['period'],
+            period: (int) $row['period'],
             amount: (float) $row['amount'],
             description: $row['description'] ?? null,
             status: ResourceStatus::from((int) $row['status']),

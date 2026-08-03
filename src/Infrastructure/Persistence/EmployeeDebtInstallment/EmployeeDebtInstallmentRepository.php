@@ -10,6 +10,7 @@ use App\Domain\EmployeeDebtInstallment\Repository\EmployeeDebtInstallmentReposit
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
+use App\Domain\AttendancePeriod\ValueObject\PayrollPeriod;
 use App\Domain\Shared\ValueObject\SyncMdb;
 
 // Infrastructure Layer
@@ -142,11 +143,12 @@ final class EmployeeDebtInstallmentRepository implements EmployeeDebtInstallment
         );
     }
 
-    public function findDueForPeriod(string $period, ?int $status = null): array
+    public function findDueForPeriod(int $period, ?int $status = null): array
     {
-        // Periode YYYY-MM: due_date jatuh di bulan itu, payment_status = 0 (pending).
-        $start = $period . '-01';
-        $end = $period . '-' . date('t', strtotime($start));
+        // Payroll period YYYYMM: due_date jatuh di rentang payroll (26 prev month - 25 period month).
+        $payrollPeriod = PayrollPeriod::fromInt($period);
+        $start = $payrollPeriod->startDate()->format('Y-m-d');
+        $end = $payrollPeriod->endDate()->format('Y-m-d');
 
         $rows = (new Query($this->db))
             ->from(self::TABLE_NAME)

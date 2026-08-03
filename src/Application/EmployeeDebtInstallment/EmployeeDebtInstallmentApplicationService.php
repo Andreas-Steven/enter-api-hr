@@ -15,6 +15,7 @@ use App\Application\Shared\Factory\DetailInfoFactory;
 use App\Domain\EmployeeDebtInstallment\Entity\EmployeeDebtInstallment;
 use App\Domain\EmployeeDebtInstallment\Repository\EmployeeDebtInstallmentRepositoryInterface;
 use App\Domain\EmployeeDebtInstallment\Service\EmployeeDebtInstallmentDomainService;
+use App\Domain\EmployeeDebtInstallment\ValueObject\Name as InstallmentName;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
@@ -107,7 +108,7 @@ final class EmployeeDebtInstallmentApplicationService
             ->build();
 
         $data = EmployeeDebtInstallment::create(
-            name: sprintf('INS-%d-%d', $command->employeeDebtId, $command->sequence),
+            name: InstallmentName::generate($command->employeeDebtId)->toString(),
             employeeDebtId: $command->employeeDebtId,
             payrollDeductionId: $command->payrollDeductionId,
             sequence: $command->sequence,

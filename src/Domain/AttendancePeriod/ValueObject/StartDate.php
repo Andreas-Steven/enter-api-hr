@@ -30,8 +30,8 @@ final readonly class StartDate
 
     public static function fromDateTime(DateTimeImmutable $dateTime): self
     {
-        // If date >= 25, it belongs to next month's period
-        if ((int) $dateTime->format('d') >= AttendancePeriodConfig::LAST_DATE) {
+        // If date > 25, it belongs to next month's period
+        if ((int) $dateTime->format('d') > AttendancePeriodConfig::CUTOFF_DAY) {
             $dateTime = $dateTime
                 ->setDate(
                     (int) $dateTime->format('Y'),

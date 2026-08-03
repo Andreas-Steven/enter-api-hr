@@ -144,10 +144,6 @@ final class BranchApplicationService
             newStatus: $newStatus
         );
 
-        if (!empty($newStatus) && $newStatus->isActive()) {
-            $this->domainService->ensureCanActivate($data);
-        }
-
         $data->updateName(
             newName: $command->name
         );
@@ -184,6 +180,10 @@ final class BranchApplicationService
             $data->updateType(
                 newType: $command->branch_type
             );
+        }
+
+        if (!empty($newStatus) && $newStatus->isActive()) {
+            $this->domainService->ensureCanActivate($data);
         }
 
         if ($command->branch_type !== null || $command->attendance_policies_id !== null || $command->work_pattern_id !== null) {

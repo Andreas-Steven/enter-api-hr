@@ -16,7 +16,7 @@ final readonly class PayrollDeductionResponse
         public ?int $attendance_report_id,
         public ?int $employee_debt_id,
         public ?int $employee_debt_installment_id,
-        public string $period,
+        public int $period,
         public float $amount,
         public ?string $description,
         public int $status,

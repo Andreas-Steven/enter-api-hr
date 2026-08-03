@@ -97,12 +97,18 @@ final class EmployeeDebtApplicationService
             deductionTypeId: $command->deductionTypeId,
         );
 
+        $firstPaymentDate = $this->domainService->resolveFirstPaymentDate(
+            firstPaymentDate: $command->firstPaymentDate,
+            debtDate: $command->date,
+            paymentTerm: $command->paymentTerm,
+        );
+
         $paymentTerm = $this->domainService->guardDebtCreation(
             debtInfo: $debtInfo,
             paymentTerm: $command->paymentTerm,
             paymentMethod: $command->paymentMethod,
             installmentCount: (int) ($command->installmentCount ?? 1),
-            firstPaymentDate: $command->firstPaymentDate,
+            firstPaymentDate: $firstPaymentDate,
         );
         
         $detailInfo = $this->detailInfoFactory
@@ -121,7 +127,7 @@ final class EmployeeDebtApplicationService
             paymentTerm: $paymentTerm,
             paymentMethod: $command->paymentMethod,
             installmentCount: $command->installmentCount,
-            firstPaymentDate: $command->firstPaymentDate,
+            firstPaymentDate: $firstPaymentDate,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
         );
@@ -205,50 +211,19 @@ final class EmployeeDebtApplicationService
             );
         }
 
-        if (!empty($command->paymentTerm)) {
-            $data->updatePaymentTerm(
-                paymentTerm: $command->paymentTerm
-            );
-        }
+        $debtInfo = $this->debtInfoFactory->buildFromIds(
+            employeeId: $command->employeeId ?? $data->getEmployeeId(),
+            deductionTypeId: $command->deductionTypeId ?? $data->getDeductionTypeId(),
+        );
 
-        if (!empty($command->paymentMethod)) {
-            $data->updatePaymentMethod(
-                paymentMethod: $command->paymentMethod
-            );
-        }
-
-        $shouldReconfigureInstallment = $command->paymentTerm !== null
-            || !empty($command->paymentMethod)
-            || !empty($command->installmentCount)
-            || $command->firstPaymentDate !== null;
-
-        if ($shouldReconfigureInstallment) {
-            $debtInfo = $this->debtInfoFactory->buildFromIds(
-                employeeId: $command->employeeId ?? $data->getEmployeeId(),
-                deductionTypeId: $command->deductionTypeId ?? $data->getDeductionTypeId(),
-            );
-
-            $this->domainService->guardDebtCreation(
-                debtInfo: $debtInfo,
-                paymentTerm: $command->paymentTerm ?? $data->getPaymentTerm(),
-                paymentMethod: !empty($command->paymentMethod) ? $command->paymentMethod : $data->getPaymentMethod(),
-                installmentCount: (int) ($command->installmentCount ?? $data->getInstallmentCount()),
-                firstPaymentDate: $command->firstPaymentDate ?? $data->getFirstPaymentDate(),
-            );
-
-            $data->updateInstallmentConfiguration(
-                paymentTerm: $command->paymentTerm ?? $data->getPaymentTerm(),
-                paymentMethod: !empty($command->paymentMethod) ? $command->paymentMethod : $data->getPaymentMethod(),
-                installmentCount: (int) ($command->installmentCount ?? $data->getInstallmentCount()),
-                firstPaymentDate: $command->firstPaymentDate ?? $data->getFirstPaymentDate(),
-            );
-        }
-
-        if ($command->firstPaymentDate !== null && !$shouldReconfigureInstallment) {
-            $data->updateFirstPaymentDate(
-                firstPaymentDate: $command->firstPaymentDate
-            );
-        }
+        $this->domainService->reconfigureInstallment(
+            debt: $data,
+            debtInfo: $debtInfo,
+            paymentTerm: $command->paymentTerm,
+            paymentMethod: $command->paymentMethod,
+            installmentCount: $command->installmentCount,
+            firstPaymentDate: $command->firstPaymentDate,
+        );
 
         if ($command->amount !== null) {
             $data->adjustAmount(
@@ -265,13 +240,10 @@ final class EmployeeDebtApplicationService
             deductionTypeId: $command->deductionTypeId ?? $data->getDeductionTypeId(),
         );
 
-        $detailInfoPayload = $debtInfo->toArray();
-        $detailInfoPayload['allow_installment'] = $data->getPaymentTerm();
-
         $detailInfo = $this->detailInfoFactory
             ->update(
                 detailInfo: $data->getDetailInfo(),
-                payload: $detailInfoPayload,
+                payload:  $debtInfo->toArray(),
             )
             ->build();
 

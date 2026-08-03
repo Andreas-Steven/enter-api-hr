@@ -36,7 +36,7 @@ final readonly class AttendancePeriod
             throw new InvalidArgumentException("Format tanggal tidak valid: $date. Gunakan Y-m-d.");
         }
 
-        if ((int) $dateTime->format('d') >= AttendancePeriodConfig::LAST_DATE) {
+        if ((int) $dateTime->format('d') > AttendancePeriodConfig::CUTOFF_DAY) {
             $dateTime = $dateTime
                 ->setDate(
                     (int) $dateTime->format('Y'),

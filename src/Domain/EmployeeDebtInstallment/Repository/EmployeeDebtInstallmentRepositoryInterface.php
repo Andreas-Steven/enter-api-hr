@@ -42,14 +42,14 @@ interface EmployeeDebtInstallmentRepositoryInterface
     public function findPendingByEmployeeDebtId(int $employeeDebtId, ?int $status = null): array;
 
     /**
-     * Ambil cicilan jatuh tempo pada periode YYYY-MM yang masih pending.
+     * Ambil cicilan jatuh tempo pada periode YYYYMM yang masih pending.
      * Dipakai payroll run untuk generate payroll_deduction otomatis.
      *
-     * @param string $period Format YYYY-MM
+     * @param int $period Format YYYYMM
      *
      * @return list<EmployeeDebtInstallment>
      */
-    public function findDueForPeriod(string $period, ?int $status = null): array;
+    public function findDueForPeriod(int $period, ?int $status = null): array;
 
     public function list(SearchCriteria $criteria): PaginatedResult;
 

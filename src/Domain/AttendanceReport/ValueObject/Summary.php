@@ -6,7 +6,6 @@ namespace App\Domain\AttendanceReport\ValueObject;
 
 use App\Domain\Attendance\Entity\Attendance;
 use App\Domain\AttendanceCalendar\Entity\AttendanceCalendar;
-use App\Domain\AttendancePeriod\Entity\AttendancePeriod;
 use App\Domain\Employee\Entity\Employee;
 use App\Domain\Shared\Enums\AttendanceStatus;
 use App\Domain\Shared\Enums\HolidayType;
@@ -68,13 +67,15 @@ final readonly class Summary
         Employee $employee,
         int $period,
         array $attendanceRecords,
-        AttendancePeriod $attendancePeriod,
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate,
         array $calendars,
     ): self {
         $summary = self::createDefault();
         $summary = $summary->withHekCalendar(
             employee: $employee,
-            attendancePeriod: $attendancePeriod,
+            startDate: $startDate,
+            endDate: $endDate,
             calendars: $calendars,
         );
 
@@ -167,21 +168,11 @@ final readonly class Summary
      */
     private function withHekCalendar(
         Employee $employee,
-        AttendancePeriod $attendancePeriod,
+        DateTimeImmutable $startDate,
+        DateTimeImmutable $endDate,
         array $calendars,
     ): self {
-        $startDate = $attendancePeriod->getStartDate()?->toDateTime();
-        $endDate = $attendancePeriod->getEndDate()?->toDateTime();
-
         $hek = $this->hek;
-
-        if ($startDate === null || $endDate === null) {
-            return new self(
-                hek: $hek,
-                attendance: $this->attendance,
-                payroll: $this->payroll,
-            );
-        }
 
         $branchId = $employee->getBranchId() ?? 0;
         $holidays = $this->indexHolidaysByDate($calendars, $branchId);

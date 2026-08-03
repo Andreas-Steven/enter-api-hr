@@ -28,11 +28,11 @@ interface PayrollDeductionRepositoryInterface
     public function existsByName(string $name, ?int $status = null): bool;
 
     /**
-     * Ambil semua payroll_deduction untuk satu employee pada periode YYYY-MM.
+     * Ambil semua payroll_deduction untuk satu employee pada periode YYYYMM.
      *
      * @return list<PayrollDeduction>
      */
-    public function findByEmployeeAndPeriod(int $employeeId, string $period, ?int $status = null): array;
+    public function findByEmployeeAndPeriod(int $employeeId, int $period, ?int $status = null): array;
 
     /**
      * Cek apakah payroll_deduction sudah pernah dibuat untuk installment tertentu.
