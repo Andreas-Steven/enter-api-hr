@@ -82,7 +82,10 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                     new StringValue(
                         skipOnEmpty: true
                     ),
-                    new In(TransactionType::ALL),
+                    new In(
+                        TransactionType::ALL,
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'date' => [
                     new StringValue(
@@ -96,7 +99,10 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                     new StringValue(
                         skipOnEmpty: true
                     ),
-                    new In(PaymentSource::ALL),
+                    new In(
+                        PaymentSource::ALL,
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'note' => [
                     new StringValue(skipOnEmpty: true),
@@ -104,7 +110,10 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                 ],
                 'status' => [
                     new Integer(skipOnEmpty: true),
-                    new In(RecordStatus::searchableStates()),
+                    new In(
+                        RecordStatus::searchableStates(),
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'lock_version' => [
                     new Required(when: fn() => $this->shouldValidateOptimisticLock()),
@@ -133,15 +142,24 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                 ],
                 'transaction_type' => [
                     new StringValue(skipOnEmpty: true),
-                    new In(TransactionType::ALL),
+                    new In(
+                        TransactionType::ALL,
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'payment_source' => [
                     new StringValue(skipOnEmpty: true),
-                    new In(PaymentSource::ALL),
+                    new In(
+                        PaymentSource::ALL,
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'status' => [
                     new Integer(skipOnEmpty: true),
-                    new In(RecordStatus::searchableStates()),
+                    new In(
+                        RecordStatus::searchableStates(),
+                        skipOnEmpty: true,
+                    ),
                 ],
             ],
             default => [],
