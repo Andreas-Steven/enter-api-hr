@@ -345,7 +345,7 @@ final class EmployeeDebtTransactionApplicationService
      *
      * Dipanggil oleh PayrollDeductionApplicationService saat membuat potongan
      * gaji yang terkait EmployeeDebt. Membuat transaksi ledger dengan
-     * transaction_type=payroll, payment_source=payroll_deduction.
+     * transaction_type=payment, payment_source=payroll.
      *
      * Note: parameter $installmentId di-keep untuk backward compatibility
      * dengan PayrollDeductionApplicationService, namun tidak digunakan karena
@@ -355,6 +355,7 @@ final class EmployeeDebtTransactionApplicationService
         int $employeeDebtId,
         ?int $installmentId,
         int $payrollDeductionId,
+        int $payrollPeriod,
         float $amount,
         string $transactionDate,
         ?string $note = null,
@@ -375,12 +376,12 @@ final class EmployeeDebtTransactionApplicationService
             name: Name::generate($debt->getEmployeeId())->toString(),
             employeeDebtId: $employeeDebtId,
             employeeId: $debt->getEmployeeId(),
-            transactionType: TransactionType::PAYROLL,
+            transactionType: TransactionType::PAYMENT,
             date: $transactionDate,
             amount: $amount,
-            paymentSource: \App\Domain\Shared\Enums\PaymentSource::PAYROLL_DEDUCTION,
+            paymentSource: \App\Domain\Shared\Enums\PaymentSource::PAYROLL,
             payrollDeductionId: $payrollDeductionId,
-            payrollPeriod: null,
+            payrollPeriod: $payrollPeriod,
             note: $note,
             status: ResourceStatus::from(\App\Shared\Enums\RecordStatus::DRAFT->value),
             detailInfo: $detailInfo
@@ -398,8 +399,7 @@ final class EmployeeDebtTransactionApplicationService
 
     /**
      * Apply transaction effect to EmployeeDebt:
-     * - payment/payroll: debt.recordPayment(amount)
-     * - reversal: debt.reversePayment(amount)
+     * - payment: debt.recordPayment(amount)
      * - adjustment: recordPayment if positive, reversePayment if negative
      */
     private function applyTransactionToDebt(EmployeeDebtTransaction $transaction): void
@@ -410,9 +410,7 @@ final class EmployeeDebtTransactionApplicationService
 
         if (TransactionType::isInflow($type)) {
             $debt->recordPayment($amount);
-        } elseif (TransactionType::isOutflow($type)) {
-            $debt->reversePayment($amount);
-        } elseif ($type === TransactionType::ADJUSTMENT) {
+        } elseif (TransactionType::isAdjustment($type)) {
             if ($amount > 0) {
                 $debt->recordPayment($amount);
             } else {
@@ -434,9 +432,7 @@ final class EmployeeDebtTransactionApplicationService
 
         if (TransactionType::isInflow($type)) {
             $debt->reversePayment($amount);
-        } elseif (TransactionType::isOutflow($type)) {
-            $debt->recordPayment($amount);
-        } elseif ($type === TransactionType::ADJUSTMENT) {
+        } elseif (TransactionType::isAdjustment($type)) {
             if ($amount > 0) {
                 $debt->reversePayment($amount);
             } else {

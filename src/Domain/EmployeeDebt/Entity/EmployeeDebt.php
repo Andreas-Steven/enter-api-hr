@@ -225,8 +225,29 @@ final class EmployeeDebt
 
     public function recordPayment(float $amount): void
     {
+        if ($amount <= 0) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.payment_must_be_positive',
+                    params: ['amount' => $amount]
+                )
+            );
+        }
+
+        if ($amount > $this->remainingAmount) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.payment_exceeds_remaining',
+                    params: [
+                        'amount' => $amount,
+                        'remaining' => $this->remainingAmount,
+                    ]
+                )
+            );
+        }
+
         $this->paidAmount += $amount;
-        $this->remainingAmount = max(0, $this->amount - $this->paidAmount);
+        $this->remainingAmount = $this->amount - $this->paidAmount;
 
         if ($this->remainingAmount <= 0) {
             $this->markAsSettled();
@@ -235,16 +256,58 @@ final class EmployeeDebt
 
     public function reversePayment(float $amount): void
     {
-        $this->paidAmount = max(0, $this->paidAmount - $amount);
-        $this->remainingAmount = max(0, $this->amount - $this->paidAmount);
+        if ($amount <= 0) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.reversal_must_be_positive',
+                    params: ['amount' => $amount]
+                )
+            );
+        }
+
+        if ($amount > $this->paidAmount) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.reversal_exceeds_paid',
+                    params: [
+                        'amount' => $amount,
+                        'paid' => $this->paidAmount,
+                    ]
+                )
+            );
+        }
+
+        $this->paidAmount -= $amount;
+        $this->remainingAmount = $this->amount - $this->paidAmount;
         $this->isSettled = 0;
         $this->settledAt = null;
     }
 
     public function adjustAmount(float $newAmount): void
     {
+        if ($newAmount <= 0) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.amount_must_be_positive',
+                    params: ['amount' => $newAmount]
+                )
+            );
+        }
+
+        if ($newAmount < $this->paidAmount) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.amount_below_paid',
+                    params: [
+                        'amount' => $newAmount,
+                        'paid' => $this->paidAmount,
+                    ]
+                )
+            );
+        }
+
         $this->amount = $newAmount;
-        $this->remainingAmount = max(0, $this->amount - $this->paidAmount);
+        $this->remainingAmount = $this->amount - $this->paidAmount;
 
         if ($this->remainingAmount <= 0) {
             $this->markAsSettled();

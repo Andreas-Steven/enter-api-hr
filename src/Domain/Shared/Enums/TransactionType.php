@@ -7,23 +7,19 @@ namespace App\Domain\Shared\Enums;
 /**
  * Transaction type for EmployeeDebtTransaction.
  *
- * - PAYMENT: pembayaran manual (cash/transfer) oleh karyawan
- * - PAYROLL: potongan gaji otomatis via PayrollDeduction
- * - ADJUSTMENT: koreksi manual (+/-) tanpa uang fisik
- * - REVERSAL: pembatalan transaksi sebelumnya
+ * - PAYMENT: pembayaran masuk (cash/transfer/payroll) yang menambah paid_amount
+ * - ADJUSTMENT: koreksi manual (+/-) tanpa uang fisik.
+ *   Arah koreksi ditentukan oleh tanda amount (plus = menambah, minus = mengurangi).
+ *   Saat ADJUSTMENT, payment_source harus null.
  */
 final class TransactionType
 {
     public const PAYMENT = 'payment';
-    public const PAYROLL = 'payroll';
     public const ADJUSTMENT = 'adjustment';
-    public const REVERSAL = 'reversal';
 
     public const ALL = [
         self::PAYMENT,
-        self::PAYROLL,
         self::ADJUSTMENT,
-        self::REVERSAL,
     ];
 
     /**
@@ -31,14 +27,14 @@ final class TransactionType
      */
     public static function isInflow(string $type): bool
     {
-        return $type === self::PAYMENT || $type === self::PAYROLL;
+        return $type === self::PAYMENT;
     }
 
     /**
-     * Apakah transaction type ini mengurangi paid_amount (pembatalan/koreksi negatif)?
+     * Apakah transaction type ini koreksi manual (bisa plus atau minus)?
      */
-    public static function isOutflow(string $type): bool
+    public static function isAdjustment(string $type): bool
     {
-        return $type === self::REVERSAL;
+        return $type === self::ADJUSTMENT;
     }
 }

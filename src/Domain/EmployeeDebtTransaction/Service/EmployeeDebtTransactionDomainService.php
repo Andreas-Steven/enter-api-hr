@@ -22,9 +22,11 @@ use App\Shared\Exception\ConflictException;
  * Pure business logic and domain rules untuk transaksi hutang karyawan.
  *
  * Aturan utama:
- * - transaction_type harus salah satu: payment|payroll|adjustment|reversal
- * - payment_source wajib jika transaction_type = payment atau payroll
- * - payroll_deduction_id & payroll_period wajib jika payment_source = payroll_deduction
+ * - transaction_type harus salah satu: payment|adjustment
+ * - payment_source wajib jika transaction_type = payment
+ * - payment_source harus null jika transaction_type = adjustment
+ *   (arah koreksi ditentukan oleh tanda amount: plus menambah, minus mengurangi)
+ * - payroll_deduction_id & payroll_period wajib jika payment_source = payroll
  * - Tidak boleh ada duplikat transaksi untuk PayrollDeduction yang sama
  */
 final class EmployeeDebtTransactionDomainService
@@ -123,6 +125,16 @@ final class EmployeeDebtTransactionDomainService
             );
         }
 
+        if (TransactionType::isAdjustment($type) && $source !== null) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt_transaction.payment_source_must_be_null',
+                    domain: 'validation',
+                    params: []
+                )
+            );
+        }
+
         if ($source !== null && !in_array($source, PaymentSource::ALL, true)) {
             throw new BadRequestException(
                 translate: Message::create(
@@ -136,7 +148,7 @@ final class EmployeeDebtTransactionDomainService
 
     private function guardPayrollLink(?string $source, ?int $deductionId, ?int $period): void
     {
-        if ($source === PaymentSource::PAYROLL_DEDUCTION) {
+        if ($source === PaymentSource::PAYROLL) {
             if ($deductionId === null) {
                 throw new BadRequestException(
                     translate: Message::create(
@@ -167,6 +179,16 @@ final class EmployeeDebtTransactionDomainService
                     key: 'validation.min_value',
                     domain: 'validation',
                     params: ['field' => 'amount', 'min' => 0]
+                )
+            );
+        }
+
+        if (TransactionType::isAdjustment($type) && $amount == 0) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt_transaction.adjustment_amount_non_zero',
+                    domain: 'validation',
+                    params: []
                 )
             );
         }

@@ -157,12 +157,20 @@ return [
 
     // Employee Debt Prefix
     'employee_debt.deduction_type_not_creates_debt' => 'Deduction type "{name}" (id: {id}) does not create debt. EmployeeDebt may only use deduction types with creates_debt=1.',
+    'employee_debt.payment_must_be_positive' => 'Payment amount must be greater than 0. Got: {amount}.',
+    'employee_debt.payment_exceeds_remaining' => 'Payment amount ({amount}) exceeds remaining debt ({remaining}). Overpayment is not allowed.',
+    'employee_debt.reversal_must_be_positive' => 'Reversal amount must be greater than 0. Got: {amount}.',
+    'employee_debt.reversal_exceeds_paid' => 'Reversal amount ({amount}) exceeds paid amount ({paid}). Cannot reverse more than has been paid.',
+    'employee_debt.amount_must_be_positive' => 'Debt amount must be greater than 0. Got: {amount}.',
+    'employee_debt.amount_below_paid' => 'New debt amount ({amount}) cannot be less than already paid amount ({paid}).',
 
     // Employee Debt Transaction Prefix
-    'employee_debt_transaction.invalid_transaction_type' => 'Invalid transaction type "{type}". Allowed: payment, payroll, adjustment, reversal.',
-    'employee_debt_transaction.invalid_payment_source' => 'Invalid payment source "{source}". Allowed: cash, transfer, payroll_deduction.',
-    'employee_debt_transaction.payment_source_required' => 'Payment source is required for payment/payroll transaction type.',
-    'employee_debt_transaction.payroll_deduction_id_required' => 'payroll_deduction_id is required when payment_source is payroll_deduction.',
-    'employee_debt_transaction.payroll_period_required' => 'payroll_period is required when payment_source is payroll_deduction.',
+    'employee_debt_transaction.invalid_transaction_type' => 'Invalid transaction type "{type}". Allowed: payment, adjustment.',
+    'employee_debt_transaction.invalid_payment_source' => 'Invalid payment source "{source}". Allowed: payroll, non_payroll, manual.',
+    'employee_debt_transaction.payment_source_required' => 'Payment source is required for payment transaction type.',
+    'employee_debt_transaction.payment_source_must_be_null' => 'Payment source must be null for adjustment transaction type. Use amount sign (plus/minus) to indicate direction.',
+    'employee_debt_transaction.adjustment_amount_non_zero' => 'Amount must not be zero for adjustment transaction type. Use positive value to add or negative value to subtract.',
+    'employee_debt_transaction.payroll_deduction_id_required' => 'payroll_deduction_id is required when payment_source is payroll.',
+    'employee_debt_transaction.payroll_period_required' => 'payroll_period is required when payment_source is payroll.',
     'employee_debt_transaction.payroll_deduction_already_linked' => 'A transaction already exists for PayrollDeduction (id: {payroll_deduction_id}).',
 ];

@@ -97,6 +97,7 @@ final class EmployeeDebtApplicationService
         );
 
         $this->domainService->guardCreatesDebt(debtInfo: $debtInfo);
+        $this->domainService->guardCreateAmount(amount: $command->amount);
 
         $detailInfo = $this->detailInfoFactory
             ->create(
@@ -164,12 +165,6 @@ final class EmployeeDebtApplicationService
             );
         }
 
-        if (!empty($command->amount)) {
-            $data->setAmount(
-                amount: $command->amount
-            );
-        }
-
         if (!empty($command->date)) {
             $data->setDate(
                 date: $command->date
@@ -190,6 +185,11 @@ final class EmployeeDebtApplicationService
         $this->domainService->guardCreatesDebt(debtInfo: $debtInfo);
 
         if ($command->amount !== null) {
+            $this->domainService->guardUpdateAmount(
+                newAmount: $command->amount,
+                paidAmount: $data->getPaidAmount(),
+            );
+
             $data->adjustAmount(
                 newAmount: $command->amount
             );

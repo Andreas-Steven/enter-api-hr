@@ -25,6 +25,11 @@ use App\Shared\Exception\BadRequestException;
  * PayrollDeductionType with creates_debt = 1. Payment tracking is manual
  * (paid_amount / remaining_amount / is_settled). There is no installment
  * system and no auto-generation of PayrollDeduction records.
+ *
+ * Aturan utama:
+ * - amount harus > 0 saat create
+ * - amount baru harus > 0 dan >= paid_amount saat update
+ *   (tidak boleh menurunkan principal di bawah yang sudah dibayar)
  */
 final class EmployeeDebtDomainService
 {
@@ -49,6 +54,54 @@ final class EmployeeDebtDomainService
                     params: [
                         'id' => $deductionType['id'] ?? null,
                         'name' => $deductionType['name'] ?? null,
+                    ],
+                    domain: 'validation'
+                )
+            );
+        }
+    }
+
+    /**
+     * Guard: validasi amount saat create.
+     * amount harus > 0.
+     */
+    public function guardCreateAmount(float $amount): void
+    {
+        if ($amount <= 0) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.amount_must_be_positive',
+                    params: ['amount' => $amount],
+                    domain: 'validation'
+                )
+            );
+        }
+    }
+
+    /**
+     * Guard: validasi amount saat update.
+     * amount baru harus > 0 dan tidak boleh kurang dari paid_amount
+     * (tidak boleh menurunkan principal di bawah yang sudah dibayar).
+     */
+    public function guardUpdateAmount(float $newAmount, float $paidAmount): void
+    {
+        if ($newAmount <= 0) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.amount_must_be_positive',
+                    params: ['amount' => $newAmount],
+                    domain: 'validation'
+                )
+            );
+        }
+
+        if ($newAmount < $paidAmount) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.amount_below_paid',
+                    params: [
+                        'amount' => $newAmount,
+                        'paid' => $paidAmount,
                     ],
                     domain: 'validation'
                 )

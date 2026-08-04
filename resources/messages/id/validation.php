@@ -157,12 +157,20 @@ return [
 
     // Employee Debt Prefix
     'employee_debt.deduction_type_not_creates_debt' => 'Tipe potongan "{name}" (id: {id}) tidak menciptakan hutang. EmployeeDebt hanya boleh menggunakan tipe potongan dengan creates_debt=1.',
+    'employee_debt.payment_must_be_positive' => 'Nilai pembayaran harus lebih besar dari 0. Diberikan: {amount}.',
+    'employee_debt.payment_exceeds_remaining' => 'Nilai pembayaran ({amount}) melebihi sisa hutang ({remaining}). Overpay tidak diizinkan.',
+    'employee_debt.reversal_must_be_positive' => 'Nilai pembatalan harus lebih besar dari 0. Diberikan: {amount}.',
+    'employee_debt.reversal_exceeds_paid' => 'Nilai pembatalan ({amount}) melebihi total sudah dibayar ({paid}). Tidak dapat membatalkan lebih dari yang sudah dibayar.',
+    'employee_debt.amount_must_be_positive' => 'Nilai hutang harus lebih besar dari 0. Diberikan: {amount}.',
+    'employee_debt.amount_below_paid' => 'Nilai hutang baru ({amount}) tidak boleh kurang dari nilai yang sudah dibayar ({paid}).',
 
     // Employee Debt Transaction Prefix
-    'employee_debt_transaction.invalid_transaction_type' => 'Tipe transaksi "{type}" tidak valid. Yang diperbolehkan: payment, payroll, adjustment, reversal.',
-    'employee_debt_transaction.invalid_payment_source' => 'Sumber pembayaran "{source}" tidak valid. Yang diperbolehkan: cash, transfer, payroll_deduction.',
-    'employee_debt_transaction.payment_source_required' => 'Sumber pembayaran wajib diisi untuk tipe transaksi payment/payroll.',
-    'employee_debt_transaction.payroll_deduction_id_required' => 'payroll_deduction_id wajib diisi ketika payment_source adalah payroll_deduction.',
-    'employee_debt_transaction.payroll_period_required' => 'payroll_period wajib diisi ketika payment_source adalah payroll_deduction.',
+    'employee_debt_transaction.invalid_transaction_type' => 'Tipe transaksi "{type}" tidak valid. Yang diperbolehkan: payment, adjustment.',
+    'employee_debt_transaction.invalid_payment_source' => 'Sumber pembayaran "{source}" tidak valid. Yang diperbolehkan: payroll, non_payroll, manual.',
+    'employee_debt_transaction.payment_source_required' => 'Sumber pembayaran wajib diisi untuk tipe transaksi payment.',
+    'employee_debt_transaction.payment_source_must_be_null' => 'Sumber pembayaran harus null untuk tipe transaksi adjustment. Gunakan tanda amount (plus/minus) untuk menentukan arah koreksi.',
+    'employee_debt_transaction.adjustment_amount_non_zero' => 'Amount tidak boleh nol untuk tipe transaksi adjustment. Gunakan nilai positif untuk menambah atau nilai negatif untuk mengurangi.',
+    'employee_debt_transaction.payroll_deduction_id_required' => 'payroll_deduction_id wajib diisi ketika payment_source adalah payroll.',
+    'employee_debt_transaction.payroll_period_required' => 'payroll_period wajib diisi ketika payment_source adalah payroll.',
     'employee_debt_transaction.payroll_deduction_already_linked' => 'Transaksi sudah ada untuk PayrollDeduction (id: {payroll_deduction_id}).',
 ];
