@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application\EmployeeDebt\Command;
 
-use App\Domain\Shared\Enums\PaymentTerm;
-
 final readonly class UpdateEmployeeDebtCommand
 {
     public function __construct(
@@ -16,10 +14,6 @@ final readonly class UpdateEmployeeDebtCommand
         public ?string $date,
         public ?string $note,
         public ?int $status,
-        public ?int $paymentTerm,
-        public ?string $paymentMethod,
-        public ?int $installmentCount,
-        public ?string $firstPaymentDate,
         public ?array $detailInfo,
         public ?int $lockVersion,
     ) {}
@@ -32,10 +26,6 @@ final readonly class UpdateEmployeeDebtCommand
         ?string $date = null,
         ?string $note = null,
         ?int $status = null,
-        ?int $paymentTerm = PaymentTerm::FULL,
-        ?string $paymentMethod = null,
-        ?int $installmentCount = null,
-        ?string $firstPaymentDate = null,
         ?array $detailInfo = null,
         ?int $lockVersion = null,
     ): self {
@@ -47,10 +37,6 @@ final readonly class UpdateEmployeeDebtCommand
             date: $date,
             note: $note,
             status: $status,
-            paymentTerm: $paymentTerm,
-            paymentMethod: $paymentMethod,
-            installmentCount: $installmentCount,
-            firstPaymentDate: $firstPaymentDate,
             detailInfo: $detailInfo,
             lockVersion: $lockVersion,
         );

@@ -6,10 +6,10 @@ namespace App\Api\V1\EmployeeDebtTransaction\Validation;
 
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
+use App\Domain\Shared\Enums\TransactionType;
+use App\Domain\Shared\Enums\PaymentSource;
 use App\Shared\Validation\AbstractValidator;
 use App\Shared\Context\ValidationContext;
-use App\Shared\Validation\Rules\HasNoDependencies;
-use App\Shared\Validation\Rules\UniqueValue;
 
 // Vendor Layer
 use Yiisoft\Validator\Rule\Required;
@@ -18,287 +18,132 @@ use Yiisoft\Validator\Rule\StringValue;
 use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
 use Yiisoft\Validator\Rule\Number;
-use Yiisoft\Validator\Rule\StopOnError;
 
 /**
  * EmployeeDebtTransaction Input Validator
- * 
+ *
  * Menggunakan pattern AbstractValidator dengan ValidationContext
  * untuk validasi input yang berbeda per operation
  */
 final class EmployeeDebtTransactionInputValidator extends AbstractValidator
 {
-    /**
-     * EmployeeDebtTransactions for validation rules
-     * 
-     * This validator shows employeedebttransactions of advanced validation rules including
-     * dependency checking and unique value validation.
-     * 
-     * @see HasNoDependencies
-     * @see UniqueValue
-     * 
-     * Usage employeedebttransaction for HasNoDependencies:
-     * ```php
-     * ValidationContext::DELETE => [
-     *     'id' => [
-     *         new StopOnError([
-     *             new Required(),
-     *             new Integer(min: 1),
-     *             new HasNoDependencies(
-     *                 map: [
-     *                     'other_table' => ['employee_debt_transaction_id'],
-     *                 ],
-     *                 message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
-     *             ),
-     *         ]),
-     *     ],
-     * ],
-     * ```
-     * 
-     * Usage employeedebttransaction for UniqueValue:
-     * ```php
-     * ValidationContext::CREATE => [
-     *     'name' => [
-     *         new StopOnError([
-     *             new Required(),
-     *             new StringLength(max: 255),
-     *             new UniqueValue(
-     *                 table: 'employeedebttransactions',
-     *                 column: 'name',
-     *                 ignoreId: null,
-     *             ),
-     *         ]),
-     *     ],
-     * ],
-     * 
-     * Usage employeedebttransaction for UniqueValue with exclusion (for updates):
-     * ```php
-     * ValidationContext::UPDATE => [
-     *     'name' => [
-     *         new StopOnError([
-     *             new Required(),
-     *             new StringLength(max: 255),
-     *             new UniqueValue(
-     *                 table: 'employeedebttransactions',
-     *                 column: 'name',
-     *                 ignoreId: $this->data['id'] ?? null,
-     *             ),
-     *         ]),
-     *     ],
-     * ],
-     * ```
-     */
-    
-
     protected function rules(string $context): array
     {
         return match ($context) {
             ValidationContext::CREATE => [
                 'employee_debt_id' => [
                     new Required(),
-                    new Integer(
-                        min: 1,
-                    ),
+                    new Integer(min: 1),
                 ],
-                'employee_debt_installment_id' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                        min: 1,
-                    ),
+                'employee_id' => [
+                    new Required(),
+                    new Integer(min: 1),
                 ],
-                'payroll_deduction_id' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                        min: 1,
-                    ),
-                ],
-                'type' => [
+                'transaction_type' => [
                     new Required(),
                     new StringValue(),
-                    new In(
-                        ['payment', 'adjustment', 'settlement', 'reversal'],
-                    ),
+                    new In(TransactionType::ALL),
+                ],
+                'date' => [
+                    new Required(),
+                    new StringValue(),
+                    new Length(exactly: 10),
                 ],
                 'amount' => [
                     new Required(),
-                    new Number(
-                        min: 0,
-                    ),
+                    new Number(),
                 ],
-                'transaction_date' => [
-                    new Required(),
+                'payment_source' => [
                     new StringValue(),
+                    new In(PaymentSource::ALL),
                 ],
                 'note' => [
                     new StringValue(),
-                    new Length(
-                        max: 255,
-                    ),
+                    new Length(max: 1000),
                 ],
                 'status' => [
                     new Required(),
                     new Integer(),
-                    new In(
-                        RecordStatus::draftOnlyStates(),
-                    ),
+                    new In(RecordStatus::draftOnlyStates()),
                 ],
             ],
             ValidationContext::UPDATE => [
                 'id' => [
                     new Required(),
-                    new Integer(
-                        min: 1,
-                    ),
+                    new Integer(min: 1),
                 ],
                 'employee_debt_id' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                        min: 1,
-                    ),
+                    new Integer(skipOnEmpty: true, min: 1),
                 ],
-                'employee_debt_installment_id' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                        min: 1,
-                    ),
+                'employee_id' => [
+                    new Integer(skipOnEmpty: true, min: 1),
                 ],
-                'payroll_deduction_id' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                        min: 1,
-                    ),
-                ],
-                'type' => [
+                'transaction_type' => [
                     new StringValue(
-                        skipOnEmpty: true,
+                        skipOnEmpty: true
                     ),
-                    new In(
-                        ['payment', 'adjustment', 'settlement', 'reversal'],
-                        skipOnEmpty: true,
+                    new In(TransactionType::ALL),
+                ],
+                'date' => [
+                    new StringValue(
+                        skipOnEmpty: true
                     ),
                 ],
                 'amount' => [
-                    new Number(
-                        skipOnEmpty: true,
-                        min: 0,
-                    ),
+                    new Number(skipOnEmpty: true),
                 ],
-                'transaction_date' => [
+                'payment_source' => [
                     new StringValue(
-                        skipOnEmpty: true,
+                        skipOnEmpty: true
                     ),
+                    new In(PaymentSource::ALL),
                 ],
                 'note' => [
-                    new StringValue(
-                        skipOnEmpty: true,
-                    ),
-                    new Length(
-                        max: 255,
-                        skipOnEmpty: true,
-                    ),
+                    new StringValue(skipOnEmpty: true),
+                    new Length(max: 1000, skipOnEmpty: true),
                 ],
                 'status' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                    ),
-                    new In(
-                        RecordStatus::searchableStates(),
-                    ),
+                    new Integer(skipOnEmpty: true),
+                    new In(RecordStatus::searchableStates()),
                 ],
                 'lock_version' => [
-                    new Required(
-                        when: fn() => $this->shouldValidateOptimisticLock()
-                    ),
-                    new Integer(
-                        min: 1,
-                        skipOnEmpty: true,
-                    ),
+                    new Required(when: fn() => $this->shouldValidateOptimisticLock()),
+                    new Integer(min: 1, skipOnEmpty: true),
                 ],
             ],
             ValidationContext::DELETE => [
                 'id' => [
-                    new Required(), 
-                    new Integer(
-                        min: 1,
-                    ),
+                    new Required(),
+                    new Integer(min: 1),
                 ],
             ],
             ValidationContext::SEARCH => [
                 'id' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                    ),
+                    new Integer(skipOnEmpty: true),
                 ],
                 'name' => [
-                    new StringValue(
-                        skipOnEmpty: true,
-                    ),
-                    new Length(
-                        min: 1,
-                        max: 100,
-                        skipOnEmpty: true,
-                    ),
+                    new StringValue(skipOnEmpty: true),
+                    new Length(min: 1, max: 100, skipOnEmpty: true),
                 ],
                 'employee_debt_id' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                    ),
+                    new Integer(skipOnEmpty: true),
                 ],
-                'employee_debt_installment_id' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                    ),
+                'employee_id' => [
+                    new Integer(skipOnEmpty: true),
                 ],
-                'payroll_deduction_id' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                    ),
+                'transaction_type' => [
+                    new StringValue(skipOnEmpty: true),
+                    new In(TransactionType::ALL),
                 ],
-                'type' => [
-                    new StringValue(
-                        skipOnEmpty: true,
-                    ),
-                    new In(
-                        ['payment', 'adjustment', 'settlement', 'reversal'],
-                        skipOnEmpty: true,
-                    ),
+                'payment_source' => [
+                    new StringValue(skipOnEmpty: true),
+                    new In(PaymentSource::ALL),
                 ],
                 'status' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                    ),
-                ],
-                'sync_mdb' => [
-                    new Integer(
-                        skipOnEmpty: true,
-                    ),
-                ],
-                'page' => [
-                    new Integer(
-                        min: 1,
-                        skipOnEmpty: true,
-                    ),
-                ],
-                'page_size' => [
-                    new Integer(
-                        min: 1,
-                        max: 200,
-                        skipOnEmpty: true,
-                    ),
-                ],
-                'sort_by' => [
-                    new StringValue(
-                        skipOnEmpty: true,
-                    ),
-                ],
-                'sort_dir' => [
-                    new In(
-                        ['asc', 'desc'],
-                        skipOnEmpty: true,
-                    ),
+                    new Integer(skipOnEmpty: true),
+                    new In(RecordStatus::searchableStates()),
                 ],
             ],
-
             default => [],
         };
     }

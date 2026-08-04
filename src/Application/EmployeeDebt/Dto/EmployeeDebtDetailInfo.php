@@ -29,11 +29,6 @@ final readonly class EmployeeDebtDetailInfo
         return $this->deduction_type;
     }
 
-    public function allowsInstallment(): bool
-    {
-        return !empty($this->deduction_type['allow_installment']);
-    }
-
     public function createsDebt(): bool
     {
         return !empty($this->deduction_type['creates_debt']);

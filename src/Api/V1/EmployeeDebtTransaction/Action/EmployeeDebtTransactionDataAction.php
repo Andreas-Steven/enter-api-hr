@@ -14,8 +14,6 @@ use App\Api\V1\EmployeeDebtTransaction\Validation\EmployeeDebtTransactionInputVa
 
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
-use App\Shared\Dto\SearchCriteria;
-use App\Shared\Request\RequestParams;
 use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
 
@@ -25,10 +23,31 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class EmployeeDebtTransactionDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'status'];
+    private const ALLOWED_KEYS = [
+        'id',
+        'name',
+        'employee_debt_id',
+        'employee_id',
+        'transaction_type',
+        'date',
+        'amount',
+        'payment_source',
+        'payroll_deduction_id',
+        'payroll_period',
+        'note',
+        'status',
+    ];
     private const ALLOWED_SORT = [
-        'id' => 'id', 
-        'name' => 'name', 
+        'id' => 'id',
+        'name' => 'name',
+        'employee_debt_id' => 'employee_debt_id',
+        'employee_id' => 'employee_id',
+        'transaction_type' => 'transaction_type',
+        'date' => 'date',
+        'amount' => 'amount',
+        'payment_source' => 'payment_source',
+        'payroll_deduction_id' => 'payroll_deduction_id',
+        'payroll_period' => 'payroll_period',
         'status' => 'status',
     ];
 
@@ -38,7 +57,7 @@ final class EmployeeDebtTransactionDataAction
         private EmployeeDebtTransactionApplicationService $applicationService,
         private ResponseFactory $responseFactory,
     ) {
-    }   
+    }
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
@@ -66,7 +85,7 @@ final class EmployeeDebtTransactionDataAction
         return $this->responseFactory->success(
             data: $result->data,
             translate: Message::create(
-                key: 'resource.list_retrieved', 
+                key: 'resource.list_retrieved',
                 params: [
                     'resource' => $resource
                 ]

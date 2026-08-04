@@ -32,9 +32,7 @@ final class PayrollDeductionUpdateAction
     private const ALLOWED_KEYS = [
         'employee_id',
         'deduction_type_id',
-        'attendance_report_id',
         'employee_debt_id',
-        'employee_debt_installment_id',
         'period',
         'amount',
         'description',
@@ -90,17 +88,15 @@ final class PayrollDeductionUpdateAction
 
         $command = UpdatePayrollDeductionCommand::create(
             id: (int) $id,
-            employeeId: (int) $params->get('employee_id'),
-            deductionTypeId: (int) $params->get('deduction_type_id'),
-            attendanceReportId: (int) $params->get('attendance_report_id'),
-            employeeDebtId: (int) $params->get('employee_debt_id'),
-            employeeDebtInstallmentId: (int) $params->get('employee_debt_installment_id'),
-            period: (int) $params->get('period'),
-            amount: (float) $params->get('amount'),
+            employeeId: $params->get('employee_id') !== null ? (int) $params->get('employee_id') : null,
+            deductionTypeId: $params->get('deduction_type_id') !== null ? (int) $params->get('deduction_type_id') : null,
+            employeeDebtId: $params->get('employee_debt_id') !== null ? (int) $params->get('employee_debt_id') : null,
+            period: $params->get('period') !== null ? (int) $params->get('period') : null,
+            amount: $params->get('amount') !== null ? (float) $params->get('amount') : null,
             description: $params->get('description'),
-            status: (int) $params->get('status'),
+            status: $params->get('status') !== null ? (int) $params->get('status') : null,
             detailInfo: $params->get('detail_info'),
-            lockVersion: (int) $params->get('lock_version'),
+            lockVersion: $params->get('lock_version') !== null ? (int) $params->get('lock_version') : null,
         );
 
         $response = $this->applicationService->update(

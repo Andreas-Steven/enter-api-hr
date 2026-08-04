@@ -6,7 +6,6 @@ namespace App\Api\V1\EmployeeDebtTransaction\Action;
 
 // Application Layer
 use App\Application\EmployeeDebtTransaction\EmployeeDebtTransactionApplicationService;
-use App\Application\Shared\Factory\SearchCriteriaFactory;
 
 // API Layer
 use App\Api\Shared\ResponseFactory;

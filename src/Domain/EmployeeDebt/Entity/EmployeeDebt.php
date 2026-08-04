@@ -17,8 +17,6 @@ use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
-use App\Domain\Shared\Enums\PaymentTerm;
-use App\Domain\Shared\Enums\PaymentMethod;
 
 final class EmployeeDebt
 {
@@ -36,13 +34,8 @@ final class EmployeeDebt
         private float $amount,
         private string $date,
         private ?string $note,
-        private int $paymentTerm,
-        private ?string $paymentMethod,
-        private int $installmentCount,
-        private float $installmentAmount,
         private float $remainingAmount,
         private float $paidAmount,
-        private ?string $firstPaymentDate,
         private int $isSettled,
         private ?string $settledAt,
         private ResourceStatus $status,
@@ -66,10 +59,6 @@ final class EmployeeDebt
         float $amount,
         string $date,
         ?string $note,
-        int $paymentTerm,
-        ?string $paymentMethod,
-        int $installmentCount,
-        ?string $firstPaymentDate,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
@@ -77,11 +66,6 @@ final class EmployeeDebt
         self::guardInitialStatus(
             status: $status,
             resource: self::RESOURCE
-        );
-
-        $installmentAmount = self::calculateInstallmentAmount(
-            amount: $amount,
-            installmentCount: $paymentTerm === PaymentTerm::INSTALLMENT ? $installmentCount : 1
         );
 
         return new self(
@@ -92,13 +76,8 @@ final class EmployeeDebt
             amount: $amount,
             date: $date,
             note: $note,
-            paymentTerm: $paymentTerm,
-            paymentMethod: $paymentMethod,
-            installmentCount: $paymentTerm === PaymentTerm::INSTALLMENT ? $installmentCount : 1,
-            installmentAmount: $installmentAmount,
             remainingAmount: $amount,
             paidAmount: 0.0,
-            firstPaymentDate: $firstPaymentDate,
             isSettled: 0,
             settledAt: null,
             status: $status,
@@ -116,13 +95,8 @@ final class EmployeeDebt
         float $amount,
         string $date,
         ?string $note,
-        int $paymentTerm,
-        ?string $paymentMethod,
-        int $installmentCount,
-        float $installmentAmount,
         float $remainingAmount,
         float $paidAmount,
-        ?string $firstPaymentDate,
         int $isSettled,
         ?string $settledAt,
         ResourceStatus $status,
@@ -139,13 +113,8 @@ final class EmployeeDebt
             amount: $amount,
             date: $date,
             note: $note,
-            paymentTerm: $paymentTerm,
-            paymentMethod: $paymentMethod,
-            installmentCount: $installmentCount,
-            installmentAmount: $installmentAmount,
             remainingAmount: $remainingAmount,
             paidAmount: $paidAmount,
-            firstPaymentDate: $firstPaymentDate,
             isSettled: $isSettled,
             settledAt: $settledAt,
             status: $status,
@@ -165,13 +134,8 @@ final class EmployeeDebt
             'amount' => $this->amount,
             'date' => $this->date,
             'note' => $this->note,
-            'payment_term' => $this->paymentTerm,
-            'payment_method' => $this->paymentMethod,
-            'installment_count' => $this->installmentCount,
-            'installment_amount' => $this->installmentAmount,
             'remaining_amount' => $this->remainingAmount,
             'paid_amount' => $this->paidAmount,
-            'first_payment_date' => $this->firstPaymentDate,
             'is_settled' => $this->isSettled,
             'settled_at' => $this->settledAt,
             'status' => $this->status->value(),
@@ -180,7 +144,7 @@ final class EmployeeDebt
             LockVersion::field() => $this->lockVersion->value(),
         ];
     }
-    
+
     public function restore(): void
     {
         if (!$this->status->isDeleted()) {
@@ -191,14 +155,14 @@ final class EmployeeDebt
                 )
             );
         }
-        
+
         $this->status = ResourceStatus::restored();
     }
 
     /**
      * Place EmployeeDebt-specific business functions here, in addition to those
      * provided by common traits/concerns (Identifiable, Stateful, etc.).
-     */ 
+     */
     public function getEmployeeId(): int
     {
         return $this->employeeId;
@@ -239,69 +203,14 @@ final class EmployeeDebt
         $this->date = $date;
     }
 
-    public function getnote(): ?string
+    public function getNote(): ?string
     {
         return $this->note;
     }
 
-    public function setnote(?string $note): void
+    public function setNote(?string $note): void
     {
         $this->note = $note;
-    }
-
-    public function getPaymentTerm(): int
-    {
-        return $this->paymentTerm;
-    }
-
-    public function updatePaymentTerm(int $paymentTerm): void
-    {
-        $this->paymentTerm = $paymentTerm;
-    }
-
-    public function updateInstallmentConfiguration(
-        int $paymentTerm,
-        ?string $paymentMethod,
-        int $installmentCount,
-        ?string $firstPaymentDate,
-    ): void {
-        $this->paymentTerm = $paymentTerm;
-        $this->paymentMethod = $paymentMethod;
-        $this->installmentCount = $paymentTerm === PaymentTerm::INSTALLMENT ? $installmentCount : 1;
-        $this->firstPaymentDate = $firstPaymentDate;
-        $this->installmentAmount = self::calculateInstallmentAmount(
-            amount: $this->amount,
-            installmentCount: $this->installmentCount
-        );
-    }
-
-    public function getPaymentMethod(): ?string
-    {
-        return $this->paymentMethod;
-    }
-
-    public function updatePaymentMethod(?string $paymentMethod): void
-    {
-        $this->paymentMethod = $paymentMethod;
-    }
-
-    public function getInstallmentCount(): int
-    {
-        return $this->installmentCount;
-    }
-
-    public function updateInstallmentCount(int $installmentCount): void
-    {
-        $this->installmentCount = $installmentCount;
-        $this->installmentAmount = self::calculateInstallmentAmount(
-            amount: $this->amount,
-            installmentCount: $this->installmentCount
-        );
-    }
-
-    public function getInstallmentAmount(): float
-    {
-        return $this->installmentAmount;
     }
 
     public function getRemainingAmount(): float
@@ -335,25 +244,11 @@ final class EmployeeDebt
     public function adjustAmount(float $newAmount): void
     {
         $this->amount = $newAmount;
-        $this->installmentAmount = self::calculateInstallmentAmount(
-            amount: $this->amount,
-            installmentCount: $this->installmentCount
-        );
         $this->remainingAmount = max(0, $this->amount - $this->paidAmount);
 
         if ($this->remainingAmount <= 0) {
             $this->markAsSettled();
         }
-    }
-
-    public function getFirstPaymentDate(): ?string
-    {
-        return $this->firstPaymentDate;
-    }
-
-    public function updateFirstPaymentDate(?string $firstPaymentDate): void
-    {
-        $this->firstPaymentDate = $firstPaymentDate;
     }
 
     public function isSettled(): int
@@ -370,14 +265,5 @@ final class EmployeeDebt
     {
         $this->isSettled = 1;
         $this->settledAt = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
-    }
-
-    private static function calculateInstallmentAmount(float $amount, int $installmentCount): float
-    {
-        if ($installmentCount <= 1) {
-            return $amount;
-        }
-
-        return round($amount / $installmentCount, 2);
     }
 }

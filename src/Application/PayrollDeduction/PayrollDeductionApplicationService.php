@@ -13,16 +13,10 @@ use App\Application\Shared\Factory\DetailInfoFactory;
 use App\Application\EmployeeDebtTransaction\EmployeeDebtTransactionApplicationService;
 
 // Domain Layer
-use App\Domain\EmployeeDebt\Entity\EmployeeDebt;
-use App\Domain\EmployeeDebt\Repository\EmployeeDebtRepositoryInterface;
-use App\Domain\EmployeeDebtInstallment\Entity\EmployeeDebtInstallment;
-use App\Domain\EmployeeDebtInstallment\Repository\EmployeeDebtInstallmentRepositoryInterface;
 use App\Domain\PayrollDeduction\Entity\PayrollDeduction;
 use App\Domain\PayrollDeduction\Repository\PayrollDeductionRepositoryInterface;
 use App\Domain\PayrollDeduction\Service\PayrollDeductionDomainService;
 use App\Domain\PayrollDeduction\ValueObject\Name as DeductionName;
-use App\Domain\AttendancePeriod\Repository\AttendancePeriodRepositoryInterface;
-use App\Domain\AttendancePeriod\ValueObject\PayrollPeriod;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
@@ -33,16 +27,13 @@ use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
 
 /**
- * PayrollDeduction Application Service (Mandor/Alur Kerja)
+ * PayrollDeduction Application Service
  *
  * Orchestrates use cases and coordinates domain & infrastructure.
  *
- * Selain CRUD generik, service ini menjadi ORCHESTRATOR pemotongan gaji
- * otomatis untuk cicilan hutang jatuh tempo:
- * - generateFromInstallments(period): scan installment jatuh tempo di periode
- *   YYYY-MM, buat payroll_deduction per cicilan, lalu cascade ke
- *   EmployeeDebtTransaction.applyPaymentFromPayrollDeduction (record ledger +
- *   update debt.paid_amount + installment.payment_status).
+ * Modul ini standalone untuk tracking potongan gaji. Jika potongan terkait
+ * EmployeeDebt (employee_debt_id di-set), akan cascade ke
+ * EmployeeDebtTransaction.applyPaymentFromPayrollDeduction untuk record ledger.
  */
 final class PayrollDeductionApplicationService
 {
@@ -51,30 +42,9 @@ final class PayrollDeductionApplicationService
         private DetailInfoFactory $detailInfoFactory,
         private PayrollDeductionDetailInfoFactory $deductionInfoFactory,
         private PayrollDeductionRepositoryInterface $repository,
-        private EmployeeDebtRepositoryInterface $employeeDebtRepository,
-        private EmployeeDebtInstallmentRepositoryInterface $installmentRepository,
         private PayrollDeductionDomainService $domainService,
         private EmployeeDebtTransactionApplicationService $transactionService,
-        private AttendancePeriodRepositoryInterface $attendancePeriodRepository,
     ) {
-    }
-
-    /**
-     * Resolve payout_date for a period from AttendancePeriod entity.
-     * Falls back to PayrollPeriod::payoutDate() if no AttendancePeriod exists.
-     */
-    private function resolvePayoutDate(int $period): string
-    {
-        $payrollPeriod = PayrollPeriod::fromInt($period);
-        $attendancePeriod = $this->attendancePeriodRepository->findByPeriod(
-            $payrollPeriod->toInt()
-        );
-
-        if ($attendancePeriod !== null && $attendancePeriod->getPayoutDate() !== null) {
-            return $attendancePeriod->getPayoutDate()->toString();
-        }
-
-        return $payrollPeriod->payoutDate()->format('Y-m-d');
     }
 
     public function getResource(): string
@@ -131,14 +101,12 @@ final class PayrollDeductionApplicationService
             deductionTypeId: $command->deductionTypeId,
             period: $command->period,
             amount: $command->amount,
-            employeeDebtInstallmentId: $command->employeeDebtInstallmentId,
         );
 
         $info = $this->deductionInfoFactory->buildFromIds(
             employeeId: $command->employeeId,
             deductionTypeId: $command->deductionTypeId,
             employeeDebtId: $command->employeeDebtId,
-            employeeDebtInstallmentId: $command->employeeDebtInstallmentId,
         );
 
         $detailInfo = $this->detailInfoFactory
@@ -151,9 +119,7 @@ final class PayrollDeductionApplicationService
             name: $name,
             employeeId: $command->employeeId,
             deductionTypeId: $command->deductionTypeId,
-            attendanceReportId: $command->attendanceReportId,
             employeeDebtId: $command->employeeDebtId,
-            employeeDebtInstallmentId: $command->employeeDebtInstallmentId,
             period: $command->period,
             amount: $command->amount,
             description: $command->description,
@@ -163,114 +129,20 @@ final class PayrollDeductionApplicationService
 
         $deduction = $this->repository->insert(entity: $data);
 
-        // Jika potongan ini terkait installment hutang, record ledger payment
-        // supaya debt.paid_amount & installment.payment_status ikut ter-update.
-        if ($command->employeeDebtId !== null && $command->employeeDebtInstallmentId !== null) {
+        // Jika potongan ini terkait EmployeeDebt, record ledger payment
+        // supaya debt.paid_amount & remaining_amount ikut ter-update.
+        if ($command->employeeDebtId !== null) {
             $this->transactionService->applyPaymentFromPayrollDeduction(
                 employeeDebtId: $command->employeeDebtId,
-                installmentId: $command->employeeDebtInstallmentId,
+                installmentId: null,
                 payrollDeductionId: $deduction->getId(),
                 amount: $command->amount,
-                transactionDate: $this->resolvePayoutDate($command->period),
+                transactionDate: date('Y-m-d'),
                 note: sprintf('Auto-deducted via payroll %d', $command->period),
             );
         }
 
         return PayrollDeductionResponse::fromEntity(entity: $deduction);
-    }
-
-    /**
-     * Generate payroll_deduction otomatis untuk SEMUA cicilan jatuh tempo
-     * pada periode YYYY-MM yang belum dibayar & belum pernah di-generate.
-     *
-     * Alur:
-     * 1. Ambil installment jatuh tempo periode ini (findDueForPeriod)
-     * 2. Untuk tiap installment:
-     *    a. Validasi eligible (pending + belum di-generate)
-     *    b. Ambil employee_debt terkait untuk dapat employee_id & deduction_type_id
-     *    c. Buat payroll_deduction (amount = installment.amount)
-     *    d. Cascade ke EmployeeDebtTransaction.applyPaymentFromPayrollDeduction
-     *
-     * @param int $period Format YYYYMM
-     * @return list<PayrollDeductionResponse>
-     */
-    public function generateFromInstallments(int $period): array
-    {
-        $this->domainService->guardPeriod($period);
-
-        $installments = $this->installmentRepository->findDueForPeriod(
-            period: $period,
-            status: null
-        );
-
-        $results = [];
-
-        foreach ($installments as $installment) {
-            // Skip jika sudah pernah di-generate (race-safe double check)
-            if ($this->repository->existsForInstallment($installment->getId())) {
-                continue;
-            }
-
-            $this->domainService->guardInstallmentEligibleForGeneration($installment);
-
-            $debt = $this->employeeDebtRepository->findById(
-                id: $installment->getEmployeeDebtId(),
-                status: null
-            );
-
-            if ($debt === null) {
-                // Orphan installment (debt sudah dihapus) — skip, jangan fail batch
-                continue;
-            }
-
-            $info = $this->deductionInfoFactory->buildFromIds(
-                employeeId: $debt->getEmployeeId(),
-                deductionTypeId: $debt->getDeductionTypeId(),
-                employeeDebtId: $debt->getId(),
-                employeeDebtInstallmentId: $installment->getId(),
-            );
-
-            $detailInfo = $this->detailInfoFactory
-                ->create(detailInfo: $info->toArray())
-                ->build();
-
-            $name = DeductionName::generate($debt->getEmployeeId(), $installment->getSequence())->toString();
-
-            $deduction = PayrollDeduction::create(
-                name: $name,
-                employeeId: $debt->getEmployeeId(),
-                deductionTypeId: $debt->getDeductionTypeId(),
-                attendanceReportId: null,
-                employeeDebtId: $debt->getId(),
-                employeeDebtInstallmentId: $installment->getId(),
-                period: $period,
-                amount: $installment->getAmount(),
-                description: sprintf(
-                    'Auto-generated installment #%d for %s (due %s)',
-                    $installment->getSequence(),
-                    $debt->getName(),
-                    $installment->getDueDate()
-                ),
-                status: ResourceStatus::active(),
-                detailInfo: $detailInfo
-            );
-
-            $deduction = $this->repository->insert(entity: $deduction);
-
-            // Cascade: record ledger payment + update debt + mark installment paid
-            $this->transactionService->applyPaymentFromPayrollDeduction(
-                employeeDebtId: $debt->getId(),
-                installmentId: $installment->getId(),
-                payrollDeductionId: $deduction->getId(),
-                amount: $installment->getAmount(),
-                transactionDate: $this->resolvePayoutDate($period),
-                note: sprintf('Auto-deducted via payroll %d (installment #%d)', $period, $installment->getSequence()),
-            );
-
-            $results[] = PayrollDeductionResponse::fromEntity(entity: $deduction);
-        }
-
-        return $results;
     }
 
     public function update(int $id, UpdatePayrollDeductionCommand $command): PayrollDeductionResponse
@@ -305,16 +177,8 @@ final class PayrollDeductionApplicationService
             $data->setDeductionTypeId($command->deductionTypeId);
         }
 
-        if ($command->attendanceReportId !== null) {
-            $data->setAttendanceReportId($command->attendanceReportId);
-        }
-
         if ($command->employeeDebtId !== null) {
             $data->setEmployeeDebtId($command->employeeDebtId);
-        }
-
-        if ($command->employeeDebtInstallmentId !== null) {
-            $data->setEmployeeDebtInstallmentId($command->employeeDebtInstallmentId);
         }
 
         if ($command->period !== null) {
@@ -337,10 +201,16 @@ final class PayrollDeductionApplicationService
             newStatus: $newStatus
         );
 
+        $info = $this->deductionInfoFactory->buildFromIds(
+            employeeId: $data->getEmployeeId(),
+            deductionTypeId: $data->getDeductionTypeId(),
+            employeeDebtId: $data->getEmployeeDebtId(),
+        );
+
         $detailInfo = $this->detailInfoFactory
             ->update(
                 detailInfo: $data->getDetailInfo(),
-                payload: $command->detailInfo ?? [],
+                payload: $info->toArray(),
             )
             ->build();
 

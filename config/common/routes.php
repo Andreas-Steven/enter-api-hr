@@ -774,70 +774,6 @@ return [
                 ->name('v1/employee-debt/restore')
                 ->defaults(['permission' => 'employee-debt.restore']),
 
-            // PayrollDeduction Routes
-            Route::get('/payroll-deduction')
-                ->action(PayrollDeductionV1\PayrollDeductionDataAction::class)
-                ->name('v1/payroll-deduction/index')
-                ->defaults(['permission' => 'payroll-deduction.index']),
-            Route::post('/payroll-deduction/data')
-                ->action(PayrollDeductionV1\PayrollDeductionDataAction::class)
-                ->name('v1/payroll-deduction/data')
-                ->defaults(['permission' => 'payroll-deduction.data']),
-            Route::get('/payroll-deduction/{id:\d+}')
-                ->action(PayrollDeductionV1\PayrollDeductionViewAction::class)
-                ->name('v1/payroll-deduction/view')
-                ->defaults(['permission' => 'payroll-deduction.view']),
-            Route::post('/payroll-deduction/create')
-                ->action(PayrollDeductionV1\PayrollDeductionCreateAction::class)
-                ->name('v1/payroll-deduction/create')
-                ->defaults(['permission' => 'payroll-deduction.create']),
-            Route::put('/payroll-deduction/{id:\d+}')
-                ->action(PayrollDeductionV1\PayrollDeductionUpdateAction::class)
-                ->name('v1/payroll-deduction/update')
-                ->defaults(['permission' => 'payroll-deduction.update']),
-            Route::delete('/payroll-deduction/{id:\d+}')
-                ->action(PayrollDeductionV1\PayrollDeductionDeleteAction::class)
-                ->name('v1/payroll-deduction/delete')
-                ->defaults(['permission' => 'payroll-deduction.delete']),
-            Route::post('/payroll-deduction/{id:\d+}/restore')
-                ->action(PayrollDeductionV1\PayrollDeductionRestoreAction::class)
-                ->name('v1/payroll-deduction/restore')
-                ->defaults(['permission' => 'payroll-deduction.restore']),
-            Route::post('/payroll-deduction/generate')
-                ->action(PayrollDeductionV1\PayrollDeductionGenerateAction::class)
-                ->name('v1/payroll-deduction/generate')
-                ->defaults(['permission' => 'payroll-deduction.generate']),
-
-            // EmployeeDebtInstallment Routes
-            Route::get('/employee-debt-installment')
-                ->action(EmployeeDebtInstallmentV1\EmployeeDebtInstallmentDataAction::class)
-                ->name('v1/employee-debt-installment/index')
-                ->defaults(['permission' => 'employee-debt-installment.index']),
-            Route::post('/employee-debt-installment/data')
-                ->action(EmployeeDebtInstallmentV1\EmployeeDebtInstallmentDataAction::class)
-                ->name('v1/employee-debt-installment/data')
-                ->defaults(['permission' => 'employee-debt-installment.data']),
-            Route::get('/employee-debt-installment/{id:\d+}')
-                ->action(EmployeeDebtInstallmentV1\EmployeeDebtInstallmentViewAction::class)
-                ->name('v1/employee-debt-installment/view')
-                ->defaults(['permission' => 'employee-debt-installment.view']),
-            Route::post('/employee-debt-installment/create')
-                ->action(EmployeeDebtInstallmentV1\EmployeeDebtInstallmentCreateAction::class)
-                ->name('v1/employee-debt-installment/create')
-                ->defaults(['permission' => 'employee-debt-installment.create']),
-            Route::put('/employee-debt-installment/{id:\d+}')
-                ->action(EmployeeDebtInstallmentV1\EmployeeDebtInstallmentUpdateAction::class)
-                ->name('v1/employee-debt-installment/update')
-                ->defaults(['permission' => 'employee-debt-installment.update']),
-            Route::delete('/employee-debt-installment/{id:\d+}')
-                ->action(EmployeeDebtInstallmentV1\EmployeeDebtInstallmentDeleteAction::class)
-                ->name('v1/employee-debt-installment/delete')
-                ->defaults(['permission' => 'employee-debt-installment.delete']),
-            Route::post('/employee-debt-installment/{id:\d+}/restore')
-                ->action(EmployeeDebtInstallmentV1\EmployeeDebtInstallmentRestoreAction::class)
-                ->name('v1/employee-debt-installment/restore')
-                ->defaults(['permission' => 'employee-debt-installment.restore']),
-
             // EmployeeDebtTransaction Routes
             Route::get('/employee-debt-transaction')
                 ->action(EmployeeDebtTransactionV1\EmployeeDebtTransactionDataAction::class)
@@ -868,7 +804,34 @@ return [
                 ->name('v1/employee-debt-transaction/restore')
                 ->defaults(['permission' => 'employee-debt-transaction.restore']),
 
-
-
+            // PayrollDeduction Routes
+            Route::get('/payroll-deduction')
+                ->action(PayrollDeductionV1\PayrollDeductionDataAction::class)
+                ->name('v1/payroll-deduction/index')
+                ->defaults(['permission' => 'payroll-deduction.index']),
+            Route::post('/payroll-deduction/data')
+                ->action(PayrollDeductionV1\PayrollDeductionDataAction::class)
+                ->name('v1/payroll-deduction/data')
+                ->defaults(['permission' => 'payroll-deduction.data']),
+            Route::get('/payroll-deduction/{id:\d+}')
+                ->action(PayrollDeductionV1\PayrollDeductionViewAction::class)
+                ->name('v1/payroll-deduction/view')
+                ->defaults(['permission' => 'payroll-deduction.view']),
+            Route::post('/payroll-deduction/create')
+                ->action(PayrollDeductionV1\PayrollDeductionCreateAction::class)
+                ->name('v1/payroll-deduction/create')
+                ->defaults(['permission' => 'payroll-deduction.create']),
+            Route::put('/payroll-deduction/{id:\d+}')
+                ->action(PayrollDeductionV1\PayrollDeductionUpdateAction::class)
+                ->name('v1/payroll-deduction/update')
+                ->defaults(['permission' => 'payroll-deduction.update']),
+            Route::delete('/payroll-deduction/{id:\d+}')
+                ->action(PayrollDeductionV1\PayrollDeductionDeleteAction::class)
+                ->name('v1/payroll-deduction/delete')
+                ->defaults(['permission' => 'payroll-deduction.delete']),
+            Route::post('/payroll-deduction/{id:\d+}/restore')
+                ->action(PayrollDeductionV1\PayrollDeductionRestoreAction::class)
+                ->name('v1/payroll-deduction/restore')
+                ->defaults(['permission' => 'payroll-deduction.restore']),
         ),
 ];

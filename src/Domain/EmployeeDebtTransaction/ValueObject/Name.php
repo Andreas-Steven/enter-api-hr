@@ -2,32 +2,32 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\EmployeeDebtInstallment\ValueObject;
+namespace App\Domain\EmployeeDebtTransaction\ValueObject;
 
 use App\Shared\Exception\BadRequestException;
 use App\Shared\ValueObject\Message;
 
+/**
+ * Name Value Object untuk EmployeeDebtTransaction (Immutable).
+ *
+ * Format: TXN-{employeeId}{autoGenerate}{remainder}
+ */
 final readonly class Name
 {
     private function __construct(
         private string $value
     ) {}
 
-    /**
-     * Generate: INS-{employeeDebtId}{autoGenerate}{month}
-     * autoGenerate = microtime + random, no prefix, month appended without divider.
-     */
-    public static function generate(int $employeeDebtId): self
+    public static function generate(int $employeeId): self
     {
-        $prefix = 'INS';
+        $prefix = 'TXN';
         $microtime = substr((string) microtime(false), 2, 6);
         $randomNumber = (string) rand(10000, 99999);
 
-        $sequence = substr($microtime . $randomNumber, 0, 7);
-        $remainder = intval($sequence) % 7;
-        $month = (string) date('n');
+        $autoGenerate = substr($microtime . $randomNumber, 0, 7);
+        $remainder = intval($autoGenerate) % 7;
 
-        return new self(sprintf('%s-%d%d%d%s', $prefix, $employeeDebtId, $sequence, $remainder, $month));
+        return new self(sprintf('%s-%d%d%d', $prefix, $employeeId, $autoGenerate, $remainder));
     }
 
     public static function fromString(string $value): self

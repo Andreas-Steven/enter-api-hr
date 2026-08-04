@@ -5,61 +5,40 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Enums;
 
 /**
- * Tipe transaksi pada employee_debt_transaction (ledger hutang karyawan).
+ * Transaction type for EmployeeDebtTransaction.
  *
- * - PAYMENT:    Uang masuk untuk melunasi hutang (cash/transfer/payroll_deduction).
- * - ADJUSTMENT: Koreksi saldo hutang (mis. salah catat nominal).
- * - SETTLEMENT: Dianggap lunas tanpa pembayaran penuh (mis. kompensasi/komitmen).
- * - REVERSAL:   Pembatalan transaksi sebelumnya (rollback paid_amount).
+ * - PAYMENT: pembayaran manual (cash/transfer) oleh karyawan
+ * - PAYROLL: potongan gaji otomatis via PayrollDeduction
+ * - ADJUSTMENT: koreksi manual (+/-) tanpa uang fisik
+ * - REVERSAL: pembatalan transaksi sebelumnya
  */
 final class TransactionType
 {
     public const PAYMENT = 'payment';
+    public const PAYROLL = 'payroll';
     public const ADJUSTMENT = 'adjustment';
-    public const SETTLEMENT = 'settlement';
     public const REVERSAL = 'reversal';
 
-    /**
-     * Tipe yang menambah paid_amount (memotong sisa hutang).
-     */
-    public static function creditTypes(): array
-    {
-        return [self::PAYMENT, self::SETTLEMENT];
-    }
+    public const ALL = [
+        self::PAYMENT,
+        self::PAYROLL,
+        self::ADJUSTMENT,
+        self::REVERSAL,
+    ];
 
     /**
-     * Tipe yang mengurangi paid_amount (mengembalikan sisa hutang).
+     * Apakah transaction type ini menambah paid_amount (pembayaran masuk)?
      */
-    public static function debitTypes(): array
+    public static function isInflow(string $type): bool
     {
-        return [self::REVERSAL];
+        return $type === self::PAYMENT || $type === self::PAYROLL;
     }
 
     /**
-     * Tipe yang mengubah nominal tanpa arah kas (koreksi).
+     * Apakah transaction type ini mengurangi paid_amount (pembatalan/koreksi negatif)?
      */
-    public static function neutralTypes(): array
+    public static function isOutflow(string $type): bool
     {
-        return [self::ADJUSTMENT];
-    }
-
-    public static function all(): array
-    {
-        return [self::PAYMENT, self::ADJUSTMENT, self::SETTLEMENT, self::REVERSAL];
-    }
-
-    public static function isValid(string $type): bool
-    {
-        return in_array($type, self::all(), true);
-    }
-
-    public static function isCredit(string $type): bool
-    {
-        return in_array($type, self::creditTypes(), true);
-    }
-
-    public static function isDebit(string $type): bool
-    {
-        return in_array($type, self::debitTypes(), true);
+        return $type === self::REVERSAL;
     }
 }

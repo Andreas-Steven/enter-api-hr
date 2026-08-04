@@ -38,20 +38,15 @@ final class M20260728065641CreateEmployeeDebtTable implements RevertibleMigratio
             'name' => $cb::string(255)->notNull(), // AUTO GENERATE
             'employee_id' => $cb::integer()->notNull(),
             'deduction_type_id' => $cb::integer()->notNull(),
-            'amount' => $cb::decimal(14, 2)->notNull(),
             'date' => $cb::date()->notNull(),
-
-            'payment_term' => $cb::smallint()->notNull()->defaultValue(1)->comment('1: full payment, 2: installment'),
-            'payment_method' => $cb::string(50)->null()->comment('cash|transfer|payroll_deduction|adjustment'),
-            'installment_count' => $cb::smallint()->notNull()->defaultValue(1),
-            'installment_amount' => $cb::decimal(14, 2)->notNull()->defaultValue(0),
+            
+            'amount' => $cb::decimal(14, 2)->notNull(),
             'remaining_amount' => $cb::decimal(14, 2)->notNull()->defaultValue(0),
             'paid_amount' => $cb::decimal(14, 2)->notNull()->defaultValue(0),
-            'first_payment_date' => $cb::date()->null(),
             'is_settled' => $cb::smallint()->notNull()->defaultValue(0),
             'settled_at' => $cb::timestamp()->null(),
 
-            'note' => $cb::text()->null(),
+            'note' => $cb::string(255)->null(),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
             'detail_info' => $cb::json()->notNull()->defaultValue([
                 'employee' => null,
@@ -68,6 +63,9 @@ final class M20260728065641CreateEmployeeDebtTable implements RevertibleMigratio
             'sync_mdb' => $cb::smallint()->null()->comment('null: sync to MDB, 1: not sync to MDB'),
             'lock_version' => $cb::integer()->notNull()->defaultValue(1)->comment('Optimistic locking version'),
         ]);
+
+        $b->createIndex(self::TABLE_NAME, 'idx_employee_debt_employee', ['employee_id']);
+        $b->createIndex(self::TABLE_NAME, 'idx_employee_debt_deduction_type', ['deduction_type_id']);
     }
 
     public function down(MigrationBuilder $b): void

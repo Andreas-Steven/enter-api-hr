@@ -23,8 +23,6 @@ use Yiisoft\Router\CurrentRoute;
 
 final readonly class EmployeeDebtTransactionDeleteAction
 {
-    private const ALLOWED_KEYS = ['id', 'lock_version'];
-
     public function __construct(
         private EmployeeDebtTransactionApplicationService $applicationService,
         private ResponseFactory $responseFactory,
@@ -39,7 +37,7 @@ final readonly class EmployeeDebtTransactionDeleteAction
         $id = $currentRoute->getArgument('id');
         $parsedBody = $request->getParsedBody();
         $resource = $this->applicationService->getResource();
-        
+
         if ($id === null) {
             return $this->responseFactory->fail(
                 translate: Message::create(

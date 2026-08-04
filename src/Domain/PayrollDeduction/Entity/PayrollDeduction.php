@@ -31,9 +31,7 @@ final class PayrollDeduction
         private string $name,
         private int $employeeId,
         private int $deductionTypeId,
-        private ?int $attendanceReportId,
         private ?int $employeeDebtId,
-        private ?int $employeeDebtInstallmentId,
         private int $period,
         private float $amount,
         private ?string $description,
@@ -55,9 +53,7 @@ final class PayrollDeduction
         string $name,
         int $employeeId,
         int $deductionTypeId,
-        ?int $attendanceReportId,
         ?int $employeeDebtId,
-        ?int $employeeDebtInstallmentId,
         int $period,
         float $amount,
         ?string $description,
@@ -71,19 +67,17 @@ final class PayrollDeduction
         );
 
         return new self(
-            id: null, 
-            name: $name, 
-            employeeId: $employeeId, 
-            deductionTypeId: $deductionTypeId, 
-            attendanceReportId: $attendanceReportId, 
-            employeeDebtId: $employeeDebtId, 
-            employeeDebtInstallmentId: $employeeDebtInstallmentId, 
-            period: $period, 
-            amount: $amount, 
-            description: $description, 
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            id: null,
+            name: $name,
+            employeeId: $employeeId,
+            deductionTypeId: $deductionTypeId,
+            employeeDebtId: $employeeDebtId,
+            period: $period,
+            amount: $amount,
+            description: $description,
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: LockVersion::create()
         );
     }
@@ -93,9 +87,7 @@ final class PayrollDeduction
         string $name,
         int $employeeId,
         int $deductionTypeId,
-        ?int $attendanceReportId,
         ?int $employeeDebtId,
-        ?int $employeeDebtInstallmentId,
         int $period,
         float $amount,
         ?string $description,
@@ -105,19 +97,17 @@ final class PayrollDeduction
         ?LockVersion $lockVersion = null,
     ): self {
         return new self(
-            id: $id, 
-            name: $name, 
-            employeeId: $employeeId, 
-            deductionTypeId: $deductionTypeId, 
-            attendanceReportId: $attendanceReportId, 
-            employeeDebtId: $employeeDebtId, 
-            employeeDebtInstallmentId: $employeeDebtInstallmentId, 
-            period: $period, 
-            amount: $amount, 
-            description: $description, 
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            id: $id,
+            name: $name,
+            employeeId: $employeeId,
+            deductionTypeId: $deductionTypeId,
+            employeeDebtId: $employeeDebtId,
+            period: $period,
+            amount: $amount,
+            description: $description,
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: $lockVersion ?? LockVersion::create()
         );
     }
@@ -129,9 +119,7 @@ final class PayrollDeduction
             'name' => $this->name,
             'employee_id' => $this->employeeId,
             'deduction_type_id' => $this->deductionTypeId,
-            'attendance_report_id' => $this->attendanceReportId,
             'employee_debt_id' => $this->employeeDebtId,
-            'employee_debt_installment_id' => $this->employeeDebtInstallmentId,
             'period' => $this->period,
             'amount' => $this->amount,
             'description' => $this->description,
@@ -141,7 +129,7 @@ final class PayrollDeduction
             LockVersion::field() => $this->lockVersion->value(),
         ];
     }
-    
+
     public function restore(): void
     {
         if (!$this->status->isDeleted()) {
@@ -152,7 +140,7 @@ final class PayrollDeduction
                 )
             );
         }
-        
+
         $this->status = ResourceStatus::restored();
     }
 
@@ -166,19 +154,9 @@ final class PayrollDeduction
         return $this->deductionTypeId;
     }
 
-    public function getAttendanceReportId(): ?int
-    {
-        return $this->attendanceReportId;
-    }
-
     public function getEmployeeDebtId(): ?int
     {
         return $this->employeeDebtId;
-    }
-
-    public function getEmployeeDebtInstallmentId(): ?int
-    {
-        return $this->employeeDebtInstallmentId;
     }
 
     public function getPeriod(): int
@@ -206,19 +184,9 @@ final class PayrollDeduction
         $this->deductionTypeId = $deductionTypeId;
     }
 
-    public function setAttendanceReportId(?int $attendanceReportId): void
-    {
-        $this->attendanceReportId = $attendanceReportId;
-    }
-
     public function setEmployeeDebtId(?int $employeeDebtId): void
     {
         $this->employeeDebtId = $employeeDebtId;
-    }
-
-    public function setEmployeeDebtInstallmentId(?int $employeeDebtInstallmentId): void
-    {
-        $this->employeeDebtInstallmentId = $employeeDebtInstallmentId;
     }
 
     public function setPeriod(int $period): void

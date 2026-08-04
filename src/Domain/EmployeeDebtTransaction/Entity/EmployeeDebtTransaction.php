@@ -30,11 +30,13 @@ final class EmployeeDebtTransaction
         private readonly ?int $id,
         private string $name,
         private int $employeeDebtId,
-        private ?int $employeeDebtInstallmentId,
-        private ?int $payrollDeductionId,
-        private string $type,
+        private int $employeeId,
+        private string $transactionType,
+        private string $date,
         private float $amount,
-        private string $transactionDate,
+        private ?string $paymentSource,
+        private ?int $payrollDeductionId,
+        private ?int $payrollPeriod,
         private ?string $note,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
@@ -53,11 +55,13 @@ final class EmployeeDebtTransaction
     public static function create(
         string $name,
         int $employeeDebtId,
-        ?int $employeeDebtInstallmentId,
-        ?int $payrollDeductionId,
-        string $type,
+        int $employeeId,
+        string $transactionType,
+        string $date,
         float $amount,
-        string $transactionDate,
+        ?string $paymentSource,
+        ?int $payrollDeductionId,
+        ?int $payrollPeriod,
         ?string $note,
         ResourceStatus $status,
         DetailInfo $detailInfo,
@@ -69,18 +73,20 @@ final class EmployeeDebtTransaction
         );
 
         return new self(
-            id: null, 
-            name: $name, 
-            employeeDebtId: $employeeDebtId, 
-            employeeDebtInstallmentId: $employeeDebtInstallmentId, 
-            payrollDeductionId: $payrollDeductionId, 
-            type: $type, 
-            amount: $amount, 
-            transactionDate: $transactionDate, 
-            note: $note, 
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            id: null,
+            name: $name,
+            employeeDebtId: $employeeDebtId,
+            employeeId: $employeeId,
+            transactionType: $transactionType,
+            date: $date,
+            amount: $amount,
+            paymentSource: $paymentSource,
+            payrollDeductionId: $payrollDeductionId,
+            payrollPeriod: $payrollPeriod,
+            note: $note,
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: LockVersion::create()
         );
     }
@@ -89,11 +95,13 @@ final class EmployeeDebtTransaction
         int $id,
         string $name,
         int $employeeDebtId,
-        ?int $employeeDebtInstallmentId,
-        ?int $payrollDeductionId,
-        string $type,
+        int $employeeId,
+        string $transactionType,
+        string $date,
         float $amount,
-        string $transactionDate,
+        ?string $paymentSource,
+        ?int $payrollDeductionId,
+        ?int $payrollPeriod,
         ?string $note,
         ResourceStatus $status,
         DetailInfo $detailInfo,
@@ -101,18 +109,20 @@ final class EmployeeDebtTransaction
         ?LockVersion $lockVersion = null,
     ): self {
         return new self(
-            id: $id, 
-            name: $name, 
-            employeeDebtId: $employeeDebtId, 
-            employeeDebtInstallmentId: $employeeDebtInstallmentId, 
-            payrollDeductionId: $payrollDeductionId, 
-            type: $type, 
-            amount: $amount, 
-            transactionDate: $transactionDate, 
-            note: $note, 
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            id: $id,
+            name: $name,
+            employeeDebtId: $employeeDebtId,
+            employeeId: $employeeId,
+            transactionType: $transactionType,
+            date: $date,
+            amount: $amount,
+            paymentSource: $paymentSource,
+            payrollDeductionId: $payrollDeductionId,
+            payrollPeriod: $payrollPeriod,
+            note: $note,
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: $lockVersion ?? LockVersion::create()
         );
     }
@@ -123,11 +133,13 @@ final class EmployeeDebtTransaction
             'id' => $this->id,
             'name' => $this->name,
             'employee_debt_id' => $this->employeeDebtId,
-            'employee_debt_installment_id' => $this->employeeDebtInstallmentId,
-            'payroll_deduction_id' => $this->payrollDeductionId,
-            'type' => $this->type,
+            'employee_id' => $this->employeeId,
+            'transaction_type' => $this->transactionType,
+            'date' => $this->date,
             'amount' => $this->amount,
-            'transaction_date' => $this->transactionDate,
+            'payment_source' => $this->paymentSource,
+            'payroll_deduction_id' => $this->payrollDeductionId,
+            'payroll_period' => $this->payrollPeriod,
             'note' => $this->note,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
@@ -135,7 +147,7 @@ final class EmployeeDebtTransaction
             LockVersion::field() => $this->lockVersion->value(),
         ];
     }
-    
+
     public function restore(): void
     {
         if (!$this->status->isDeleted()) {
@@ -146,7 +158,7 @@ final class EmployeeDebtTransaction
                 )
             );
         }
-        
+
         $this->status = ResourceStatus::restored();
     }
 
@@ -155,19 +167,39 @@ final class EmployeeDebtTransaction
         return $this->employeeDebtId;
     }
 
-    public function getEmployeeDebtInstallmentId(): ?int
+    public function setEmployeeDebtId(int $employeeDebtId): void
     {
-        return $this->employeeDebtInstallmentId;
+        $this->employeeDebtId = $employeeDebtId;
     }
 
-    public function getPayrollDeductionId(): ?int
+    public function getEmployeeId(): int
     {
-        return $this->payrollDeductionId;
+        return $this->employeeId;
     }
 
-    public function getType(): string
+    public function setEmployeeId(int $employeeId): void
     {
-        return $this->type;
+        $this->employeeId = $employeeId;
+    }
+
+    public function getTransactionType(): string
+    {
+        return $this->transactionType;
+    }
+
+    public function setTransactionType(string $transactionType): void
+    {
+        $this->transactionType = $transactionType;
+    }
+
+    public function getDate(): string
+    {
+        return $this->date;
+    }
+
+    public function setDate(string $date): void
+    {
+        $this->date = $date;
     }
 
     public function getAmount(): float
@@ -175,24 +207,24 @@ final class EmployeeDebtTransaction
         return $this->amount;
     }
 
-    public function getTransactionDate(): string
+    public function setAmount(float $amount): void
     {
-        return $this->transactionDate;
+        $this->amount = $amount;
     }
 
-    public function getNote(): ?string
+    public function getPaymentSource(): ?string
     {
-        return $this->note;
+        return $this->paymentSource;
     }
 
-    public function setEmployeeDebtId(int $employeeDebtId): void
+    public function setPaymentSource(?string $paymentSource): void
     {
-        $this->employeeDebtId = $employeeDebtId;
+        $this->paymentSource = $paymentSource;
     }
 
-    public function setEmployeeDebtInstallmentId(?int $employeeDebtInstallmentId): void
+    public function getPayrollDeductionId(): ?int
     {
-        $this->employeeDebtInstallmentId = $employeeDebtInstallmentId;
+        return $this->payrollDeductionId;
     }
 
     public function setPayrollDeductionId(?int $payrollDeductionId): void
@@ -200,19 +232,19 @@ final class EmployeeDebtTransaction
         $this->payrollDeductionId = $payrollDeductionId;
     }
 
-    public function setType(string $type): void
+    public function getPayrollPeriod(): ?int
     {
-        $this->type = $type;
+        return $this->payrollPeriod;
     }
 
-    public function setAmount(float $amount): void
+    public function setPayrollPeriod(?int $payrollPeriod): void
     {
-        $this->amount = $amount;
+        $this->payrollPeriod = $payrollPeriod;
     }
 
-    public function setTransactionDate(string $transactionDate): void
+    public function getNote(): ?string
     {
-        $this->transactionDate = $transactionDate;
+        return $this->note;
     }
 
     public function setNote(?string $note): void

@@ -14,8 +14,6 @@ use App\Api\V1\PayrollDeduction\Validation\PayrollDeductionInputValidator;
 
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
-use App\Shared\Dto\SearchCriteria;
-use App\Shared\Request\RequestParams;
 use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
 
@@ -30,9 +28,7 @@ final class PayrollDeductionDataAction
         'name',
         'employee_id',
         'deduction_type_id',
-        'attendance_report_id',
         'employee_debt_id',
-        'employee_debt_installment_id',
         'period',
         'amount',
         'description',
@@ -43,9 +39,7 @@ final class PayrollDeductionDataAction
         'name' => 'name',
         'employee_id' => 'employee_id',
         'deduction_type_id' => 'deduction_type_id',
-        'attendance_report_id' => 'attendance_report_id',
         'employee_debt_id' => 'employee_debt_id',
-        'employee_debt_installment_id' => 'employee_debt_installment_id',
         'period' => 'period',
         'amount' => 'amount',
         'description' => 'description',
@@ -58,7 +52,7 @@ final class PayrollDeductionDataAction
         private PayrollDeductionApplicationService $applicationService,
         private ResponseFactory $responseFactory,
     ) {
-    }   
+    }
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
@@ -86,7 +80,7 @@ final class PayrollDeductionDataAction
         return $this->responseFactory->success(
             data: $result->data,
             translate: Message::create(
-                key: 'resource.list_retrieved', 
+                key: 'resource.list_retrieved',
                 params: [
                     'resource' => $resource
                 ]

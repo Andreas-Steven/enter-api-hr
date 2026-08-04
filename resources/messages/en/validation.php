@@ -156,8 +156,13 @@ return [
     'work_pattern.cannot_activate.inactive_shifts' => 'Cannot activate {resource}. Inactive shifts: {shifts}.',
 
     // Employee Debt Prefix
-    'employee_debt.installment_not_allowed_for_deduction_type' => 'Installment not allowed for deduction type: {payroll_deduction_type}',
-    'employee_debt.payment_method_required' => 'Payment method is required',
-    'employee_debt.installment_count_invalid' => 'Installment count must be at least {min}',
-    'employee_debt.first_payment_date_required' => 'First payment date is required',
+    'employee_debt.deduction_type_not_creates_debt' => 'Deduction type "{name}" (id: {id}) does not create debt. EmployeeDebt may only use deduction types with creates_debt=1.',
+
+    // Employee Debt Transaction Prefix
+    'employee_debt_transaction.invalid_transaction_type' => 'Invalid transaction type "{type}". Allowed: payment, payroll, adjustment, reversal.',
+    'employee_debt_transaction.invalid_payment_source' => 'Invalid payment source "{source}". Allowed: cash, transfer, payroll_deduction.',
+    'employee_debt_transaction.payment_source_required' => 'Payment source is required for payment/payroll transaction type.',
+    'employee_debt_transaction.payroll_deduction_id_required' => 'payroll_deduction_id is required when payment_source is payroll_deduction.',
+    'employee_debt_transaction.payroll_period_required' => 'payroll_period is required when payment_source is payroll_deduction.',
+    'employee_debt_transaction.payroll_deduction_already_linked' => 'A transaction already exists for PayrollDeduction (id: {payroll_deduction_id}).',
 ];

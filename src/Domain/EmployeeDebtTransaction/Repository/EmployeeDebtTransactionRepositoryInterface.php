@@ -13,7 +13,7 @@ use App\Shared\Dto\PaginatedResult;
 
 /**
  * EmployeeDebtTransaction Repository Interface
- * 
+ *
  * Pure repository pattern for EmployeeDebtTransaction aggregate root operations.
  * Only handles aggregate root persistence and basic lookups.
  */
@@ -28,27 +28,25 @@ interface EmployeeDebtTransactionRepositoryInterface
     public function existsByName(string $name, ?int $status = null): bool;
 
     /**
-     * Ambil semua transaksi (ledger) milik satu employee_debt, urut by transaction_date ASC.
+     * Ambil semua transaksi untuk satu EmployeeDebt.
      *
      * @return list<EmployeeDebtTransaction>
      */
     public function findByEmployeeDebtId(int $employeeDebtId, ?int $status = null): array;
 
     /**
-     * Ambil transaksi yang menandai pembayaran untuk satu installment spesifik.
-     *
-     * @return list<EmployeeDebtTransaction>
+     * Cek apakah transaksi sudah ada untuk PayrollDeduction tertentu.
+     * Dipakai untuk mencegah double-transaction saat payroll run.
      */
-    public function findByEmployeeDebtInstallmentId(int $installmentId, ?int $status = null): array;
+    public function existsForPayrollDeduction(int $payrollDeductionId, ?int $status = null): bool;
 
     public function list(SearchCriteria $criteria): PaginatedResult;
 
-    public function insert(EmployeeDebtTransaction $employeeDebtTransaction): EmployeeDebtTransaction;
+    public function insert(EmployeeDebtTransaction $entity): EmployeeDebtTransaction;
 
-    public function update(EmployeeDebtTransaction $employeeDebtTransaction): EmployeeDebtTransaction;
+    public function update(EmployeeDebtTransaction $entity): EmployeeDebtTransaction;
 
-    public function delete(EmployeeDebtTransaction $employeeDebtTransaction): EmployeeDebtTransaction;
+    public function delete(EmployeeDebtTransaction $entity): EmployeeDebtTransaction;
 
     public function restore(int $id): ?EmployeeDebtTransaction;
-
 }

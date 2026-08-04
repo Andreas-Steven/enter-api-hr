@@ -31,11 +31,13 @@ final class EmployeeDebtTransactionUpdateAction
 {
     private const ALLOWED_KEYS = [
         'employee_debt_id',
-        'employee_debt_installment_id',
-        'payroll_deduction_id',
-        'type',
+        'employee_id',
+        'transaction_type',
+        'date',
         'amount',
-        'transaction_date',
+        'payment_source',
+        'payroll_deduction_id',
+        'payroll_period',
         'note',
         'status',
         'detail_info',
@@ -89,16 +91,18 @@ final class EmployeeDebtTransactionUpdateAction
 
         $command = UpdateEmployeeDebtTransactionCommand::create(
             id: (int) $id,
-            employeeDebtId: (int) $params->get('employee_debt_id'),
-            employeeDebtInstallmentId: (int) $params->get('employee_debt_installment_id'),
-            payrollDeductionId: (int) $params->get('payroll_deduction_id'),
-            type: (string) $params->get('type'),
-            amount: (float) $params->get('amount'),
-            transactionDate: (string) $params->get('transaction_date'),
+            employeeDebtId: $params->get('employee_debt_id') !== null ? (int) $params->get('employee_debt_id') : null,
+            employeeId: $params->get('employee_id') !== null ? (int) $params->get('employee_id') : null,
+            transactionType: $params->get('transaction_type'),
+            date: $params->get('date'),
+            amount: $params->get('amount') !== null ? (float) $params->get('amount') : null,
+            paymentSource: $params->get('payment_source') ?: null,
+            payrollDeductionId: $params->get('payroll_deduction_id') !== null ? (int) $params->get('payroll_deduction_id') : null,
+            payrollPeriod: $params->get('payroll_period') !== null ? (int) $params->get('payroll_period') : null,
             note: $params->get('note'),
-            status: (int) $params->get('status'),
+            status: $params->get('status') !== null ? (int) $params->get('status') : null,
             detailInfo: $params->get('detail_info'),
-            lockVersion: (int) $params->get('lock_version'),
+            lockVersion: $params->get('lock_version') !== null ? (int) $params->get('lock_version') : null,
         );
 
         $response = $this->applicationService->update(

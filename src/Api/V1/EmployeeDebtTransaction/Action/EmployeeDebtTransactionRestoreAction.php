@@ -22,8 +22,8 @@ use Yiisoft\Router\CurrentRoute;
 
 /**
  * EmployeeDebtTransaction Restore Action
- * 
- * Restores a soft-deleted employeedebttransaction back to active status
+ *
+ * Restores a soft-deleted transaction back to active status
  */
 final readonly class EmployeeDebtTransactionRestoreAction
 {
@@ -40,7 +40,7 @@ final readonly class EmployeeDebtTransactionRestoreAction
     {
         $id = $currentRoute->getArgument('id');
         $resource = $this->applicationService->getResource();
-        
+
         if ($id === null) {
             return $this->responseFactory->fail(
                 translate: Message::create(

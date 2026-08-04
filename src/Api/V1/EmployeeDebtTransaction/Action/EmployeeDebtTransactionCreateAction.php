@@ -14,24 +14,24 @@ use App\Application\EmployeeDebtTransaction\Command\CreateEmployeeDebtTransactio
 
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
-use App\Shared\Request\RawParams;
 use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
-use App\Shared\Security\InputSanitizer;
 
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class EmployeeDebtTransactionCreateAction 
+final class EmployeeDebtTransactionCreateAction
 {
     private const ALLOWED_KEYS = [
         'employee_debt_id',
-        'employee_debt_installment_id',
-        'payroll_deduction_id',
-        'type',
+        'employee_id',
+        'transaction_type',
+        'date',
         'amount',
-        'transaction_date',
+        'payment_source',
+        'payroll_deduction_id',
+        'payroll_period',
         'note',
         'status',
         'detail_info',
@@ -63,13 +63,15 @@ final class EmployeeDebtTransactionCreateAction
 
         $command = CreateEmployeeDebtTransactionCommand::create(
             employeeDebtId: (int) $params->get('employee_debt_id'),
-            type: (string) $params->get('type'),
+            employeeId: (int) $params->get('employee_id'),
+            transactionType: (string) $params->get('transaction_type'),
+            date: (string) $params->get('date'),
             amount: (float) $params->get('amount'),
-            transactionDate: (string) $params->get('transaction_date'),
-            employeeDebtInstallmentId: $params->get('employee_debt_installment_id'),
-            payrollDeductionId: $params->get('payroll_deduction_id'),
-            note: $params->get('note'),
             status: (int) $params->get('status'),
+            paymentSource: $params->get('payment_source') ?: null,
+            payrollDeductionId: $params->get('payroll_deduction_id') !== null ? (int) $params->get('payroll_deduction_id') : null,
+            payrollPeriod: $params->get('payroll_period') !== null ? (int) $params->get('payroll_period') : null,
+            note: $params->get('note'),
             detailInfo: $params->get('detail_info')
         );
 

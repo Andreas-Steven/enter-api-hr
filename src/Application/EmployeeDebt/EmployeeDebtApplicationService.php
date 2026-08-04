@@ -18,7 +18,6 @@ use App\Domain\EmployeeDebt\Service\EmployeeDebtDomainService;
 use App\Domain\EmployeeDebt\ValueObject\Name;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
-use App\Domain\Shared\Enums\PaymentTerm;
 
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
@@ -97,20 +96,8 @@ final class EmployeeDebtApplicationService
             deductionTypeId: $command->deductionTypeId,
         );
 
-        $firstPaymentDate = $this->domainService->resolveFirstPaymentDate(
-            firstPaymentDate: $command->firstPaymentDate,
-            debtDate: $command->date,
-            paymentTerm: $command->paymentTerm,
-        );
+        $this->domainService->guardCreatesDebt(debtInfo: $debtInfo);
 
-        $paymentTerm = $this->domainService->guardDebtCreation(
-            debtInfo: $debtInfo,
-            paymentTerm: $command->paymentTerm,
-            paymentMethod: $command->paymentMethod,
-            installmentCount: (int) ($command->installmentCount ?? 1),
-            firstPaymentDate: $firstPaymentDate,
-        );
-        
         $detailInfo = $this->detailInfoFactory
             ->create(
                 detailInfo: $debtInfo->toArray()
@@ -124,28 +111,12 @@ final class EmployeeDebtApplicationService
             amount: $command->amount,
             date: $command->date,
             note: $command->note,
-            paymentTerm: $paymentTerm,
-            paymentMethod: $command->paymentMethod,
-            installmentCount: $command->installmentCount,
-            firstPaymentDate: $firstPaymentDate,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
         );
 
         $data = $this->repository->insert(
             entity: $data
-        );
-
-        if ($data->getPaymentTerm() === PaymentTerm::INSTALLMENT) {
-            $this->domainService->generateInstallmentSchedule(
-                debt: $data,
-                debtInfo: $debtInfo,
-            );
-        }
-
-        $this->domainService->generatePayrollDeductionSchedule(
-            debt: $data,
-            debtInfo: $debtInfo,
         );
 
         return EmployeeDebtResponse::fromEntity(
@@ -216,14 +187,7 @@ final class EmployeeDebtApplicationService
             deductionTypeId: $command->deductionTypeId ?? $data->getDeductionTypeId(),
         );
 
-        $this->domainService->reconfigureInstallment(
-            debt: $data,
-            debtInfo: $debtInfo,
-            paymentTerm: $command->paymentTerm,
-            paymentMethod: $command->paymentMethod,
-            installmentCount: $command->installmentCount,
-            firstPaymentDate: $command->firstPaymentDate,
-        );
+        $this->domainService->guardCreatesDebt(debtInfo: $debtInfo);
 
         if ($command->amount !== null) {
             $data->adjustAmount(
@@ -233,11 +197,6 @@ final class EmployeeDebtApplicationService
 
         $data->applyStatus(
             newStatus: $newStatus
-        );
-
-        $debtInfo = $this->debtInfoFactory->buildFromIds(
-            employeeId: $command->employeeId ?? $data->getEmployeeId(),
-            deductionTypeId: $command->deductionTypeId ?? $data->getDeductionTypeId(),
         );
 
         $detailInfo = $this->detailInfoFactory

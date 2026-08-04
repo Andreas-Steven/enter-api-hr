@@ -14,23 +14,19 @@ use App\Application\PayrollDeduction\Command\CreatePayrollDeductionCommand;
 
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
-use App\Shared\Request\RawParams;
 use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
-use App\Shared\Security\InputSanitizer;
 
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class PayrollDeductionCreateAction 
+final class PayrollDeductionCreateAction
 {
     private const ALLOWED_KEYS = [
         'employee_id',
         'deduction_type_id',
-        'attendance_report_id',
         'employee_debt_id',
-        'employee_debt_installment_id',
         'period',
         'amount',
         'description',
@@ -68,9 +64,7 @@ final class PayrollDeductionCreateAction
             period: (int) $params->get('period'),
             amount: (float) $params->get('amount'),
             status: (int) $params->get('status'),
-            attendanceReportId: (int) $params->get('attendance_report_id'),
-            employeeDebtId: (int) $params->get('employee_debt_id'),
-            employeeDebtInstallmentId: (int) $params->get('employee_debt_installment_id'),
+            employeeDebtId: $params->get('employee_debt_id') !== null ? (int) $params->get('employee_debt_id') : null,
             description: $params->get('description'),
             detailInfo: $params->get('detail_info')
         );

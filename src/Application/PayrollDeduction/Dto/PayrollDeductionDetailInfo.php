@@ -12,7 +12,6 @@ namespace App\Application\PayrollDeduction\Dto;
  *   "employee": { "id": int, "name": string } | null,
  *   "payroll_deduction_type": { "id": int, "name": string, "category": string, "creates_debt": int } | null,
  *   "employee_debt": { "id": int, "name": string } | null,
- *   "employee_debt_installment": { "id": int, "name": string, "sequence": int } | null,
  *   "change_log": { ... }
  * }
  */
@@ -22,7 +21,6 @@ final readonly class PayrollDeductionDetailInfo
         public ?array $employee = null,
         public ?array $payroll_deduction_type = null,
         public ?array $employee_debt = null,
-        public ?array $employee_debt_installment = null,
     ) {}
 
     public function toArray(): array
@@ -31,7 +29,6 @@ final readonly class PayrollDeductionDetailInfo
             'employee' => $this->employee,
             'payroll_deduction_type' => $this->payroll_deduction_type,
             'employee_debt' => $this->employee_debt,
-            'employee_debt_installment' => $this->employee_debt_installment,
         ];
     }
 
@@ -48,10 +45,5 @@ final readonly class PayrollDeductionDetailInfo
     public function getEmployeeDebt(): ?array
     {
         return $this->employee_debt;
-    }
-
-    public function getEmployeeDebtInstallment(): ?array
-    {
-        return $this->employee_debt_installment;
     }
 }

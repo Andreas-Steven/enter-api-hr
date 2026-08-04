@@ -33,12 +33,6 @@ final class EmployeeDebtDataAction
         'amount',
         'date',
         'note',
-        'allow_installment',
-        'payment_term',
-        'payment_method',
-        'installment_count',
-        'installment_amount',
-        'first_payment_date',
         'status',
     ];
     private const ALLOWED_SORT = [
@@ -46,7 +40,6 @@ final class EmployeeDebtDataAction
         'name' => 'name',
         'employee_id' => 'employee_id',
         'deduction_type_id' => 'deduction_type_id',
-        'allow_installment' => 'allow_installment',
         'amount' => 'amount',
         'date' => 'date',
         'note' => 'note',

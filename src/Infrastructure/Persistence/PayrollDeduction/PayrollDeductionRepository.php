@@ -24,17 +24,14 @@ use App\Infrastructure\Security\CurrentUserAwareInterface;
 use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
 use App\Shared\Query\QueryConditionApplier;
-use App\Shared\ValueObject\Message;
 
 // Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Db\Query\Query;
 
-// use MongoDB\Collection;
-
 /**
  * PayrollDeduction Repository using Yiisoft/Db Query Builder
- * 
+ *
  * Pure query implementation using Yiisoft/Db for database operations
  */
 final class PayrollDeductionRepository implements PayrollDeductionRepositoryInterface, CurrentUserAwareInterface
@@ -66,9 +63,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
         /** @var array<string, mixed>|false $row */
         $row = (new Query($this->db))
             ->from(self::TABLE_NAME)
-            ->where([
-                'id' => $id,
-            ])
+            ->where(['id' => $id])
             ->andWhere($this->scopeWhereNotDeleted())
             ->andWhere($this->scopeByStatus($status))
             ->one();
@@ -107,35 +102,6 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             ->exists();
     }
 
-    public function findByEmployeeAndPeriod(int $employeeId, int $period, ?int $status = null): array
-    {
-        $rows = (new Query($this->db))
-            ->from(self::TABLE_NAME)
-            ->where([
-                'employee_id' => $employeeId,
-                'period' => $period,
-            ])
-            ->andWhere($this->scopeWhereNotDeleted())
-            ->andWhere($this->scopeByStatus($status))
-            ->orderBy(['id' => SORT_ASC])
-            ->all();
-
-        return array_map(
-            fn (array $row): PayrollDeduction => $this->hydrateRow($row),
-            $rows
-        );
-    }
-
-    public function existsForInstallment(int $employeeDebtInstallmentId, ?int $status = null): bool
-    {
-        return (new Query($this->db))
-            ->from(self::TABLE_NAME)
-            ->where(['employee_debt_installment_id' => $employeeDebtInstallmentId])
-            ->andWhere($this->scopeWhereNotDeleted())
-            ->andWhere($this->scopeByStatus($status))
-            ->exists();
-    }
-
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         $query = (new Query($this->db))
@@ -144,9 +110,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
                 'name',
                 'employee_id',
                 'deduction_type_id',
-                'attendance_report_id',
                 'employee_debt_id',
-                'employee_debt_installment_id',
                 'period',
                 'amount',
                 'description',
@@ -161,29 +125,23 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
         $filter = $criteria->filter;
 
         $this->queryConditionApplier->filterByExactMatch(
-            query: $query, 
-            filters: $filter, 
+            query: $query,
+            filters: $filter,
             allowedColumns: [
-                'id', 
+                'id',
                 'employee_id',
                 'deduction_type_id',
-                'attendance_report_id',
                 'employee_debt_id',
-                'employee_debt_installment_id',
                 'period',
                 'amount',
-                'status', 
+                'status',
                 SyncMdb::field(),
             ]
         );
 
-        if (array_key_exists('attendance_report_id', $filter) && $filter['attendance_report_id'] === null) {
-            $query->andWhere(['attendance_report_id' => null]);
-        }
-
         if (!empty($filter['name'])) {
             $this->queryConditionApplier->orLike(
-                query: $query, 
+                query: $query,
                 operator: self::LIKE_OPERATOR,
                 conditions: ['name' => '%' . $filter['name'] . '%']
             );
@@ -191,7 +149,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
 
         if (!empty($filter['description'])) {
             $this->queryConditionApplier->orLike(
-                query: $query, 
+                query: $query,
                 operator: self::LIKE_OPERATOR,
                 conditions: ['description' => '%' . $filter['description'] . '%']
             );
@@ -205,7 +163,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
 
         $rows = iterator_to_array(
             $this->streamRows(
-                query: $query, 
+                query: $query,
                 jsonKeys: []
             )
         );
@@ -223,13 +181,13 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
         );
     }
 
-    public function insert(PayrollDeduction $entity): PayrollDeduction 
+    public function insert(PayrollDeduction $entity): PayrollDeduction
     {
         return $this->db->transaction(function() use ($entity) {
             $this->db->createCommand()
-                ->insert(self::TABLE_NAME, 
+                ->insert(self::TABLE_NAME,
                     $this->mapEntityToTable(
-                        entity: $entity, 
+                        entity: $entity,
                         lockVersion: LockVersion::create()->value()
                     )
                 )
@@ -242,9 +200,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
                 name: $entity->getName(),
                 employeeId: $entity->getEmployeeId(),
                 deductionTypeId: $entity->getDeductionTypeId(),
-                attendanceReportId: $entity->getAttendanceReportId(),
                 employeeDebtId: $entity->getEmployeeDebtId(),
-                employeeDebtInstallmentId: $entity->getEmployeeDebtInstallmentId(),
                 period: $entity->getPeriod(),
                 amount: $entity->getAmount(),
                 description: $entity->getDescription(),
@@ -270,27 +226,27 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
 
             $result = $this->db->createCommand()
                 ->update(
-                    self::TABLE_NAME, 
+                    self::TABLE_NAME,
                     $this->mapEntityToTable(
-                        entity: $entity, 
+                        entity: $entity,
                         lockVersion: $newLock->value()
-                    ), 
+                    ),
                     $this->buildLockCondition(
-                        entity: $entity, 
+                        entity: $entity,
                         currentLockVersion: $currentLock->value()
                     )
                 )
                 ->execute();
-            
+
             if ($result === 0) {
                 $this->handlePersistenceFailure($entity);
             }
-            
+
             $this->syncMongoDB(
                 entity: $entity,
                 schemaClass: MdbPayrollDeductionSchema::class
             );
-            
+
             return $entity;
         });
     }
@@ -301,7 +257,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             $result = $this->db->createCommand()
                 ->update(
                     self::TABLE_NAME,
-                    $this->getDeletedState(), 
+                    $this->getDeletedState(),
                     $this->buildSimpleCondition($entity)
                 )
                 ->execute();
@@ -313,7 +269,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             $deletedEntity = $entity->markAsDeleted();
 
             $this->syncMongoDB(
-                entity: $deletedEntity, 
+                entity: $deletedEntity,
                 schemaClass: MdbPayrollDeductionSchema::class
             );
 
@@ -323,7 +279,6 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
 
     public function restore(int $id): ?PayrollDeduction
     {
-        // 1. Find deleted record
         /** @var array<string, mixed>|false $row */
         $row = (new Query($this->db))
             ->from(self::TABLE_NAME)
@@ -350,9 +305,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             'name' => $entity->getName(),
             'employee_id' => $entity->getEmployeeId(),
             'deduction_type_id' => $entity->getDeductionTypeId(),
-            'attendance_report_id' => $entity->getAttendanceReportId(),
             'employee_debt_id' => $entity->getEmployeeDebtId(),
-            'employee_debt_installment_id' => $entity->getEmployeeDebtInstallmentId(),
             'period' => $entity->getPeriod(),
             'amount' => $entity->getAmount(),
             'description' => $entity->getDescription(),
@@ -373,9 +326,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             name: $row['name'],
             employeeId: (int) $row['employee_id'],
             deductionTypeId: (int) $row['deduction_type_id'],
-            attendanceReportId: $row['attendance_report_id'] !== null ? (int) $row['attendance_report_id'] : null,
             employeeDebtId: $row['employee_debt_id'] !== null ? (int) $row['employee_debt_id'] : null,
-            employeeDebtInstallmentId: $row['employee_debt_installment_id'] !== null ? (int) $row['employee_debt_installment_id'] : null,
             period: (int) $row['period'],
             amount: (float) $row['amount'],
             description: $row['description'] ?? null,

@@ -13,7 +13,7 @@ use App\Shared\Dto\PaginatedResult;
 
 /**
  * PayrollDeduction Repository Interface
- * 
+ *
  * Pure repository pattern for PayrollDeduction aggregate root operations.
  * Only handles aggregate root persistence and basic lookups.
  */
@@ -27,19 +27,6 @@ interface PayrollDeductionRepositoryInterface
 
     public function existsByName(string $name, ?int $status = null): bool;
 
-    /**
-     * Ambil semua payroll_deduction untuk satu employee pada periode YYYYMM.
-     *
-     * @return list<PayrollDeduction>
-     */
-    public function findByEmployeeAndPeriod(int $employeeId, int $period, ?int $status = null): array;
-
-    /**
-     * Cek apakah payroll_deduction sudah pernah dibuat untuk installment tertentu.
-     * Dipakai untuk mencegah double-generation saat payroll run.
-     */
-    public function existsForInstallment(int $employeeDebtInstallmentId, ?int $status = null): bool;
-
     public function list(SearchCriteria $criteria): PaginatedResult;
 
     public function insert(PayrollDeduction $payrollDeduction): PayrollDeduction;
@@ -49,5 +36,4 @@ interface PayrollDeductionRepositoryInterface
     public function delete(PayrollDeduction $payrollDeduction): PayrollDeduction;
 
     public function restore(int $id): ?PayrollDeduction;
-
 }

@@ -156,8 +156,13 @@ return [
     'work_pattern.cannot_activate.inactive_shifts' => 'Tidak dapat mengaktifkan {resource}. Shift tidak aktif: {shifts}.',
 
     // Employee Debt Prefix
-    'employee_debt.installment_not_allowed_for_deduction_type' => 'Cicilan tidak diizinkan untuk tipe potongan: {payroll_deduction_type}',
-    'employee_debt.payment_method_required' => 'Metode pembayaran wajib diisi',
-    'employee_debt.installment_count_invalid' => 'Jumlah cicilan minimal {min}',
-    'employee_debt.first_payment_date_required' => 'Tanggal pembayaran pertama wajib diisi',
+    'employee_debt.deduction_type_not_creates_debt' => 'Tipe potongan "{name}" (id: {id}) tidak menciptakan hutang. EmployeeDebt hanya boleh menggunakan tipe potongan dengan creates_debt=1.',
+
+    // Employee Debt Transaction Prefix
+    'employee_debt_transaction.invalid_transaction_type' => 'Tipe transaksi "{type}" tidak valid. Yang diperbolehkan: payment, payroll, adjustment, reversal.',
+    'employee_debt_transaction.invalid_payment_source' => 'Sumber pembayaran "{source}" tidak valid. Yang diperbolehkan: cash, transfer, payroll_deduction.',
+    'employee_debt_transaction.payment_source_required' => 'Sumber pembayaran wajib diisi untuk tipe transaksi payment/payroll.',
+    'employee_debt_transaction.payroll_deduction_id_required' => 'payroll_deduction_id wajib diisi ketika payment_source adalah payroll_deduction.',
+    'employee_debt_transaction.payroll_period_required' => 'payroll_period wajib diisi ketika payment_source adalah payroll_deduction.',
+    'employee_debt_transaction.payroll_deduction_already_linked' => 'Transaksi sudah ada untuk PayrollDeduction (id: {payroll_deduction_id}).',
 ];

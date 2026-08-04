@@ -38,10 +38,8 @@ final class M20260728044229CreatePayrollDeductionTable implements RevertibleMigr
             'name' => $cb::string(255)->notNull(),
             'employee_id' => $cb::integer()->notNull(),
             'deduction_type_id' => $cb::integer()->notNull(),
-            'attendance_report_id' => $cb::integer()->null(),
             'employee_debt_id' => $cb::integer()->null(),
-            'employee_debt_installment_id' => $cb::integer()->null(),
-            'period' => $cb::integer(20)->notNull()->comment('YYYY-MM'),
+            'period' => $cb::integer()->notNull()->comment('YYYYMM'),
             'amount' => $cb::decimal(14, 2)->notNull(),
             'description' => $cb::text()->null(),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
@@ -58,11 +56,6 @@ final class M20260728044229CreatePayrollDeductionTable implements RevertibleMigr
             'sync_mdb' => $cb::smallint()->null()->comment('null: sync to MDB, 1: not sync to MDB'),
             'lock_version' => $cb::integer()->notNull()->defaultValue(1)->comment('Optimistic locking version'),
         ]);
-
-        $b->createIndex(self::TABLE_NAME, 'idx_payroll_deduction_employee', ['employee_id']);
-        $b->createIndex(self::TABLE_NAME, 'idx_payroll_deduction_period', ['period']);
-        $b->createIndex(self::TABLE_NAME, 'idx_payroll_deduction_debt', ['employee_debt_id']);
-        $b->createIndex(self::TABLE_NAME, 'idx_payroll_deduction_installment', ['employee_debt_installment_id']);
     }
 
     public function down(MigrationBuilder $b): void
