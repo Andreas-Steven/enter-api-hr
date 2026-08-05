@@ -22,10 +22,10 @@ use App\Shared\Exception\ConflictException;
  * Pure business logic and domain rules untuk transaksi hutang karyawan.
  *
  * Aturan utama:
- * - transaction_type harus salah satu: payment|adjustment
+ * - transaction_type harus salah satu: payment|adjust_plus|adjust_minus
  * - payment_source wajib jika transaction_type = payment
- * - payment_source harus null jika transaction_type = adjustment
- *   (arah koreksi ditentukan oleh tanda amount: plus menambah, minus mengurangi)
+ * - payment_source harus null jika transaction_type = adjust_plus|adjust_minus
+ *   (arah koreksi ditentukan oleh transaction_type, amount selalu positif)
  * - payroll_deduction_id & payroll_period wajib jika payment_source = payroll
  * - Tidak boleh ada duplikat transaksi untuk PayrollDeduction yang sama
  */
@@ -173,22 +173,15 @@ final class EmployeeDebtTransactionDomainService
 
     private function guardAmount(string $type, float $amount): void
     {
-        if (TransactionType::isInflow($type) && $amount <= 0) {
+        // Semua transaction type (payment, adjust_plus, adjust_minus) wajib
+        // amount > 0. Arah koreksi ditentukan oleh transaction_type, bukan
+        // tanda amount.
+        if ($amount <= 0) {
             throw new BadRequestException(
                 translate: Message::create(
                     key: 'validation.min_value',
                     domain: 'validation',
                     params: ['field' => 'amount', 'min' => 0]
-                )
-            );
-        }
-
-        if (TransactionType::isAdjustment($type) && $amount == 0) {
-            throw new BadRequestException(
-                translate: Message::create(
-                    key: 'employee_debt_transaction.adjustment_amount_non_zero',
-                    domain: 'validation',
-                    params: []
                 )
             );
         }

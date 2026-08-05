@@ -18,6 +18,7 @@ use App\Domain\EmployeeDebtTransaction\Entity\EmployeeDebtTransaction;
 use App\Domain\EmployeeDebtTransaction\Repository\EmployeeDebtTransactionRepositoryInterface;
 use App\Domain\EmployeeDebtTransaction\Service\EmployeeDebtTransactionDomainService;
 use App\Domain\EmployeeDebtTransaction\ValueObject\Name;
+use App\Domain\Shared\Enums\PaymentSource;
 use App\Domain\Shared\Enums\TransactionType;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
@@ -27,6 +28,7 @@ use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
 use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
+use App\Shared\Enums\RecordStatus;
 
 /**
  * EmployeeDebtTransaction Application Service
@@ -78,10 +80,10 @@ final class EmployeeDebtTransactionApplicationService
         return $data;
     }
 
-    private function getDebtById(int $id): EmployeeDebt
+    private function getDebtById(int $employeeDebtId): EmployeeDebt
     {
         $debt = $this->employeeDebtRepository->findById(
-            id: $id,
+            id: $employeeDebtId,
             status: null
         );
 
@@ -92,7 +94,7 @@ final class EmployeeDebtTransactionApplicationService
                     params: [
                         'resource' => 'EmployeeDebt',
                         'field' => 'id',
-                        'value' => $id
+                        'value' => $employeeDebtId
                     ]
                 )
             );
@@ -137,8 +139,9 @@ final class EmployeeDebtTransactionApplicationService
         );
 
         $detailInfo = $this->detailInfoFactory
-            ->create(detailInfo: $info->toArray())
-            ->build();
+            ->create(
+                detailInfo: $info->toArray()
+            )->build();
 
         $data = EmployeeDebtTransaction::create(
             name: Name::generate($command->employeeId)->toString(),
@@ -151,20 +154,111 @@ final class EmployeeDebtTransactionApplicationService
             payrollDeductionId: $command->payrollDeductionId,
             payrollPeriod: $command->payrollPeriod,
             note: $command->note,
-            status: ResourceStatus::from($command->status),
+            status: ResourceStatus::from(RecordStatus::ACTIVE->value),
             detailInfo: $detailInfo
         );
 
         $data = $this->repository->insert(entity: $data);
 
         // Cascade: update EmployeeDebt paid_amount/remaining_amount
-        $this->applyTransactionToDebt($data);
+        $this->applyTransactionToDebt(
+            transaction: $data
+        );
+
+        return EmployeeDebtTransactionResponse::fromEntity(
+            entity: $data
+        );
+    }
+    
+    /**
+     * Apply payment dari PayrollDeduction ke EmployeeDebt.
+     *
+     * Dipanggil oleh PayrollDeductionApplicationService saat membuat potongan
+     * gaji yang terkait EmployeeDebt. Membuat transaksi ledger dengan
+     * transaction_type=payment, payment_source=payroll.
+     *
+     * Note: parameter $installmentId di-keep untuk backward compatibility
+     * dengan PayrollDeductionApplicationService, namun tidak digunakan karena
+     * modul EmployeeDebtInstallment sudah dihapus.
+     */
+    public function applyPaymentFromPayrollDeduction(
+        int $employeeDebtId,
+        int $payrollDeductionId,
+        int $payrollPeriod,
+        float $amount,
+        string $transactionDate,
+        ?string $note = null,
+    ): EmployeeDebtTransactionResponse {
+        $debt = $this->getDebtById(
+            employeeDebtId: $employeeDebtId
+        );
+
+        $info = $this->transactionInfoFactory->buildFromIds(
+            employeeId: $debt->getEmployeeId(),
+            employeeDebtId: $employeeDebtId,
+            payrollDeductionId: $payrollDeductionId,
+        );
+
+        $detailInfo = $this->detailInfoFactory
+            ->create(
+                detailInfo: $info->toArray()
+            )->build();
+
+        $data = EmployeeDebtTransaction::create(
+            name: Name::generate($debt->getEmployeeId())->toString(),
+            employeeDebtId: $employeeDebtId,
+            employeeId: $debt->getEmployeeId(),
+            transactionType: TransactionType::PAYMENT,
+            date: $transactionDate,
+            amount: $amount,
+            paymentSource: PaymentSource::PAYROLL,
+            payrollDeductionId: $payrollDeductionId,
+            payrollPeriod: $payrollPeriod,
+            note: $note,
+            status: ResourceStatus::from(RecordStatus::DRAFT->value),
+            detailInfo: $detailInfo
+        );
+
+        $data = $this->repository->insert(
+            entity: $data
+        );
+
+        // Cascade: update EmployeeDebt paid_amount/remaining_amount
+        $this->applyTransactionToDebt(
+            transaction: $data
+        );
 
         return EmployeeDebtTransactionResponse::fromEntity(
             entity: $data
         );
     }
 
+    /**
+     * Apply transaction effect to EmployeeDebt:
+     * - payment:        debt.recordPayment(amount)
+     * - adjust_plus:    debt.recordPayment(amount)
+     * - adjust_minus:   debt.reversePayment(amount)
+     */
+    private function applyTransactionToDebt(EmployeeDebtTransaction $transaction): void
+    {
+        $debt = $this->getDebtById(
+            employeeDebtId: $transaction->getEmployeeDebtId()
+        );
+        $type = $transaction->getTransactionType();
+        $amount = $transaction->getAmount();
+
+        if (TransactionType::isInflow(type: $type) || TransactionType::isAdjustPlus(type: $type)) {
+            $debt->recordPayment(amount: $amount);
+        } elseif (TransactionType::isAdjustMinus(type: $type)) {
+            $debt->reversePayment(amount: $amount);
+        }
+
+        $this->employeeDebtRepository->update(
+            entity: $debt
+        );
+    }
+
+    /*
     public function update(int $id, UpdateEmployeeDebtTransactionCommand $command): EmployeeDebtTransactionResponse
     {
         $data = $this->getEntityById(
@@ -340,106 +434,21 @@ final class EmployeeDebtTransactionApplicationService
         );
     }
 
-    /**
-     * Apply payment dari PayrollDeduction ke EmployeeDebt.
-     *
-     * Dipanggil oleh PayrollDeductionApplicationService saat membuat potongan
-     * gaji yang terkait EmployeeDebt. Membuat transaksi ledger dengan
-     * transaction_type=payment, payment_source=payroll.
-     *
-     * Note: parameter $installmentId di-keep untuk backward compatibility
-     * dengan PayrollDeductionApplicationService, namun tidak digunakan karena
-     * modul EmployeeDebtInstallment sudah dihapus.
-     */
-    public function applyPaymentFromPayrollDeduction(
-        int $employeeDebtId,
-        ?int $installmentId,
-        int $payrollDeductionId,
-        int $payrollPeriod,
-        float $amount,
-        string $transactionDate,
-        ?string $note = null,
-    ): EmployeeDebtTransactionResponse {
-        $debt = $this->getDebtById($employeeDebtId);
+    // Reverse transaction effect from EmployeeDebt (sebelum update/delete).
 
-        $info = $this->transactionInfoFactory->buildFromIds(
-            employeeId: $debt->getEmployeeId(),
-            employeeDebtId: $employeeDebtId,
-            payrollDeductionId: $payrollDeductionId,
-        );
-
-        $detailInfo = $this->detailInfoFactory
-            ->create(detailInfo: $info->toArray())
-            ->build();
-
-        $data = EmployeeDebtTransaction::create(
-            name: Name::generate($debt->getEmployeeId())->toString(),
-            employeeDebtId: $employeeDebtId,
-            employeeId: $debt->getEmployeeId(),
-            transactionType: TransactionType::PAYMENT,
-            date: $transactionDate,
-            amount: $amount,
-            paymentSource: \App\Domain\Shared\Enums\PaymentSource::PAYROLL,
-            payrollDeductionId: $payrollDeductionId,
-            payrollPeriod: $payrollPeriod,
-            note: $note,
-            status: ResourceStatus::from(\App\Shared\Enums\RecordStatus::DRAFT->value),
-            detailInfo: $detailInfo
-        );
-
-        $data = $this->repository->insert(entity: $data);
-
-        // Cascade: update EmployeeDebt paid_amount/remaining_amount
-        $this->applyTransactionToDebt($data);
-
-        return EmployeeDebtTransactionResponse::fromEntity(
-            entity: $data
-        );
-    }
-
-    /**
-     * Apply transaction effect to EmployeeDebt:
-     * - payment: debt.recordPayment(amount)
-     * - adjustment: recordPayment if positive, reversePayment if negative
-     */
-    private function applyTransactionToDebt(EmployeeDebtTransaction $transaction): void
-    {
-        $debt = $this->getDebtById($transaction->getEmployeeDebtId());
-        $type = $transaction->getTransactionType();
-        $amount = $transaction->getAmount();
-
-        if (TransactionType::isInflow($type)) {
-            $debt->recordPayment($amount);
-        } elseif (TransactionType::isAdjustment($type)) {
-            if ($amount > 0) {
-                $debt->recordPayment($amount);
-            } else {
-                $debt->reversePayment(abs($amount));
-            }
-        }
-
-        $this->employeeDebtRepository->update(entity: $debt);
-    }
-
-    /**
-     * Reverse transaction effect from EmployeeDebt (sebelum update/delete).
-     */
     private function reverseTransactionFromDebt(EmployeeDebtTransaction $transaction): void
     {
         $debt = $this->getDebtById($transaction->getEmployeeDebtId());
         $type = $transaction->getTransactionType();
         $amount = $transaction->getAmount();
 
-        if (TransactionType::isInflow($type)) {
+        if (TransactionType::isInflow($type) || TransactionType::isAdjustPlus($type)) {
             $debt->reversePayment($amount);
-        } elseif (TransactionType::isAdjustment($type)) {
-            if ($amount > 0) {
-                $debt->reversePayment($amount);
-            } else {
-                $debt->recordPayment(abs($amount));
-            }
+        } elseif (TransactionType::isAdjustMinus($type)) {
+            $debt->recordPayment($amount);
         }
 
         $this->employeeDebtRepository->update(entity: $debt);
     }
+    */
 }

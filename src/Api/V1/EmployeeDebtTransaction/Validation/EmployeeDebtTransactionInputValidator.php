@@ -33,21 +33,26 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
             ValidationContext::CREATE => [
                 'employee_debt_id' => [
                     new Required(),
-                    new Integer(min: 1),
+                    new Integer(
+                        min: 1
+                    ),
                 ],
                 'employee_id' => [
                     new Required(),
-                    new Integer(min: 1),
+                    new Integer(
+                        min: 1
+                    ),
                 ],
                 'transaction_type' => [
                     new Required(),
                     new StringValue(),
-                    new In(TransactionType::ALL),
+                    new In(
+                        TransactionType::ALL
+                    ),
                 ],
                 'date' => [
                     new Required(),
                     new StringValue(),
-                    new Length(exactly: 10),
                 ],
                 'amount' => [
                     new Required(),
@@ -55,28 +60,42 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                 ],
                 'payment_source' => [
                     new StringValue(),
-                    new In(PaymentSource::ALL),
+                    new In(
+                        PaymentSource::ALL
+                    ),
                 ],
                 'note' => [
                     new StringValue(),
-                    new Length(max: 1000),
+                    new Length(
+                        max: 1000
+                    ),
                 ],
                 'status' => [
                     new Required(),
                     new Integer(),
-                    new In(RecordStatus::draftOnlyStates()),
+                    new In(
+                        RecordStatus::draftOnlyStates()
+                    ),
                 ],
             ],
             ValidationContext::UPDATE => [
                 'id' => [
                     new Required(),
-                    new Integer(min: 1),
+                    new Integer(
+                        min: 1
+                    ),
                 ],
                 'employee_debt_id' => [
-                    new Integer(skipOnEmpty: true, min: 1),
+                    new Integer(
+                        skipOnEmpty: true,
+                        min: 1
+                    ),
                 ],
                 'employee_id' => [
-                    new Integer(skipOnEmpty: true, min: 1),
+                    new Integer(
+                        skipOnEmpty: true,
+                        min: 1
+                    ),
                 ],
                 'transaction_type' => [
                     new StringValue(
@@ -93,7 +112,9 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                     ),
                 ],
                 'amount' => [
-                    new Number(skipOnEmpty: true),
+                    new Number(
+                        skipOnEmpty: true
+                    ),
                 ],
                 'payment_source' => [
                     new StringValue(
@@ -105,57 +126,89 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                     ),
                 ],
                 'note' => [
-                    new StringValue(skipOnEmpty: true),
-                    new Length(max: 1000, skipOnEmpty: true),
+                    new StringValue(
+                        skipOnEmpty: true
+                    ),
+                    new Length(
+                        max: 1000,
+                        skipOnEmpty: true
+                    ),
                 ],
                 'status' => [
-                    new Integer(skipOnEmpty: true),
+                    new Integer(
+                        skipOnEmpty: true
+                    ),
                     new In(
                         RecordStatus::searchableStates(),
                         skipOnEmpty: true,
                     ),
                 ],
                 'lock_version' => [
-                    new Required(when: fn() => $this->shouldValidateOptimisticLock()),
-                    new Integer(min: 1, skipOnEmpty: true),
+                    new Required(
+                        when: fn() => $this->shouldValidateOptimisticLock()
+                    ),
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true
+                    ),
                 ],
             ],
             ValidationContext::DELETE => [
                 'id' => [
                     new Required(),
-                    new Integer(min: 1),
+                    new Integer(
+                        min: 1
+                    ),
                 ],
             ],
             ValidationContext::SEARCH => [
                 'id' => [
-                    new Integer(skipOnEmpty: true),
+                    new Integer(
+                        skipOnEmpty: true
+                    ),
                 ],
                 'name' => [
-                    new StringValue(skipOnEmpty: true),
-                    new Length(min: 1, max: 100, skipOnEmpty: true),
+                    new StringValue(
+                        skipOnEmpty: true
+                    ),
+                    new Length(
+                        min: 1,
+                        max: 100,
+                        skipOnEmpty: true
+                    ),
                 ],
                 'employee_debt_id' => [
-                    new Integer(skipOnEmpty: true),
+                    new Integer(
+                        skipOnEmpty: true
+                    ),
                 ],
                 'employee_id' => [
-                    new Integer(skipOnEmpty: true),
+                    new Integer(
+                        skipOnEmpty: true
+                    ),
                 ],
                 'transaction_type' => [
-                    new StringValue(skipOnEmpty: true),
+                    new StringValue(
+                        skipOnEmpty: true
+                    ),
                     new In(
                         TransactionType::ALL,
                         skipOnEmpty: true,
                     ),
                 ],
                 'payment_source' => [
-                    new StringValue(skipOnEmpty: true),
+                    new StringValue(
+                        skipOnEmpty: true
+                    ),
                     new In(
                         PaymentSource::ALL,
                         skipOnEmpty: true,
                     ),
                 ],
                 'status' => [
-                    new Integer(skipOnEmpty: true),
+                    new Integer(
+                        skipOnEmpty: true
+                    ),
                     new In(
                         RecordStatus::searchableStates(),
                         skipOnEmpty: true,

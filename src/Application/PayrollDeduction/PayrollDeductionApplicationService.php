@@ -134,7 +134,6 @@ final class PayrollDeductionApplicationService
         if ($command->employeeDebtId !== null) {
             $this->transactionService->applyPaymentFromPayrollDeduction(
                 employeeDebtId: $command->employeeDebtId,
-                installmentId: null,
                 payrollDeductionId: $deduction->getId(),
                 payrollPeriod: $command->period,
                 amount: $command->amount,
