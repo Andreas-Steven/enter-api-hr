@@ -17,9 +17,9 @@ namespace App\Domain\Shared\Enums;
  */
 final class PaymentSource
 {
+    public const MANUAL = 'manual';
     public const PAYROLL = 'payroll';
     public const NON_PAYROLL = 'non_payroll';
-    public const MANUAL = 'manual';
 
     public const ALL = [
         self::PAYROLL,
