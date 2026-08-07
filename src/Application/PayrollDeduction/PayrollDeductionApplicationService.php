@@ -143,7 +143,7 @@ final class PayrollDeductionApplicationService
                 employeeDebtId: $command->employeeDebtId,
                 payrollDeductionId: $deduction->getId(),
                 payrollPeriod: $command->period,
-                amount: (int) $command->amount,
+                amount: $command->amount,
                 transactionDate: date('Y-m-d'),
                 note: sprintf('Auto-deducted via payroll %d', $command->period),
             );

@@ -9,7 +9,7 @@ final readonly class CreatePayrollDeductionFromDebtCommand
     public function __construct(
         public int $employeeDebtId,
         public int $period,
-        public float $amount,
+        public int $amount,
         public ?string $description,
         public int $status,
         public ?array $detailInfo,
@@ -18,7 +18,7 @@ final readonly class CreatePayrollDeductionFromDebtCommand
     public static function create(
         int $employeeDebtId,
         int $period,
-        float $amount,
+        int $amount,
         int $status,
         ?string $description = null,
         ?array $detailInfo = null,

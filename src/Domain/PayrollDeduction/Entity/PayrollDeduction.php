@@ -33,7 +33,7 @@ final class PayrollDeduction
         private int $deductionTypeId,
         private ?int $employeeDebtId,
         private int $period,
-        private float $amount,
+        private int $amount,
         private ?string $description,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
@@ -55,7 +55,7 @@ final class PayrollDeduction
         int $deductionTypeId,
         ?int $employeeDebtId,
         int $period,
-        float $amount,
+        int $amount,
         ?string $description,
         ResourceStatus $status,
         DetailInfo $detailInfo,
@@ -89,7 +89,7 @@ final class PayrollDeduction
         int $deductionTypeId,
         ?int $employeeDebtId,
         int $period,
-        float $amount,
+        int $amount,
         ?string $description,
         ResourceStatus $status,
         DetailInfo $detailInfo,
@@ -164,7 +164,7 @@ final class PayrollDeduction
         return $this->period;
     }
 
-    public function getAmount(): float
+    public function getAmount(): int
     {
         return $this->amount;
     }
@@ -194,7 +194,7 @@ final class PayrollDeduction
         $this->period = $period;
     }
 
-    public function setAmount(float $amount): void
+    public function setAmount(int $amount): void
     {
         $this->amount = $amount;
     }

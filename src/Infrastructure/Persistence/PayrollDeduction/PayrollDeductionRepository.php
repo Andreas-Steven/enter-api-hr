@@ -328,7 +328,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             deductionTypeId: (int) $row['deduction_type_id'],
             employeeDebtId: $row['employee_debt_id'] !== null ? (int) $row['employee_debt_id'] : null,
             period: (int) $row['period'],
-            amount: (float) $row['amount'],
+            amount: (int) $row['amount'],
             description: $row['description'] ?? null,
             status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),

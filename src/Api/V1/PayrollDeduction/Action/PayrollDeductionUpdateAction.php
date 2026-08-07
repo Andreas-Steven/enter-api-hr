@@ -92,7 +92,7 @@ final class PayrollDeductionUpdateAction
             deductionTypeId: $params->get('deduction_type_id') !== null ? (int) $params->get('deduction_type_id') : null,
             employeeDebtId: $params->get('employee_debt_id') !== null ? (int) $params->get('employee_debt_id') : null,
             period: $params->get('period') !== null ? (int) $params->get('period') : null,
-            amount: $params->get('amount') !== null ? (float) $params->get('amount') : null,
+            amount: $params->get('amount') !== null ? (int) $params->get('amount') : null,
             description: $params->get('description'),
             status: $params->get('status') !== null ? (int) $params->get('status') : null,
             detailInfo: $params->get('detail_info'),

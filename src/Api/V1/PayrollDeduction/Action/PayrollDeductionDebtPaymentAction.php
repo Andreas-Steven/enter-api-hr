@@ -65,7 +65,7 @@ final class PayrollDeductionDebtPaymentAction
         $command = CreatePayrollDeductionFromDebtCommand::create(
             employeeDebtId: (int) $params->get('employee_debt_id'),
             period: (int) $params->get('period'),
-            amount: (float) $params->get('amount'),
+            amount: (int) $params->get('amount'),
             status: (int) $params->get('status'),
             description: $params->get('description'),
             detailInfo: $params->get('detail_info')

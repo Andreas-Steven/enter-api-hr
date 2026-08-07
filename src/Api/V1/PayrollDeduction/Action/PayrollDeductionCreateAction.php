@@ -61,7 +61,7 @@ final class PayrollDeductionCreateAction
             employeeId: (int) $params->get('employee_id'),
             deductionTypeId: (int) $params->get('deduction_type_id'),
             period: (int) $params->get('period'),
-            amount: (float) $params->get('amount'),
+            amount: (int) $params->get('amount'),
             status: (int) $params->get('status'),
             employeeDebtId: null,
             description: $params->get('description'),

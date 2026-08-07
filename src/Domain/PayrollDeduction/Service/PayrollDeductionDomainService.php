@@ -55,7 +55,7 @@ final class PayrollDeductionDomainService
         int $employeeId,
         int $deductionTypeId,
         int $period,
-        float $amount,
+        int $amount,
     ): void {
         if ($employeeId < 1) {
             throw new BadRequestException(
