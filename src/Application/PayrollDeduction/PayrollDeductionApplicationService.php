@@ -6,6 +6,7 @@ namespace App\Application\PayrollDeduction;
 
 // Application Layer
 use App\Application\PayrollDeduction\Command\CreatePayrollDeductionCommand;
+use App\Application\PayrollDeduction\Command\CreatePayrollDeductionFromDebtCommand;
 use App\Application\PayrollDeduction\Command\UpdatePayrollDeductionCommand;
 use App\Application\PayrollDeduction\Dto\PayrollDeductionResponse;
 use App\Application\PayrollDeduction\PayrollDeductionDetailInfoFactory;
@@ -17,6 +18,10 @@ use App\Domain\PayrollDeduction\Entity\PayrollDeduction;
 use App\Domain\PayrollDeduction\Repository\PayrollDeductionRepositoryInterface;
 use App\Domain\PayrollDeduction\Service\PayrollDeductionDomainService;
 use App\Domain\PayrollDeduction\ValueObject\Name as DeductionName;
+use App\Domain\EmployeeDebt\Entity\EmployeeDebt;
+use App\Domain\EmployeeDebt\Repository\EmployeeDebtRepositoryInterface;
+use App\Domain\EmployeeDebtTransaction\Service\EmployeeDebtTransactionDomainService;
+use App\Domain\Shared\Enums\ApprovalStatus;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
@@ -44,6 +49,8 @@ final class PayrollDeductionApplicationService
         private PayrollDeductionRepositoryInterface $repository,
         private PayrollDeductionDomainService $domainService,
         private EmployeeDebtTransactionApplicationService $transactionService,
+        private EmployeeDebtRepositoryInterface $employeeDebtRepository,
+        private EmployeeDebtTransactionDomainService $debtTransactionDomainService,
     ) {
     }
 
@@ -136,11 +143,93 @@ final class PayrollDeductionApplicationService
                 employeeDebtId: $command->employeeDebtId,
                 payrollDeductionId: $deduction->getId(),
                 payrollPeriod: $command->period,
-                amount: $command->amount,
+                amount: (int) $command->amount,
                 transactionDate: date('Y-m-d'),
                 note: sprintf('Auto-deducted via payroll %d', $command->period),
             );
         }
+
+        return PayrollDeductionResponse::fromEntity(entity: $deduction);
+    }
+
+    /**
+     * Create PayrollDeduction yang terkait EmployeeDebt (DebtPayment).
+     *
+     * employee_id & deduction_type_id di-derive otomatis dari EmployeeDebt,
+     * tidak perlu dikirim di payload. EmployeeDebt harus sudah Approved &
+     * Active sebelum potongan gaji bisa dibuat.
+     */
+    public function createFromDebt(CreatePayrollDeductionFromDebtCommand $command): PayrollDeductionResponse
+    {
+        // 1. Fetch debt & guard: harus Approved AND Active
+        $debt = $this->employeeDebtRepository->findById(
+            id: $command->employeeDebtId,
+            status: null
+        );
+
+        if ($debt === null) {
+            throw new NotFoundException(
+                translate: Message::create(
+                    key: 'resource.not_found',
+                    params: [
+                        'resource' => 'EmployeeDebt',
+                        'field' => 'id',
+                        'value' => $command->employeeDebtId
+                    ]
+                )
+            );
+        }
+
+        $this->debtTransactionDomainService->guardDebtApprovedAndActive(
+            debt: $debt
+        );
+
+        // 2. Derive employeeId & deductionTypeId dari debt
+        $employeeId = $debt->getEmployeeId();
+        $deductionTypeId = $debt->getDeductionTypeId();
+
+        $this->domainService->guardCreate(
+            employeeId: $employeeId,
+            deductionTypeId: $deductionTypeId,
+            period: $command->period,
+            amount: $command->amount,
+        );
+
+        $info = $this->deductionInfoFactory->buildFromIds(
+            employeeId: $employeeId,
+            deductionTypeId: $deductionTypeId,
+            employeeDebtId: $command->employeeDebtId,
+        );
+
+        $detailInfo = $this->detailInfoFactory
+            ->create(detailInfo: $info->toArray())
+            ->build();
+
+        $name = DeductionName::generate($employeeId, 0)->toString();
+
+        $data = PayrollDeduction::create(
+            name: $name,
+            employeeId: $employeeId,
+            deductionTypeId: $deductionTypeId,
+            employeeDebtId: $command->employeeDebtId,
+            period: $command->period,
+            amount: $command->amount,
+            description: $command->description,
+            status: ResourceStatus::from($command->status),
+            detailInfo: $detailInfo
+        );
+
+        $deduction = $this->repository->insert(entity: $data);
+
+        // Cascade: record ledger payment ke EmployeeDebt
+        $this->transactionService->applyPaymentFromPayrollDeduction(
+            employeeDebtId: $command->employeeDebtId,
+            payrollDeductionId: $deduction->getId(),
+            payrollPeriod: $command->period,
+            amount: (int) $command->amount,
+            transactionDate: date('Y-m-d'),
+            note: sprintf('Auto-deducted via payroll %d', $command->period),
+        );
 
         return PayrollDeductionResponse::fromEntity(entity: $deduction);
     }

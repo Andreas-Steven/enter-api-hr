@@ -33,7 +33,7 @@ final class EmployeeDebtTransaction
         private int $employeeId,
         private string $transactionType,
         private string $date,
-        private float $amount,
+        private int $amount,
         private ?string $paymentSource,
         private ?int $payrollDeductionId,
         private ?int $payrollPeriod,
@@ -58,7 +58,7 @@ final class EmployeeDebtTransaction
         int $employeeId,
         string $transactionType,
         string $date,
-        float $amount,
+        int $amount,
         ?string $paymentSource,
         ?int $payrollDeductionId,
         ?int $payrollPeriod,
@@ -98,7 +98,7 @@ final class EmployeeDebtTransaction
         int $employeeId,
         string $transactionType,
         string $date,
-        float $amount,
+        int $amount,
         ?string $paymentSource,
         ?int $payrollDeductionId,
         ?int $payrollPeriod,
@@ -202,12 +202,12 @@ final class EmployeeDebtTransaction
         $this->date = $date;
     }
 
-    public function getAmount(): float
+    public function getAmount(): int
     {
         return $this->amount;
     }
 
-    public function setAmount(float $amount): void
+    public function setAmount(int $amount): void
     {
         $this->amount = $amount;
     }

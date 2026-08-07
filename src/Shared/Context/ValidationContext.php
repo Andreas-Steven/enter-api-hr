@@ -31,6 +31,9 @@ final class ValidationContext implements ValidationContextInterface
     public const REJECT_DO = 'reject_do';
     public const PERMISSION_APPROVE = 'permission_approve';
     public const PERMISSION_REJECT = 'permission_reject';
+    public const DEBT_APPROVE = 'debt_approve';
+    public const DEBT_REJECT = 'debt_reject';
+    public const PAYROLL_DEDUCTION_DEBT_PAYMENT = 'payroll_deduction_debt_payment';
     public const ATTENDANCE_SHOW = 'attendance_show';
     public const ATTENDANCE_REPORT = 'attendance_report';
     public const ADJUSTMENT = 'adjustment';

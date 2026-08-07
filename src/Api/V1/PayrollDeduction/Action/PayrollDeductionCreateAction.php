@@ -26,7 +26,6 @@ final class PayrollDeductionCreateAction
     private const ALLOWED_KEYS = [
         'employee_id',
         'deduction_type_id',
-        'employee_debt_id',
         'period',
         'amount',
         'description',
@@ -64,7 +63,7 @@ final class PayrollDeductionCreateAction
             period: (int) $params->get('period'),
             amount: (float) $params->get('amount'),
             status: (int) $params->get('status'),
-            employeeDebtId: $params->get('employee_debt_id') !== null ? (int) $params->get('employee_debt_id') : null,
+            employeeDebtId: null,
             description: $params->get('description'),
             detailInfo: $params->get('detail_info')
         );

@@ -7,6 +7,8 @@ namespace App\Application\EmployeeDebt;
 // Application Layer
 use App\Application\EmployeeDebt\Command\CreateEmployeeDebtCommand;
 use App\Application\EmployeeDebt\Command\UpdateEmployeeDebtCommand;
+use App\Application\EmployeeDebt\Command\ApproveEmployeeDebtCommand;
+use App\Application\EmployeeDebt\Command\RejectEmployeeDebtCommand;
 use App\Application\EmployeeDebt\Dto\EmployeeDebtResponse;
 use App\Application\EmployeeDebt\EmployeeDebtDetailInfoFactory;
 use App\Application\Shared\Factory\DetailInfoFactory;
@@ -18,6 +20,7 @@ use App\Domain\EmployeeDebt\Service\EmployeeDebtDomainService;
 use App\Domain\EmployeeDebt\ValueObject\Name;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
+use App\Domain\Shared\Enums\ApprovalStatus;
 
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
@@ -103,6 +106,8 @@ final class EmployeeDebtApplicationService
             ->create(
                 detailInfo: $debtInfo->toArray()
             )
+            ->withEmptyApproval()
+            ->withEmptyRejection()
             ->build();
 
         $data = EmployeeDebt::create(
@@ -303,6 +308,94 @@ final class EmployeeDebtApplicationService
         
         return EmployeeDebtResponse::fromEntity(
             entity: $restoredData
+        );
+    }
+
+    /**
+     * Approve and Reject
+     */
+    public function approve(int $id, ApproveEmployeeDebtCommand $command): EmployeeDebtResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: null
+        );
+
+        $this->domainService->guardApprovalRequiresActiveStatus(
+            entity: $data
+        );
+
+        $newStatus = ResourceStatus::active();
+
+        $this->repository->verifyLockVersion(
+            entity: $data,
+            version: $command->lockVersion ?? null
+        );
+
+        $data->applyApproval(
+            newStatus: ApprovalStatus::APPROVED,
+            note: $command->approvedNote
+        );
+
+        $data->applyStatus(
+            newStatus: $newStatus
+        );
+
+        $detailInfo = $this->detailInfoFactory
+            ->update(
+                detailInfo: $data->getDetailInfo(),
+                payload: [],
+            )
+            ->withApproved()
+            ->build();
+
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
+
+        return EmployeeDebtResponse::fromEntity(
+            entity: $this->repository->update(
+                entity: $data
+            )
+        );
+    }
+
+    public function reject(int $id, RejectEmployeeDebtCommand $command): EmployeeDebtResponse
+    {
+        $data = $this->getEntityById(id: $id, status: null);
+
+        $this->domainService->guardApprovalRequiresActiveStatus(
+            entity: $data
+        );
+
+        $newStatus = ResourceStatus::completed();
+
+        $this->repository->verifyLockVersion(
+            entity: $data,
+            version: $command->lockVersion ?? null
+        );
+
+        $data->applyApproval(
+            newStatus: ApprovalStatus::REJECTED,
+            note: $command->approvedNote
+        );
+
+        $data->applyStatus(
+            newStatus: $newStatus
+        );
+
+        $detailInfo = $this->detailInfoFactory
+            ->update(
+                detailInfo: $data->getDetailInfo(),
+                payload: [],
+            )
+            ->withRejected()
+            ->build();
+
+        $data->updateDetailInfo(detailInfo: $detailInfo);
+
+        return EmployeeDebtResponse::fromEntity(
+            entity: $this->repository->update(entity: $data)
         );
     }
 }

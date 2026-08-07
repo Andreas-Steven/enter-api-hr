@@ -37,12 +37,6 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                         min: 1
                     ),
                 ],
-                'employee_id' => [
-                    new Required(),
-                    new Integer(
-                        min: 1
-                    ),
-                ],
                 'transaction_type' => [
                     new Required(),
                     new StringValue(),
@@ -56,7 +50,7 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                 ],
                 'amount' => [
                     new Required(),
-                    new Number(),
+                    new Integer(min: 1),
                 ],
                 'payment_source' => [
                     new StringValue(),
@@ -112,8 +106,9 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                     ),
                 ],
                 'amount' => [
-                    new Number(
-                        skipOnEmpty: true
+                    new Integer(
+                        skipOnEmpty: true,
+                        min: 1,
                     ),
                 ],
                 'payment_source' => [

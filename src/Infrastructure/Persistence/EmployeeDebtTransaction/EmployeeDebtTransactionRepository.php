@@ -364,7 +364,7 @@ final class EmployeeDebtTransactionRepository implements EmployeeDebtTransaction
             employeeId: (int) $row['employee_id'],
             transactionType: $row['transaction_type'],
             date: $row['date'],
-            amount: (float) $row['amount'],
+            amount: (int) $row['amount'],
             paymentSource: $row['payment_source'],
             payrollDeductionId: $row['payroll_deduction_id'] !== null ? (int) $row['payroll_deduction_id'] : null,
             payrollPeriod: $row['payroll_period'] !== null ? (int) $row['payroll_period'] : null,

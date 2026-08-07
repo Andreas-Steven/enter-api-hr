@@ -40,13 +40,15 @@ final class M20260728065641CreateEmployeeDebtTable implements RevertibleMigratio
             'deduction_type_id' => $cb::integer()->notNull(),
             'date' => $cb::date()->notNull(),
             
-            'amount' => $cb::decimal(14, 2)->notNull(),
-            'remaining_amount' => $cb::decimal(14, 2)->notNull()->defaultValue(0),
-            'paid_amount' => $cb::decimal(14, 2)->notNull()->defaultValue(0),
+            'amount' => $cb::integer()->notNull(),
+            'remaining_amount' => $cb::integer()->notNull()->defaultValue(0),
+            'paid_amount' => $cb::integer()->notNull()->defaultValue(0),
             'is_settled' => $cb::smallint()->notNull()->defaultValue(0),
             'settled_at' => $cb::timestamp()->null(),
 
             'note' => $cb::string(255)->null(),
+            'approved' => $cb::smallint()->defaultValue(null)->comment('0: Pending, 1: Approved, 2: Rejected'),
+            'approved_note' => $cb::string(255)->defaultValue(null),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
             'detail_info' => $cb::json()->notNull()->defaultValue([
                 'employee' => null,
@@ -58,6 +60,8 @@ final class M20260728065641CreateEmployeeDebtTable implements RevertibleMigratio
                     'deleted_by' => null,
                     'updated_at' => null,
                     'updated_by' => null,
+                    'approved_at' => null,
+                    'approved_by' => null,
                 ],
             ]),
             'sync_mdb' => $cb::smallint()->null()->comment('null: sync to MDB, 1: not sync to MDB'),

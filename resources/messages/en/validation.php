@@ -173,4 +173,5 @@ return [
     'employee_debt_transaction.payroll_deduction_id_required' => 'payroll_deduction_id is required when payment_source is payroll.',
     'employee_debt_transaction.payroll_period_required' => 'payroll_period is required when payment_source is payroll.',
     'employee_debt_transaction.payroll_deduction_already_linked' => 'A transaction already exists for PayrollDeduction (id: {payroll_deduction_id}).',
+    'employee_debt_transaction.debt_not_approved' => 'Cannot create transaction: EmployeeDebt (id: {id}) approval status is "{approval_status}", must be "Approved".',
 ];

@@ -9,7 +9,7 @@ final readonly class CreateEmployeeDebtCommand
     public function __construct(
         public int $employeeId,
         public int $deductionTypeId,
-        public float $amount,
+        public int $amount,
         public string $date,
         public ?string $note,
         public int $status,
@@ -19,7 +19,7 @@ final readonly class CreateEmployeeDebtCommand
     public static function create(
         int $employeeId,
         int $deductionTypeId,
-        float $amount,
+        int $amount,
         string $date,
         ?string $note,
         int $status,

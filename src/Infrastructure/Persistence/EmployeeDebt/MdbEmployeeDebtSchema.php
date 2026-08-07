@@ -21,6 +21,8 @@ final class MdbEmployeeDebtSchema
             'amount' => $entity->getAmount(),
             'date' => $entity->getDate(),
             'note' => $entity->getNote(),
+            'approved' => $entity->getApproved(),
+            'approved_note' => $entity->getApprovedNote(),
             'remaining_amount' => $entity->getRemainingAmount(),
             'paid_amount' => $entity->getPaidAmount(),
             'is_settled' => $entity->isSettled(),

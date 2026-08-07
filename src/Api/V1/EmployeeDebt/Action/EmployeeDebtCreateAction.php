@@ -62,7 +62,7 @@ final class EmployeeDebtCreateAction
         $command = CreateEmployeeDebtCommand::create(
             employeeId: (int) $params->get('employee_id'),
             deductionTypeId: (int) $params->get('deduction_type_id'),
-            amount: (float) $params->get('amount'),
+            amount: (int) $params->get('amount'),
             date: (string) $params->get('date'),
             note: $params->get('note'),
             status: (int) $params->get('status'),

@@ -89,7 +89,7 @@ final class EmployeeDebtUpdateAction
             id: (int) $id,
             employeeId: $params->get('employee_id') !== null ? (int) $params->get('employee_id') : null,
             deductionTypeId: $params->get('deduction_type_id') !== null ? (int) $params->get('deduction_type_id') : null,
-            amount: $params->get('amount') !== null ? (float) $params->get('amount') : null,
+            amount: $params->get('amount') !== null ? (int) $params->get('amount') : null,
             date: $params->get('date'),
             note: $params->get('note'),
             status: $params->get('status') !== null ? (int) $params->get('status') : null,

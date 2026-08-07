@@ -35,6 +35,11 @@ return [
     'attendance_permission.end_time_required' => 'Revision End Time is required for permission type: {type}',
 
     /**
+     * Employee Debt
+     */
+    'employee_debt.invalid_approval_transition' => 'Invalid approval transition from {from} to {to}',
+
+    /**
      * Attendance Policy
      */
     'attendance_policy.invalid_format' => 'The {resource} format is invalid.',

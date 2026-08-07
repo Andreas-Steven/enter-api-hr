@@ -173,4 +173,5 @@ return [
     'employee_debt_transaction.payroll_deduction_id_required' => 'payroll_deduction_id wajib diisi ketika payment_source adalah payroll.',
     'employee_debt_transaction.payroll_period_required' => 'payroll_period wajib diisi ketika payment_source adalah payroll.',
     'employee_debt_transaction.payroll_deduction_already_linked' => 'Transaksi sudah ada untuk PayrollDeduction (id: {payroll_deduction_id}).',
+    'employee_debt_transaction.debt_not_approved' => 'Tidak dapat membuat transaksi: status persetujuan EmployeeDebt (id: {id}) adalah "{approval_status}", harus "Approved".',
 ];

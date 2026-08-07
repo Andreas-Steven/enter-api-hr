@@ -124,7 +124,7 @@ final class EmployeeDebtInputValidator extends AbstractValidator
                 ],
                 'amount' => [
                     new Required(),
-                    new Number(
+                    new Integer(
                         min: 0,
                     ),
                 ],
@@ -183,7 +183,7 @@ final class EmployeeDebtInputValidator extends AbstractValidator
                     ),
                 ],
                 'amount' => [
-                    new Number(
+                    new Integer(
                         skipOnEmpty: true,
                         min: 1,
                     ),
@@ -222,9 +222,61 @@ final class EmployeeDebtInputValidator extends AbstractValidator
             ],
             ValidationContext::DELETE => [
                 'id' => [
-                    new Required(), 
+                    new Required(),
                     new Integer(
                         min: 1,
+                    ),
+                ],
+            ],
+            ValidationContext::DEBT_APPROVE => [
+                'id' => [
+                    new Required(),
+                    new Integer(
+                        min: 1,
+                    ),
+                ],
+                'approved_note' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'lock_version' => [
+                    new Required(
+                        when: fn() => $this->shouldValidateOptimisticLock()
+                    ),
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
+            ],
+            ValidationContext::DEBT_REJECT => [
+                'id' => [
+                    new Required(),
+                    new Integer(
+                        min: 1,
+                    ),
+                ],
+                'approved_note' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'lock_version' => [
+                    new Required(
+                        when: fn() => $this->shouldValidateOptimisticLock()
+                    ),
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
                     ),
                 ],
             ],
@@ -284,6 +336,12 @@ final class EmployeeDebtInputValidator extends AbstractValidator
                     new In(
                         [0, 1],
                         skipOnEmpty: true,
+                    ),
+                ],
+                'approved' => [
+                    new In(
+                        [0, 1, 2, '0', '1', '2', null, 'null'],
+                        skipOnEmpty: true
                     ),
                 ],
                 'status' => [

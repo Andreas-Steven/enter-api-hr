@@ -35,6 +35,11 @@ return [
     'attendance_permission.end_time_required' => 'Waktu Selesai Revisi diperlukan untuk jenis izin: {type}',
 
     /**
+     * Employee Debt
+     */
+    'employee_debt.invalid_approval_transition' => 'Transisi persetujuan tidak valid dari {from} ke {to}',
+
+    /**
      * Attendance Policy
      */
     'attendance_policy.invalid_format' => 'Format {resource} tidak valid.',

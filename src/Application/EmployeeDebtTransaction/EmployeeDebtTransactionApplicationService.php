@@ -124,6 +124,18 @@ final class EmployeeDebtTransactionApplicationService
 
     public function create(CreateEmployeeDebtTransactionCommand $command): EmployeeDebtTransactionResponse
     {
+        // 1. Fetch debt & guard: harus Approved AND Active
+        $debt = $this->getDebtById(
+            employeeDebtId: $command->employeeDebtId
+        );
+
+        $this->domainService->guardDebtApprovedAndActive(
+            debt: $debt
+        );
+
+        // 2. Derive employeeId dari debt (tidak dari payload)
+        $employeeId = $debt->getEmployeeId();
+
         $this->domainService->guardCreate(
             transactionType: $command->transactionType,
             paymentSource: $command->paymentSource,
@@ -133,7 +145,7 @@ final class EmployeeDebtTransactionApplicationService
         );
 
         $info = $this->transactionInfoFactory->buildFromIds(
-            employeeId: $command->employeeId,
+            employeeId: $employeeId,
             employeeDebtId: $command->employeeDebtId,
             payrollDeductionId: $command->payrollDeductionId,
         );
@@ -144,9 +156,9 @@ final class EmployeeDebtTransactionApplicationService
             )->build();
 
         $data = EmployeeDebtTransaction::create(
-            name: Name::generate($command->employeeId)->toString(),
+            name: Name::generate($employeeId)->toString(),
             employeeDebtId: $command->employeeDebtId,
-            employeeId: $command->employeeId,
+            employeeId: $employeeId,
             transactionType: $command->transactionType,
             date: $command->date,
             amount: $command->amount,
@@ -185,12 +197,16 @@ final class EmployeeDebtTransactionApplicationService
         int $employeeDebtId,
         int $payrollDeductionId,
         int $payrollPeriod,
-        float $amount,
+        int $amount,
         string $transactionDate,
         ?string $note = null,
     ): EmployeeDebtTransactionResponse {
         $debt = $this->getDebtById(
             employeeDebtId: $employeeDebtId
+        );
+
+        $this->domainService->guardDebtApprovedAndActive(
+            debt: $debt
         );
 
         $info = $this->transactionInfoFactory->buildFromIds(

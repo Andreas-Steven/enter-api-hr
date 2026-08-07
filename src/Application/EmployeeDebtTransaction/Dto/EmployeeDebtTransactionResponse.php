@@ -15,7 +15,7 @@ final readonly class EmployeeDebtTransactionResponse
         public int $employee_id,
         public string $transaction_type,
         public string $date,
-        public float $amount,
+        public int $amount,
         public ?string $payment_source,
         public ?int $payroll_deduction_id,
         public ?int $payroll_period,

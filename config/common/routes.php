@@ -773,6 +773,14 @@ return [
                 ->action(EmployeeDebtV1\EmployeeDebtRestoreAction::class)
                 ->name('v1/employee-debt/restore')
                 ->defaults(['permission' => 'employee-debt.restore']),
+            Route::put('/employee-debt/{id:\d+}/approve')
+                ->action(EmployeeDebtV1\EmployeeDebtApproveAction::class)
+                ->name('v1/employee-debt/approve')
+                ->defaults(['permission' => 'employee-debt.approve']),
+            Route::put('/employee-debt/{id:\d+}/reject')
+                ->action(EmployeeDebtV1\EmployeeDebtRejectAction::class)
+                ->name('v1/employee-debt/reject')
+                ->defaults(['permission' => 'employee-debt.reject']),
 
             // EmployeeDebtTransaction Routes
             Route::get('/employee-debt-transaction')
@@ -821,6 +829,10 @@ return [
                 ->action(PayrollDeductionV1\PayrollDeductionCreateAction::class)
                 ->name('v1/payroll-deduction/create')
                 ->defaults(['permission' => 'payroll-deduction.create']),
+            Route::post('/payroll-deduction/debt-payment')
+                ->action(PayrollDeductionV1\PayrollDeductionDebtPaymentAction::class)
+                ->name('v1/payroll-deduction/debt-payment')
+                ->defaults(['permission' => 'payroll-deduction.debt-payment']),
             Route::put('/payroll-deduction/{id:\d+}')
                 ->action(PayrollDeductionV1\PayrollDeductionUpdateAction::class)
                 ->name('v1/payroll-deduction/update')

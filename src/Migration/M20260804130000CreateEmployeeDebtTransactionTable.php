@@ -40,7 +40,7 @@ final class M20260804130000CreateEmployeeDebtTransactionTable implements Reverti
             'employee_id' => $cb::integer()->notNull(),
             'transaction_type' => $cb::string(20)->notNull()->comment('payment|adjust_plus|adjust_minus'),
             'date' => $cb::date()->notNull(),
-            'amount' => $cb::decimal(14, 2)->notNull(),
+            'amount' => $cb::integer()->notNull(),
             'payment_source' => $cb::string(20)->null()->comment('cash|transfer|payroll_deduction'),
             'payroll_deduction_id' => $cb::integer()->null(),
             'payroll_period' => $cb::integer(20)->null()->comment('YYYYMM, null if not payroll source'),

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\EmployeeDebtTransaction\Service;
 
 // Domain Layer
+use App\Domain\EmployeeDebt\Entity\EmployeeDebt;
 use App\Domain\EmployeeDebtTransaction\Entity\EmployeeDebtTransaction;
 use App\Domain\EmployeeDebtTransaction\Repository\EmployeeDebtTransactionRepositoryInterface;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
+use App\Domain\Shared\Enums\ApprovalStatus;
 use App\Domain\Shared\Enums\TransactionType;
 use App\Domain\Shared\Enums\PaymentSource;
 
@@ -45,7 +47,7 @@ final class EmployeeDebtTransactionDomainService
         ?string $paymentSource,
         ?int $payrollDeductionId,
         ?int $payrollPeriod,
-        float $amount,
+        int $amount,
     ): void {
         $this->guardTransactionType($transactionType);
         $this->guardPaymentSource($transactionType, $paymentSource);
@@ -66,6 +68,41 @@ final class EmployeeDebtTransactionDomainService
     }
 
     /**
+     * Guard: EmployeeDebt harus sudah Approved (approved = 1) DAN Active
+     * sebelum transaksi apapun (payment/adjust) bisa dibuat.
+     */
+    public function guardDebtApprovedAndActive(EmployeeDebt $debt): void
+    {
+        $approved = $debt->getApproved();
+        $approval = ApprovalStatus::tryFrom($approved ?? ApprovalStatus::PENDING->value);
+
+        if ($approval !== ApprovalStatus::APPROVED) {
+            throw new ConflictException(
+                translate: Message::create(
+                    key: 'employee_debt_transaction.debt_not_approved',
+                    domain: 'validation',
+                    params: [
+                        'id' => $debt->getId(),
+                        'approval_status' => $approval->getLabel(),
+                    ]
+                )
+            );
+        }
+
+        if (!$debt->isActive()) {
+            throw new ConflictException(
+                translate: Message::create(
+                    key: 'resource.update_not_allowed_by_status',
+                    params: [
+                        'resource' => $debt->getResource(),
+                        'current_status' => $debt->getStatus()->label(),
+                    ]
+                )
+            );
+        }
+    }
+
+    /**
      * Validasi saat update transaksi.
      */
     public function guardUpdate(
@@ -74,7 +111,7 @@ final class EmployeeDebtTransactionDomainService
         ?string $paymentSource,
         ?int $payrollDeductionId,
         ?int $payrollPeriod,
-        ?float $amount,
+        ?int $amount,
     ): void {
         $resolvedType = $transactionType ?? $entity->getTransactionType();
         $resolvedSource = $paymentSource ?? $entity->getPaymentSource();
@@ -171,7 +208,7 @@ final class EmployeeDebtTransactionDomainService
         }
     }
 
-    private function guardAmount(string $type, float $amount): void
+    private function guardAmount(string $type, int $amount): void
     {
         // Semua transaction type (payment, adjust_plus, adjust_minus) wajib
         // amount > 0. Arah koreksi ditentukan oleh transaction_type, bukan

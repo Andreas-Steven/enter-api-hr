@@ -8,6 +8,7 @@ namespace App\Domain\EmployeeDebt\Service;
 use App\Domain\EmployeeDebt\Entity\EmployeeDebt;
 use App\Domain\EmployeeDebt\Repository\EmployeeDebtRepositoryInterface;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
+use App\Domain\Shared\Enums\ApprovalStatus;
 
 // Application Layer
 use App\Application\EmployeeDebt\Dto\EmployeeDebtDetailInfo;
@@ -15,6 +16,7 @@ use App\Application\EmployeeDebt\Dto\EmployeeDebtDetailInfo;
 // Shared Layer
 use App\Shared\ValueObject\Message;
 use App\Shared\Exception\BadRequestException;
+use App\Shared\Exception\ConflictException;
 
 /**
  * EmployeeDebt Domain Service
@@ -65,7 +67,7 @@ final class EmployeeDebtDomainService
      * Guard: validasi amount saat create.
      * amount harus > 0.
      */
-    public function guardCreateAmount(float $amount): void
+    public function guardCreateAmount(int $amount): void
     {
         if ($amount <= 0) {
             throw new BadRequestException(
@@ -104,6 +106,45 @@ final class EmployeeDebtDomainService
                         'paid' => $paidAmount,
                     ],
                     domain: 'validation'
+                )
+            );
+        }
+    }
+
+    /**
+     * Guard that approval operations require active status
+     */
+    public function guardApprovalRequiresActiveStatus(EmployeeDebt $entity): void
+    {
+        if (!$entity->isActive()) {
+            throw new ConflictException(
+                translate: Message::create(
+                    key: 'resource.update_not_allowed_by_status',
+                    params: [
+                        'resource' => $entity->getResource(),
+                        'current_status' => $entity->getStatus()->label(),
+                    ]
+                )
+            );
+        }
+
+        return;
+    }
+
+    /**
+     * Guard approval status transition
+     */
+    public function guardApprovalTransition(ApprovalStatus $currentStatus, ApprovalStatus $newStatus): void
+    {
+        if (!$newStatus->canTransitionFrom($currentStatus)) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.invalid_approval_transition',
+                    params: [
+                        'from' => $currentStatus->getLabel(),
+                        'to' => $newStatus->getLabel(),
+                    ],
+                    domain: 'app',
                 )
             );
         }

@@ -294,6 +294,8 @@ return [
     'employee-debt.view' => $isKasir,
     'employee-debt.create' => $isKasir,
     'employee-debt.update' => $isKasir,
+    'employee-debt.approve' => $isKasir,
+    'employee-debt.reject' => $isKasir,
     'employee-debt.delete' => $isKasir,
     'employee-debt.restore' => $isSuperAdmin,
 
@@ -305,6 +307,7 @@ return [
     ],
     'payroll-deduction.view' => $isKasir,
     'payroll-deduction.create' => $isKasir,
+    'payroll-deduction.debt-payment' => $isKasir,
     'payroll-deduction.update' => $isKasir,
     'payroll-deduction.delete' => $isKasir,
     'payroll-deduction.restore' => $isSuperAdmin,

@@ -8,10 +8,9 @@ final readonly class CreateEmployeeDebtTransactionCommand
 {
     public function __construct(
         public int $employeeDebtId,
-        public int $employeeId,
         public string $transactionType,
         public string $date,
-        public float $amount,
+        public int $amount,
         public int $status,
         public ?string $paymentSource,
         public ?int $payrollDeductionId,
@@ -22,10 +21,9 @@ final readonly class CreateEmployeeDebtTransactionCommand
 
     public static function create(
         int $employeeDebtId,
-        int $employeeId,
         string $transactionType,
         string $date,
-        float $amount,
+        int $amount,
         int $status,
         ?string $paymentSource = null,
         ?int $payrollDeductionId = null,
@@ -35,7 +33,6 @@ final readonly class CreateEmployeeDebtTransactionCommand
     ): self {
         return new self(
             employeeDebtId: $employeeDebtId,
-            employeeId: $employeeId,
             transactionType: $transactionType,
             date: $date,
             amount: $amount,

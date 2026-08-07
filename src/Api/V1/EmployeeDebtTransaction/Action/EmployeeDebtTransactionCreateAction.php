@@ -25,7 +25,6 @@ final class EmployeeDebtTransactionCreateAction
 {
     private const ALLOWED_KEYS = [
         'employee_debt_id',
-        'employee_id',
         'transaction_type',
         'date',
         'amount',
@@ -63,10 +62,9 @@ final class EmployeeDebtTransactionCreateAction
 
         $command = CreateEmployeeDebtTransactionCommand::create(
             employeeDebtId: (int) $params->get('employee_debt_id'),
-            employeeId: (int) $params->get('employee_id'),
             transactionType: (string) $params->get('transaction_type'),
             date: (string) $params->get('date'),
-            amount: (float) $params->get('amount'),
+            amount: (int) $params->get('amount'),
             status: (int) $params->get('status'),
             paymentSource: $params->get('payment_source') ?: null,
             payrollDeductionId: $params->get('payroll_deduction_id') !== null ? (int) $params->get('payroll_deduction_id') : null,
