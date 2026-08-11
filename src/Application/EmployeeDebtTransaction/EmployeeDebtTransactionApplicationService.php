@@ -9,6 +9,7 @@ use App\Application\EmployeeDebtTransaction\Command\CreateEmployeeDebtTransactio
 use App\Application\EmployeeDebtTransaction\Command\UpdateEmployeeDebtTransactionCommand;
 use App\Application\EmployeeDebtTransaction\Dto\EmployeeDebtTransactionResponse;
 use App\Application\EmployeeDebtTransaction\EmployeeDebtTransactionDetailInfoFactory;
+use App\Application\PayrollDeduction\PayrollDeductionDetailInfoFactory;
 use App\Application\Shared\Factory\DetailInfoFactory;
 
 // Domain Layer
@@ -18,6 +19,10 @@ use App\Domain\EmployeeDebtTransaction\Entity\EmployeeDebtTransaction;
 use App\Domain\EmployeeDebtTransaction\Repository\EmployeeDebtTransactionRepositoryInterface;
 use App\Domain\EmployeeDebtTransaction\Service\EmployeeDebtTransactionDomainService;
 use App\Domain\EmployeeDebtTransaction\ValueObject\Name;
+use App\Domain\PayrollDeduction\Entity\PayrollDeduction;
+use App\Domain\PayrollDeduction\Repository\PayrollDeductionRepositoryInterface;
+use App\Domain\PayrollDeduction\Service\PayrollDeductionDomainService;
+use App\Domain\PayrollDeduction\ValueObject\Name as DeductionName;
 use App\Domain\Shared\Enums\PaymentSource;
 use App\Domain\Shared\Enums\TransactionType;
 use App\Domain\Shared\Security\AuthorizerInterface;
@@ -49,6 +54,9 @@ final class EmployeeDebtTransactionApplicationService
         private EmployeeDebtTransactionRepositoryInterface $repository,
         private EmployeeDebtRepositoryInterface $employeeDebtRepository,
         private EmployeeDebtTransactionDomainService $domainService,
+        private PayrollDeductionRepositoryInterface $payrollDeductionRepository,
+        private PayrollDeductionDomainService $payrollDeductionDomainService,
+        private PayrollDeductionDetailInfoFactory $payrollDeductionInfoFactory,
     ) {
     }
 
@@ -124,22 +132,39 @@ final class EmployeeDebtTransactionApplicationService
 
     public function create(CreateEmployeeDebtTransactionCommand $command): EmployeeDebtTransactionResponse
     {
-        // 1. Fetch debt & guard: harus Approved AND Active
+        // 1. Fetch debt & guard: Active (approval only required for payment)
         $debt = $this->getDebtById(
             employeeDebtId: $command->employeeDebtId
         );
 
         $this->domainService->guardDebtApprovedAndActive(
-            debt: $debt
+            debt: $debt,
+            transactionType: $command->transactionType,
         );
 
         // 2. Derive employeeId dari debt (tidak dari payload)
         $employeeId = $debt->getEmployeeId();
 
+        // 3. Auto-create PayrollDeduction jika payment_source=payroll dan
+        //    payroll_deduction_id tidak dikirim (reverse flow). employee_id &
+        //    deduction_type_id di-derive dari EmployeeDebt.
+        $payrollDeductionId = $command->payrollDeductionId;
+        if ($command->paymentSource === PaymentSource::PAYROLL
+            && $payrollDeductionId === null
+            && $command->payrollPeriod !== null
+        ) {
+            $payrollDeductionId = $this->createPayrollDeductionForDebt(
+                debt: $debt,
+                period: $command->payrollPeriod,
+                amount: $command->amount,
+                note: $command->note,
+            );
+        }
+
         $this->domainService->guardCreate(
             transactionType: $command->transactionType,
             paymentSource: $command->paymentSource,
-            payrollDeductionId: $command->payrollDeductionId,
+            payrollDeductionId: $payrollDeductionId,
             payrollPeriod: $command->payrollPeriod,
             amount: $command->amount,
         );
@@ -147,7 +172,7 @@ final class EmployeeDebtTransactionApplicationService
         $info = $this->transactionInfoFactory->buildFromIds(
             employeeId: $employeeId,
             employeeDebtId: $command->employeeDebtId,
-            payrollDeductionId: $command->payrollDeductionId,
+            payrollDeductionId: $payrollDeductionId,
         );
 
         $detailInfo = $this->detailInfoFactory
@@ -163,7 +188,7 @@ final class EmployeeDebtTransactionApplicationService
             date: $command->date,
             amount: $command->amount,
             paymentSource: $command->paymentSource,
-            payrollDeductionId: $command->payrollDeductionId,
+            payrollDeductionId: $payrollDeductionId,
             payrollPeriod: $command->payrollPeriod,
             note: $command->note,
             status: ResourceStatus::from(RecordStatus::ACTIVE->value),
@@ -177,9 +202,99 @@ final class EmployeeDebtTransactionApplicationService
             transaction: $data
         );
 
+        // Rebuild detail_info with updated debt state (after cascade)
+        $info = $this->transactionInfoFactory->buildFromIds(
+            employeeId: $employeeId,
+            employeeDebtId: $command->employeeDebtId,
+            payrollDeductionId: $payrollDeductionId,
+        );
+
+        $detailInfo = $this->detailInfoFactory
+            ->update(
+                detailInfo: $data->getDetailInfo(),
+                payload: $info->toArray(),
+            )->build();
+
+        $data->updateDetailInfo(detailInfo: $detailInfo);
+
+        $data = $this->repository->update(entity: $data);
+
         return EmployeeDebtTransactionResponse::fromEntity(
             entity: $data
         );
+    }
+
+    /**
+     * Auto-create PayrollDeduction dari EmployeeDebt (reverse flow).
+     *
+     * Dipanggil oleh create() saat payment_source=payroll dan
+     * payroll_deduction_id tidak dikirim. employee_id & deduction_type_id
+     * di-derive dari EmployeeDebt. TIDAK melakukan cascade balik ke
+     * EmployeeDebtTransaction (karena pemanggil adalah transaction side),
+     * sehingga tidak terjadi double-ledger.
+     *
+     * @return int ID dari PayrollDeduction yang baru dibuat.
+     */
+    private function createPayrollDeductionForDebt(
+        EmployeeDebt $debt,
+        int $period,
+        int $amount,
+        ?string $note = null,
+    ): int {
+        $employeeId = $debt->getEmployeeId();
+        $deductionTypeId = $debt->getDeductionTypeId();
+
+        $this->payrollDeductionDomainService->guardCreate(
+            employeeId: $employeeId,
+            deductionTypeId: $deductionTypeId,
+            period: $period,
+            amount: $amount,
+        );
+
+        $deductionInfo = $this->payrollDeductionInfoFactory->buildFromIds(
+            employeeId: $employeeId,
+            deductionTypeId: $deductionTypeId,
+            employeeDebtId: $debt->getId(),
+        );
+
+        $deductionDetailInfo = $this->detailInfoFactory
+            ->create(
+                detailInfo: $deductionInfo->toArray()
+            )->build();
+
+        $name = DeductionName::generate($employeeId, 0)->toString();
+
+        $deduction = PayrollDeduction::create(
+            name: $name,
+            employeeId: $employeeId,
+            deductionTypeId: $deductionTypeId,
+            employeeDebtId: $debt->getId(),
+            period: $period,
+            amount: $amount,
+            description: $note ?? sprintf('Auto-created from EmployeeDebtTransaction for period %d', $period),
+            status: ResourceStatus::from(RecordStatus::DRAFT->value),
+            detailInfo: $deductionDetailInfo
+        );
+
+        $deduction = $this->payrollDeductionRepository->insert(
+            entity: $deduction
+        );
+
+        $deductionId = $deduction->getId();
+        if ($deductionId === null) {
+            throw new NotFoundException(
+                translate: Message::create(
+                    key: 'resource.not_found',
+                    params: [
+                        'resource' => 'PayrollDeduction',
+                        'field' => 'id',
+                        'value' => 0,
+                    ]
+                )
+            );
+        }
+
+        return $deductionId;
     }
     
     /**
@@ -206,7 +321,8 @@ final class EmployeeDebtTransactionApplicationService
         );
 
         $this->domainService->guardDebtApprovedAndActive(
-            debt: $debt
+            debt: $debt,
+            transactionType: TransactionType::PAYMENT,
         );
 
         $info = $this->transactionInfoFactory->buildFromIds(
@@ -244,6 +360,23 @@ final class EmployeeDebtTransactionApplicationService
             transaction: $data
         );
 
+        // Rebuild detail_info with updated debt state (after cascade)
+        $info = $this->transactionInfoFactory->buildFromIds(
+            employeeId: $debt->getEmployeeId(),
+            employeeDebtId: $employeeDebtId,
+            payrollDeductionId: $payrollDeductionId,
+        );
+
+        $detailInfo = $this->detailInfoFactory
+            ->update(
+                detailInfo: $data->getDetailInfo(),
+                payload: $info->toArray(),
+            )->build();
+
+        $data->updateDetailInfo(detailInfo: $detailInfo);
+
+        $data = $this->repository->update(entity: $data);
+
         return EmployeeDebtTransactionResponse::fromEntity(
             entity: $data
         );
@@ -251,9 +384,9 @@ final class EmployeeDebtTransactionApplicationService
 
     /**
      * Apply transaction effect to EmployeeDebt:
-     * - payment:        debt.recordPayment(amount)
-     * - adjust_plus:    debt.recordPayment(amount)
-     * - adjust_minus:   debt.reversePayment(amount)
+     * - payment:        debt.recordPayment(amount)   → increases paid_amount, decreases remaining
+     * - adjust_plus:    debt.addDebt(amount)          → increases principal & remaining (nambah hutang)
+     * - adjust_minus:   debt.reduceDebt(amount)       → decreases principal & remaining (kurangi hutang)
      */
     private function applyTransactionToDebt(EmployeeDebtTransaction $transaction): void
     {
@@ -263,10 +396,12 @@ final class EmployeeDebtTransactionApplicationService
         $type = $transaction->getTransactionType();
         $amount = $transaction->getAmount();
 
-        if (TransactionType::isInflow(type: $type) || TransactionType::isAdjustPlus(type: $type)) {
+        if (TransactionType::isInflow(type: $type)) {
             $debt->recordPayment(amount: $amount);
+        } elseif (TransactionType::isAdjustPlus(type: $type)) {
+            $debt->addDebt(amount: $amount);
         } elseif (TransactionType::isAdjustMinus(type: $type)) {
-            $debt->reversePayment(amount: $amount);
+            $debt->reduceDebt(amount: $amount);
         }
 
         $this->employeeDebtRepository->update(
@@ -458,10 +593,12 @@ final class EmployeeDebtTransactionApplicationService
         $type = $transaction->getTransactionType();
         $amount = $transaction->getAmount();
 
-        if (TransactionType::isInflow($type) || TransactionType::isAdjustPlus($type)) {
+        if (TransactionType::isInflow($type)) {
             $debt->reversePayment($amount);
+        } elseif (TransactionType::isAdjustPlus($type)) {
+            $debt->reduceDebt($amount);
         } elseif (TransactionType::isAdjustMinus($type)) {
-            $debt->recordPayment($amount);
+            $debt->addDebt($amount);
         }
 
         $this->employeeDebtRepository->update(entity: $debt);

@@ -335,4 +335,28 @@ return [
     'employee-debt-transaction.update' => $isKasir,
     'employee-debt-transaction.delete' => $isKasir,
     'employee-debt-transaction.restore' => $isSuperAdmin,
+
+    // AttendanceSummary Access Rules
+    'attendance-summary.index' => static fn (Actor $actor): bool => true,
+    'attendance-summary.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'attendance-summary.view' => $isKasir,
+    'attendance-summary.create' => $isKasir,
+    'attendance-summary.update' => $isKasir,
+    'attendance-summary.delete' => $isKasir,
+    'attendance-summary.restore' => $isSuperAdmin,
+
+    // PayrollReports Access Rules
+    'payroll-reports.index' => static fn (Actor $actor): bool => true,
+    'payroll-reports.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'payroll-reports.view' => $isKasir,
+    'payroll-reports.create' => $isKasir,
+    'payroll-reports.update' => $isKasir,
+    'payroll-reports.delete' => $isKasir,
+    'payroll-reports.restore' => $isSuperAdmin,
 ];

@@ -7,4 +7,5 @@ use App\Console;
 return [
     'hello' => Console\HelloCommand::class,
     'seed' => Console\SeederCommand::class,
+    'generate:attendance-summary' => Console\AttendanceSummaryGenerateCommand::class,
 ];

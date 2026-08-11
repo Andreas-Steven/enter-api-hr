@@ -53,9 +53,10 @@ final class EmployeeDebtTransactionInputValidator extends AbstractValidator
                     new Integer(min: 1),
                 ],
                 'payment_source' => [
-                    new StringValue(),
+                    new StringValue(skipOnEmpty: true),
                     new In(
-                        PaymentSource::ALL
+                        PaymentSource::ALL,
+                        skipOnEmpty: true,
                     ),
                 ],
                 'note' => [

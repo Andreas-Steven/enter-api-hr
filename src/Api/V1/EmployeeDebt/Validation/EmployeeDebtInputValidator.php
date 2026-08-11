@@ -329,6 +329,32 @@ final class EmployeeDebtInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'approved_note' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'remaining_amount' => [
+                    new Integer(
+                        min: 0,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'paid_amount' => [
+                    new Integer(
+                        min: 0,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'settled_at' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'is_settled' => [
                     new Integer(
                         skipOnEmpty: true,

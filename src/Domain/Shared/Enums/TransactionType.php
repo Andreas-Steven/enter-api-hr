@@ -7,9 +7,12 @@ namespace App\Domain\Shared\Enums;
 /**
  * Transaction type for EmployeeDebtTransaction.
  *
- * - PAYMENT: pembayaran masuk (cash/transfer/payroll) yang menambah paid_amount
- * - ADJUST_PLUS: koreksi manual yang menambah paid_amount (tanpa uang fisik).
- * - ADJUST_MINUS: koreksi manual yang mengurangi paid_amount (tanpa uang fisik).
+ * - PAYMENT: pembayaran masuk (cash/transfer/payroll) yang menambah paid_amount,
+ *   sehingga mengurangi remaining_amount.
+ * - ADJUST_PLUS: koreksi manual yang menambah pokok hutang (amount & remaining_amount),
+ *   tanpa mempengaruhi paid_amount. Contoh: "nambah hutang".
+ * - ADJUST_MINUS: koreksi manual yang mengurangi pokok hutang (amount & remaining_amount),
+ *   tanpa mempengaruhi paid_amount. Contoh: "kurangi hutang".
  *   Arah koreksi ditentukan oleh transaction_type, bukan tanda amount.
  *   Saat ADJUST_PLUS / ADJUST_MINUS, payment_source harus null dan amount
  *   harus selalu positif (> 0).
@@ -43,7 +46,7 @@ final class TransactionType
     }
 
     /**
-     * Apakah transaction type ini koreksi positif (menambah paid_amount)?
+     * Apakah transaction type ini koreksi positif (menambah pokok hutang)?
      */
     public static function isAdjustPlus(string $type): bool
     {
@@ -51,7 +54,7 @@ final class TransactionType
     }
 
     /**
-     * Apakah transaction type ini koreksi negatif (mengurangi paid_amount)?
+     * Apakah transaction type ini koreksi negatif (mengurangi pokok hutang)?
      */
     public static function isAdjustMinus(string $type): bool
     {

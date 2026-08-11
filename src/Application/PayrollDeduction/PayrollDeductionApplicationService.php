@@ -22,6 +22,7 @@ use App\Domain\EmployeeDebt\Entity\EmployeeDebt;
 use App\Domain\EmployeeDebt\Repository\EmployeeDebtRepositoryInterface;
 use App\Domain\EmployeeDebtTransaction\Service\EmployeeDebtTransactionDomainService;
 use App\Domain\Shared\Enums\ApprovalStatus;
+use App\Domain\Shared\Enums\TransactionType;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
@@ -181,7 +182,8 @@ final class PayrollDeductionApplicationService
         }
 
         $this->debtTransactionDomainService->guardDebtApprovedAndActive(
-            debt: $debt
+            debt: $debt,
+            transactionType: TransactionType::PAYMENT,
         );
 
         // 2. Derive employeeId & deductionTypeId dari debt

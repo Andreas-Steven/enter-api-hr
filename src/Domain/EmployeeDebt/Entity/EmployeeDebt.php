@@ -325,6 +325,63 @@ final class EmployeeDebt
         }
     }
 
+    /**
+     * Increase debt principal (e.g. "nambah hutang").
+     * Increases both amount and remaining_amount; does not affect paid_amount.
+     */
+    public function addDebt(int $amount): void
+    {
+        if ($amount <= 0) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.adjustment_must_be_positive',
+                    params: ['amount' => $amount]
+                )
+            );
+        }
+
+        $this->amount += $amount;
+        $this->remainingAmount += $amount;
+        $this->isSettled = 0;
+        $this->settledAt = null;
+    }
+
+    /**
+     * Reduce debt principal (e.g. "kurangi hutang").
+     * Decreases both amount and remaining_amount; does not affect paid_amount.
+     * Cannot reduce below what has already been paid.
+     */
+    public function reduceDebt(int $amount): void
+    {
+        if ($amount <= 0) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.adjustment_must_be_positive',
+                    params: ['amount' => $amount]
+                )
+            );
+        }
+
+        if ($amount > $this->remainingAmount) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_debt.reduction_exceeds_remaining',
+                    params: [
+                        'amount' => $amount,
+                        'remaining' => $this->remainingAmount,
+                    ]
+                )
+            );
+        }
+
+        $this->amount -= $amount;
+        $this->remainingAmount -= $amount;
+
+        if ($this->remainingAmount <= 0) {
+            $this->markAsSettled();
+        }
+    }
+
     public function isSettled(): int
     {
         return $this->isSettled;

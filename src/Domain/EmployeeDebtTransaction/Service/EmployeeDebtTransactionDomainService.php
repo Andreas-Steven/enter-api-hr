@@ -68,37 +68,70 @@ final class EmployeeDebtTransactionDomainService
     }
 
     /**
-     * Guard: EmployeeDebt harus sudah Approved (approved = 1) DAN Active
-     * sebelum transaksi apapun (payment/adjust) bisa dibuat.
+     * Guard rules:
+     * - payment: debt harus Approved (approved=1) DAN Active
+     * - adjust_plus/adjust_minus: debt harus BELUM Approved (approved=null/0)
+     *   DAN status harus DRAFT atau ACTIVE
      */
-    public function guardDebtApprovedAndActive(EmployeeDebt $debt): void
+    public function guardDebtApprovedAndActive(EmployeeDebt $debt, string $transactionType): void
     {
         $approved = $debt->getApproved();
         $approval = ApprovalStatus::tryFrom($approved ?? ApprovalStatus::PENDING->value);
+        $isApproved = $approval === ApprovalStatus::APPROVED;
 
-        if ($approval !== ApprovalStatus::APPROVED) {
-            throw new ConflictException(
-                translate: Message::create(
-                    key: 'employee_debt_transaction.debt_not_approved',
-                    domain: 'validation',
-                    params: [
-                        'id' => $debt->getId(),
-                        'approval_status' => $approval->getLabel(),
-                    ]
-                )
-            );
-        }
+        if (TransactionType::isAdjustment($transactionType)) {
+            // Adjustment hanya boleh jika debt BELUM di-approve
+            if ($isApproved) {
+                throw new ConflictException(
+                    translate: Message::create(
+                        key: 'employee_debt_transaction.debt_already_approved_no_adjust',
+                        domain: 'validation',
+                        params: [
+                            'id' => $debt->getId(),
+                        ]
+                    )
+                );
+            }
 
-        if (!$debt->isActive()) {
-            throw new ConflictException(
-                translate: Message::create(
-                    key: 'resource.update_not_allowed_by_status',
-                    params: [
-                        'resource' => $debt->getResource(),
-                        'current_status' => $debt->getStatus()->label(),
-                    ]
-                )
-            );
+            // Status harus DRAFT atau ACTIVE
+            $status = $debt->getStatus();
+            if (!$status->isDraft() && !$status->isActive()) {
+                throw new ConflictException(
+                    translate: Message::create(
+                        key: 'resource.update_not_allowed_by_status',
+                        params: [
+                            'resource' => $debt->getResource(),
+                            'current_status' => $status->label(),
+                        ]
+                    )
+                );
+            }
+        } else {
+            // Payment: harus Approved DAN Active
+            if (!$isApproved) {
+                throw new ConflictException(
+                    translate: Message::create(
+                        key: 'employee_debt_transaction.debt_not_approved',
+                        domain: 'validation',
+                        params: [
+                            'id' => $debt->getId(),
+                            'approval_status' => $approval->getLabel(),
+                        ]
+                    )
+                );
+            }
+
+            if (!$debt->isActive()) {
+                throw new ConflictException(
+                    translate: Message::create(
+                        key: 'resource.update_not_allowed_by_status',
+                        params: [
+                            'resource' => $debt->getResource(),
+                            'current_status' => $debt->getStatus()->label(),
+                        ]
+                    )
+                );
+            }
         }
     }
 

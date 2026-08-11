@@ -178,10 +178,19 @@ final class EmployeeDebtRepository implements EmployeeDebtRepositoryInterface, C
                 'deduction_type_id',
                 'status',
                 'is_settled',
-                'approved',
+                'remaining_amount',
+                'paid_amount',
                 SyncMdb::field(),
             ]
         );
+
+        if (array_key_exists('approved', $filter)) {
+            if ($filter['approved'] === null || $filter['approved'] === 'null') {
+                $query->andWhere(['approved' => null]);
+            } else {
+                $query->andWhere(['approved' => $filter['approved']]);
+            }
+        }
 
         if (!empty($filter['name'])) {
             $this->queryConditionApplier->orLike(
@@ -207,11 +216,25 @@ final class EmployeeDebtRepository implements EmployeeDebtRepositoryInterface, C
             );
         }
 
+        if (!empty($filter['approved_note'])) {
+            $this->queryConditionApplier->orLike(
+                query: $query,
+                operator: self::LIKE_OPERATOR,
+                conditions: ['approved_note' => '%' . $filter['approved_note'] . '%']
+            );
+        }
+
         // Date range fields
         if (!empty($filter['date'])) {
             $range = DateRange::fromFilterString($filter['date']);
             $query->andWhere(['>=', 'date', $range->startDate])
                   ->andWhere(['<=', 'date', $range->endDate]);
+        }
+
+        if (!empty($filter['settled_at'])) {
+            $range = DateRange::fromFilterString($filter['settled_at']);
+            $query->andWhere(['>=', 'settled_at', $range->startDate])
+                  ->andWhere(['<=', 'settled_at', $range->endDate]);
         }
 
         // Detail Info fields

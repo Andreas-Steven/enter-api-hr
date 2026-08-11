@@ -33,6 +33,12 @@ final class EmployeeDebtDataAction
         'amount',
         'date',
         'note',
+        'approved',
+        'approved_note',
+        'remaining_amount',
+        'paid_amount',
+        'is_settled',
+        'settled_at',
         'status',
     ];
     private const ALLOWED_SORT = [
@@ -43,6 +49,12 @@ final class EmployeeDebtDataAction
         'amount' => 'amount',
         'date' => 'date',
         'note' => 'note',
+        'approved' => 'approved',
+        'approved_note' => 'approved_note',
+        'remaining_amount' => 'remaining_amount',
+        'paid_amount' => 'paid_amount',
+        'is_settled' => 'is_settled',
+        'settled_at' => 'settled_at',
         'status' => 'status',
     ];
 

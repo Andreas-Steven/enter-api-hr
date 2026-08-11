@@ -7,6 +7,8 @@ use App\Api;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
+use App\Api\V1\PayrollReports\Action as PayrollReportsV1;
+use App\Api\V1\AttendanceSummary\Action as AttendanceSummaryV1;
 use App\Api\V1\EmployeeDebtTransaction\Action as EmployeeDebtTransactionV1;
 use App\Api\V1\EmployeeDebtInstallment\Action as EmployeeDebtInstallmentV1;
 use App\Api\V1\PayrollDeduction\Action as PayrollDeductionV1;
@@ -845,5 +847,65 @@ return [
                 ->action(PayrollDeductionV1\PayrollDeductionRestoreAction::class)
                 ->name('v1/payroll-deduction/restore')
                 ->defaults(['permission' => 'payroll-deduction.restore']),
+
+            // AttendanceSummary Routes
+            Route::get('/attendance-summary')
+                ->action(AttendanceSummaryV1\AttendanceSummaryDataAction::class)
+                ->name('v1/attendance-summary/index')
+                ->defaults(['permission' => 'attendance-summary.index']),
+            Route::post('/attendance-summary/data')
+                ->action(AttendanceSummaryV1\AttendanceSummaryDataAction::class)
+                ->name('v1/attendance-summary/data')
+                ->defaults(['permission' => 'attendance-summary.data']),
+            Route::get('/attendance-summary/{id:\d+}')
+                ->action(AttendanceSummaryV1\AttendanceSummaryViewAction::class)
+                ->name('v1/attendance-summary/view')
+                ->defaults(['permission' => 'attendance-summary.view']),
+            Route::post('/attendance-summary/create')
+                ->action(AttendanceSummaryV1\AttendanceSummaryCreateAction::class)
+                ->name('v1/attendance-summary/create')
+                ->defaults(['permission' => 'attendance-summary.create']),
+            Route::put('/attendance-summary/{id:\d+}')
+                ->action(AttendanceSummaryV1\AttendanceSummaryUpdateAction::class)
+                ->name('v1/attendance-summary/update')
+                ->defaults(['permission' => 'attendance-summary.update']),
+            Route::delete('/attendance-summary/{id:\d+}')
+                ->action(AttendanceSummaryV1\AttendanceSummaryDeleteAction::class)
+                ->name('v1/attendance-summary/delete')
+                ->defaults(['permission' => 'attendance-summary.delete']),
+            Route::post('/attendance-summary/{id:\d+}/restore')
+                ->action(AttendanceSummaryV1\AttendanceSummaryRestoreAction::class)
+                ->name('v1/attendance-summary/restore')
+                ->defaults(['permission' => 'attendance-summary.restore']),
+
+            // PayrollReports Routes
+            Route::get('/payroll-reports')
+                ->action(PayrollReportsV1\PayrollReportsDataAction::class)
+                ->name('v1/payroll-reports/index')
+                ->defaults(['permission' => 'payroll-reports.index']),
+            Route::post('/payroll-reports/data')
+                ->action(PayrollReportsV1\PayrollReportsDataAction::class)
+                ->name('v1/payroll-reports/data')
+                ->defaults(['permission' => 'payroll-reports.data']),
+            Route::get('/payroll-reports/{id:\d+}')
+                ->action(PayrollReportsV1\PayrollReportsViewAction::class)
+                ->name('v1/payroll-reports/view')
+                ->defaults(['permission' => 'payroll-reports.view']),
+            Route::post('/payroll-reports/create')
+                ->action(PayrollReportsV1\PayrollReportsCreateAction::class)
+                ->name('v1/payroll-reports/create')
+                ->defaults(['permission' => 'payroll-reports.create']),
+            Route::put('/payroll-reports/{id:\d+}')
+                ->action(PayrollReportsV1\PayrollReportsUpdateAction::class)
+                ->name('v1/payroll-reports/update')
+                ->defaults(['permission' => 'payroll-reports.update']),
+            Route::delete('/payroll-reports/{id:\d+}')
+                ->action(PayrollReportsV1\PayrollReportsDeleteAction::class)
+                ->name('v1/payroll-reports/delete')
+                ->defaults(['permission' => 'payroll-reports.delete']),
+            Route::post('/payroll-reports/{id:\d+}/restore')
+                ->action(PayrollReportsV1\PayrollReportsRestoreAction::class)
+                ->name('v1/payroll-reports/restore')
+                ->defaults(['permission' => 'payroll-reports.restore']),
         ),
 ];
