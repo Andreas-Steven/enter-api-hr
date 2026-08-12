@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace App\Api\V1\WorkPattern\Validation;
 
-// Domain Layer
-use App\Domain\Shared\Enums\DeficitTreatment;
-use App\Domain\Shared\Enums\ExcessTreatment;
-use App\Domain\Shared\Enums\HolidayType;
-use App\Domain\Shared\Enums\WorkPatternRuleType;
-
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
 use App\Shared\Validation\AbstractValidator;
@@ -131,58 +125,11 @@ final class WorkPatternInputValidator extends AbstractValidator
                                     min: 1,
                                 ),
                             ],
-                            'work_pattern_rule' => [
-                                new Nested([
-                                    'id' => [
-                                        new Integer(
-                                            skipOnEmpty: true,
-                                            min: 1,
-                                        ),
-                                    ],
-                                    'name' => [
-                                        new Required(),
-                                        new StringValue(),
-                                        new Length(
-                                            min: 1,
-                                            max: 255,
-                                        ),
-                                    ],
-                                    'rule_type' => [
-                                        new Required(),
-                                        new In(WorkPatternRuleType::values()),
-                                    ],
-                                    'target_count' => [
-                                        new Required(),
-                                        new Integer(min: 0),
-                                    ],
-                                    'holiday_wins' => [
-                                        new Required(),
-                                        new In([0, 1]),
-                                    ],
-                                    'holiday_type' => [
-                                        new In(
-                                            HolidayType::values(),
-                                            skipOnEmpty: true,
-                                        ),
-                                    ],
-                                    'substitution_allowed' => [
-                                        new Required(),
-                                        new In([0, 1]),
-                                    ],
-                                    'excess_treatment' => [
-                                        new Required(),
-                                        new In(ExcessTreatment::values()),
-                                    ],
-                                    'deficit_treatment' => [
-                                        new Required(),
-                                        new In(DeficitTreatment::values()),
-                                    ],
-                                    'notes' => [
-                                        new StringValue(
-                                            skipOnEmpty: true,
-                                        ),
-                                    ],
-                                ], skipOnEmpty: true),
+                            'work_pattern_rule_id' => [
+                                new Integer(
+                                    skipOnEmpty: true,
+                                    min: 1,
+                                ),
                             ],
                         ]),
                     ]),
@@ -235,58 +182,11 @@ final class WorkPatternInputValidator extends AbstractValidator
                                     min: 1,
                                 ),
                             ],
-                            'work_pattern_rule' => [
-                                new Nested([
-                                    'id' => [
-                                        new Integer(
-                                            skipOnEmpty: true,
-                                            min: 1,
-                                        ),
-                                    ],
-                                    'name' => [
-                                        new Required(),
-                                        new StringValue(),
-                                        new Length(
-                                            min: 1,
-                                            max: 255,
-                                        ),
-                                    ],
-                                    'rule_type' => [
-                                        new Required(),
-                                        new In(WorkPatternRuleType::values()),
-                                    ],
-                                    'target_count' => [
-                                        new Required(),
-                                        new Integer(min: 0),
-                                    ],
-                                    'holiday_wins' => [
-                                        new Required(),
-                                        new In([0, 1]),
-                                    ],
-                                    'holiday_type' => [
-                                        new In(
-                                            HolidayType::values(),
-                                            skipOnEmpty: true,
-                                        ),
-                                    ],
-                                    'substitution_allowed' => [
-                                        new Required(),
-                                        new In([0, 1]),
-                                    ],
-                                    'excess_treatment' => [
-                                        new Required(),
-                                        new In(ExcessTreatment::values()),
-                                    ],
-                                    'deficit_treatment' => [
-                                        new Required(),
-                                        new In(DeficitTreatment::values()),
-                                    ],
-                                    'notes' => [
-                                        new StringValue(
-                                            skipOnEmpty: true,
-                                        ),
-                                    ],
-                                ], skipOnEmpty: true),
+                            'work_pattern_rule_id' => [
+                                new Integer(
+                                    skipOnEmpty: true,
+                                    min: 1,
+                                ),
                             ],
                         ]),
                     ], skipOnEmpty: $this->data['id'] !== null),

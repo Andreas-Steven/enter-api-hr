@@ -265,30 +265,34 @@ final class AttendanceSummaryDomainService
     /**
      * Calculates period and time summaries from attendance detail entries.
      *
+     * Period summary is now rule-aware: attendance records are grouped by
+     * their work_pattern_rule, and obligation/deficit/excess are computed
+     * per rule against its target_count.
+     *
      * @param array<int, array> $attendanceDetail
      * @return array{0: array, 1: array}
      */
     private function calculateSummaries(array $attendanceDetail): array
     {
-        $hekCount = count($attendanceDetail);
         $presentDays = 0;
-        $validPresentCount = 0;
         $lateCount = 0;
         $lateMinTotal = 0;
         $earlyOutCount = 0;
         $earlyOutMinTotal = 0;
         $incompleteCount = 0;
 
+        // Group fulfilled attendance by rule_id
+        $ruleStats = []; // rule_id => ['target' => int, 'fulfilled' => int, 'excess_treatment' => string, 'deficit_treatment' => string, 'rule_type' => string]
+        $obligationDayCount = 0;
+
         foreach ($attendanceDetail as $entry) {
             $info = $entry['info'] ?? [];
             $detail = $info['detail'] ?? [];
+            $isObligationDay = $entry['is_obligation_day'] ?? false;
+            $rule = $entry['work_pattern_rule'] ?? null;
 
             if ($info['in'] ?? false) {
                 $presentDays++;
-            }
-
-            if ($detail['full_day'] ?? false || $detail['half_day'] ?? false) {
-                $validPresentCount++;
             }
 
             if ($detail['late'] ?? false) {
@@ -304,21 +308,90 @@ final class AttendanceSummaryDomainService
             if (($detail['missing_in'] ?? false) || ($detail['missing_out'] ?? false)) {
                 $incompleteCount++;
             }
+
+            // Only count obligation days
+            if (!$isObligationDay) {
+                continue;
+            }
+
+            $obligationDayCount++;
+
+            // Determine if this day counts as "fulfilled" for the rule
+            $isFulfilled = ($detail['full_day'] ?? false) || ($detail['half_day'] ?? false);
+
+            if ($rule !== null && isset($rule['id'])) {
+                $ruleId = (int) $rule['id'];
+
+                if (!isset($ruleStats[$ruleId])) {
+                    $ruleStats[$ruleId] = [
+                        'target' => (int)($rule['target_count'] ?? 0),
+                        'fulfilled' => 0,
+                        'rule_type' => $rule['rule_type'] ?? null,
+                        'excess_treatment' => $rule['excess_treatment'] ?? null,
+                        'deficit_treatment' => $rule['deficit_treatment'] ?? null,
+                        'substitution_allowed' => (int)($rule['substitution_allowed'] ?? 0),
+                    ];
+                }
+
+                if ($isFulfilled) {
+                    $ruleStats[$ruleId]['fulfilled']++;
+                }
+            }
+        }
+
+        // Calculate per-rule aggregates
+        $obligationTotalCount = 0;
+        $obligationUnfulfilledCount = 0;
+        $excessCount = 0;
+        $overtimeDayCount = 0;
+        $leaveQuotaUsedCount = 0;
+        $deductionDayCount = 0;
+
+        foreach ($ruleStats as $stat) {
+            $target = $stat['target'];
+            $fulfilled = $stat['fulfilled'];
+            $deficit = max(0, $target - $fulfilled);
+            $excess = max(0, $fulfilled - $target);
+
+            $obligationTotalCount += $target;
+            $obligationUnfulfilledCount += $deficit;
+
+            // Apply excess_treatment
+            if ($excess > 0) {
+                $excessCount += $excess;
+                if ($stat['excess_treatment'] === 'COUNT_AS_OVERTIME') {
+                    $overtimeDayCount += $excess;
+                }
+            }
+
+            // Apply deficit_treatment
+            if ($deficit > 0) {
+                $deficitTreatment = $stat['deficit_treatment'];
+                if ($deficitTreatment === 'TREAT_AS_ABSENT') {
+                    $deductionDayCount += $deficit;
+                } elseif ($deficitTreatment === 'USE_EMPLOYEE_LEAVE') {
+                    $leaveQuotaUsedCount += $deficit;
+                }
+                // MANUAL_REVIEW → no auto-action, just recorded
+            }
         }
 
         $periodSummary = [
             'present_days' => $presentDays,
             'absent_days' => 0,
-            'leave_days' => 0,
+            'leave_days' => $leaveQuotaUsedCount,
             'sick_days' => 0,
             'permission_days' => 0,
-            'hek_count' => $hekCount,
-            'valid_present_count' => $validPresentCount,
-            'deficit_count' => max(0, $hekCount - $validPresentCount),
-            'excess_count' => 0,
-            'overtime_day_count' => 0,
-            'leave_quota_used_count' => 0,
-            'deduction_day_count' => $incompleteCount,
+            'hek_count' => $obligationDayCount,
+            'valid_present_count' => array_sum(array_map(fn($s) => $s['fulfilled'], $ruleStats)),
+            'obligation_total_count' => $obligationTotalCount,
+            'obligation_unfulfilled_count' => $obligationUnfulfilledCount,
+            'deficit_count' => $obligationUnfulfilledCount,
+            'excess_count' => $excessCount,
+            'overtime_day_count' => $overtimeDayCount,
+            'leave_quota_used_count' => $leaveQuotaUsedCount,
+            'deduction_day_count' => $deductionDayCount,
+            'rule_breakdown' => $this->buildRuleBreakdown($ruleStats),
         ];
 
         $timeSummary = [
@@ -331,5 +404,26 @@ final class AttendanceSummaryDomainService
         ];
 
         return [$periodSummary, $timeSummary];
+    }
+
+    /**
+     * Builds a per-rule breakdown for audit/display purposes.
+     */
+    private function buildRuleBreakdown(array $ruleStats): array
+    {
+        $breakdown = [];
+        foreach ($ruleStats as $ruleId => $stat) {
+            $breakdown[] = [
+                'rule_id' => $ruleId,
+                'rule_type' => $stat['rule_type'],
+                'target_count' => $stat['target'],
+                'fulfilled_count' => $stat['fulfilled'],
+                'deficit_count' => max(0, $stat['target'] - $stat['fulfilled']),
+                'excess_count' => max(0, $stat['fulfilled'] - $stat['target']),
+                'excess_treatment' => $stat['excess_treatment'],
+                'deficit_treatment' => $stat['deficit_treatment'],
+            ];
+        }
+        return $breakdown;
     }
 }

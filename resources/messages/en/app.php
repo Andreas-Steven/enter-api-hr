@@ -67,4 +67,5 @@ return [
     'work_pattern.invalid_format' => 'The {resource} format is invalid.',
     'work_pattern.invalid_shift_id' => 'Invalid shift ID. Must be a positive number.',
     'work_pattern.shift_not_found' => 'Shift with ID {id} not found.',
+    'work_pattern.work_pattern_rule_not_found' => 'Work Pattern Rule with ID {id} not found.',
 ];

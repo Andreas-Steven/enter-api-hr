@@ -233,11 +233,16 @@ final class PayrollReportDomainService
      * Calculates the payroll_summary payload from an AttendanceSummary's
      * period_summary and time_summary.
      *
-     * Mapping:
-     * - obligation_total_count     ← period_summary.hek_count
-     * - obligation_unfulfilled_count ← period_summary.deficit_count
-     * - daily_anomaly_count        ← time_summary.incomplete_count
-     * - daily_late_count           ← time_summary.late_count
+     * Mapping (rule-aware):
+     * - obligation_total_count       ← period_summary.obligation_total_count
+     * - obligation_unfulfilled_count ← period_summary.obligation_unfulfilled_count
+     * - daily_anomaly_count          ← time_summary.incomplete_count
+     * - daily_late_count             ← time_summary.late_count
+     * - excess_count                 ← period_summary.excess_count
+     * - overtime_day_count           ← period_summary.overtime_day_count
+     * - leave_quota_used_count       ← period_summary.leave_quota_used_count
+     * - deduction_day_count          ← period_summary.deduction_day_count
+     * - rule_breakdown               ← period_summary.rule_breakdown (audit trail)
      */
     private function calculatePayrollSummary(AttendanceSummary $attendanceSummary): array
     {
@@ -245,10 +250,15 @@ final class PayrollReportDomainService
         $timeSummary = $attendanceSummary->getTimeSummary();
 
         return [
-            'obligation_total_count' => (int) ($periodSummary['hek_count'] ?? 0),
-            'obligation_unfulfilled_count' => (int) ($periodSummary['deficit_count'] ?? 0),
+            'obligation_total_count' => (int) ($periodSummary['obligation_total_count'] ?? 0),
+            'obligation_unfulfilled_count' => (int) ($periodSummary['obligation_unfulfilled_count'] ?? 0),
             'daily_anomaly_count' => (int) ($timeSummary['incomplete_count'] ?? 0),
             'daily_late_count' => (int) ($timeSummary['late_count'] ?? 0),
+            'excess_count' => (int) ($periodSummary['excess_count'] ?? 0),
+            'overtime_day_count' => (int) ($periodSummary['overtime_day_count'] ?? 0),
+            'leave_quota_used_count' => (int) ($periodSummary['leave_quota_used_count'] ?? 0),
+            'deduction_day_count' => (int) ($periodSummary['deduction_day_count'] ?? 0),
+            'rule_breakdown' => $periodSummary['rule_breakdown'] ?? [],
         ];
     }
 }

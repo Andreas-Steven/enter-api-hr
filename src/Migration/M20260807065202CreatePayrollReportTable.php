@@ -44,6 +44,11 @@ final class M20260807065202CreatePayrollReportTable implements RevertibleMigrati
                 'obligation_unfulfilled_count' => 0,
                 'daily_anomaly_count' => 0,
                 'daily_late_count' => 0,
+                'excess_count' => 0,
+                'overtime_day_count' => 0,
+                'leave_quota_used_count' => 0,
+                'deduction_day_count' => 0,
+                'rule_breakdown' => [],
             ]),
 
             'notes' => $cb::text()->null(),

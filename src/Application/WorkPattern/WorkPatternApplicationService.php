@@ -14,6 +14,7 @@ use App\Application\Shared\Factory\DetailInfoFactory;
 use App\Domain\WorkPattern\Entity\WorkPattern;
 use App\Domain\WorkPattern\Repository\WorkPatternRepositoryInterface;
 use App\Domain\AttendanceShift\Repository\AttendanceShiftRepositoryInterface;
+use App\Domain\WorkPatternRule\Repository\WorkPatternRuleRepositoryInterface;
 use App\Domain\WorkPattern\Service\WorkPatternDomainService;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
@@ -37,7 +38,8 @@ final class WorkPatternApplicationService
         private DetailInfoFactory $detailInfoFactory,
         private WorkPatternRepositoryInterface $repository,
         private WorkPatternDomainService $domainService,
-        private AttendanceShiftRepositoryInterface $attendanceShiftRepository
+        private AttendanceShiftRepositoryInterface $attendanceShiftRepository,
+        private WorkPatternRuleRepositoryInterface $workPatternRuleRepository
     ) {
     }
 
@@ -98,7 +100,7 @@ final class WorkPatternApplicationService
 
         $data = WorkPattern::create(
             name: $command->name,
-            workingDays: WorkingDays::fromArray($command->workingDays, $this->attendanceShiftRepository),
+            workingDays: WorkingDays::fromArray($command->workingDays, $this->attendanceShiftRepository, $this->workPatternRuleRepository),
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
         );
@@ -149,7 +151,7 @@ final class WorkPatternApplicationService
         // Only update working days if it's provided and not empty
         if ($command->workingDays !== null && is_array($command->workingDays) && count($command->workingDays) > 0) {
             $data->updateWorkingDays(
-                workingDays: WorkingDays::fromArray($command->workingDays, $this->attendanceShiftRepository)
+                workingDays: WorkingDays::fromArray($command->workingDays, $this->attendanceShiftRepository, $this->workPatternRuleRepository)
             );
         }
 

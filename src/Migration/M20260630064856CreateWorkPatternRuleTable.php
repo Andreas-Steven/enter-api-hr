@@ -21,7 +21,7 @@ use Yiisoft\Db\Connection\Connection;
 /**
  * Creates workpatternrule table with status tracking and JSON detail_info.
  */
-final class M20260812052636CreateWorkPatternRuleTable implements RevertibleMigrationInterface
+final class M20260630064856CreateWorkPatternRuleTable implements RevertibleMigrationInterface
 {
     private const TABLE_NAME = 'work_pattern_rules';
     

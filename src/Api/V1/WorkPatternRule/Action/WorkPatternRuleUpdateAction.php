@@ -97,17 +97,17 @@ final class WorkPatternRuleUpdateAction
         $command = UpdateWorkPatternRuleCommand::create(
             id: (int) $id,
             name: $params->get('name'),
-            ruleType: WorkPatternRuleType::from((string) $params->get('rule_type')),
-            targetCount: (int) $params->get('target_count'),
-            holidayWins: (int) $params->get('holiday_wins'),
-            holidayType: HolidayType::from((string) $params->get('holiday_type')),
-            substitutionAllowed: (int) $params->get('substitution_allowed'),
-            excessTreatment: ExcessTreatment::from((string) $params->get('excess_treatment')),
-            deficitTreatment: DeficitTreatment::from((string) $params->get('deficit_treatment')),
+            ruleType: $this->resolveEnum(WorkPatternRuleType::class, $params->get('rule_type')),
+            targetCount: $params->has('target_count') ? (int) $params->get('target_count') : null,
+            holidayWins: $params->has('holiday_wins') ? (int) $params->get('holiday_wins') : null,
+            holidayType: $this->resolveEnum(HolidayType::class, $params->get('holiday_type')),
+            substitutionAllowed: $params->has('substitution_allowed') ? (int) $params->get('substitution_allowed') : null,
+            excessTreatment: $this->resolveEnum(ExcessTreatment::class, $params->get('excess_treatment')),
+            deficitTreatment: $this->resolveEnum(DeficitTreatment::class, $params->get('deficit_treatment')),
             notes: $params->get('notes'),
-            status: (int) $params->get('status'),
+            status: $params->has('status') ? (int) $params->get('status') : null,
             detailInfo: $params->get('detail_info'),
-            lockVersion: (int) $params->get('lock_version'),
+            lockVersion: $params->has('lock_version') ? (int) $params->get('lock_version') : null,
         );
 
         $response = $this->applicationService->update(
@@ -124,5 +124,24 @@ final class WorkPatternRuleUpdateAction
                 ]
             ),
         );
+    }
+
+    /**
+     * Resolve a backed enum value from raw payload, returning null when the
+     * field is absent or empty so partial updates don't force-cast "" into
+     * an invalid enum backing value.
+     *
+     * @template T of \BackedEnum
+     * @param class-string<T> $enumClass
+     * @param mixed $value
+     * @return T|null
+     */
+    private function resolveEnum(string $enumClass, mixed $value): ?object
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return $enumClass::from((string) $value);
     }
 }

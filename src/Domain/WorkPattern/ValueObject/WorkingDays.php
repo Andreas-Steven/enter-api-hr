@@ -6,6 +6,8 @@ namespace App\Domain\WorkPattern\ValueObject;
 
 use App\Domain\AttendanceShift\Entity\AttendanceShift;
 use App\Domain\AttendanceShift\Repository\AttendanceShiftRepositoryInterface;
+use App\Domain\WorkPatternRule\Entity\WorkPatternRule as WorkPatternRuleEntity;
+use App\Domain\WorkPatternRule\Repository\WorkPatternRuleRepositoryInterface;
 use App\Shared\Exception\BadRequestException;
 use App\Shared\ValueObject\Message;
 
@@ -15,7 +17,8 @@ final readonly class WorkingDays
 
     public function __construct(
         array $workingDaysData,
-        private AttendanceShiftRepositoryInterface $attendanceShiftRepository
+        private AttendanceShiftRepositoryInterface $attendanceShiftRepository,
+        private WorkPatternRuleRepositoryInterface $workPatternRuleRepository
     )
     {
         $inputMap = $this->mapAndValidateInput($workingDaysData);
@@ -26,11 +29,12 @@ final readonly class WorkingDays
             $dayData = $this->getDayDataOrThrow($inputMap, $index);
 
             $shift = $this->normalizeShiftId($dayData['shift_id'] ?? null);
-            $rule = $this->normalizeWorkPatternRule($dayData['work_pattern_rule'] ?? null);
+            $rule = $this->normalizeWorkPatternRuleId($dayData['work_pattern_rule_id'] ?? null);
 
             $processed[$index] = [
                 'day_of_week' => $index,
                 'shift' => $shift,
+                'work_pattern_rule_id' => $rule?->getId(),
                 'work_pattern_rule' => $rule,
             ];
         }
@@ -128,32 +132,51 @@ final readonly class WorkingDays
         return $shift;
     }
 
-    private function normalizeWorkPatternRule(mixed $rule): ?WorkPatternRule
+    private function normalizeWorkPatternRuleId(mixed $ruleId): ?WorkPatternRuleEntity
     {
-        if ($rule === null || $rule === '' || (is_array($rule) && count($rule) === 0)) {
+        if ($ruleId === null || $ruleId === '') {
             return null;
         }
 
-        if (!is_array($rule)) {
+        if (!is_numeric($ruleId) || (int) $ruleId <= 0) {
             throw new BadRequestException(
                 translate: Message::create(
                     key: 'work_pattern.invalid_format',
-                    params: ['resource' => 'Work Pattern Rule'],
+                    params: ['resource' => 'Work Pattern Rule ID'],
                     domain: 'app'
                 )
             );
         }
 
-        return WorkPatternRule::fromArray($rule);
+        $ruleIdInt = (int) $ruleId;
+
+        $rule = $this->workPatternRuleRepository->findById($ruleIdInt);
+        if ($rule === null) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'work_pattern.work_pattern_rule_not_found',
+                    params: ['id' => $ruleIdInt],
+                    domain: 'app'
+                )
+            );
+        }
+
+        return $rule;
     }
 
-    public static function fromArray(array $data, AttendanceShiftRepositoryInterface $attendanceShiftRepository): self
-    {
-        return new self($data, $attendanceShiftRepository);
+    public static function fromArray(
+        array $data,
+        AttendanceShiftRepositoryInterface $attendanceShiftRepository,
+        WorkPatternRuleRepositoryInterface $workPatternRuleRepository
+    ): self {
+        return new self($data, $attendanceShiftRepository, $workPatternRuleRepository);
     }
 
-    public static function fromJson(string $json, AttendanceShiftRepositoryInterface $attendanceShiftRepository): self
-    {
+    public static function fromJson(
+        string $json,
+        AttendanceShiftRepositoryInterface $attendanceShiftRepository,
+        WorkPatternRuleRepositoryInterface $workPatternRuleRepository
+    ): self {
         $data = json_decode($json, true);
         if ($data === null || !is_array($data)) {
             throw new BadRequestException(
@@ -167,7 +190,7 @@ final readonly class WorkingDays
 
         $list = $data['working_days'] ?? $data;
 
-        return new self($list, $attendanceShiftRepository);
+        return new self($list, $attendanceShiftRepository, $workPatternRuleRepository);
     }
 
     public function toArray(): array
@@ -175,7 +198,7 @@ final readonly class WorkingDays
         $result = [];
         foreach ($this->days as $day) {
             $shift = $day['shift'];
-            /** @var WorkPatternRule|null $rule */
+            /** @var WorkPatternRuleEntity|null $rule */
             $rule = $day['work_pattern_rule'] ?? null;
             $result[] = [
                 'day_of_week' => $day['day_of_week'],
@@ -185,7 +208,7 @@ final readonly class WorkingDays
                     'start_time' => $shift->getStartTime(),
                     'end_time' => $shift->getEndTime(),
                 ] : null,
-                'work_pattern_rule' => $rule?->toArray(),
+                'work_pattern_rule' => $rule?->toSummaryArray(),
             ];
         }
         return $result;
@@ -203,7 +226,13 @@ final readonly class WorkingDays
         return $shift?->getId();
     }
 
-    public function getWorkPatternRule(int $dayIndex): ?WorkPatternRule
+    public function getWorkPatternRuleId(int $dayIndex): ?int
+    {
+        $day = $this->getDay($dayIndex);
+        return $day['work_pattern_rule_id'] ?? null;
+    }
+
+    public function getWorkPatternRule(int $dayIndex): ?WorkPatternRuleEntity
     {
         $day = $this->getDay($dayIndex);
         return $day['work_pattern_rule'] ?? null;

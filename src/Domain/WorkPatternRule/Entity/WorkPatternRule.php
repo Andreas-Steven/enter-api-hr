@@ -147,6 +147,26 @@ final class WorkPatternRule
         ];
     }
 
+    /**
+     * Compact representation for embedding inside parent responses
+     * (e.g. inside WorkPattern's working_days). Excludes administrative
+     * fields like notes, status, detail_info, sync_mdb, lock_version.
+     */
+    public function toSummaryArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'rule_type' => $this->ruleType->value,
+            'target_count' => $this->targetCount,
+            'holiday_wins' => $this->holidayWins,
+            'holiday_type' => $this->holidayType?->value,
+            'substitution_allowed' => $this->substitutionAllowed,
+            'excess_treatment' => $this->excessTreatment->value,
+            'deficit_treatment' => $this->deficitTreatment->value,
+        ];
+    }
+
     public function getRuleType(): WorkPatternRuleType
     {
         return $this->ruleType;

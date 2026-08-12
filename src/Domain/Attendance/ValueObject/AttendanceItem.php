@@ -184,7 +184,7 @@ final readonly class AttendanceItem
     public function withEvaluatedStatus(string $date): self
     {
         $newInfo = $this->info;
-        
+
         // Initialize new detail structure
         $detail = [
             'late' => false,
@@ -208,12 +208,17 @@ final readonly class AttendanceItem
             }
         }
 
-        if (!$todaySchedule) {
-            // Work Holiday
+        // Extract the work pattern rule for this day (if any)
+        $rule = $todaySchedule['work_pattern_rule'] ?? null;
+
+        if (!$todaySchedule || ($todaySchedule['shift'] ?? null) === null) {
+            // No shift scheduled for this day — not an obligation day
             $newInfo['summary'] = [AttendanceStatus::WORK_HOLIDAY];
             $newInfo['detail'] = $detail;
             $newInfo['in'] = !empty($this->startTime);
             $newInfo['out'] = !empty($this->endTime);
+            $newInfo['is_obligation_day'] = false;
+            $newInfo['work_pattern_rule'] = $rule;
             return $this->withInfo($newInfo);
         }
 
@@ -341,6 +346,8 @@ final readonly class AttendanceItem
         $newInfo['detail'] = $detail;
         $newInfo['in'] = !empty($this->startTime);
         $newInfo['out'] = !empty($this->endTime);
+        $newInfo['is_obligation_day'] = true; // Has shift → obligation day by default
+        $newInfo['work_pattern_rule'] = $rule;
 
         return $this->withInfo($newInfo)->withTotalWorkMinutes($totalWorkMinutes);
     }

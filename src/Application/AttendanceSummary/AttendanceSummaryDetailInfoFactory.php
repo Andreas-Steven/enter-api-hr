@@ -70,6 +70,17 @@ final class AttendanceSummaryDetailInfoFactory
                     continue;
                 }
 
+                // Extract work_pattern_rule from the daily schedule snapshot
+                // before stripping work_pattern (which is bulky).
+                $workPattern = $itemData['work_pattern'] ?? [];
+                $daySchedule = $workPattern['working_days'][0] ?? [];
+                $rule = $daySchedule['work_pattern_rule'] ?? null;
+
+                // Extract is_obligation_day from info (set during evaluation)
+                $info = $itemData['info'] ?? [];
+                $isObligationDay = $info['is_obligation_day'] ?? false;
+                $ruleFromInfo = $info['work_pattern_rule'] ?? null;
+
                 unset(
                     $itemData['attendance_policies'],
                     $itemData['device'],
@@ -79,12 +90,17 @@ final class AttendanceSummaryDetailInfoFactory
                     $itemData['location'],
                 );
 
+                // Clean info of fields that are redundant with the top-level fields
+                unset($info['work_pattern_rule'], $info['is_obligation_day']);
+
                 $attendanceDetail[] = [
                     'date' => $date,
                     'start_time' => $itemData['start_time'] ?? null,
                     'end_time' => $itemData['end_time'] ?? null,
-                    'info' => $itemData['info'] ?? [],
+                    'info' => $info,
                     'work_duration' => $itemData['work_duration'] ?? null,
+                    'is_obligation_day' => $isObligationDay,
+                    'work_pattern_rule' => $ruleFromInfo ?? $rule,
                 ];
             }
         }

@@ -66,4 +66,5 @@ return [
     'work_pattern.invalid_format' => 'Format {resource} tidak valid.',
     'work_pattern.invalid_shift_id' => 'ID shift tidak valid. Harus berupa angka positif.',
     'work_pattern.shift_not_found' => 'Shift dengan ID {id} tidak ditemukan.',
+    'work_pattern.work_pattern_rule_not_found' => 'Work Pattern Rule dengan ID {id} tidak ditemukan.',
 ];

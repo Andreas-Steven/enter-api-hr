@@ -59,19 +59,27 @@ final class AttendanceDomainService
         $employeeIds = array_column($entries, 'employee_id');
         $employeeMasterData = $this->employeeRepository->findAllByIds($employeeIds);
 
-        // 2. Transformasi ke snapshot (mengirimkan $date untuk evaluasi 'Late')
+        // 2. Resolve holiday branches for this date
+        $workHolidayBranchIds = $this->resolveWorkHolidayBranchIds($date, $employeeMasterData);
+
+        // 3. Transformasi ke snapshot (mengirimkan $date untuk evaluasi 'Late')
         $processedRecords = array_map(
-            fn(array $entry) => $this->createSnapshot(
-                $entry, 
-                $employeeMasterData[$entry['employee_id']] ?? null,
-                $date
-            ),
+            function (array $entry) use ($employeeMasterData, $date, $workHolidayBranchIds) {
+                $item = AttendanceItem::fromArray($entry);
+                return $this->createSnapshot(
+                    item: $item,
+                    employee: $employeeMasterData[$item->employeeId] ?? null,
+                    device: null,
+                    date: $date,
+                    workHolidayBranchIds: $workHolidayBranchIds
+                );
+            },
             $entries
         );
 
-        // 3. Sertakan parameter tambahan yang dibutuhkan oleh Entity
+        // 4. Sertakan parameter tambahan yang dibutuhkan oleh Entity
         return Attendance::create(
-            date: $date, 
+            date: $date,
             attendance: $processedRecords,
             status: ResourceStatus::active(),
             detailInfo: []
@@ -172,9 +180,19 @@ final class AttendanceDomainService
         // 3. Jalankan evaluasi status (Late, Leave Early, dll) lalu overlay holiday bila perlu
         $evaluatedItem = $enrichedItem->withEvaluatedStatus($date);
         $isWorkHoliday = $this->isWorkHolidayForBranch($employee, $workHolidayBranchIds);
-        $finalItem = $isWorkHoliday
+
+        // Only apply WORK_HOLIDAY status if the rule allows holidays to win
+        // over the attendance obligation (holiday_wins = 1).
+        // If there is no rule, preserve the original behavior (holiday wins).
+        $rule = $this->extractRuleFromItem($evaluatedItem);
+        $holidayWins = $rule === null || (int)($rule['holiday_wins'] ?? 0) === 1;
+
+        $finalItem = ($isWorkHoliday && $holidayWins)
             ? $this->applyWorkHolidayStatus($evaluatedItem)
             : $evaluatedItem;
+
+        // If it's a holiday but holiday_wins=0, the employee must still attend.
+        // Mark is_obligation_day=true (already set by withEvaluatedStatus if shift exists).
 
         // 4. Return array format database/snapshot
         return $finalItem->toArray();
@@ -229,10 +247,21 @@ final class AttendanceDomainService
         $info['summary'] = array_values(array_unique($summary));
         $info['in'] = !empty($item->startTime);
         $info['out'] = !empty($item->endTime);
+        $info['is_obligation_day'] = false; // Holiday wins → no obligation
 
         return $item
             ->withInfo($info)
             ->withTotalWorkMinutes($item->totalWorkMinutes);
+    }
+
+    /**
+     * Extracts the work_pattern_rule snapshot from an evaluated AttendanceItem's info.
+     */
+    private function extractRuleFromItem(AttendanceItem $item): ?array
+    {
+        $info = $item->info;
+
+        return $info['work_pattern_rule'] ?? null;
     }
 
     private function evaluateStatus(AttendanceItem $item, ?Employee $employee, string $date): array

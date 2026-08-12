@@ -8,6 +8,7 @@ namespace App\Infrastructure\Persistence\WorkPattern;
 use App\Domain\WorkPattern\Entity\WorkPattern;
 use App\Domain\WorkPattern\Repository\WorkPatternRepositoryInterface;
 use App\Domain\AttendanceShift\Repository\AttendanceShiftRepositoryInterface;
+use App\Domain\WorkPatternRule\Repository\WorkPatternRuleRepositoryInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
@@ -50,6 +51,7 @@ final class WorkPatternRepository implements WorkPatternRepositoryInterface, Cur
         private QueryConditionApplier $queryConditionApplier,
         private MongoDBService $mongoDBService,
         private AttendanceShiftRepositoryInterface $attendanceShiftRepository,
+        private WorkPatternRuleRepositoryInterface $workPatternRuleRepository,
     ) {
         $this->initMongoDBSync(
             service: $mongoDBService,
@@ -81,7 +83,7 @@ final class WorkPatternRepository implements WorkPatternRepositoryInterface, Cur
         return WorkPattern::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
-            workingDays: WorkingDays::fromJson($row['working_days'], $this->attendanceShiftRepository),
+            workingDays: WorkingDays::fromJson($row['working_days'], $this->attendanceShiftRepository, $this->workPatternRuleRepository),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             syncMdb: $row[SyncMdb::field()] ?? null,
@@ -106,7 +108,7 @@ final class WorkPatternRepository implements WorkPatternRepositoryInterface, Cur
         return WorkPattern::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
-            workingDays: WorkingDays::fromJson($row['working_days'], $this->attendanceShiftRepository),
+            workingDays: WorkingDays::fromJson($row['working_days'], $this->attendanceShiftRepository, $this->workPatternRuleRepository),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             syncMdb: $row[SyncMdb::field()] ?? null,
@@ -295,7 +297,7 @@ final class WorkPatternRepository implements WorkPatternRepositoryInterface, Cur
         $entity = WorkPattern::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
-            workingDays: WorkingDays::fromJson($row['working_days'], $this->attendanceShiftRepository),
+            workingDays: WorkingDays::fromJson($row['working_days'], $this->attendanceShiftRepository, $this->workPatternRuleRepository),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             syncMdb: $row[SyncMdb::field()] ?? null,
