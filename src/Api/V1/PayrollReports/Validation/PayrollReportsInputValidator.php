@@ -94,9 +94,12 @@ final class PayrollReportsInputValidator extends AbstractValidator
     {
         return match ($context) {
             ValidationContext::CREATE => [
-                'attendance_summary_id' => [
+                'period' => [
                     new Required(),
                     new Integer(min: 1),
+                ],
+                'attendance_summary_id' => [
+                    new Integer(min: 1, skipOnEmpty: true),
                 ],
                 'payroll_summary' => [
                     new Nested([

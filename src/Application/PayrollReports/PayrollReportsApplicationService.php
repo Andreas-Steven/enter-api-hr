@@ -6,7 +6,9 @@ namespace App\Application\PayrollReports;
 
 // Application Layer
 use App\Application\PayrollReports\Command\CreatePayrollReportsCommand;
+use App\Application\PayrollReports\Command\GeneratePayrollReportsCommand;
 use App\Application\PayrollReports\Command\UpdatePayrollReportsCommand;
+use App\Application\PayrollReports\Dto\BatchGenerationResult;
 use App\Application\PayrollReports\Dto\PayrollReportsResponse;
 use App\Application\Shared\Factory\DetailInfoFactory;
 
@@ -34,7 +36,7 @@ final class PayrollReportsApplicationService
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private PayrollReportsRepositoryInterface $repository,
-        private PayrollReportsDomainService $domainService
+        private PayrollReportsDomainService $domainService,
     ) {
     }
 
@@ -83,6 +85,11 @@ final class PayrollReportsApplicationService
         return PayrollReportsResponse::fromEntity(
             entity: $data
         );
+    }
+
+    public function generateAllFromAttendanceSummary(GeneratePayrollReportsCommand $command): BatchGenerationResult
+    {
+        return $this->domainService->generateAllFromAttendanceSummary(command: $command);
     }
 
     public function create(CreatePayrollReportsCommand $command): PayrollReportsResponse
@@ -188,7 +195,7 @@ final class PayrollReportsApplicationService
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'payrollreports.delete',
+            permission: 'payroll-report.delete',
             resource: $this->getResource(),
         );
         

@@ -6,6 +6,8 @@ namespace App\Domain\AttendanceSummary\Service;
 
 // Application Layer
 use App\Application\AttendanceSummary\AttendanceSummaryDetailInfoFactory;
+use App\Application\AttendanceSummary\Command\GenerateAttendanceSummaryCommand;
+use App\Application\AttendanceSummary\Dto\BatchGenerationResult;
 use App\Application\Shared\Factory\DetailInfoFactory;
 
 // Domain Layer
@@ -13,6 +15,7 @@ use App\Domain\AttendanceSummary\Entity\AttendanceSummary;
 use App\Domain\AttendanceSummary\Repository\AttendanceSummaryRepositoryInterface;
 use App\Domain\AttendanceSummary\Result\GenerationResult;
 use App\Domain\AttendanceSummary\ValueObject\Name;
+use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
 use App\Domain\Employee\ValueObject\EmployeeCollection;
 use App\Domain\Employee\Entity\Employee;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
@@ -35,6 +38,7 @@ final class AttendanceSummaryDomainService
         private DetailInfoFactory $detailInfoFactory,
         private AttendanceSummaryDetailInfoFactory $summaryDetailInfoFactory,
         private AttendanceSummaryRepositoryInterface $repository,
+        private EmployeeRepositoryInterface $employeeRepository,
     ) {}
 
     /**
@@ -140,6 +144,68 @@ final class AttendanceSummaryDomainService
         return GenerationResult::create(
             entities: $entities,
             skippedCount: $skippedCount,
+            errors: $errors,
+        );
+    }
+
+    /**
+     * Orchestrates the full AttendanceSummary generation flow:
+     * resolves source employees, builds AttendanceSummary entities,
+     * and persists them.
+     */
+    public function generateAllFromAttendance(GenerateAttendanceSummaryCommand $command): BatchGenerationResult
+    {
+        $employees = $this->resolveEmployees($command);
+
+        $generation = $this->generateBatch(
+            employees: $employees,
+            period: $command->period,
+            notes: $command->notes,
+            detailInfo: $command->detailInfo,
+        );
+
+        return $this->persistGeneratedEntities($generation);
+    }
+
+    /**
+     * Resolves the source employees for generation.
+     *
+     * If employeeId is provided (and > 0), only that employee is used.
+     * Otherwise, all active employees are loaded.
+     */
+    private function resolveEmployees(GenerateAttendanceSummaryCommand $command): EmployeeCollection
+    {
+        if ($command->employeeId !== null && $command->employeeId > 0) {
+            return EmployeeCollection::fromNullable([
+                $this->employeeRepository->findById($command->employeeId),
+            ]);
+        }
+
+        return EmployeeCollection::fromArray(
+            $this->employeeRepository->findAllActive()
+        );
+    }
+
+    /**
+     * Persists built AttendanceSummary entities and aggregates the outcome.
+     */
+    private function persistGeneratedEntities(GenerationResult $generation): BatchGenerationResult
+    {
+        $created = 0;
+        $errors = $generation->errors;
+
+        foreach ($generation->entities as $entity) {
+            try {
+                $this->repository->insert(entity: $entity);
+                $created++;
+            } catch (\Exception $e) {
+                $errors[$entity->getEmployeeId()] = $e->getMessage();
+            }
+        }
+
+        return BatchGenerationResult::create(
+            created: $created,
+            skipped: $generation->skippedCount,
             errors: $errors,
         );
     }

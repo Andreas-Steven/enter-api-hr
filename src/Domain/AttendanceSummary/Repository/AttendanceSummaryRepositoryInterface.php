@@ -26,6 +26,11 @@ interface AttendanceSummaryRepositoryInterface
     public function findByName(string $name, ?int $status = null): ?AttendanceSummary;
 
     public function existsByName(string $name, ?int $status = null): bool;
+
+    /**
+     * @return array<int, AttendanceSummary>
+     */
+    public function findByPeriod(int $period, ?int $status = null): array;
     
     public function list(SearchCriteria $criteria): PaginatedResult;
     

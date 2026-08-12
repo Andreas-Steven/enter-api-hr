@@ -107,6 +107,26 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             ->exists();
     }
 
+    /**
+     * @return array<int, AttendanceSummary>
+     */
+    public function findByPeriod(int $period, ?int $status = null): array
+    {
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['period' => $period])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->all();
+
+        $entities = [];
+        foreach ($rows as $row) {
+            $entities[] = $this->hydrateEntity($row);
+        }
+
+        return $entities;
+    }
+
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         $query = (new Query($this->db))

@@ -15,10 +15,7 @@ use App\Application\Shared\Factory\DetailInfoFactory;
 // Domain Layer
 use App\Domain\AttendanceSummary\Entity\AttendanceSummary;
 use App\Domain\AttendanceSummary\Repository\AttendanceSummaryRepositoryInterface;
-use App\Domain\AttendanceSummary\Result\GenerationResult;
 use App\Domain\AttendanceSummary\Service\AttendanceSummaryDomainService;
-use App\Domain\Employee\ValueObject\EmployeeCollection;
-use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
@@ -40,7 +37,6 @@ final class AttendanceSummaryApplicationService
         private DetailInfoFactory $detailInfoFactory,
         private AttendanceSummaryRepositoryInterface $repository,
         private AttendanceSummaryDomainService $domainService,
-        private EmployeeRepositoryInterface $employeeRepository,
     ) {
     }
 
@@ -93,50 +89,7 @@ final class AttendanceSummaryApplicationService
 
     public function generateAllFromAttendance(GenerateAttendanceSummaryCommand $command): BatchGenerationResult
     {
-        $employees = $this->resolveEmployees($command);
-
-        $generation = $this->domainService->generateBatch(
-            employees: $employees,
-            period: $command->period,
-            notes: $command->notes,
-            detailInfo: $command->detailInfo,
-        );
-
-        return $this->persistGeneratedEntities($generation);
-    }
-
-    private function resolveEmployees(GenerateAttendanceSummaryCommand $command): EmployeeCollection
-    {
-        if ($command->employeeId !== null) {
-            return EmployeeCollection::fromNullable([
-                $this->employeeRepository->findById($command->employeeId),
-            ]);
-        }
-
-        return EmployeeCollection::fromArray(
-            $this->employeeRepository->findAllActive()
-        );
-    }
-
-    private function persistGeneratedEntities(GenerationResult $generation): BatchGenerationResult
-    {
-        $created = 0;
-        $errors = $generation->errors;
-
-        foreach ($generation->entities as $entity) {
-            try {
-                $this->repository->insert(entity: $entity);
-                $created++;
-            } catch (\Exception $e) {
-                $errors[$entity->getEmployeeId()] = $e->getMessage();
-            }
-        }
-
-        return BatchGenerationResult::create(
-            created: $created,
-            skipped: $generation->skippedCount,
-            errors: $errors,
-        );
+        return $this->domainService->generateAllFromAttendance(command: $command);
     }
 
     public function create(CreateAttendanceSummaryCommand $command): AttendanceSummaryResponse

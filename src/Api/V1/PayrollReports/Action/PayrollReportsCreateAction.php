@@ -10,7 +10,7 @@ use App\Application\PayrollReports\PayrollReportsApplicationService;
 // API Layer
 use App\Api\Shared\ResponseFactory;
 use App\Api\V1\PayrollReports\Validation\PayrollReportsInputValidator;
-use App\Application\PayrollReports\Command\CreatePayrollReportsCommand;
+use App\Application\PayrollReports\Command\GeneratePayrollReportsCommand;
 
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
@@ -26,8 +26,8 @@ use Psr\Http\Message\ServerRequestInterface;
 final class PayrollReportsCreateAction 
 {
     private const ALLOWED_KEYS = [
+        'period',
         'attendance_summary_id',
-        'payroll_summary',
         'notes',
         'status',
         'detail_info',
@@ -57,20 +57,19 @@ final class PayrollReportsCreateAction
             context: ValidationContext::CREATE,
         );
 
-        $command = CreatePayrollReportsCommand::create(
-            name: 'PR-' . date('YmdHis'),
-            attendanceSummaryId: (int) $params->get('attendance_summary_id'),
+        $command = GeneratePayrollReportsCommand::create(
+            period: (int) $params->get('period'),
             status: (int) $params->get('status'),
-            payrollSummary: $params->get('payroll_summary'),
+            attendanceSummaryId: (int) $params->get('attendance_summary_id'),
             notes: $params->get('notes'),
             detailInfo: $params->get('detail_info')
         );
 
         $resource = $this->applicationService->getResource();
-        $response = $this->applicationService->create(command: $command);
+        $result = $this->applicationService->generateAllFromAttendanceSummary(command: $command);
 
         return $this->responseFactory->success(
-            data: $response->toArray(),
+            data: $result->toArray(),
             translate: Message::create(
                 key: 'resource.created',
                 params: [

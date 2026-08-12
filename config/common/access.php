@@ -349,14 +349,14 @@ return [
     'attendance-summary.restore' => $isSuperAdmin,
 
     // PayrollReports Access Rules
-    'payroll-reports.index' => static fn (Actor $actor): bool => true,
-    'payroll-reports.data' => [
+    'payroll-report.index' => static fn (Actor $actor): bool => true,
+    'payroll-report.data' => [
         $isSuperAdmin,
         $isKasir,
     ],
-    'payroll-reports.view' => $isKasir,
-    'payroll-reports.create' => $isKasir,
-    'payroll-reports.update' => $isKasir,
-    'payroll-reports.delete' => $isKasir,
-    'payroll-reports.restore' => $isSuperAdmin,
+    'payroll-report.view' => $isKasir,
+    'payroll-report.create' => $isKasir,
+    'payroll-report.update' => $isKasir,
+    'payroll-report.delete' => $isKasir,
+    'payroll-report.restore' => $isSuperAdmin,
 ];
