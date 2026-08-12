@@ -17,7 +17,7 @@ final readonly class Name
      * Generate: DEDUCTION-{employeeId}{autoGenerate}{sequence}
      * autoGenerate = microtime + random + remainder, same pattern as EmployeeDebt Name.
      */
-    public static function generate(int $employeeId, int $sequence): self
+    public static function generate(int $employeeId, int $sequence = 0): self
     {
         $prefix = 'DEDUCTION';
         $microtime = substr((string) microtime(false), 2, 6);

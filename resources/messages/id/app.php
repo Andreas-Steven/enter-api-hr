@@ -40,6 +40,11 @@ return [
     'employee_debt.invalid_approval_transition' => 'Transisi persetujuan tidak valid dari {from} ke {to}',
 
     /**
+     * Payroll Deduction
+     */
+    'payroll_deduction.employee_id_mismatch' => 'Employee ID tidak cocok dengan Employee ID pada EmployeeDebt.',
+
+    /**
      * Attendance Policy
      */
     'attendance_policy.invalid_format' => 'Format {resource} tidak valid.',

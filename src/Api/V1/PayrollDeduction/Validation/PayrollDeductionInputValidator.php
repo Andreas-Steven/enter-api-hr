@@ -34,8 +34,10 @@ final class PayrollDeductionInputValidator extends AbstractValidator
                     new Integer(min: 1),
                 ],
                 'deduction_type_id' => [
-                    new Required(),
-                    new Integer(min: 1),
+                    new Integer(min: 1, skipOnEmpty: true),
+                ],
+                'employee_debt_id' => [
+                    new Integer(min: 1, skipOnEmpty: true),
                 ],
                 'period' => [
                     new Required(),
@@ -89,29 +91,6 @@ final class PayrollDeductionInputValidator extends AbstractValidator
                 'id' => [
                     new Required(),
                     new Integer(min: 1),
-                ],
-            ],
-            ValidationContext::PAYROLL_DEDUCTION_DEBT_PAYMENT => [
-                'employee_debt_id' => [
-                    new Required(),
-                    new Integer(min: 1),
-                ],
-                'period' => [
-                    new Required(),
-                    new Integer(min: 190001, max: 210012),
-                ],
-                'amount' => [
-                    new Required(),
-                    new Integer(min: 0),
-                ],
-                'description' => [
-                    new StringValue(),
-                    new Length(max: 255),
-                ],
-                'status' => [
-                    new Required(),
-                    new Integer(),
-                    new In(RecordStatus::draftOnlyStates()),
                 ],
             ],
             ValidationContext::SEARCH => [

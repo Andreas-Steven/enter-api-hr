@@ -9,7 +9,7 @@ final readonly class CreatePayrollDeductionCommand
     public function __construct(
         public int $employeeId,
         public int $deductionTypeId,
-        public ?int $employeeDebtId,
+        public int $employeeDebtId,
         public int $period,
         public int $amount,
         public ?string $description,
@@ -23,7 +23,7 @@ final readonly class CreatePayrollDeductionCommand
         int $period,
         int $amount,
         int $status,
-        ?int $employeeDebtId = null,
+        int $employeeDebtId = 0,
         ?string $description = null,
         ?array $detailInfo = null,
     ): self {

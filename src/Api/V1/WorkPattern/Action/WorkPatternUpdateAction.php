@@ -76,16 +76,10 @@ final class WorkPatternUpdateAction
             context: ValidationContext::UPDATE,
         );
 
-        // Ensure working_days is null if not provided or empty
-        $workingDays = $params->get('working_days');
-        if ($workingDays === null || (is_array($workingDays) && count($workingDays) === 0)) {
-            $workingDays = null;
-        }
-
         $command = UpdateWorkPatternCommand::create(
             id: (int) $id,
             name: $params->get('name'),
-            workingDays: $workingDays,
+            workingDays: $params->get('working_days'),
             status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info'),
             lockVersion: (int) $params->get('lock_version'),

@@ -26,10 +26,12 @@ final readonly class WorkingDays
             $dayData = $this->getDayDataOrThrow($inputMap, $index);
 
             $shift = $this->normalizeShiftId($dayData['shift_id'] ?? null);
+            $rule = $this->normalizeWorkPatternRule($dayData['work_pattern_rule'] ?? null);
 
             $processed[$index] = [
                 'day_of_week' => $index,
                 'shift' => $shift,
+                'work_pattern_rule' => $rule,
             ];
         }
 
@@ -126,6 +128,25 @@ final readonly class WorkingDays
         return $shift;
     }
 
+    private function normalizeWorkPatternRule(mixed $rule): ?WorkPatternRule
+    {
+        if ($rule === null || $rule === '' || (is_array($rule) && count($rule) === 0)) {
+            return null;
+        }
+
+        if (!is_array($rule)) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'work_pattern.invalid_format',
+                    params: ['resource' => 'Work Pattern Rule'],
+                    domain: 'app'
+                )
+            );
+        }
+
+        return WorkPatternRule::fromArray($rule);
+    }
+
     public static function fromArray(array $data, AttendanceShiftRepositoryInterface $attendanceShiftRepository): self
     {
         return new self($data, $attendanceShiftRepository);
@@ -154,6 +175,8 @@ final readonly class WorkingDays
         $result = [];
         foreach ($this->days as $day) {
             $shift = $day['shift'];
+            /** @var WorkPatternRule|null $rule */
+            $rule = $day['work_pattern_rule'] ?? null;
             $result[] = [
                 'day_of_week' => $day['day_of_week'],
                 'shift' => $shift ? [
@@ -162,6 +185,7 @@ final readonly class WorkingDays
                     'start_time' => $shift->getStartTime(),
                     'end_time' => $shift->getEndTime(),
                 ] : null,
+                'work_pattern_rule' => $rule?->toArray(),
             ];
         }
         return $result;
@@ -177,6 +201,12 @@ final readonly class WorkingDays
         $day = $this->getDay($dayIndex);
         $shift = $day['shift'] ?? null;
         return $shift?->getId();
+    }
+
+    public function getWorkPatternRule(int $dayIndex): ?WorkPatternRule
+    {
+        $day = $this->getDay($dayIndex);
+        return $day['work_pattern_rule'] ?? null;
     }
 
     public function isOffDay(int $dayIndex): bool

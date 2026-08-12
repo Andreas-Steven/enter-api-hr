@@ -307,7 +307,6 @@ return [
     ],
     'payroll-deduction.view' => $isKasir,
     'payroll-deduction.create' => $isKasir,
-    'payroll-deduction.debt-payment' => $isKasir,
     'payroll-deduction.update' => $isKasir,
     'payroll-deduction.delete' => $isKasir,
     'payroll-deduction.restore' => $isSuperAdmin,
@@ -348,7 +347,7 @@ return [
     'attendance-summary.delete' => $isKasir,
     'attendance-summary.restore' => $isSuperAdmin,
 
-    // PayrollReports Access Rules
+    // PayrollReport Access Rules
     'payroll-report.index' => static fn (Actor $actor): bool => true,
     'payroll-report.data' => [
         $isSuperAdmin,
@@ -359,4 +358,16 @@ return [
     'payroll-report.update' => $isKasir,
     'payroll-report.delete' => $isKasir,
     'payroll-report.restore' => $isSuperAdmin,
+
+    // WorkPatternRule Access Rules
+    'work-pattern-rule.index' => static fn (Actor $actor): bool => true,
+    'work-pattern-rule.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'work-pattern-rule.view' => $isKasir,
+    'work-pattern-rule.create' => $isKasir,
+    'work-pattern-rule.update' => $isKasir,
+    'work-pattern-rule.delete' => $isKasir,
+    'work-pattern-rule.restore' => $isSuperAdmin,
 ];

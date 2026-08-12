@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
-use App\Domain\PayrollReports\Repository\PayrollReportsRepositoryInterface;
+use App\Domain\WorkPatternRule\Repository\WorkPatternRuleRepositoryInterface;
+use App\Domain\PayrollReport\Repository\PayrollReportRepositoryInterface;
 use App\Domain\AttendanceSummary\Repository\AttendanceSummaryRepositoryInterface;
 use App\Domain\PayrollDeduction\Repository\PayrollDeductionRepositoryInterface;
 use App\Domain\EmployeeDebt\Repository\EmployeeDebtRepositoryInterface;
@@ -30,7 +31,8 @@ use App\Domain\EmployeeDivision\Repository\EmployeeDivisionRepositoryInterface;
 use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInterface;
 use App\Domain\WorkPattern\Repository\WorkPatternRepositoryInterface;
 use App\Infrastructure\Persistence\Example\ExampleRepository;
-use App\Infrastructure\Persistence\PayrollReports\PayrollReportsRepository;
+use App\Infrastructure\Persistence\WorkPatternRule\WorkPatternRuleRepository;
+use App\Infrastructure\Persistence\PayrollReport\PayrollReportRepository;
 use App\Infrastructure\Persistence\AttendanceSummary\AttendanceSummaryRepository;
 use App\Infrastructure\Persistence\PayrollDeduction\PayrollDeductionRepository;
 use App\Infrastructure\Persistence\EmployeeDebt\EmployeeDebtRepository;
@@ -270,8 +272,16 @@ return [
             'params' => $params['app/optimisticLock'] ?? [],
         ],
     ],
-    PayrollReportsRepositoryInterface::class => [
-        'class' => PayrollReportsRepository::class,
+    PayrollReportRepositoryInterface::class => [
+        'class' => PayrollReportRepository::class,
+        'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
+        'setCurrentUser()' => [Reference::to(CurrentUser::class)],
+        '__construct()' => [
+            'params' => $params['app/optimisticLock'] ?? [],
+        ],
+    ],
+    WorkPatternRuleRepositoryInterface::class => [
+        'class' => WorkPatternRuleRepository::class,
         'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
         'setCurrentUser()' => [Reference::to(CurrentUser::class)],
         '__construct()' => [

@@ -40,6 +40,11 @@ return [
     'employee_debt.invalid_approval_transition' => 'Invalid approval transition from {from} to {to}',
 
     /**
+     * Payroll Deduction
+     */
+    'payroll_deduction.employee_id_mismatch' => 'Employee ID does not match the Employee ID on EmployeeDebt.',
+
+    /**
      * Attendance Policy
      */
     'attendance_policy.invalid_format' => 'The {resource} format is invalid.',

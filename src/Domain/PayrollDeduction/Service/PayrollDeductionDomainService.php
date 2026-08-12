@@ -6,11 +6,16 @@ namespace App\Domain\PayrollDeduction\Service;
 
 // Domain Layer
 use App\Domain\PayrollDeduction\Repository\PayrollDeductionRepositoryInterface;
+use App\Domain\PayrollDeduction\Result\DebtContext;
+use App\Domain\EmployeeDebt\Repository\EmployeeDebtRepositoryInterface;
+use App\Domain\EmployeeDebtTransaction\Service\EmployeeDebtTransactionDomainService;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
+use App\Domain\Shared\Enums\TransactionType;
 
 // Shared Layer
 use App\Shared\ValueObject\Message;
 use App\Shared\Exception\BadRequestException;
+use App\Shared\Exception\NotFoundException;
 
 /**
  * PayrollDeduction Domain Service
@@ -20,13 +25,16 @@ use App\Shared\Exception\BadRequestException;
  * Aturan utama:
  * - period format YYYY-MM (string)
  * - amount > 0
+ * - jika employee_debt_id > 0, derive employee_id & deduction_type_id dari EmployeeDebt
  */
 final class PayrollDeductionDomainService
 {
     use DomainValidator;
 
     public function __construct(
-        private PayrollDeductionRepositoryInterface $repository
+        private PayrollDeductionRepositoryInterface $repository,
+        private EmployeeDebtRepositoryInterface $employeeDebtRepository,
+        private EmployeeDebtTransactionDomainService $debtTransactionDomainService,
     ) {}
 
     /**
@@ -88,5 +96,67 @@ final class PayrollDeductionDomainService
                 )
             );
         }
+    }
+
+    /**
+     * Resolve context untuk create PayrollDeduction.
+     *
+     * Business rule:
+     * - Jika employeeDebtId > 0: fetch EmployeeDebt, verifikasi employee_id
+     *   dari input harus cocok, guard debt Approved & Active, lalu derive
+     *   employee_id & deduction_type_id dari EmployeeDebt (input diabaikan).
+     * - Jika employeeDebtId <= 0: gunakan employee_id & deduction_type_id
+     *   dari input (potongan gaji biasa).
+     */
+    public function resolveDebtContext(
+        int $employeeDebtId,
+        int $employeeId,
+        int $deductionTypeId,
+    ): DebtContext {
+        if ($employeeDebtId <= 0) {
+            return DebtContext::create(
+                employeeId: $employeeId,
+                deductionTypeId: $deductionTypeId,
+                employeeDebtId: null,
+            );
+        }
+
+        $debt = $this->employeeDebtRepository->findById(
+            id: $employeeDebtId,
+            status: null
+        );
+
+        if ($debt === null) {
+            throw new NotFoundException(
+                translate: Message::create(
+                    key: 'resource.not_found',
+                    params: [
+                        'resource' => 'EmployeeDebt',
+                        'field' => 'id',
+                        'value' => $employeeDebtId
+                    ]
+                )
+            );
+        }
+
+        if ($debt->getEmployeeId() !== $employeeId) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'payroll_deduction.employee_id_mismatch',
+                    domain: 'app',
+                )
+            );
+        }
+
+        $this->debtTransactionDomainService->guardDebtApprovedAndActive(
+            debt: $debt,
+            transactionType: TransactionType::PAYMENT,
+        );
+
+        return DebtContext::create(
+            employeeId: $debt->getEmployeeId(),
+            deductionTypeId: $debt->getDeductionTypeId(),
+            employeeDebtId: $employeeDebtId,
+        );
     }
 }

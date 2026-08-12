@@ -7,7 +7,8 @@ use App\Api;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
-use App\Api\V1\PayrollReports\Action as PayrollReportsV1;
+use App\Api\V1\WorkPatternRule\Action as WorkPatternRuleV1;
+use App\Api\V1\PayrollReport\Action as PayrollReportV1;
 use App\Api\V1\AttendanceSummary\Action as AttendanceSummaryV1;
 use App\Api\V1\EmployeeDebtTransaction\Action as EmployeeDebtTransactionV1;
 use App\Api\V1\EmployeeDebtInstallment\Action as EmployeeDebtInstallmentV1;
@@ -831,10 +832,6 @@ return [
                 ->action(PayrollDeductionV1\PayrollDeductionCreateAction::class)
                 ->name('v1/payroll-deduction/create')
                 ->defaults(['permission' => 'payroll-deduction.create']),
-            Route::post('/payroll-deduction/debt-payment')
-                ->action(PayrollDeductionV1\PayrollDeductionDebtPaymentAction::class)
-                ->name('v1/payroll-deduction/debt-payment')
-                ->defaults(['permission' => 'payroll-deduction.debt-payment']),
             Route::put('/payroll-deduction/{id:\d+}')
                 ->action(PayrollDeductionV1\PayrollDeductionUpdateAction::class)
                 ->name('v1/payroll-deduction/update')
@@ -878,34 +875,65 @@ return [
                 ->name('v1/attendance-summary/restore')
                 ->defaults(['permission' => 'attendance-summary.restore']),
 
-            // PayrollReports Routes
+            // PayrollReport Routes
             Route::get('/payroll-report')
-                ->action(PayrollReportsV1\PayrollReportsDataAction::class)
+                ->action(PayrollReportV1\PayrollReportDataAction::class)
                 ->name('v1/payroll-report/index')
                 ->defaults(['permission' => 'payroll-report.index']),
             Route::post('/payroll-report/data')
-                ->action(PayrollReportsV1\PayrollReportsDataAction::class)
+                ->action(PayrollReportV1\PayrollReportDataAction::class)
                 ->name('v1/payroll-report/data')
                 ->defaults(['permission' => 'payroll-report.data']),
             Route::get('/payroll-report/{id:\d+}')
-                ->action(PayrollReportsV1\PayrollReportsViewAction::class)
+                ->action(PayrollReportV1\PayrollReportViewAction::class)
                 ->name('v1/payroll-report/view')
                 ->defaults(['permission' => 'payroll-report.view']),
             Route::post('/payroll-report/create')
-                ->action(PayrollReportsV1\PayrollReportsCreateAction::class)
+                ->action(PayrollReportV1\PayrollReportCreateAction::class)
                 ->name('v1/payroll-report/create')
                 ->defaults(['permission' => 'payroll-report.create']),
             Route::put('/payroll-report/{id:\d+}')
-                ->action(PayrollReportsV1\PayrollReportsUpdateAction::class)
+                ->action(PayrollReportV1\PayrollReportUpdateAction::class)
                 ->name('v1/payroll-report/update')
                 ->defaults(['permission' => 'payroll-report.update']),
             Route::delete('/payroll-report/{id:\d+}')
-                ->action(PayrollReportsV1\PayrollReportsDeleteAction::class)
+                ->action(PayrollReportV1\PayrollReportDeleteAction::class)
                 ->name('v1/payroll-report/delete')
                 ->defaults(['permission' => 'payroll-report.delete']),
             Route::post('/payroll-report/{id:\d+}/restore')
-                ->action(PayrollReportsV1\PayrollReportsRestoreAction::class)
+                ->action(PayrollReportV1\PayrollReportRestoreAction::class)
                 ->name('v1/payroll-report/restore')
                 ->defaults(['permission' => 'payroll-report.restore']),
+
+            // WorkPatternRule Routes
+            Route::get('/work-pattern-rule')
+                ->action(WorkPatternRuleV1\WorkPatternRuleDataAction::class)
+                ->name('v1/work-pattern-rule/index')
+                ->defaults(['permission' => 'work-pattern-rule.index']),
+            Route::post('/work-pattern-rule/data')
+                ->action(WorkPatternRuleV1\WorkPatternRuleDataAction::class)
+                ->name('v1/work-pattern-rule/data')
+                ->defaults(['permission' => 'work-pattern-rule.data']),
+            Route::get('/work-pattern-rule/{id:\d+}')
+                ->action(WorkPatternRuleV1\WorkPatternRuleViewAction::class)
+                ->name('v1/work-pattern-rule/view')
+                ->defaults(['permission' => 'work-pattern-rule.view']),
+            Route::post('/work-pattern-rule/create')
+                ->action(WorkPatternRuleV1\WorkPatternRuleCreateAction::class)
+                ->name('v1/work-pattern-rule/create')
+                ->defaults(['permission' => 'work-pattern-rule.create']),
+            Route::put('/work-pattern-rule/{id:\d+}')
+                ->action(WorkPatternRuleV1\WorkPatternRuleUpdateAction::class)
+                ->name('v1/work-pattern-rule/update')
+                ->defaults(['permission' => 'work-pattern-rule.update']),
+            Route::delete('/work-pattern-rule/{id:\d+}')
+                ->action(WorkPatternRuleV1\WorkPatternRuleDeleteAction::class)
+                ->name('v1/work-pattern-rule/delete')
+                ->defaults(['permission' => 'work-pattern-rule.delete']),
+            Route::post('/work-pattern-rule/{id:\d+}/restore')
+                ->action(WorkPatternRuleV1\WorkPatternRuleRestoreAction::class)
+                ->name('v1/work-pattern-rule/restore')
+                ->defaults(['permission' => 'work-pattern-rule.restore']),
+
         ),
 ];
