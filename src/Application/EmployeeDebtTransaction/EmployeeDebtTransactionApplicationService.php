@@ -23,6 +23,7 @@ use App\Domain\PayrollDeduction\Entity\PayrollDeduction;
 use App\Domain\PayrollDeduction\Repository\PayrollDeductionRepositoryInterface;
 use App\Domain\PayrollDeduction\Service\PayrollDeductionDomainService;
 use App\Domain\PayrollDeduction\ValueObject\Name as DeductionName;
+use App\Domain\PayrollDeduction\ValueObject\Note as DeductionNote;
 use App\Domain\Shared\Enums\PaymentSource;
 use App\Domain\Shared\Enums\TransactionType;
 use App\Domain\Shared\Security\AuthorizerInterface;
@@ -149,10 +150,7 @@ final class EmployeeDebtTransactionApplicationService
         //    payroll_deduction_id tidak dikirim (reverse flow). employee_id &
         //    deduction_type_id di-derive dari EmployeeDebt.
         $payrollDeductionId = $command->payrollDeductionId;
-        if ($command->paymentSource === PaymentSource::PAYROLL
-            && $payrollDeductionId === null
-            && $command->payrollPeriod !== null
-        ) {
+        if ($command->paymentSource === PaymentSource::PAYROLL && $payrollDeductionId === null && $command->payrollPeriod !== null) {
             $payrollDeductionId = $this->createPayrollDeductionForDebt(
                 debt: $debt,
                 period: $command->payrollPeriod,
@@ -215,9 +213,13 @@ final class EmployeeDebtTransactionApplicationService
                 payload: $info->toArray(),
             )->build();
 
-        $data->updateDetailInfo(detailInfo: $detailInfo);
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
 
-        $data = $this->repository->update(entity: $data);
+        $data = $this->repository->update(
+            entity: $data
+        );
 
         return EmployeeDebtTransactionResponse::fromEntity(
             entity: $data
@@ -262,7 +264,12 @@ final class EmployeeDebtTransactionApplicationService
                 detailInfo: $deductionInfo->toArray()
             )->build();
 
-        $name = DeductionName::generate($employeeId, 0)->toString();
+        $name = DeductionName::generate($employeeId)->toString();
+
+        $note = DeductionNote::fromNullableForDebtCreation(
+            note: $note,
+            period: $period,
+        );
 
         $deduction = PayrollDeduction::create(
             name: $name,
@@ -271,7 +278,7 @@ final class EmployeeDebtTransactionApplicationService
             employeeDebtId: $debt->getId(),
             period: $period,
             amount: $amount,
-            description: $note ?? sprintf('Auto-created from EmployeeDebtTransaction for period %d', $period),
+            note: $note->toString(),
             status: ResourceStatus::from(RecordStatus::DRAFT->value),
             detailInfo: $deductionDetailInfo
         );
@@ -393,15 +400,20 @@ final class EmployeeDebtTransactionApplicationService
         $debt = $this->getDebtById(
             employeeDebtId: $transaction->getEmployeeDebtId()
         );
+        
         $type = $transaction->getTransactionType();
         $amount = $transaction->getAmount();
 
-        if (TransactionType::isInflow(type: $type)) {
-            $debt->recordPayment(amount: $amount);
-        } elseif (TransactionType::isAdjustPlus(type: $type)) {
-            $debt->addDebt(amount: $amount);
-        } elseif (TransactionType::isAdjustMinus(type: $type)) {
-            $debt->reduceDebt(amount: $amount);
+        switch ($type) {
+            case TransactionType::PAYMENT:
+                $debt->recordPayment(amount: $amount);
+                break;
+            case TransactionType::ADJUST_PLUS:
+                $debt->addDebt(amount: $amount);
+                break;
+            case TransactionType::ADJUST_MINUS:
+                $debt->reduceDebt(amount: $amount);
+                break;
         }
 
         $this->employeeDebtRepository->update(

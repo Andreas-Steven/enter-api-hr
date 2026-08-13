@@ -203,4 +203,15 @@ final class PayrollDeduction
     {
         $this->note = $note;
     }
+
+    /**
+     * Detect apakah transisi status akan menuju ACTIVE dari status non-ACTIVE.
+     *
+     * Dipakai untuk trigger cascade pemotongan EmployeeDebt hanya saat aktivasi,
+     * bukan saat update field lain atau transisi status lain.
+     */
+    public function isTransitioningToActive(?ResourceStatus $newStatus): bool
+    {
+        return $newStatus !== null && $newStatus->isActive() && !$this->status->isActive();
+    }
 }

@@ -17,6 +17,8 @@ use App\Domain\PayrollDeduction\Entity\PayrollDeduction;
 use App\Domain\PayrollDeduction\Repository\PayrollDeductionRepositoryInterface;
 use App\Domain\PayrollDeduction\Service\PayrollDeductionDomainService;
 use App\Domain\PayrollDeduction\ValueObject\Name as DeductionName;
+use App\Domain\PayrollDeduction\ValueObject\Note as DeductionNote;
+use App\Domain\Shared\Contract\DateTimeProviderInterface;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
@@ -44,6 +46,7 @@ final class PayrollDeductionApplicationService
         private PayrollDeductionRepositoryInterface $repository,
         private PayrollDeductionDomainService $domainService,
         private EmployeeDebtTransactionApplicationService $transactionService,
+        private DateTimeProviderInterface $dateTimeProvider,
     ) {
     }
 
@@ -135,19 +138,6 @@ final class PayrollDeductionApplicationService
             entity: $data
         );
 
-        // Jika potongan ini terkait EmployeeDebt, record ledger payment
-        // supaya debt.paid_amount & remaining_amount ikut ter-update.
-        if ($context->employeeDebtId !== null) {
-            $this->transactionService->applyPaymentFromPayrollDeduction(
-                employeeDebtId: $context->employeeDebtId,
-                payrollDeductionId: $deduction->getId(),
-                payrollPeriod: $command->period,
-                amount: $command->amount,
-                transactionDate: date('Y-m-d'),
-                note: sprintf('Auto-deducted via payroll %d', $command->period),
-            );
-        }
-
         return PayrollDeductionResponse::fromEntity(
             entity: $deduction
         );
@@ -167,6 +157,9 @@ final class PayrollDeductionApplicationService
 
         $newStatus = ResourceStatus::tryFrom($command->status);
 
+        // Pemotongan EmployeeDebt hanya diterapkan saat transisi non-ACTIVE -> ACTIVE.
+        $willActivate = $data->isTransitioningToActive($newStatus);
+
         $hasFieldChanges = $data->hasFieldChanges(
             data: (array) $command,
             removeNulls: true
@@ -178,31 +171,49 @@ final class PayrollDeductionApplicationService
         );
 
         if (!empty($command->employeeId)) {
-            $data->setEmployeeId($command->employeeId);
+            $data->setEmployeeId(
+                employeeId: $command->employeeId
+            );
         }
 
         if (!empty($command->deductionTypeId)) {
-            $data->setDeductionTypeId($command->deductionTypeId);
+            $data->setDeductionTypeId(
+                deductionTypeId: $command->deductionTypeId
+            );
         }
 
         if ($command->employeeDebtId !== null) {
-            $data->setEmployeeDebtId($command->employeeDebtId);
+            $data->setEmployeeDebtId(
+                employeeDebtId: $command->employeeDebtId
+            );
         }
 
         if ($command->period !== null) {
-            $this->domainService->guardPeriod($command->period);
-            $data->setPeriod($command->period);
+            $this->domainService->guardPeriod(
+                period: $command->period
+            );
+
+            $data->setPeriod(
+                period: $command->period
+            );
+
             $data->updateName(
-                newName: DeductionName::generate($command->employeeId ?? $data->getEmployeeId(), 0)->toString()
+                newName: DeductionName::generate(
+                    employeeId: $command->employeeId ?? $data->getEmployeeId()
+                )->toString()
             );
         }
 
         if ($command->amount !== null) {
-            $data->setAmount($command->amount);
+            $data->setAmount(
+                amount: $command->amount
+            );
         }
 
         if ($command->note !== null) {
-            $data->setNote($command->note);
+            $data->setNote(
+                note: $command->note
+            );
         }
 
         $data->applyStatus(
@@ -226,10 +237,33 @@ final class PayrollDeductionApplicationService
             detailInfo: $detailInfo
         );
 
+        $updated = $this->repository->update(
+            entity: $data
+        );
+
+        /*
+         * Jika transisi ke ACTIVE dan potongan terkait EmployeeDebt,
+         * terapkan pemotongan hutang (ledger payment) ke EmployeeDebt.
+         * Note: jika entity note kosong, auto-generate via Note VO.
+         */
+        if ($willActivate && $updated->getEmployeeDebtId() !== null) {
+            $note = DeductionNote::fromNullable(
+                note: $updated->getNote(),
+                period: $updated->getPeriod(),
+            );
+
+            $this->transactionService->applyPaymentFromPayrollDeduction(
+                employeeDebtId: $updated->getEmployeeDebtId(),
+                payrollDeductionId: $updated->getId(),
+                payrollPeriod: $updated->getPeriod(),
+                amount: $updated->getAmount(),
+                transactionDate: $this->dateTimeProvider->iso8601(),
+                note: $note->toString(),
+            );
+        }
+
         return PayrollDeductionResponse::fromEntity(
-            entity: $this->repository->update(
-                entity: $data
-            )
+            entity: $updated
         );
     }
 
