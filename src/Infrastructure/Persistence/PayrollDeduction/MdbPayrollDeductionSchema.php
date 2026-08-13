@@ -21,7 +21,7 @@ final class MdbPayrollDeductionSchema
             'employee_debt_id' => $entity->getEmployeeDebtId(),
             'period' => $entity->getPeriod(),
             'amount' => $entity->getAmount(),
-            'description' => $entity->getDescription(),
+            'note' => $entity->getNote(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             'lock_version' => $entity->getLockVersion()->value(),

@@ -126,7 +126,7 @@ final class PayrollDeductionApplicationService
             employeeDebtId: $context->employeeDebtId,
             period: $command->period,
             amount: $command->amount,
-            description: $command->description,
+            note: $command->note,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
         );
@@ -201,8 +201,8 @@ final class PayrollDeductionApplicationService
             $data->setAmount($command->amount);
         }
 
-        if ($command->description !== null) {
-            $data->setDescription($command->description);
+        if ($command->note !== null) {
+            $data->setNote($command->note);
         }
 
         $data->applyStatus(

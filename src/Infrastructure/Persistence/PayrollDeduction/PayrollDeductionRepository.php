@@ -113,7 +113,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
                 'employee_debt_id',
                 'period',
                 'amount',
-                'description',
+                'note',
                 'status',
                 'detail_info',
                 SyncMdb::field(),
@@ -147,11 +147,11 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             );
         }
 
-        if (!empty($filter['description'])) {
+        if (!empty($filter['note'])) {
             $this->queryConditionApplier->orLike(
                 query: $query,
                 operator: self::LIKE_OPERATOR,
-                conditions: ['description' => '%' . $filter['description'] . '%']
+                conditions: ['note' => '%' . $filter['note'] . '%']
             );
         }
 
@@ -203,7 +203,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
                 employeeDebtId: $entity->getEmployeeDebtId(),
                 period: $entity->getPeriod(),
                 amount: $entity->getAmount(),
-                description: $entity->getDescription(),
+                note: $entity->getNote(),
                 status: $entity->getStatus(),
                 detailInfo: $entity->getDetailInfo(),
                 lockVersion: LockVersion::create(),
@@ -308,7 +308,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             'employee_debt_id' => $entity->getEmployeeDebtId(),
             'period' => $entity->getPeriod(),
             'amount' => $entity->getAmount(),
-            'description' => $entity->getDescription(),
+            'note' => $entity->getNote(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             SyncMdb::field() => $entity->getSyncMdbValue(),
@@ -329,7 +329,7 @@ final class PayrollDeductionRepository implements PayrollDeductionRepositoryInte
             employeeDebtId: $row['employee_debt_id'] !== null ? (int) $row['employee_debt_id'] : null,
             period: (int) $row['period'],
             amount: (int) $row['amount'],
-            description: $row['description'] ?? null,
+            note: $row['note'] ?? null,
             status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),

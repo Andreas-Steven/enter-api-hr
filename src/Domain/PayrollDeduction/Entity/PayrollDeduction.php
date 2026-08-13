@@ -34,7 +34,7 @@ final class PayrollDeduction
         private ?int $employeeDebtId,
         private int $period,
         private int $amount,
-        private ?string $description,
+        private ?string $note,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
@@ -56,7 +56,7 @@ final class PayrollDeduction
         ?int $employeeDebtId,
         int $period,
         int $amount,
-        ?string $description,
+        ?string $note,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
@@ -74,7 +74,7 @@ final class PayrollDeduction
             employeeDebtId: $employeeDebtId,
             period: $period,
             amount: $amount,
-            description: $description,
+            note: $note,
             status: $status,
             detailInfo: $detailInfo,
             syncMdb: $syncMdb,
@@ -90,7 +90,7 @@ final class PayrollDeduction
         ?int $employeeDebtId,
         int $period,
         int $amount,
-        ?string $description,
+        ?string $note,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
@@ -104,7 +104,7 @@ final class PayrollDeduction
             employeeDebtId: $employeeDebtId,
             period: $period,
             amount: $amount,
-            description: $description,
+            note: $note,
             status: $status,
             detailInfo: $detailInfo,
             syncMdb: $syncMdb,
@@ -122,7 +122,7 @@ final class PayrollDeduction
             'employee_debt_id' => $this->employeeDebtId,
             'period' => $this->period,
             'amount' => $this->amount,
-            'description' => $this->description,
+            'note' => $this->note,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
@@ -169,9 +169,9 @@ final class PayrollDeduction
         return $this->amount;
     }
 
-    public function getDescription(): ?string
+    public function getNote(): ?string
     {
-        return $this->description;
+        return $this->note;
     }
 
     public function setEmployeeId(int $employeeId): void
@@ -199,8 +199,8 @@ final class PayrollDeduction
         $this->amount = $amount;
     }
 
-    public function setDescription(?string $description): void
+    public function setNote(?string $note): void
     {
-        $this->description = $description;
+        $this->note = $note;
     }
 }

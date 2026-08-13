@@ -31,7 +31,7 @@ final class PayrollDeductionDataAction
         'employee_debt_id',
         'period',
         'amount',
-        'description',
+        'note',
         'status',
     ];
     private const ALLOWED_SORT = [
@@ -42,7 +42,7 @@ final class PayrollDeductionDataAction
         'employee_debt_id' => 'employee_debt_id',
         'period' => 'period',
         'amount' => 'amount',
-        'description' => 'description',
+        'note' => 'note',
         'status' => 'status',
     ];
 

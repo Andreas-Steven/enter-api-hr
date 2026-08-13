@@ -15,7 +15,6 @@ use App\Api\V1\EmployeeDebtInstallment\Action as EmployeeDebtInstallmentV1;
 use App\Api\V1\PayrollDeduction\Action as PayrollDeductionV1;
 use App\Api\V1\EmployeeDebt\Action as EmployeeDebtV1;
 use App\Api\V1\PayrollDeductionType\Action as PayrollDeductionTypeV1;
-use App\Api\V1\AttendanceReport\Action as AttendanceReportV1;
 use App\Api\V1\AttendanceShift\Action as AttendanceShiftV1;
 use App\Api\V1\AttendancePeriod\Action as AttendancePeriodV1;
 use App\Api\V1\AttendanceCalendar\Action as AttendanceCalendarV1;
@@ -465,18 +464,6 @@ return [
                 ->name('v1/general-affair/restore')
                 ->defaults(['permission' => 'general-affair.restore']),
 
-            /**
-             * Attenndace Reporting System
-             */
-            Route::post('/attendance/{id:\d+}/show')
-                ->action(AttendanceV1\AttendanceShowAction::class)
-                ->name('v1/attendance/show')
-                ->defaults(['permission' => 'attendance.show']),
-            Route::post('/attendance/{id:\d+}/report')
-                ->action(AttendanceV1\AttendanceReportAction::class)
-                ->name('v1/attendance/report')
-                ->defaults(['permission' => 'attendance.report']),
-
             // Branch Routes
             Route::get('/branch')
                 ->action(BranchV1\BranchDataAction::class)
@@ -686,36 +673,6 @@ return [
                 ->action(AttendancePeriodV1\AttendancePeriodRestoreAction::class)
                 ->name('v1/attendance-period/restore')
                 ->defaults(['permission' => 'attendance-period.restore']),
-
-            // AttendanceReport Routes
-            Route::get('/attendance-report')
-                ->action(AttendanceReportV1\AttendanceReportDataAction::class)
-                ->name('v1/attendance-report/index')
-                ->defaults(['permission' => 'attendance-report.index']),
-            Route::post('/attendance-report/data')
-                ->action(AttendanceReportV1\AttendanceReportDataAction::class)
-                ->name('v1/attendance-report/data')
-                ->defaults(['permission' => 'attendance-report.data']),
-            Route::get('/attendance-report/{id:\d+}')
-                ->action(AttendanceReportV1\AttendanceReportViewAction::class)
-                ->name('v1/attendance-report/view')
-                ->defaults(['permission' => 'attendance-report.view']),
-            Route::post('/attendance-report/create')
-                ->action(AttendanceReportV1\AttendanceReportCreateAction::class)
-                ->name('v1/attendance-report/create')
-                ->defaults(['permission' => 'attendance-report.create']),
-            Route::put('/attendance-report/{id:\d+}')
-                ->action(AttendanceReportV1\AttendanceReportUpdateAction::class)
-                ->name('v1/attendance-report/update')
-                ->defaults(['permission' => 'attendance-report.update']),
-            Route::delete('/attendance-report/{id:\d+}')
-                ->action(AttendanceReportV1\AttendanceReportDeleteAction::class)
-                ->name('v1/attendance-report/delete')
-                ->defaults(['permission' => 'attendance-report.delete']),
-            Route::post('/attendance-report/{id:\d+}/restore')
-                ->action(AttendanceReportV1\AttendanceReportRestoreAction::class)
-                ->name('v1/attendance-report/restore')
-                ->defaults(['permission' => 'attendance-report.restore']),
 
             // PayrollDeductionType Routes
             Route::get('/payroll-deduction-type')

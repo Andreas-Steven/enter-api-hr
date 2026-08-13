@@ -29,7 +29,7 @@ final class PayrollDeductionCreateAction
         'employee_debt_id',
         'period',
         'amount',
-        'description',
+        'note',
         'status',
         'detail_info',
         'sync_mdb',
@@ -65,7 +65,7 @@ final class PayrollDeductionCreateAction
             amount: (int) $params->get('amount'),
             status: (int) $params->get('status'),
             employeeDebtId: (int) $params->get('employee_debt_id'),
-            description: $params->get('description'),
+            note: $params->get('note'),
             detailInfo: $params->get('detail_info')
         );
 

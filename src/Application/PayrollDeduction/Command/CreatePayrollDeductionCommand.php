@@ -12,7 +12,7 @@ final readonly class CreatePayrollDeductionCommand
         public int $employeeDebtId,
         public int $period,
         public int $amount,
-        public ?string $description,
+        public ?string $note,
         public int $status,
         public ?array $detailInfo,
     ) {}
@@ -24,7 +24,7 @@ final readonly class CreatePayrollDeductionCommand
         int $amount,
         int $status,
         int $employeeDebtId = 0,
-        ?string $description = null,
+        ?string $note = null,
         ?array $detailInfo = null,
     ): self {
         return new self(
@@ -33,7 +33,7 @@ final readonly class CreatePayrollDeductionCommand
             employeeDebtId: $employeeDebtId,
             period: $period,
             amount: $amount,
-            description: $description,
+            note: $note,
             status: $status,
             detailInfo: $detailInfo,
         );

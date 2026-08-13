@@ -47,7 +47,7 @@ final class PayrollDeductionInputValidator extends AbstractValidator
                     new Required(),
                     new Integer(min: 0),
                 ],
-                'description' => [
+                'note' => [
                     new StringValue(),
                     new Length(max: 255),
                 ],
@@ -74,7 +74,7 @@ final class PayrollDeductionInputValidator extends AbstractValidator
                 'amount' => [
                     new Integer(skipOnEmpty: true, min: 0),
                 ],
-                'description' => [
+                'note' => [
                     new StringValue(skipOnEmpty: true),
                     new Length(max: 255, skipOnEmpty: true),
                 ],
