@@ -24,11 +24,27 @@ final readonly class WorkPatternResponse
             id: $entity->getId(),
             name: $entity->getName(),
             status: $entity->getStatus()->value(),
-            working_days: $entity->getWorkingDays()->toArray(),
+            working_days: array_map(
+                static fn(array $day): array => self::formatWorkingDay($day),
+                $entity->getWorkingDays()->toArray(),
+            ),
             detail_info: $entity->getDetailInfo()->toArray(),
             sync_mdb: $entity->getSyncMdbValue(),
             lock_version: $entity->getLockVersion()->value(),
         );
+    }
+
+    /**
+     * Removes redundant administrative fields from a working day entry.
+     *
+     * `work_pattern_rule_id` is dropped because the full `work_pattern_rule`
+     * object is already embedded alongside it.
+     */
+    private static function formatWorkingDay(array $day): array
+    {
+        unset($day['work_pattern_rule_id']);
+
+        return $day;
     }
 
     public function toArray(): array

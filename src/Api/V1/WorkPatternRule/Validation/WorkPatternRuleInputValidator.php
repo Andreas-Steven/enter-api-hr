@@ -119,8 +119,14 @@ final class WorkPatternRuleInputValidator extends AbstractValidator
                     new In(WorkPatternRuleType::values()),
                 ],
                 'target_count' => [
-                    new Required(),
-                    new Integer(min: 0),
+                    new Required(
+                        when: fn() => ($this->data['rule_type'] ?? null)
+                            !== WorkPatternRuleType::REQUIRED_WEEKDAY->value,
+                    ),
+                    new Integer(
+                        min: 0,
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'holiday_wins' => [
                     new Required(),

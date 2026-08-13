@@ -7,6 +7,8 @@ use App\Api;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
+use App\Api\V1\AttendanceFineRate\Action as AttendanceFineRateV1;
+use App\Api\V1\AttendanceReview\Action as AttendanceReviewV1;
 use App\Api\V1\WorkPatternRule\Action as WorkPatternRuleV1;
 use App\Api\V1\PayrollReport\Action as PayrollReportV1;
 use App\Api\V1\AttendanceSummary\Action as AttendanceSummaryV1;
@@ -891,6 +893,72 @@ return [
                 ->action(WorkPatternRuleV1\WorkPatternRuleRestoreAction::class)
                 ->name('v1/work-pattern-rule/restore')
                 ->defaults(['permission' => 'work-pattern-rule.restore']),
+
+            // AttendanceReview Routes
+            Route::get('/attendance-review')
+                ->action(AttendanceReviewV1\AttendanceReviewDataAction::class)
+                ->name('v1/attendance-review/index')
+                ->defaults(['permission' => 'attendance-review.index']),
+            Route::post('/attendance-review/data')
+                ->action(AttendanceReviewV1\AttendanceReviewDataAction::class)
+                ->name('v1/attendance-review/data')
+                ->defaults(['permission' => 'attendance-review.data']),
+            Route::get('/attendance-review/{id:\d+}')
+                ->action(AttendanceReviewV1\AttendanceReviewViewAction::class)
+                ->name('v1/attendance-review/view')
+                ->defaults(['permission' => 'attendance-review.view']),
+            Route::post('/attendance-review/create')
+                ->action(AttendanceReviewV1\AttendanceReviewCreateAction::class)
+                ->name('v1/attendance-review/create')
+                ->defaults(['permission' => 'attendance-review.create']),
+            Route::put('/attendance-review/{id:\d+}')
+                ->action(AttendanceReviewV1\AttendanceReviewUpdateAction::class)
+                ->name('v1/attendance-review/update')
+                ->defaults(['permission' => 'attendance-review.update']),
+            Route::delete('/attendance-review/{id:\d+}')
+                ->action(AttendanceReviewV1\AttendanceReviewDeleteAction::class)
+                ->name('v1/attendance-review/delete')
+                ->defaults(['permission' => 'attendance-review.delete']),
+            Route::post('/attendance-review/{id:\d+}/restore')
+                ->action(AttendanceReviewV1\AttendanceReviewRestoreAction::class)
+                ->name('v1/attendance-review/restore')
+                ->defaults(['permission' => 'attendance-review.restore']),
+            Route::post('/attendance-review/{id:\d+}/resolve')
+                ->action(AttendanceReviewV1\AttendanceReviewResolveAction::class)
+                ->name('v1/attendance-review/resolve')
+                ->defaults(['permission' => 'attendance-review.update']),
+
+            // AttendanceFineRate Routes
+            Route::get('/attendance-fine-rate')
+                ->action(AttendanceFineRateV1\AttendanceFineRateDataAction::class)
+                ->name('v1/attendance-fine-rate/index')
+                ->defaults(['permission' => 'attendance-fine-rate.index']),
+            Route::post('/attendance-fine-rate/data')
+                ->action(AttendanceFineRateV1\AttendanceFineRateDataAction::class)
+                ->name('v1/attendance-fine-rate/data')
+                ->defaults(['permission' => 'attendance-fine-rate.data']),
+            Route::get('/attendance-fine-rate/{id:\d+}')
+                ->action(AttendanceFineRateV1\AttendanceFineRateViewAction::class)
+                ->name('v1/attendance-fine-rate/view')
+                ->defaults(['permission' => 'attendance-fine-rate.view']),
+            Route::post('/attendance-fine-rate/create')
+                ->action(AttendanceFineRateV1\AttendanceFineRateCreateAction::class)
+                ->name('v1/attendance-fine-rate/create')
+                ->defaults(['permission' => 'attendance-fine-rate.create']),
+            Route::put('/attendance-fine-rate/{id:\d+}')
+                ->action(AttendanceFineRateV1\AttendanceFineRateUpdateAction::class)
+                ->name('v1/attendance-fine-rate/update')
+                ->defaults(['permission' => 'attendance-fine-rate.update']),
+            Route::delete('/attendance-fine-rate/{id:\d+}')
+                ->action(AttendanceFineRateV1\AttendanceFineRateDeleteAction::class)
+                ->name('v1/attendance-fine-rate/delete')
+                ->defaults(['permission' => 'attendance-fine-rate.delete']),
+            Route::post('/attendance-fine-rate/{id:\d+}/restore')
+                ->action(AttendanceFineRateV1\AttendanceFineRateRestoreAction::class)
+                ->name('v1/attendance-fine-rate/restore')
+                ->defaults(['permission' => 'attendance-fine-rate.restore']),
+
+
 
         ),
 ];

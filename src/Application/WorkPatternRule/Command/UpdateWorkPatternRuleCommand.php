@@ -26,6 +26,7 @@ final readonly class UpdateWorkPatternRuleCommand
         public ?int $status,
         public ?array $detailInfo,
         public ?int $lockVersion,
+        public bool $targetCountProvided = false,
     ) {}
 
     public static function create(
@@ -42,6 +43,7 @@ final readonly class UpdateWorkPatternRuleCommand
         ?int $status = null,
         ?array $detailInfo = null,
         ?int $lockVersion = null,
+        bool $targetCountProvided = false,
     ): self {
         return new self(
             id: $id,
@@ -57,6 +59,7 @@ final readonly class UpdateWorkPatternRuleCommand
             status: $status,
             detailInfo: $detailInfo,
             lockVersion: $lockVersion,
+            targetCountProvided: $targetCountProvided,
         );
     }
 }

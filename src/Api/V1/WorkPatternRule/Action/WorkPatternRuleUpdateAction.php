@@ -98,7 +98,9 @@ final class WorkPatternRuleUpdateAction
             id: (int) $id,
             name: $params->get('name'),
             ruleType: $this->resolveEnum(WorkPatternRuleType::class, $params->get('rule_type')),
-            targetCount: $params->has('target_count') ? (int) $params->get('target_count') : null,
+            targetCount: $params->get('target_count') === null
+                ? null
+                : (int) $params->get('target_count'),
             holidayWins: $params->has('holiday_wins') ? (int) $params->get('holiday_wins') : null,
             holidayType: $this->resolveEnum(HolidayType::class, $params->get('holiday_type')),
             substitutionAllowed: $params->has('substitution_allowed') ? (int) $params->get('substitution_allowed') : null,
@@ -108,6 +110,7 @@ final class WorkPatternRuleUpdateAction
             status: $params->has('status') ? (int) $params->get('status') : null,
             detailInfo: $params->get('detail_info'),
             lockVersion: $params->has('lock_version') ? (int) $params->get('lock_version') : null,
+            targetCountProvided: $params->has('target_count'),
         );
 
         $response = $this->applicationService->update(

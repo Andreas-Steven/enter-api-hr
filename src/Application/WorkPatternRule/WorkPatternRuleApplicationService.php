@@ -15,6 +15,7 @@ use App\Domain\WorkPatternRule\Entity\WorkPatternRule;
 use App\Domain\WorkPatternRule\Repository\WorkPatternRuleRepositoryInterface;
 use App\Domain\WorkPatternRule\Service\WorkPatternRuleDomainService;
 use App\Domain\Shared\Security\AuthorizerInterface;
+use App\Domain\Shared\Enums\WorkPatternRuleType;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
 // Shared Layer
@@ -128,10 +129,18 @@ final class WorkPatternRuleApplicationService
 
         $newStatus = ResourceStatus::tryFrom($command->status);
 
+        $targetCountProvided = $command->targetCountProvided || $command->targetCount !== null;
+        $commandData = (array) $command;
+        unset($commandData['targetCountProvided']);
+
         $hasFieldChanges = $data->hasFieldChanges(
-            data: (array) $command,
+            data: $commandData,
             removeNulls: true
         );
+
+        if ($targetCountProvided && $data->getTargetCount() !== $command->targetCount) {
+            $hasFieldChanges = true;
+        }
 
         $data->guardAgainstInvalidTransition(
             hasFieldChanges: $hasFieldChanges,
@@ -142,11 +151,25 @@ final class WorkPatternRuleApplicationService
             newName: $command->name
         );
 
-        if (!empty($command->ruleType)) {
+        $changesRuleTypeToRequiredWeekdayWithNullTarget =
+            $command->ruleType === WorkPatternRuleType::REQUIRED_WEEKDAY
+            && $targetCountProvided
+            && $command->targetCount === null;
+
+        if ($changesRuleTypeToRequiredWeekdayWithNullTarget) {
             $data->updateRuleType($command->ruleType);
         }
-        if (!empty($command->targetCount)) {
+
+        if ($targetCountProvided) {
             $data->updateTargetCount($command->targetCount);
+        }
+
+        if ($command->ruleType !== null && !$changesRuleTypeToRequiredWeekdayWithNullTarget) {
+            $data->updateRuleType($command->ruleType);
+
+            if ($command->ruleType === WorkPatternRuleType::REQUIRED_WEEKDAY && !$targetCountProvided) {
+                $data->updateTargetCount(null);
+            }
         }
         if (!empty($command->holidayWins)) {
             $data->updateHolidayWins($command->holidayWins);

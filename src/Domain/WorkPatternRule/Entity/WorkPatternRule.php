@@ -34,7 +34,7 @@ final class WorkPatternRule
         private readonly ?int $id,
         private string $name,
         private WorkPatternRuleType $ruleType,
-        private int $targetCount,
+        private ?int $targetCount,
         private int $holidayWins,
         private ?HolidayType $holidayType,
         private int $substitutionAllowed,
@@ -46,6 +46,11 @@ final class WorkPatternRule
         private ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
     ) {
+        self::guardTargetCount(
+            ruleType: $ruleType,
+            targetCount: $targetCount,
+        );
+
         $this->resource = self::RESOURCE;
         $this->lockVersion = $lockVersion ?? LockVersion::create();
     }
@@ -58,7 +63,7 @@ final class WorkPatternRule
     public static function create(
         string $name,
         WorkPatternRuleType $ruleType,
-        int $targetCount,
+        ?int $targetCount,
         int $holidayWins,
         ?HolidayType $holidayType,
         int $substitutionAllowed,
@@ -96,7 +101,7 @@ final class WorkPatternRule
         int $id,
         string $name,
         WorkPatternRuleType $ruleType,
-        int $targetCount,
+        ?int $targetCount,
         int $holidayWins,
         ?HolidayType $holidayType,
         int $substitutionAllowed,
@@ -172,7 +177,7 @@ final class WorkPatternRule
         return $this->ruleType;
     }
 
-    public function getTargetCount(): int
+    public function getTargetCount(): ?int
     {
         return $this->targetCount;
     }
@@ -212,14 +217,22 @@ final class WorkPatternRule
         if ($ruleType === null) {
             return;
         }
+
+        self::guardTargetCount(
+            ruleType: $ruleType,
+            targetCount: $this->targetCount,
+        );
+
         $this->ruleType = $ruleType;
     }
 
     public function updateTargetCount(?int $targetCount): void
     {
-        if ($targetCount === null) {
-            return;
-        }
+        self::guardTargetCount(
+            ruleType: $this->ruleType,
+            targetCount: $targetCount,
+        );
+
         $this->targetCount = $targetCount;
     }
 
@@ -264,6 +277,23 @@ final class WorkPatternRule
     public function updateNotes(?string $notes): void
     {
         $this->notes = $notes;
+    }
+
+    private static function guardTargetCount(
+        WorkPatternRuleType $ruleType,
+        ?int $targetCount,
+    ): void {
+        if ($targetCount !== null || $ruleType === WorkPatternRuleType::REQUIRED_WEEKDAY) {
+            return;
+        }
+
+        throw new BadRequestException(
+            translate: Message::create(
+                key: 'required',
+                domain: 'validation',
+                params: ['resource' => 'target_count'],
+            ),
+        );
     }
 
     public function restore(): void

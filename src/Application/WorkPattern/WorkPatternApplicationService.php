@@ -73,9 +73,47 @@ final class WorkPatternApplicationService
 
     public function list(SearchCriteria $criteria): PaginatedResult
     {
-        return $this->repository->list(
-            criteria: $criteria
+        $result = $this->repository->list(criteria: $criteria);
+
+        // Strip internal work_pattern_rule_id from the response; the full
+        // work_pattern_rule object is already embedded and sufficient.
+        $data = array_map(
+            static fn(array $row): array => self::stripWorkPatternRuleId($row),
+            $result->data
         );
+
+        return new PaginatedResult(
+            data: $data,
+            total: $result->total,
+            page: $result->page,
+            pageSize: $result->pageSize,
+            filter: $result->filter,
+            sort: $result->sort,
+        );
+    }
+
+    /**
+     * Removes redundant work_pattern_rule_id from working_days in a raw row.
+     *
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private static function stripWorkPatternRuleId(array $row): array
+    {
+        if (!is_array($row['working_days'] ?? null)) {
+            return $row;
+        }
+
+        $row['working_days'] = array_map(
+            static function (array $day): array {
+                unset($day['work_pattern_rule_id']);
+
+                return $day;
+            },
+            $row['working_days']
+        );
+
+        return $row;
     }
 
     public function view(int $id): WorkPatternResponse

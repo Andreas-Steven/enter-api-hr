@@ -16,7 +16,7 @@ final readonly class WorkPatternRuleResponse
         public int $id,
         public string $name,
         public string $rule_type,
-        public int $target_count,
+        public ?int $target_count,
         public int $holiday_wins,
         public ?string $holiday_type,
         public int $substitution_allowed,

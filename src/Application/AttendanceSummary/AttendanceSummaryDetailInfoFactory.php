@@ -8,16 +8,17 @@ use App\Application\AttendanceSummary\Dto\AttendanceSummaryDetailInfo;
 use App\Domain\Attendance\Repository\AttendanceRepositoryInterface;
 use App\Domain\Employee\Entity\Employee;
 use App\Domain\Shared\ValueObject\DetailInfo;
+use App\Domain\WorkPattern\Repository\WorkPatternRepositoryInterface;
 
 /**
  * Builds the AttendanceSummary detail_info payload and attendance detail
  * purely from the Employee aggregate snapshot and attendance records.
- * No external branch/work-pattern module calls.
  */
 final class AttendanceSummaryDetailInfoFactory
 {
     public function __construct(
         private AttendanceRepositoryInterface $attendanceRepository,
+        private WorkPatternRepositoryInterface $workPatternRepository,
     ) {}
 
     public function createFromEmployee(Employee $employee, int $period): AttendanceSummaryDetailInfo
@@ -55,11 +56,19 @@ final class AttendanceSummaryDetailInfoFactory
      * Aggregates and transforms attendance records for a single employee into
      * a sorted attendance detail array suitable for summary storage.
      *
+     * Re-enriches is_obligation_day and work_pattern_rule from the current
+     * WorkPattern aggregate so that attendance records created before these
+     * fields existed (or when the work_pattern had no rules yet) are still
+     * correctly reflected in the summary.
+     *
      * @return array<int, array>
      */
     public function buildAttendanceDetail(int $employeeId, int $period): array
     {
         $attendanceRecords = $this->attendanceRepository->findByPeriod($period);
+
+        // Lazily loaded current work_pattern working-days map (day_of_week => day schedule)
+        $currentWorkingDaysMap = null;
 
         $attendanceDetail = [];
         foreach ($attendanceRecords as $record) {
@@ -78,8 +87,42 @@ final class AttendanceSummaryDetailInfoFactory
 
                 // Extract is_obligation_day from info (set during evaluation)
                 $info = $itemData['info'] ?? [];
-                $isObligationDay = $info['is_obligation_day'] ?? false;
+                $isObligationDay = $info['is_obligation_day'] ?? null;
                 $ruleFromInfo = $info['work_pattern_rule'] ?? null;
+
+                // Re-enrich from the current WorkPattern if the stored
+                // attendance data is stale (missing is_obligation_day or
+                // work_pattern_rule because the record was created before
+                // those fields existed or before the work_pattern had rules).
+                if ($currentWorkingDaysMap === null) {
+                    $loaded = $this->loadCurrentWorkingDaysMap($workPattern['id'] ?? 0);
+                    if (!empty($loaded)) {
+                        $currentWorkingDaysMap = $loaded;
+                    }
+                }
+
+                $dayOfWeek = (int) date('N', strtotime($date));
+                $currentDay = $currentWorkingDaysMap[$dayOfWeek] ?? null;
+
+                if ($currentDay !== null) {
+                    // Fall back to current shift existence when is_obligation_day
+                    // was never stored (null). An explicitly stored false (e.g.
+                    // from holiday-wins logic) is preserved.
+                    if ($isObligationDay === null) {
+                        $isObligationDay = ($currentDay['shift'] ?? null) !== null;
+                    }
+
+                    // Fall back to current work_pattern_rule when neither the
+                    // stored info nor the stored work_pattern snapshot had it.
+                    if ($rule === null && $ruleFromInfo === null) {
+                        $rule = $currentDay['work_pattern_rule'] ?? null;
+                    }
+                }
+
+                // Final default: if still null, is_obligation_day is false
+                if ($isObligationDay === null) {
+                    $isObligationDay = false;
+                }
 
                 unset(
                     $itemData['attendance_policies'],
@@ -108,5 +151,34 @@ final class AttendanceSummaryDetailInfoFactory
         usort($attendanceDetail, static fn(array $a, array $b): int => strcmp($a['date'], $b['date']));
 
         return $attendanceDetail;
+    }
+
+    /**
+     * Loads the current WorkPattern's working days indexed by day_of_week.
+     *
+     * Returns an empty array when the work_pattern cannot be resolved
+     * (e.g. unassigned employee), so callers can safely fall back to
+     * whatever is stored in the attendance record.
+     *
+     * @return array<int, array>
+     */
+    private function loadCurrentWorkingDaysMap(int|string $workPatternId): array
+    {
+        $wpId = (int) $workPatternId;
+        if ($wpId <= 0) {
+            return [];
+        }
+
+        $workPattern = $this->workPatternRepository->findById($wpId);
+        if ($workPattern === null) {
+            return [];
+        }
+
+        $map = [];
+        foreach ($workPattern->getWorkingDays()->toArray() as $day) {
+            $map[(int) $day['day_of_week']] = $day;
+        }
+
+        return $map;
     }
 }

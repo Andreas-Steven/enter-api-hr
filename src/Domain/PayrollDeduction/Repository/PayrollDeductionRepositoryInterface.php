@@ -27,6 +27,16 @@ interface PayrollDeductionRepositoryInterface
 
     public function existsByName(string $name, ?int $status = null): bool;
 
+    /**
+     * Find all PayrollDeduction records for a specific employee+period.
+     *
+     * Used by PayrollReportDomainService to include deduction data
+     * in the payroll_summary.
+     *
+     * @return PayrollDeduction[]
+     */
+    public function findByEmployeeAndPeriod(int $employeeId, int $period, ?int $status = null): array;
+
     public function list(SearchCriteria $criteria): PaginatedResult;
 
     public function insert(PayrollDeduction $payrollDeduction): PayrollDeduction;

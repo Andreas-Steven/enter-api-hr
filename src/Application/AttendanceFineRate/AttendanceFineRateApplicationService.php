@@ -1,0 +1,277 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Application\AttendanceFineRate;
+
+// Application Layer
+use App\Application\AttendanceFineRate\Command\CreateAttendanceFineRateCommand;
+use App\Application\AttendanceFineRate\Command\UpdateAttendanceFineRateCommand;
+use App\Application\AttendanceFineRate\Dto\AttendanceFineRateResponse;
+use App\Application\AttendanceFineRate\AttendanceFineRateDetailInfoFactory;
+use App\Application\Shared\Factory\DetailInfoFactory;
+
+// Domain Layer
+use App\Domain\AttendanceFineRate\Entity\AttendanceFineRate;
+use App\Domain\AttendanceFineRate\Repository\AttendanceFineRateRepositoryInterface;
+use App\Domain\AttendanceFineRate\Service\AttendanceFineRateDomainService;
+use App\Domain\Shared\Enums\IncidentType;
+use App\Domain\Shared\Security\AuthorizerInterface;
+use App\Domain\Shared\ValueObject\ResourceStatus;
+
+// Shared Layer
+use App\Shared\Dto\PaginatedResult;
+use App\Shared\Dto\SearchCriteria;
+use App\Shared\Exception\NotFoundException;
+use App\Shared\ValueObject\Message;
+
+/**
+ * AttendanceFineRate Application Service (Mandor/Alur Kerja)
+ * 
+ * Orchestrates use cases and coordinates domain & infrastructure
+ */
+final class AttendanceFineRateApplicationService
+{
+    public function __construct(
+        private AuthorizerInterface $auth,
+        private DetailInfoFactory $detailInfoFactory,
+        private AttendanceFineRateDetailInfoFactory $rateDetailInfoFactory,
+        private AttendanceFineRateRepositoryInterface $repository,
+        private AttendanceFineRateDomainService $domainService
+    ) {
+    }
+
+    public function getResource(): string
+    {
+        return AttendanceFineRate::RESOURCE;
+    }
+
+    private function getEntityById(int $id, ?int $status = null): AttendanceFineRate
+    {
+        $data = $this->repository->findById(
+            id: $id,
+            status: $status
+        );
+
+        if ($data === null) {
+            throw new NotFoundException(
+                translate: Message::create(
+                    key: 'resource.not_found', 
+                    params: [
+                        'resource' => $this->getResource(),
+                        'field' => 'id',
+                        'value' => $id
+                    ]
+                )
+            );
+        }
+        
+        return $data;
+    }
+    
+    public function list(SearchCriteria $criteria): PaginatedResult
+    {
+        return $this->repository->list(
+            criteria: $criteria
+        );
+    }
+
+    public function view(int $id): AttendanceFineRateResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: null
+        );
+        
+        return AttendanceFineRateResponse::fromEntity(
+            entity: $data
+        );
+    }
+
+    public function create(CreateAttendanceFineRateCommand $command): AttendanceFineRateResponse
+    {
+        $rateInfo = $this->rateDetailInfoFactory->buildFromDeductionTypeId(
+            deductionTypeId: $command->deductionTypeId,
+        );
+
+        $detailInfo = $this->detailInfoFactory
+            ->create(
+                detailInfo: $rateInfo->toArray()
+            )
+            ->build();
+
+        $data = AttendanceFineRate::create(
+            name: $command->name,
+            incidentType: IncidentType::from($command->incidentType),
+            deductionTypeId: $command->deductionTypeId,
+            amount: $command->amount,
+            status: ResourceStatus::from($command->status),
+            detailInfo: $detailInfo
+        );
+
+        return AttendanceFineRateResponse::fromEntity(
+            entity: $this->repository->insert(
+                entity: $data
+            )
+        );
+    }
+
+    public function update(int $id, UpdateAttendanceFineRateCommand $command): AttendanceFineRateResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: null
+        );
+
+        $this->repository->verifyLockVersion(
+            entity: $data,
+            version: $command->lockVersion ?? null
+        );
+
+        $newStatus = ResourceStatus::tryFrom($command->status);
+
+        $hasFieldChanges = $data->hasFieldChanges(
+            data: (array) $command,
+            removeNulls: true
+        );
+
+        $data->guardAgainstInvalidTransition(
+            hasFieldChanges: $hasFieldChanges,
+            newStatus: $newStatus
+        );
+
+        $data->updateName(
+            newName: $command->name
+        );
+
+        if ($command->incidentType !== null) {
+            $data->updateIncidentType(
+                newIncidentType: IncidentType::from($command->incidentType)
+            );
+        }
+
+        if ($command->deductionTypeId !== null) {
+            $data->updateDeductionTypeId(
+                newDeductionTypeId: $command->deductionTypeId
+            );
+        }
+
+        if ($command->amount !== null) {
+            $data->updateAmount(
+                newAmount: $command->amount
+            );
+        }
+
+        $data->applyStatus(
+            newStatus: $newStatus
+        );
+
+        if ($command->deductionTypeId !== null) {
+            $rateInfo = $this->rateDetailInfoFactory->buildFromDeductionTypeId(
+                deductionTypeId: $command->deductionTypeId,
+            );
+        }
+
+        $detailInfo = $this->detailInfoFactory
+            ->update(
+                detailInfo: $data->getDetailInfo(),
+                payload: $rateInfo->toArray(),
+            )
+            ->build();
+
+        return AttendanceFineRateResponse::fromEntity(
+            entity: $this->repository->update(
+                entity: $data
+            )
+        );
+    }
+
+    public function delete(int $id, ?int $lockVersion = null): AttendanceFineRateResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: null
+        );
+
+        $this->repository->verifyLockVersion(
+            entity: $data, 
+            version: $lockVersion,
+        );
+
+        $this->domainService->guardPermission(
+            id: $id,
+            authorizer: $this->auth,
+            permission: 'attendancefinerate.delete',
+            resource: $this->getResource(),
+        );
+        
+        $this->domainService->ensureDeletable(
+            entity: $data,
+            resource: $this->getResource(),
+        );
+
+        $detailInfo = $this->detailInfoFactory
+            ->delete(
+                detailInfo: $data->getDetailInfo(),
+                payload: [],
+            )
+            ->build();
+
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
+
+        return AttendanceFineRateResponse::fromEntity(
+            entity: $this->repository->delete(
+                entity: $data
+            )
+        );
+    }
+
+    public function restore(int $id): AttendanceFineRateResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: ResourceStatus::deleted()->value()
+        );
+        
+        if ($data === null) {
+            throw new NotFoundException(
+                translate: Message::create(
+                    key: 'resource.not_found', 
+                    params: [
+                        'resource' => $this->getResource(),
+                        'field' => 'id',
+                        'value' => $id
+                    ]
+                )
+            );
+        }
+
+        $data->guardAgainstInvalidTransition(
+            hasFieldChanges: false,
+            newStatus: ResourceStatus::restored()
+        );
+
+        $data->markAsRestored();
+
+        $detailInfo = $this->detailInfoFactory
+            ->restore(
+                detailInfo: $data->getDetailInfo(),
+                payload: [],
+            )
+            ->build();
+
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
+
+        $restoredData = $this->repository->restore(
+            id: $data->getId()
+        );
+        
+        return AttendanceFineRateResponse::fromEntity(
+            entity: $restoredData
+        );
+    }
+}

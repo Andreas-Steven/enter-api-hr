@@ -61,6 +61,10 @@ final readonly class WorkingDays
                 $item['shift_id'] = $this->extractShiftIdFromLegacyData($item['shift'] ?? null);
             }
 
+            if (!array_key_exists('work_pattern_rule_id', $item)) {
+                $item['work_pattern_rule_id'] = $this->extractRuleIdFromLegacyData($item['work_pattern_rule'] ?? null);
+            }
+
             $map[$dayOfWeek] = $item;
         }
         return $map;
@@ -80,6 +84,31 @@ final readonly class WorkingDays
         if ($shift !== null && !is_array($shift) && is_numeric($shift)) {
             $shiftId = (int)$shift;
             return $shiftId > 0 ? $shiftId : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Extracts the work_pattern_rule_id from legacy data formats:
+     * - WorkPatternRuleEntity instance
+     * - Array with 'id' key (e.g. from toArray() snapshot)
+     * - Numeric value
+     */
+    private function extractRuleIdFromLegacyData(mixed $rule): ?int
+    {
+        if ($rule instanceof WorkPatternRuleEntity) {
+            return $rule->getId();
+        }
+
+        if (is_array($rule) && array_key_exists('id', $rule) && is_numeric($rule['id'])) {
+            $ruleId = (int)$rule['id'];
+            return $ruleId > 0 ? $ruleId : null;
+        }
+
+        if ($rule !== null && !is_array($rule) && is_numeric($rule)) {
+            $ruleId = (int)$rule;
+            return $ruleId > 0 ? $ruleId : null;
         }
 
         return null;

@@ -15,7 +15,7 @@ final readonly class CreateWorkPatternRuleCommand
     public function __construct(
         public string $name,
         public WorkPatternRuleType $ruleType,
-        public int $targetCount,
+        public ?int $targetCount,
         public int $holidayWins,
         public ?HolidayType $holidayType,
         public int $substitutionAllowed,
@@ -29,7 +29,7 @@ final readonly class CreateWorkPatternRuleCommand
     public static function create(
         string $name,
         WorkPatternRuleType $ruleType,
-        int $targetCount,
+        ?int $targetCount,
         int $holidayWins,
         ?HolidayType $holidayType,
         int $substitutionAllowed,

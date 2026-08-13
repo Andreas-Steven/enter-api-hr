@@ -41,8 +41,8 @@ final class BranchRepository implements BranchRepositoryInterface, CurrentUserAw
 {
     use HasCoreFeatures, HasMongoDBSync, ManagesPersistence;
 
-    public const TABLE_NAME = 'branches';
-    public const SEQUENCE_ID = 'branches_id_seq';
+    public const TABLE_NAME = 'employee_branches';
+    public const SEQUENCE_ID = 'employee_branches_id_seq';
     private const LIKE_OPERATOR = 'ilike';
 
     public function __construct(

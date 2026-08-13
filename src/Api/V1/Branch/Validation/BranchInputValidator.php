@@ -105,7 +105,7 @@ final class BranchInputValidator extends AbstractValidator
                             max: 255,
                         ),
                         new UniqueValue(
-                            table: 'branches', 
+                            table: 'employee_branches', 
                             column: 'name', 
                             ignoreId: null
                         )
@@ -125,7 +125,7 @@ final class BranchInputValidator extends AbstractValidator
                             max: 255,
                         ),
                         new UniqueValue(
-                            table: 'branches', 
+                            table: 'employee_branches', 
                             column: 'code', 
                             ignoreId: null
                         )
@@ -177,7 +177,7 @@ final class BranchInputValidator extends AbstractValidator
                             skipOnEmpty: true,
                         ),
                         new UniqueValue(
-                            table: 'branches', 
+                            table: 'employee_branches', 
                             column: 'name', 
                             ignoreId: $this->data['id'] ?? null
                         )
@@ -208,7 +208,7 @@ final class BranchInputValidator extends AbstractValidator
                             skipOnEmpty: true,
                         ),
                         new UniqueValue(
-                            table: 'branches', 
+                            table: 'employee_branches', 
                             column: 'code', 
                             ignoreId: $this->data['id'] ?? null
                         )

@@ -71,7 +71,9 @@ final class WorkPatternRuleCreateAction
         $command = CreateWorkPatternRuleCommand::create(
             name: (string) $params->get('name'),
             ruleType: WorkPatternRuleType::from((string) $params->get('rule_type')),
-            targetCount: (int) $params->get('target_count'),
+            targetCount: $params->get('target_count') === null
+                ? null
+                : (int) $params->get('target_count'),
             holidayWins: (int) $params->get('holiday_wins'),
             holidayType: $this->resolveHolidayType($params->get('holiday_type')),
             substitutionAllowed: (int) $params->get('substitution_allowed'),

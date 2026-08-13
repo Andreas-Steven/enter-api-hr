@@ -26,7 +26,15 @@ interface PayrollReportRepositoryInterface
     public function findByName(string $name, ?int $status = null): ?PayrollReport;
 
     public function existsByName(string $name, ?int $status = null): bool;
-    
+
+    /**
+     * Find a PayrollReport linked to a specific AttendanceSummary.
+     *
+     * Used by the review cascade recalc to find and update the
+     * PayrollReport associated with a resolved review's source summary.
+     */
+    public function findByAttendanceSummaryId(int $attendanceSummaryId, ?int $status = null): ?PayrollReport;
+
     public function list(SearchCriteria $criteria): PaginatedResult;
     
     public function insert(PayrollReport $payrollReport): PayrollReport;

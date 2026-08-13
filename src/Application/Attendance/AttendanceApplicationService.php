@@ -21,6 +21,7 @@ use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\Enums\AttendanceStatus;
 use App\Domain\Shared\ValueObject\ResourceStatus;
+use App\Domain\WorkPattern\Repository\WorkPatternRepositoryInterface;
 
 // Application Attendance Detail Info
 use App\Application\Attendance\AttendanceDetailInfoFactory;
@@ -46,6 +47,7 @@ final class AttendanceApplicationService
         private EmployeeRepositoryInterface $employeeRepository,
         private AttendanceDomainService $domainService,
         private AttendanceDetailInfoFactory $attendanceDetailInfoFactory,
+        private WorkPatternRepositoryInterface $workPatternRepository,
     ) {
     }
 
@@ -80,6 +82,18 @@ final class AttendanceApplicationService
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         $result = $this->repository->list(criteria: $criteria);
+
+        // Re-enrich work_pattern snapshots with the current WorkPattern data.
+        $workPatternMap = $this->buildWorkPatternMapFromRows($result->data);
+        $enrichedData = $this->enrichAttendanceRows($result->data, $workPatternMap);
+        $result = new PaginatedResult(
+            data: $enrichedData,
+            total: $result->total,
+            page: $result->page,
+            pageSize: $result->pageSize,
+            filter: $result->filter,
+            sort: $result->sort,
+        );
 
         $filters = $criteria->filter ?? [];
         $nameFilter = $filters['employee_name'] ?? null;
@@ -127,9 +141,12 @@ final class AttendanceApplicationService
             id: $id,
             status: null
         );
-        
+
+        $workPatternMap = $this->buildWorkPatternMapFromItems($data->getAttendance());
+
         return AttendanceResponse::fromEntity(
-            entity: $data
+            entity: $data,
+            workPatternMap: $workPatternMap,
         );
     }
 
@@ -223,7 +240,8 @@ final class AttendanceApplicationService
         }
 
         return AttendanceResponse::fromEntity(
-            entity: $data
+            entity: $data,
+            workPatternMap: $this->buildWorkPatternMapFromItems($data->getAttendance()),
         );
     }
 
@@ -286,10 +304,13 @@ final class AttendanceApplicationService
             detailInfo: $detailInfo
         );
 
+        $data = $this->repository->update(
+            entity: $data
+        );
+
         return AttendanceResponse::fromEntity(
-            entity: $this->repository->update(
-                entity: $data
-            )
+            entity: $data,
+            workPatternMap: $this->buildWorkPatternMapFromItems($data->getAttendance()),
         );
     }
 
@@ -328,10 +349,13 @@ final class AttendanceApplicationService
             detailInfo: $detailInfo
         );
 
+        $data = $this->repository->delete(
+            entity: $data
+        );
+
         return AttendanceResponse::fromEntity(
-            entity: $this->repository->delete(
-                entity: $data
-            )
+            entity: $data,
+            workPatternMap: $this->buildWorkPatternMapFromItems($data->getAttendance()),
         );
     }
 
@@ -378,7 +402,8 @@ final class AttendanceApplicationService
         );
         
         return AttendanceResponse::fromEntity(
-            entity: $restoredData
+            entity: $restoredData,
+            workPatternMap: $this->buildWorkPatternMapFromItems($restoredData->getAttendance()),
         );
     }
 
@@ -475,7 +500,109 @@ final class AttendanceApplicationService
         $data = $attendance->getId() === null
             ? $this->repository->insert($attendance)
             : $this->repository->update($attendance);
-        
-        return AttendanceResponse::fromEntity($data);
+
+        return AttendanceResponse::fromEntity(
+            entity: $data,
+            workPatternMap: $this->buildWorkPatternMapFromItems($data->getAttendance()),
+        );
+    }
+
+    /**
+     * Builds a map of work_pattern_id => current WorkPattern data from
+     * the attendance items found in the provided rows.
+     *
+     * @param array<int, array<string, mixed>> $rows
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildWorkPatternMapFromRows(array $rows): array
+    {
+        $ids = [];
+        foreach ($rows as $row) {
+            foreach ($row['attendance'] ?? [] as $item) {
+                $wpId = (int)($item['work_pattern']['id'] ?? 0);
+                if ($wpId > 0) {
+                    $ids[] = $wpId;
+                }
+            }
+        }
+
+        return $this->loadWorkPatternMap(array_unique($ids));
+    }
+
+    /**
+     * Builds a map of work_pattern_id => current WorkPattern data from
+     * the provided attendance items.
+     *
+     * @param array<int, array<string, mixed>> $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildWorkPatternMapFromItems(array $items): array
+    {
+        $ids = [];
+        foreach ($items as $item) {
+            $wpId = (int)($item['work_pattern']['id'] ?? 0);
+            if ($wpId > 0) {
+                $ids[] = $wpId;
+            }
+        }
+
+        return $this->loadWorkPatternMap(array_unique($ids));
+    }
+
+    /**
+     * Loads current WorkPattern data for the given IDs.
+     *
+     * @param array<int, int> $ids
+     * @return array<int, array<string, mixed>>
+     */
+    private function loadWorkPatternMap(array $ids): array
+    {
+        $map = [];
+        foreach (array_unique($ids) as $wpId) {
+            $workPattern = $this->workPatternRepository->findById((int) $wpId);
+            if ($workPattern === null) {
+                continue;
+            }
+
+            $map[(int) $wpId] = [
+                'id' => $workPattern->getId(),
+                'name' => $workPattern->getName(),
+                'working_days' => $workPattern->getWorkingDays()->toArray(),
+            ];
+        }
+
+        return $map;
+    }
+
+    /**
+     * Re-enriches the attendance items inside raw list rows with the
+     * current WorkPattern data.
+     *
+     * @param array<int, array<string, mixed>> $rows
+     * @param array<int, array<string, mixed>> $workPatternMap
+     * @return array<int, array<string, mixed>>
+     */
+    private function enrichAttendanceRows(array $rows, array $workPatternMap): array
+    {
+        foreach ($rows as $key => $row) {
+            $date = $row['date'] ?? '';
+            if (!is_string($date) || $date === '') {
+                continue;
+            }
+
+            $attendance = $row['attendance'] ?? [];
+            if (!is_array($attendance)) {
+                continue;
+            }
+
+            $enriched = [];
+            foreach ($attendance as $item) {
+                $enriched[] = AttendanceResponse::enrichAttendanceItem($item, $date, $workPatternMap);
+            }
+
+            $rows[$key]['attendance'] = $enriched;
+        }
+
+        return $rows;
     }
 }

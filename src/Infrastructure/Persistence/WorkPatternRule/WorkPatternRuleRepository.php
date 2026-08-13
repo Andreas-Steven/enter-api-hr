@@ -338,7 +338,9 @@ final class WorkPatternRuleRepository implements WorkPatternRuleRepositoryInterf
             id: (int) $row['id'],
             name: $row['name'],
             ruleType: WorkPatternRuleType::from((string) $row['rule_type']),
-            targetCount: (int) $row['target_count'],
+            targetCount: $row['target_count'] !== null
+                ? (int) $row['target_count']
+                : null,
             holidayWins: (int) $row['holiday_wins'],
             holidayType: $holidayType,
             substitutionAllowed: (int) $row['substitution_allowed'],

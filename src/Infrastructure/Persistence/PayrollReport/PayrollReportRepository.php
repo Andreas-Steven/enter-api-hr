@@ -107,6 +107,22 @@ final class PayrollReportRepository implements PayrollReportRepositoryInterface,
             ->exists();
     }
 
+    public function findByAttendanceSummaryId(int $attendanceSummaryId, ?int $status = null): ?PayrollReport
+    {
+        $row = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['attendance_summary_id' => $attendanceSummaryId])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->one();
+
+        if (!$row) {
+            return null;
+        }
+
+        return $this->hydrateEntity($row);
+    }
+
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         $query = (new Query($this->db))
