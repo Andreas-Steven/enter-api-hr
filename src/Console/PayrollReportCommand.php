@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console;
 
-use App\Application\AttendanceSummary\AttendanceSummaryApplicationService;
-use App\Application\AttendanceSummary\Command\GenerateAttendanceSummaryCommand;
+use App\Application\PayrollReport\PayrollReportApplicationService;
+use App\Application\PayrollReport\Command\GeneratePayrollReportCommand;
 use App\Shared\Enums\RecordStatus;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -13,10 +13,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Yiisoft\Yii\Console\ExitCode;
 
-final class AttendanceSummaryGenerateCommand extends Command
+final class PayrollReportCommand extends Command
 {
     public function __construct(
-        private AttendanceSummaryApplicationService $applicationService,
+        private PayrollReportApplicationService $applicationService,
     ) {
         parent::__construct();
     }
@@ -24,8 +24,8 @@ final class AttendanceSummaryGenerateCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('generate:attendance-summary')
-            ->setDescription('Generate AttendanceSummary from Attendance data for all active employees')
+            ->setName('generate:payroll-report')
+            ->setDescription('Generate PayrollReport from AttendanceSummary data for a given period')
             ->addOption(
                 'period',
                 'p',
@@ -34,10 +34,10 @@ final class AttendanceSummaryGenerateCommand extends Command
                 null
             )
             ->addOption(
-                'employee-id',
-                'e',
+                'attendance-summary-id',
+                's',
                 InputOption::VALUE_OPTIONAL,
-                'Specific employee ID (default: all active employees)',
+                'Specific AttendanceSummary ID (default: all summaries in the period)',
                 null
             );
     }
@@ -51,21 +51,21 @@ final class AttendanceSummaryGenerateCommand extends Command
             $period = (int) $period;
         }
 
-        $employeeId = $input->getOption('employee-id');
+        $attendanceSummaryId = $input->getOption('attendance-summary-id');
 
         $output->writeln(sprintf(
-            '<info>Generating AttendanceSummary for period %d%s...</info>',
+            '<info>Generating PayrollReport for period %d%s...</info>',
             $period,
-            $employeeId !== null ? " (employee #{$employeeId})" : ' (all active employees)'
+            $attendanceSummaryId !== null ? " (attendance summary #{$attendanceSummaryId})" : ' (all summaries in period)'
         ));
 
-        $command = GenerateAttendanceSummaryCommand::create(
+        $command = GeneratePayrollReportCommand::create(
             period: $period,
             status: RecordStatus::DRAFT->value,
-            employeeId: $employeeId !== null ? (int) $employeeId : null,
+            attendanceSummaryId: $attendanceSummaryId !== null ? (int) $attendanceSummaryId : null,
         );
 
-        $result = $this->applicationService->generateAllFromAttendance(command: $command);
+        $result = $this->applicationService->generateAllFromAttendanceSummary(command: $command);
 
         $output->writeln(sprintf(
             "\n<info>Done: %d created, %d skipped, %d errors.</info>",
@@ -74,8 +74,8 @@ final class AttendanceSummaryGenerateCommand extends Command
             count($result->errors)
         ));
 
-        foreach ($result->errors as $empId => $error) {
-            $output->writeln(sprintf('  <error>❌ Employee #%d: %s</error>', $empId, $error));
+        foreach ($result->errors as $summaryId => $error) {
+            $output->writeln(sprintf('  <error>❌ AttendanceSummary #%d: %s</error>', $summaryId, $error));
         }
 
         return ExitCode::OK;
