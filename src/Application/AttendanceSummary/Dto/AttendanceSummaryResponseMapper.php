@@ -44,7 +44,7 @@ final class AttendanceSummaryResponseMapper
                 timeSummary: $entity->getTimeSummary(),
             ),
             'policy' => self::policy($detailInfo),
-            'detail_info' => self::withoutChangeLog($detailInfo),
+            'detail_info' => self::onlyChangeLog($detailInfo),
             'notes' => $entity->getNotes(),
             'sync_mdb' => $entity->getSyncMdbValue(),
             'lock_version' => $entity->getLockVersion()->value(),
@@ -76,7 +76,7 @@ final class AttendanceSummaryResponseMapper
                 periodSummary: self::arrayValue($row['period_summary'] ?? null),
                 timeSummary: self::arrayValue($row['time_summary'] ?? null),
             ),
-            'detail_info' => self::withoutChangeLog($detailInfo),
+            'detail_info' => self::onlyChangeLog($detailInfo),
         ];
     }
 
@@ -596,11 +596,15 @@ final class AttendanceSummaryResponseMapper
         return is_array($decoded) ? $decoded : [];
     }
 
-    private static function withoutChangeLog(array $detailInfo): array
+    private static function onlyChangeLog(array $detailInfo): array
     {
-        unset($detailInfo['change_log']);
+        $changeLog = array_key_exists('change_log', $detailInfo)
+            ? $detailInfo['change_log']
+            : ($detailInfo['audit'] ?? null);
 
-        return $detailInfo;
+        return [
+            'change_log' => $changeLog,
+        ];
     }
 
     private static function arrayList(mixed $value): array
