@@ -102,7 +102,7 @@ final class WorkPatternRuleUpdateAction
                 ? null
                 : (int) $params->get('target_count'),
             holidayWins: $params->has('holiday_wins') ? (int) $params->get('holiday_wins') : null,
-            holidayType: $this->resolveEnum(HolidayType::class, $params->get('holiday_type')),
+            holidayTypes: $this->resolveHolidayTypes($params->get('holiday_type')),
             substitutionAllowed: $params->has('substitution_allowed') ? (int) $params->get('substitution_allowed') : null,
             excessTreatment: $this->resolveEnum(ExcessTreatment::class, $params->get('excess_treatment')),
             deficitTreatment: $this->resolveEnum(DeficitTreatment::class, $params->get('deficit_treatment')),
@@ -111,6 +111,7 @@ final class WorkPatternRuleUpdateAction
             detailInfo: $params->get('detail_info'),
             lockVersion: $params->has('lock_version') ? (int) $params->get('lock_version') : null,
             targetCountProvided: $params->has('target_count'),
+            holidayTypesProvided: $params->has('holiday_type'),
         );
 
         $response = $this->applicationService->update(
@@ -127,6 +128,21 @@ final class WorkPatternRuleUpdateAction
                 ]
             ),
         );
+    }
+
+    /**
+     * @return list<HolidayType>|null
+     */
+    private function resolveHolidayTypes(mixed $value): ?array
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return array_values(array_map(
+            static fn(mixed $type): HolidayType => HolidayType::from((string) $type),
+            $value,
+        ));
     }
 
     /**

@@ -26,6 +26,13 @@ interface AttendancePermissionRepositoryInterface
     public function findByName(string $name, ?int $status = null): ?AttendancePermission;
 
     public function existsByName(string $name, ?int $status = null): bool;
+
+    /**
+     * Returns permissions whose date range overlaps the requested attendance period.
+     *
+     * @return array<int, AttendancePermission>
+     */
+    public function findByEmployeeAndPeriod(int $employeeId, int $period, ?int $status = null): array;
     
     public function list(SearchCriteria $criteria): PaginatedResult;
     

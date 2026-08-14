@@ -26,6 +26,13 @@ interface EmployeeLeaveRepositoryInterface
     public function findByName(string $name, ?int $status = null): ?EmployeeLeave;
 
     public function existsByName(string $name, ?int $status = null): bool;
+
+    /**
+     * Returns leave quotas whose validity range overlaps the requested attendance period.
+     *
+     * @return array<int, EmployeeLeave>
+     */
+    public function findByEmployeeAndPeriod(int $employeeId, int $period, ?int $status = null): array;
     
     public function list(SearchCriteria $criteria): PaginatedResult;
     

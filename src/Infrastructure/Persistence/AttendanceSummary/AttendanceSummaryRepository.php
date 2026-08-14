@@ -134,20 +134,11 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
                 'id',
                 'name',
                 'employee_id',
-                'branch_id',
-                'division_id',
-                'position_id',
-                'employee_type_id',
-                'work_pattern_id',
                 'period',
-                'attendance_detail',
                 'period_summary',
                 'time_summary',
-                'notes',
                 'status',
                 'detail_info',
-                SyncMdb::field(),
-                LockVersion::field(),
             ])
             ->from(self::TABLE_NAME)
             ->where($this->scopeWhereNotDeleted());
@@ -188,7 +179,7 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
         $rows = iterator_to_array(
             $this->streamRows(
                 query: $query, 
-                jsonKeys: ['attendance_detail', 'period_summary', 'time_summary', 'detail_info']
+                jsonKeys: ['period_summary', 'time_summary', 'detail_info']
             )
         );
 
@@ -230,6 +221,7 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
                 workPatternId: $entity->getWorkPatternId(),
                 period: $entity->getPeriod(),
                 attendanceDetail: $entity->getAttendanceDetail(),
+                permissionDetail: $entity->getPermissionDetail(),
                 periodSummary: $entity->getPeriodSummary(),
                 timeSummary: $entity->getTimeSummary(),
                 notes: $entity->getNotes(),
@@ -331,6 +323,7 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             workPatternId: $row['work_pattern_id'] !== null ? (int) $row['work_pattern_id'] : null,
             period: $row['period'] !== null ? (int) $row['period'] : null,
             attendanceDetail: $this->parseJsonColumn($row, 'attendance_detail'),
+            permissionDetail: $this->parseJsonColumn($row, 'permission_detail'),
             periodSummary: $this->parseJsonColumn($row, 'period_summary'),
             timeSummary: $this->parseJsonColumn($row, 'time_summary'),
             notes: $row['notes'],
@@ -359,6 +352,7 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             workPatternId: $row['work_pattern_id'] !== null ? (int) $row['work_pattern_id'] : null,
             period: $row['period'] !== null ? (int) $row['period'] : null,
             attendanceDetail: $this->parseJsonColumn($row, 'attendance_detail'),
+            permissionDetail: $this->parseJsonColumn($row, 'permission_detail'),
             periodSummary: $this->parseJsonColumn($row, 'period_summary'),
             timeSummary: $this->parseJsonColumn($row, 'time_summary'),
             notes: $row['notes'],
@@ -389,6 +383,7 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             'work_pattern_id' => $entity->getWorkPatternId(),
             'period' => $entity->getPeriod(),
             'attendance_detail' => json_encode($entity->getAttendanceDetail()),
+            'permission_detail' => json_encode($entity->getPermissionDetail()),
             'period_summary' => json_encode($entity->getPeriodSummary()),
             'time_summary' => json_encode($entity->getTimeSummary()),
             'notes' => $entity->getNotes(),

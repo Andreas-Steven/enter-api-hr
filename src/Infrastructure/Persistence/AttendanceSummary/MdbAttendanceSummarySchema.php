@@ -24,6 +24,7 @@ final class MdbAttendanceSummarySchema
             'work_pattern_id' => $entity->getWorkPatternId(),
             'period' => $entity->getPeriod(),
             'attendance_detail' => $entity->getAttendanceDetail(),
+            'permission_detail' => $entity->getPermissionDetail(),
             'period_summary' => $entity->getPeriodSummary(),
             'time_summary' => $entity->getTimeSummary(),
             'notes' => $entity->getNotes(),

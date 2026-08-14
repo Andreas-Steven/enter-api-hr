@@ -315,6 +315,7 @@ final class PayrollReportDomainService
             deductionSummary: $deductionSummary,
             expectedAbsentCount: (int) ($periodSummary['deduction_day_count'] ?? 0),
         );
+        $leaveQuotaUsedCount = $this->resolveLeaveQuotaUsedCount($attendanceSummary);
 
         return [
             'obligation_total_count' => (int) ($periodSummary['obligation_total_count'] ?? 0),
@@ -323,12 +324,42 @@ final class PayrollReportDomainService
             'daily_late_count' => (int) ($timeSummary['late_count'] ?? 0),
             'excess_count' => (int) ($periodSummary['excess_count'] ?? 0),
             'overtime_day_count' => (int) ($periodSummary['overtime_day_count'] ?? 0),
-            'leave_quota_used_count' => (int) ($periodSummary['leave_quota_used_count'] ?? 0),
+            'leave_quota_used_count' => $leaveQuotaUsedCount,
             'deduction_day_count' => (int) ($periodSummary['deduction_day_count'] ?? 0),
             'pending_review_count' => (int) ($periodSummary['pending_review_count'] ?? 0),
             'deduction_summary' => $deductionSummary,
             'rule_breakdown' => $periodSummary['rule_breakdown'] ?? [],
         ];
+    }
+
+    private function resolveLeaveQuotaUsedCount(AttendanceSummary $attendanceSummary): int
+    {
+        $periodSummary = $attendanceSummary->getPeriodSummary();
+        $ruleUsage = 0;
+        foreach ($periodSummary['rule_breakdown'] ?? [] as $rule) {
+            if (($rule['deficit_treatment'] ?? null) !== 'USE_EMPLOYEE_LEAVE') {
+                continue;
+            }
+
+            $ruleUsage += max(0, (int) ($rule['deficit_count'] ?? 0));
+        }
+
+        $permissionUsage = 0;
+        foreach ($attendanceSummary->getPermissionDetail() as $permission) {
+            if ((int) ($permission['employee_leave_id'] ?? 0) <= 0) {
+                continue;
+            }
+
+            $permissionUsage += max(
+                0,
+                (int) ($permission['period_day_count'] ?? $permission['total_day'] ?? 0),
+            );
+        }
+
+        return max(
+            (int) ($periodSummary['leave_quota_used_count'] ?? 0),
+            $ruleUsage + $permissionUsage,
+        );
     }
 
     /**

@@ -137,6 +137,49 @@ final class EmployeeLeaveRepository implements EmployeeLeaveRepositoryInterface,
             ->exists();
     }
 
+    /**
+     * @return array<int, EmployeeLeave>
+     */
+    public function findByEmployeeAndPeriod(int $employeeId, int $period, ?int $status = null): array
+    {
+        [$periodStart, $periodEnd] = $this->attendancePeriodDateRange($period);
+
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['employee_id' => $employeeId])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->andWhere(['<=', 'period_start_date', $periodEnd])
+            ->andWhere(['>=', 'period_end_date', $periodStart])
+            ->orderBy([
+                'period_start_date' => SORT_ASC,
+                'id' => SORT_ASC,
+            ])
+            ->all();
+
+        return array_map(
+            fn(array $row): EmployeeLeave => EmployeeLeave::reconstitute(
+                id: (int) $row['id'],
+                name: $row['name'],
+                leaveType: $row['leave_type'],
+                employeeId: (int) $row['employee_id'],
+                periodStartDate: $row['period_start_date'],
+                periodEndDate: $row['period_end_date'],
+                totalAmount: (int) $row['total_amount'],
+                adjustmentAmount: $row['adjustment_amount'] !== null ? (int) $row['adjustment_amount'] : null,
+                usedAmount: $row['used_amount'] !== null ? (int) $row['used_amount'] : null,
+                leaveRecords: is_string($row['leave_records'])
+                    ? (json_decode($row['leave_records'], true) ?? [])
+                    : ($row['leave_records'] ?? []),
+                status: ResourceStatus::from((int) $row['status']),
+                detailInfo: DetailInfo::fromJson($row['detail_info']),
+                syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
+                lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+            ),
+            $rows,
+        );
+    }
+
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         $query = (new Query($this->db))
@@ -351,6 +394,32 @@ final class EmployeeLeaveRepository implements EmployeeLeaveRepositoryInterface,
         return $this->update(
             entity: $entity,
         );
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function attendancePeriodDateRange(int $period): array
+    {
+        $year = intdiv($period, 100);
+        $month = $period % 100;
+        if ($year < 1 || $month < 1 || $month > 12) {
+            throw new \InvalidArgumentException(sprintf('Invalid attendance period: %d', $period));
+        }
+
+        $periodEnd = \DateTimeImmutable::createFromFormat(
+            '!Y-m-d',
+            sprintf('%04d-%02d-25', $year, $month),
+        );
+
+        if ($periodEnd === false) {
+            throw new \InvalidArgumentException(sprintf('Invalid attendance period: %d', $period));
+        }
+
+        return [
+            $periodEnd->modify('-1 month')->modify('+1 day')->format('Y-m-d'),
+            $periodEnd->format('Y-m-d'),
+        ];
     }
 
     private function mapEntityToTable(EmployeeLeave $entity, int $lockVersion): array

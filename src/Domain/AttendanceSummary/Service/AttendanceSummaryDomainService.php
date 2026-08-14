@@ -17,10 +17,15 @@ use App\Domain\AttendanceSummary\Result\GenerationResult;
 use App\Domain\AttendanceSummary\ValueObject\Name;
 use App\Domain\AttendanceReview\Entity\AttendanceReview;
 use App\Domain\AttendanceReview\ValueObject\ReviewOverrides;
+use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInterface;
+use App\Domain\EmployeeLeave\Entity\EmployeeLeave;
+use App\Domain\EmployeeLeave\Repository\EmployeeLeaveRepositoryInterface;
 use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
 use App\Domain\Employee\ValueObject\EmployeeCollection;
 use App\Domain\Employee\Entity\Employee;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
+use App\Domain\Shared\Enums\ApprovalStatus;
+use App\Domain\Shared\Enums\PermissionType;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
 // Shared Layer
@@ -41,6 +46,8 @@ final class AttendanceSummaryDomainService
         private AttendanceSummaryDetailInfoFactory $summaryDetailInfoFactory,
         private AttendanceSummaryRepositoryInterface $repository,
         private EmployeeRepositoryInterface $employeeRepository,
+        private AttendancePermissionRepositoryInterface $permissionRepository,
+        private EmployeeLeaveRepositoryInterface $employeeLeaveRepository,
     ) {}
 
     /**
@@ -67,9 +74,15 @@ final class AttendanceSummaryDomainService
 
         [$snapshotData, $workPatternSnapshot] = $this->buildEmployeeSnapshot($employee);
 
+        [$permissionDetail, $permissionSummary] = $this->buildPermissionSummary(
+            employeeId: $employee->getId(),
+            period: $period,
+        );
+
         [$periodSummary, $timeSummary] = $this->calculateSummaries(
             attendanceDetail: $attendanceDetail,
             workPatternSnapshot: $workPatternSnapshot,
+            permissionSummary: $permissionSummary,
         );
 
         $name = Name::fromEmployeeAndPeriod(
@@ -96,6 +109,7 @@ final class AttendanceSummaryDomainService
 
         $data->setPeriod($period);
         $data->setAttendanceDetail($attendanceDetail);
+        $data->setPermissionDetail($permissionDetail);
         $data->setPeriodSummary($periodSummary);
         $data->setTimeSummary($timeSummary);
 
@@ -313,6 +327,344 @@ final class AttendanceSummaryDomainService
         ];
     }
 
+    private function buildPermissionSummary(int $employeeId, int $period): array
+    {
+        $permissions = $this->permissionRepository->findByEmployeeAndPeriod(
+            employeeId: $employeeId,
+            period: $period,
+        );
+        $employeeLeaves = $this->employeeLeaveRepository->findByEmployeeAndPeriod(
+            employeeId: $employeeId,
+            period: $period,
+        );
+
+        $employeeLeaves = $this->synchronizeEmployeeLeaves(
+            permissions: $permissions,
+            employeeLeaves: $employeeLeaves,
+        );
+
+        $permissionDetail = [];
+        $permissionSummary = [
+            'leave_days' => 0,
+            'sick_days' => 0,
+            'permission_days' => 0,
+            'leave_quota_used_count' => 0,
+        ];
+        $approvedPermissionIds = [];
+
+        foreach ($permissions as $permission) {
+            if ($permission->getApproved() !== ApprovalStatus::APPROVED->value) {
+                continue;
+            }
+
+            $permissionType = PermissionType::tryFrom($permission->getPermissionType());
+            $startDate = $permission->getStartDate();
+            if ($permissionType === null || $startDate === null) {
+                continue;
+            }
+
+            $endDate = $permission->getEndDate() ?? $startDate;
+            $periodDayCount = $this->countDaysInAttendancePeriod(
+                startDate: $startDate,
+                endDate: $endDate,
+                period: $period,
+            );
+            if ($periodDayCount === 0) {
+                continue;
+            }
+
+            $summaryKey = $this->permissionSummaryKey($permissionType);
+            $permissionSummary[$summaryKey] += $periodDayCount;
+
+            $permissionId = $permission->getId();
+            if ($permissionId !== null) {
+                $approvedPermissionIds[(string) $permissionId] = true;
+            }
+
+            $employeeLeave = $this->findEmployeeLeaveForPermission(
+                permissionType: $permissionType,
+                startDate: $startDate,
+                endDate: $endDate,
+                employeeLeaves: $employeeLeaves,
+            );
+
+            if ($employeeLeave !== null && $this->employeeLeaveTypeAliases($permissionType) !== []) {
+                $permissionSummary['leave_quota_used_count'] += $periodDayCount;
+            }
+
+            $permissionDetail[] = [
+                'id' => $permissionId,
+                'employee_id' => $permission->getEmployeeId(),
+                'permission_type' => $permissionType->value,
+                'permission' => [
+                    'id' => $permissionType->value,
+                    'name' => $permissionType->getLabel(),
+                ],
+                'start_date' => $startDate,
+                'end_date' => $permission->getEndDate(),
+                'period' => $permission->getPeriod(),
+                'total_day' => $this->countInclusiveDays($startDate, $endDate),
+                'period_day_count' => $periodDayCount,
+                'note' => $permission->getNote(),
+                'approved' => $permission->getApproved(),
+                'approved_note' => $permission->getApprovedNote(),
+                'status' => $permission->getStatus()->value(),
+                'employee_leave_id' => $employeeLeave?->getId(),
+            ];
+        }
+
+        foreach ($employeeLeaves as $employeeLeave) {
+            $summaryKey = $this->employeeLeaveSummaryKey($employeeLeave->getLeaveType());
+            if ($summaryKey === null) {
+                continue;
+            }
+
+            foreach ($employeeLeave->getLeaveRecords() as $record) {
+                if (!is_array($record)) {
+                    continue;
+                }
+
+                $permissionId = $this->leaveRecordPermissionId($record);
+                if ($permissionId !== null && isset($approvedPermissionIds[(string) $permissionId])) {
+                    continue;
+                }
+
+                $recordDays = $this->countLeaveRecordDays(
+                    record: $record,
+                    period: $period,
+                );
+                $permissionSummary[$summaryKey] += $recordDays;
+                $permissionSummary['leave_quota_used_count'] += $recordDays;
+            }
+        }
+
+        return [$permissionDetail, $permissionSummary];
+    }
+
+    private function synchronizeEmployeeLeaves(array $permissions, array $employeeLeaves): array
+    {
+        $leaveMap = [];
+        foreach ($employeeLeaves as $employeeLeave) {
+            if ($employeeLeave->getId() !== null) {
+                $leaveMap[(string) $employeeLeave->getId()] = $employeeLeave;
+            }
+        }
+
+        $changedLeaveIds = [];
+        foreach ($permissions as $permission) {
+            if ($permission->getApproved() !== ApprovalStatus::APPROVED->value) {
+                continue;
+            }
+
+            $permissionType = PermissionType::tryFrom($permission->getPermissionType());
+            $permissionId = $permission->getId();
+            $startDate = $permission->getStartDate();
+            if ($permissionType === null || $permissionId === null || $startDate === null) {
+                continue;
+            }
+
+            if ($this->employeeLeaveTypeAliases($permissionType) === []) {
+                continue;
+            }
+
+            $endDate = $permission->getEndDate() ?? $startDate;
+            $employeeLeave = $this->findEmployeeLeaveForPermission(
+                permissionType: $permissionType,
+                startDate: $startDate,
+                endDate: $endDate,
+                employeeLeaves: array_values($leaveMap),
+            );
+            if ($employeeLeave === null || $employeeLeave->getId() === null) {
+                continue;
+            }
+
+            $leaveId = (string) $employeeLeave->getId();
+            $leaveRecords = $employeeLeave->getLeaveRecords();
+            $recordExists = false;
+            foreach ($leaveRecords as $record) {
+                if (is_array($record) && $this->leaveRecordPermissionId($record) === $permissionId) {
+                    $recordExists = true;
+                    break;
+                }
+            }
+
+            if ($recordExists) {
+                continue;
+            }
+
+            $totalDays = $this->countInclusiveDays($startDate, $endDate);
+            if ($totalDays === 0) {
+                continue;
+            }
+
+            $leaveRecords[] = [
+                'attendance_permission_id' => $permissionId,
+                'permission_type' => $permissionType->value,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'total_day' => $totalDays,
+                'period' => $permission->getPeriod(),
+            ];
+            $employeeLeave->setLeaveRecords($leaveRecords);
+            $employeeLeave->setUsedAmount(($employeeLeave->getUsedAmount() ?? 0) + $totalDays);
+            $leaveMap[$leaveId] = $employeeLeave;
+            $changedLeaveIds[$leaveId] = true;
+        }
+
+        foreach (array_keys($changedLeaveIds) as $leaveId) {
+            $leaveMap[$leaveId] = $this->employeeLeaveRepository->update(
+                $leaveMap[$leaveId],
+            );
+        }
+
+        return array_values($leaveMap);
+    }
+
+    private function findEmployeeLeaveForPermission(
+        PermissionType $permissionType,
+        string $startDate,
+        string $endDate,
+        array $employeeLeaves,
+    ): ?EmployeeLeave {
+        $aliases = $this->employeeLeaveTypeAliases($permissionType);
+        if ($aliases === []) {
+            return null;
+        }
+
+        foreach ($employeeLeaves as $employeeLeave) {
+            if (!in_array(
+                $this->normalizeLeaveType($employeeLeave->getLeaveType()),
+                $aliases,
+                true,
+            )) {
+                continue;
+            }
+
+            if (
+                $employeeLeave->getPeriodStartDate() <= $endDate
+                && $employeeLeave->getPeriodEndDate() >= $startDate
+            ) {
+                return $employeeLeave;
+            }
+        }
+
+        return null;
+    }
+
+    private function permissionSummaryKey(PermissionType $permissionType): string
+    {
+        return match ($permissionType) {
+            PermissionType::SICK,
+            PermissionType::SICK_WITH_RECEIPT => 'sick_days',
+            PermissionType::ANNUAL_LEAVE => 'leave_days',
+            PermissionType::LEAVE_EARLY,
+            PermissionType::LATE,
+            PermissionType::PERMISSION_LEAVE,
+            PermissionType::UNPAID_LEAVE => 'permission_days',
+        };
+    }
+
+    private function employeeLeaveSummaryKey(string $leaveType): ?string
+    {
+        return match ($this->normalizeLeaveType($leaveType)) {
+            'ANNUAL', 'ANNUAL_LEAVE' => 'leave_days',
+            'SICK', 'SICK_LEAVE' => 'sick_days',
+            'PERMISSION', 'PERMISSION_LEAVE', 'UNPAID', 'UNPAID_LEAVE' => 'permission_days',
+            default => null,
+        };
+    }
+
+    private function employeeLeaveTypeAliases(PermissionType $permissionType): array
+    {
+        return match ($permissionType) {
+            PermissionType::SICK, PermissionType::SICK_WITH_RECEIPT => ['SICK', 'SICK_LEAVE'],
+            PermissionType::ANNUAL_LEAVE => ['ANNUAL', 'ANNUAL_LEAVE'],
+            PermissionType::PERMISSION_LEAVE => ['PERMISSION', 'PERMISSION_LEAVE'],
+            PermissionType::UNPAID_LEAVE => ['UNPAID', 'UNPAID_LEAVE'],
+            PermissionType::LEAVE_EARLY, PermissionType::LATE => [],
+        };
+    }
+
+    private function normalizeLeaveType(string $leaveType): string
+    {
+        return strtoupper(str_replace(['-', ' '], '_', trim($leaveType)));
+    }
+
+    private function leaveRecordPermissionId(array $record): ?int
+    {
+        foreach (['attendance_permission_id', 'permission_id'] as $key) {
+            if (isset($record[$key]) && (int) $record[$key] > 0) {
+                return (int) $record[$key];
+            }
+        }
+
+        return null;
+    }
+
+    private function countLeaveRecordDays(array $record, int $period): int
+    {
+        $startDate = $record['start_date'] ?? $record['date'] ?? null;
+        if (!is_string($startDate) || $startDate === '') {
+            return (int) ((int) ($record['period'] ?? 0) === $period
+                ? max(0, (int) ($record['total_day'] ?? 0))
+                : 0);
+        }
+
+        $endDate = $record['end_date'] ?? $startDate;
+        if (!is_string($endDate) || $endDate === '') {
+            $endDate = $startDate;
+        }
+
+        return $this->countDaysInAttendancePeriod(
+            startDate: $startDate,
+            endDate: $endDate,
+            period: $period,
+        );
+    }
+
+    private function countDaysInAttendancePeriod(string $startDate, string $endDate, int $period): int
+    {
+        [$periodStart, $periodEnd] = $this->attendancePeriodDateRange($period);
+        $from = $startDate > $periodStart ? $startDate : $periodStart;
+        $to = $endDate < $periodEnd ? $endDate : $periodEnd;
+
+        return $this->countInclusiveDays($from, $to);
+    }
+
+    private function countInclusiveDays(string $startDate, string $endDate): int
+    {
+        if ($startDate > $endDate) {
+            return 0;
+        }
+
+        $start = new \DateTimeImmutable($startDate);
+        $end = new \DateTimeImmutable($endDate);
+
+        return $start->diff($end)->days + 1;
+    }
+
+    private function attendancePeriodDateRange(int $period): array
+    {
+        $year = intdiv($period, 100);
+        $month = $period % 100;
+        if ($year < 1 || $month < 1 || $month > 12) {
+            throw new \InvalidArgumentException(sprintf('Invalid attendance period: %d', $period));
+        }
+
+        $periodEnd = \DateTimeImmutable::createFromFormat(
+            '!Y-m-d',
+            sprintf('%04d-%02d-25', $year, $month),
+        );
+        if ($periodEnd === false) {
+            throw new \InvalidArgumentException(sprintf('Invalid attendance period: %d', $period));
+        }
+
+        return [
+            $periodEnd->modify('-1 month')->modify('+1 day')->format('Y-m-d'),
+            $periodEnd->format('Y-m-d'),
+        ];
+    }
+
     /**
      * Calculates period and time summaries from attendance detail entries.
      *
@@ -337,6 +689,7 @@ final class AttendanceSummaryDomainService
         ?array $workPatternSnapshot = null,
         ?ReviewOverrides $overrides = null,
         ?array $missingPolicyConfig = null,
+        ?array $permissionSummary = null,
     ): array
     {
         $presentDays = 0;
@@ -521,12 +874,17 @@ final class AttendanceSummaryDomainService
 
         $pendingReviewCount += $dayLevelPendingCount;
 
+        $actualLeaveDays = (int) ($permissionSummary['leave_days'] ?? 0);
+        $actualSickDays = (int) ($permissionSummary['sick_days'] ?? 0);
+        $actualPermissionDays = (int) ($permissionSummary['permission_days'] ?? 0);
+        $actualLeaveQuotaUsedCount = (int) ($permissionSummary['leave_quota_used_count'] ?? 0);
+
         $periodSummary = [
             'present_days' => $presentDays,
             'absent_days' => 0,
-            'leave_days' => $leaveQuotaUsedCount,
-            'sick_days' => 0,
-            'permission_days' => 0,
+            'leave_days' => $actualLeaveDays + $leaveQuotaUsedCount,
+            'sick_days' => $actualSickDays,
+            'permission_days' => $actualPermissionDays,
             'hek_count' => $obligationDayCount,
             'valid_present_count' => array_sum(array_map(fn($s) => $s['fulfilled'], $ruleStats)),
             'obligation_total_count' => $obligationTotalCount,
@@ -534,7 +892,7 @@ final class AttendanceSummaryDomainService
             'deficit_count' => $obligationUnfulfilledCount,
             'excess_count' => $excessCount,
             'overtime_day_count' => $overtimeDayCount,
-            'leave_quota_used_count' => $leaveQuotaUsedCount,
+            'leave_quota_used_count' => $actualLeaveQuotaUsedCount + $leaveQuotaUsedCount,
             'deduction_day_count' => $deductionDayCount,
             'pending_review_count' => $pendingReviewCount,
             'rule_breakdown' => $this->buildRuleBreakdown($ruleStats),
@@ -597,15 +955,70 @@ final class AttendanceSummaryDomainService
         $missingPolicyConfig = $this->resolveMissingPolicyFromSummary($summary);
         $workPatternSnapshot = $summary->getDetailInfo()->get('work_pattern');
 
+        $existingPeriodSummary = $summary->getPeriodSummary();
+        $existingRuleLeaveQuotaUsed = $this->countRuleLeaveQuotaUsage(
+            ruleBreakdown: $existingPeriodSummary['rule_breakdown'] ?? [],
+        );
+        $permissionLeaveQuotaUsed = $this->countPermissionQuotaUsage(
+            permissionDetail: $summary->getPermissionDetail(),
+        );
+        $existingActualLeaveQuotaUsed = max(
+            0,
+            max(
+                (int) ($existingPeriodSummary['leave_quota_used_count'] ?? 0),
+                $permissionLeaveQuotaUsed,
+            ) - $existingRuleLeaveQuotaUsed,
+        );
+
         [$periodSummary, $timeSummary] = $this->calculateSummaries(
             attendanceDetail: $summary->getAttendanceDetail(),
             workPatternSnapshot: is_array($workPatternSnapshot) ? $workPatternSnapshot : null,
             overrides: $overrides,
             missingPolicyConfig: $missingPolicyConfig,
+            permissionSummary: [
+                'leave_days' => max(
+                    0,
+                    (int) ($existingPeriodSummary['leave_days'] ?? 0) - $existingRuleLeaveQuotaUsed,
+                ),
+                'sick_days' => (int) ($existingPeriodSummary['sick_days'] ?? 0),
+                'permission_days' => (int) ($existingPeriodSummary['permission_days'] ?? 0),
+                'leave_quota_used_count' => $existingActualLeaveQuotaUsed,
+            ],
         );
 
         $summary->setPeriodSummary($periodSummary);
         $summary->setTimeSummary($timeSummary);
+    }
+
+    private function countRuleLeaveQuotaUsage(array $ruleBreakdown): int
+    {
+        $count = 0;
+        foreach ($ruleBreakdown as $rule) {
+            if (($rule['deficit_treatment'] ?? null) !== 'USE_EMPLOYEE_LEAVE') {
+                continue;
+            }
+
+            $count += max(0, (int) ($rule['deficit_count'] ?? 0));
+        }
+
+        return $count;
+    }
+
+    private function countPermissionQuotaUsage(array $permissionDetail): int
+    {
+        $count = 0;
+        foreach ($permissionDetail as $permission) {
+            if ((int) ($permission['employee_leave_id'] ?? 0) <= 0) {
+                continue;
+            }
+
+            $count += max(
+                0,
+                (int) ($permission['period_day_count'] ?? $permission['total_day'] ?? 0),
+            );
+        }
+
+        return $count;
     }
 
     /**

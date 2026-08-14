@@ -8,6 +8,7 @@ namespace App\Application\AttendanceSummary;
 use App\Application\AttendanceSummary\Command\CreateAttendanceSummaryCommand;
 use App\Application\AttendanceSummary\Command\GenerateAttendanceSummaryCommand;
 use App\Application\AttendanceSummary\Command\UpdateAttendanceSummaryCommand;
+use App\Application\AttendanceSummary\Dto\AttendanceSummaryListResponse;
 use App\Application\AttendanceSummary\Dto\AttendanceSummaryResponse;
 use App\Application\AttendanceSummary\Dto\BatchGenerationResult;
 use App\Application\Shared\Factory\DetailInfoFactory;
@@ -70,8 +71,22 @@ final class AttendanceSummaryApplicationService
     
     public function list(SearchCriteria $criteria): PaginatedResult
     {
-        return $this->repository->list(
+        $result = $this->repository->list(
             criteria: $criteria
+        );
+
+        $data = array_map(
+            static fn(array $row): array => AttendanceSummaryListResponse::fromRow($row)->toArray(),
+            $result->data,
+        );
+
+        return new PaginatedResult(
+            data: $data,
+            total: $result->total,
+            page: $result->page,
+            pageSize: $result->pageSize,
+            filter: $result->filter,
+            sort: $result->sort,
         );
     }
 
@@ -169,6 +184,9 @@ final class AttendanceSummaryApplicationService
         }
         if ($command->attendanceDetail !== null) {
             $data->setAttendanceDetail($command->attendanceDetail);
+        }
+        if ($command->permissionDetail !== null) {
+            $data->setPermissionDetail($command->permissionDetail);
         }
         if ($command->periodSummary !== null) {
             $data->setPeriodSummary($command->periodSummary);

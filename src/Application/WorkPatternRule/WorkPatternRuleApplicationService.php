@@ -99,7 +99,7 @@ final class WorkPatternRuleApplicationService
             ruleType: $command->ruleType,
             targetCount: $command->targetCount,
             holidayWins: $command->holidayWins,
-            holidayType: $command->holidayType,
+            holidayTypes: $command->holidayTypes,
             substitutionAllowed: $command->substitutionAllowed,
             excessTreatment: $command->excessTreatment,
             deficitTreatment: $command->deficitTreatment,
@@ -130,8 +130,9 @@ final class WorkPatternRuleApplicationService
         $newStatus = ResourceStatus::tryFrom($command->status);
 
         $targetCountProvided = $command->targetCountProvided || $command->targetCount !== null;
+        $holidayTypesProvided = $command->holidayTypesProvided || $command->holidayTypes !== null;
         $commandData = (array) $command;
-        unset($commandData['targetCountProvided']);
+        unset($commandData['targetCountProvided'], $commandData['holidayTypesProvided']);
 
         $hasFieldChanges = $data->hasFieldChanges(
             data: $commandData,
@@ -139,6 +140,10 @@ final class WorkPatternRuleApplicationService
         );
 
         if ($targetCountProvided && $data->getTargetCount() !== $command->targetCount) {
+            $hasFieldChanges = true;
+        }
+
+        if ($holidayTypesProvided && $data->getHolidayTypes() !== $command->holidayTypes) {
             $hasFieldChanges = true;
         }
 
@@ -174,8 +179,8 @@ final class WorkPatternRuleApplicationService
         if (!empty($command->holidayWins)) {
             $data->updateHolidayWins($command->holidayWins);
         }
-        if (!empty($command->holidayType)) {
-            $data->updateHolidayType($command->holidayType);
+        if ($holidayTypesProvided) {
+            $data->updateHolidayTypes($command->holidayTypes);
         }
         if (!empty($command->substitutionAllowed)) {
             $data->updateSubstitutionAllowed($command->substitutionAllowed);

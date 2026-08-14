@@ -46,6 +46,7 @@ final class AttendanceSummary
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
+        private array $permissionDetail = [],
     ) {
         $this->resource = self::RESOURCE;
         $this->lockVersion = $lockVersion ?? LockVersion::create();
@@ -66,6 +67,7 @@ final class AttendanceSummary
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
+        ?array $permissionDetail = null,
     ): self {
         self::guardInitialStatus(
             status: $status,
@@ -89,7 +91,8 @@ final class AttendanceSummary
             status: $status,
             detailInfo: $detailInfo,
             syncMdb: $syncMdb,
-            lockVersion: LockVersion::create()
+            lockVersion: LockVersion::create(),
+            permissionDetail: $permissionDetail ?? [],
         );
     }
 
@@ -111,6 +114,7 @@ final class AttendanceSummary
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
+        ?array $permissionDetail = null,
     ): self {
 
         return new self(
@@ -130,7 +134,8 @@ final class AttendanceSummary
             status: $status,
             detailInfo: $detailInfo,
             syncMdb: $syncMdb,
-            lockVersion: $lockVersion ?? LockVersion::create()
+            lockVersion: $lockVersion ?? LockVersion::create(),
+            permissionDetail: $permissionDetail ?? [],
         );
     }
 
@@ -147,6 +152,7 @@ final class AttendanceSummary
             'work_pattern_id' => $this->workPatternId,
             'period' => $this->period,
             'attendance_detail' => $this->attendanceDetail,
+            'permission_detail' => $this->permissionDetail,
             'period_summary' => $this->periodSummary,
             'time_summary' => $this->timeSummary,
             'notes' => $this->notes,
@@ -249,6 +255,16 @@ final class AttendanceSummary
     public function setAttendanceDetail(array $data): void
     {
         $this->attendanceDetail = $data;
+    }
+
+    public function getPermissionDetail(): array
+    {
+        return $this->permissionDetail;
+    }
+
+    public function setPermissionDetail(array $data): void
+    {
+        $this->permissionDetail = $data;
     }
 
     public function getPeriodSummary(): array

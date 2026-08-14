@@ -75,7 +75,7 @@ final class WorkPatternRuleCreateAction
                 ? null
                 : (int) $params->get('target_count'),
             holidayWins: (int) $params->get('holiday_wins'),
-            holidayType: $this->resolveHolidayType($params->get('holiday_type')),
+            holidayTypes: $this->resolveHolidayTypes($params->get('holiday_type')),
             substitutionAllowed: (int) $params->get('substitution_allowed'),
             excessTreatment: ExcessTreatment::from((string) $params->get('excess_treatment')),
             deficitTreatment: DeficitTreatment::from((string) $params->get('deficit_treatment')),
@@ -98,12 +98,18 @@ final class WorkPatternRuleCreateAction
         );
     }
 
-    private function resolveHolidayType(mixed $value): ?HolidayType
+    /**
+     * @return list<HolidayType>|null
+     */
+    private function resolveHolidayTypes(mixed $value): ?array
     {
-        if ($value === null || $value === '' || !is_string($value)) {
+        if ($value === null) {
             return null;
         }
 
-        return HolidayType::from($value);
+        return array_values(array_map(
+            static fn(mixed $type): HolidayType => HolidayType::from((string) $type),
+            $value,
+        ));
     }
 }

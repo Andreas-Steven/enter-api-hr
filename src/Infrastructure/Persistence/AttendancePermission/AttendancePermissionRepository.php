@@ -138,6 +138,51 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
             ->exists();
     }
 
+    /**
+     * @return array<int, AttendancePermission>
+     */
+    public function findByEmployeeAndPeriod(int $employeeId, int $period, ?int $status = null): array
+    {
+        [$periodStart, $periodEnd] = $this->attendancePeriodDateRange($period);
+
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['employee_id' => $employeeId])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->andWhere(['<=', 'start_date', $periodEnd])
+            ->andWhere([
+                'or',
+                ['end_date' => null],
+                ['>=', 'end_date', $periodStart],
+            ])
+            ->orderBy([
+                'start_date' => SORT_ASC,
+                'id' => SORT_ASC,
+            ])
+            ->all();
+
+        return array_map(
+            fn(array $row): AttendancePermission => AttendancePermission::reconstitute(
+                id: (int) $row['id'],
+                employeeId: (int) $row['employee_id'],
+                permissionType: (int) $row['permission_type'],
+                startDate: $row['start_date'],
+                endDate: $row['end_date'],
+                period: (int) $row['period'],
+                note: $row['note'],
+                approved: $row['approved'] !== null ? (int) $row['approved'] : null,
+                approvedNote: $row['approved_note'],
+                revision: Revision::fromJson($row['revision']),
+                status: ResourceStatus::from((int) $row['status']),
+                detailInfo: DetailInfo::fromJson($row['detail_info']),
+                syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
+                lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+            ),
+            $rows,
+        );
+    }
+
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         $query = (new Query($this->db))
@@ -402,6 +447,32 @@ final class AttendancePermissionRepository implements AttendancePermissionReposi
         return $this->update(
             entity: $entity,
         );
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function attendancePeriodDateRange(int $period): array
+    {
+        $year = intdiv($period, 100);
+        $month = $period % 100;
+        if ($year < 1 || $month < 1 || $month > 12) {
+            throw new \InvalidArgumentException(sprintf('Invalid attendance period: %d', $period));
+        }
+
+        $periodEnd = \DateTimeImmutable::createFromFormat(
+            '!Y-m-d',
+            sprintf('%04d-%02d-25', $year, $month),
+        );
+
+        if ($periodEnd === false) {
+            throw new \InvalidArgumentException(sprintf('Invalid attendance period: %d', $period));
+        }
+
+        return [
+            $periodEnd->modify('-1 month')->modify('+1 day')->format('Y-m-d'),
+            $periodEnd->format('Y-m-d'),
+        ];
     }
 
     private function mapEntityToTable(AttendancePermission $entity, int $lockVersion): array

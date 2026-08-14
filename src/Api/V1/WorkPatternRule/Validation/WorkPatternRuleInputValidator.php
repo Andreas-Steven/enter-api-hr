@@ -24,6 +24,7 @@ use Yiisoft\Validator\Rule\StringValue;
 use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
 use Yiisoft\Validator\Rule\StopOnError;
+use Yiisoft\Validator\Rule\Each;
 
 /**
  * WorkPatternRule Input Validator
@@ -133,10 +134,9 @@ final class WorkPatternRuleInputValidator extends AbstractValidator
                     new In([0, 1]),
                 ],
                 'holiday_type' => [
-                    new In(
-                        HolidayType::values(),
-                        skipOnEmpty: true,
-                    ),
+                    new Each([
+                        new In(HolidayType::values()),
+                    ], skipOnEmpty: true),
                 ],
                 'substitution_allowed' => [
                     new Required(),
@@ -206,10 +206,9 @@ final class WorkPatternRuleInputValidator extends AbstractValidator
                     ),
                 ],
                 'holiday_type' => [
-                    new In(
-                        HolidayType::values(),
-                        skipOnEmpty: true,
-                    ),
+                    new Each([
+                        new In(HolidayType::values()),
+                    ], skipOnEmpty: true),
                 ],
                 'substitution_allowed' => [
                     new In(
@@ -289,10 +288,9 @@ final class WorkPatternRuleInputValidator extends AbstractValidator
                     ),
                 ],
                 'holiday_type' => [
-                    new In(
-                        HolidayType::values(),
-                        skipOnEmpty: true,
-                    ),
+                    new Each([
+                        new In(HolidayType::values()),
+                    ], skipOnEmpty: true),
                 ],
                 'substitution_allowed' => [
                     new In(

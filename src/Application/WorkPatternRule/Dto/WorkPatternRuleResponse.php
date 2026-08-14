@@ -6,7 +6,6 @@ namespace App\Application\WorkPatternRule\Dto;
 
 use App\Domain\Shared\Enums\DeficitTreatment;
 use App\Domain\Shared\Enums\ExcessTreatment;
-use App\Domain\Shared\Enums\HolidayType;
 use App\Domain\Shared\Enums\WorkPatternRuleType;
 use App\Domain\WorkPatternRule\Entity\WorkPatternRule;
 
@@ -18,7 +17,8 @@ final readonly class WorkPatternRuleResponse
         public string $rule_type,
         public ?int $target_count,
         public int $holiday_wins,
-        public ?string $holiday_type,
+        /** @var list<string>|null */
+        public ?array $holiday_type,
         public int $substitution_allowed,
         public string $excess_treatment,
         public string $deficit_treatment,
@@ -37,7 +37,7 @@ final readonly class WorkPatternRuleResponse
             rule_type: $entity->getRuleType()->value,
             target_count: $entity->getTargetCount(),
             holiday_wins: $entity->getHolidayWins(),
-            holiday_type: $entity->getHolidayType()?->value,
+            holiday_type: $entity->getHolidayTypeValues(),
             substitution_allowed: $entity->getSubstitutionAllowed(),
             excess_treatment: $entity->getExcessTreatment()->value,
             deficit_treatment: $entity->getDeficitTreatment()->value,

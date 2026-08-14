@@ -46,6 +46,7 @@ final class M20260807065056CreateAttendanceSummaryTable implements RevertibleMig
 
             // 1. Detil absen harian (raw daily attendance records for the period)
             'attendance_detail' => $cb::json()->notNull()->defaultValue([]),
+            'permission_detail' => $cb::json()->notNull()->defaultValue([]),
             // 2. Rekap parameter periode/payroll + status kehadiran hari
             'period_summary' => $cb::json()->notNull()->defaultValue([
                 'present_days' => 0,

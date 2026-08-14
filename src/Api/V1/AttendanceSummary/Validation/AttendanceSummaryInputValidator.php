@@ -140,6 +140,9 @@ final class AttendanceSummaryInputValidator extends AbstractValidator
                 'attendance_detail' => [
                     new Nested([], skipOnEmpty: true),
                 ],
+                'permission_detail' => [
+                    new Nested([], skipOnEmpty: true),
+                ],
                 'period_summary' => [
                     new Nested([
                         'present_days' => [new Integer(min: 0, skipOnEmpty: true)],

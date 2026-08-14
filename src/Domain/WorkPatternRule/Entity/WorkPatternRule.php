@@ -36,7 +36,8 @@ final class WorkPatternRule
         private WorkPatternRuleType $ruleType,
         private ?int $targetCount,
         private int $holidayWins,
-        private ?HolidayType $holidayType,
+        /** @var list<HolidayType>|null */
+        private ?array $holidayTypes,
         private int $substitutionAllowed,
         private ExcessTreatment $excessTreatment,
         private DeficitTreatment $deficitTreatment,
@@ -65,7 +66,8 @@ final class WorkPatternRule
         WorkPatternRuleType $ruleType,
         ?int $targetCount,
         int $holidayWins,
-        ?HolidayType $holidayType,
+        /** @var list<HolidayType>|null $holidayTypes */
+        ?array $holidayTypes,
         int $substitutionAllowed,
         ExcessTreatment $excessTreatment,
         DeficitTreatment $deficitTreatment,
@@ -85,7 +87,7 @@ final class WorkPatternRule
             ruleType: $ruleType,
             targetCount: $targetCount,
             holidayWins: $holidayWins,
-            holidayType: $holidayType,
+            holidayTypes: $holidayTypes,
             substitutionAllowed: $substitutionAllowed,
             excessTreatment: $excessTreatment,
             deficitTreatment: $deficitTreatment,
@@ -103,7 +105,8 @@ final class WorkPatternRule
         WorkPatternRuleType $ruleType,
         ?int $targetCount,
         int $holidayWins,
-        ?HolidayType $holidayType,
+        /** @var list<HolidayType>|null $holidayTypes */
+        ?array $holidayTypes,
         int $substitutionAllowed,
         ExcessTreatment $excessTreatment,
         DeficitTreatment $deficitTreatment,
@@ -120,7 +123,7 @@ final class WorkPatternRule
             ruleType: $ruleType,
             targetCount: $targetCount,
             holidayWins: $holidayWins,
-            holidayType: $holidayType,
+            holidayTypes: $holidayTypes,
             substitutionAllowed: $substitutionAllowed,
             excessTreatment: $excessTreatment,
             deficitTreatment: $deficitTreatment,
@@ -140,7 +143,7 @@ final class WorkPatternRule
             'rule_type' => $this->ruleType->value,
             'target_count' => $this->targetCount,
             'holiday_wins' => $this->holidayWins,
-            'holiday_type' => $this->holidayType?->value,
+            'holiday_type' => $this->getHolidayTypeValues(),
             'substitution_allowed' => $this->substitutionAllowed,
             'excess_treatment' => $this->excessTreatment->value,
             'deficit_treatment' => $this->deficitTreatment->value,
@@ -165,7 +168,7 @@ final class WorkPatternRule
             'rule_type' => $this->ruleType->value,
             'target_count' => $this->targetCount,
             'holiday_wins' => $this->holidayWins,
-            'holiday_type' => $this->holidayType?->value,
+            'holiday_type' => $this->getHolidayTypeValues(),
             'substitution_allowed' => $this->substitutionAllowed,
             'excess_treatment' => $this->excessTreatment->value,
             'deficit_treatment' => $this->deficitTreatment->value,
@@ -187,9 +190,12 @@ final class WorkPatternRule
         return $this->holidayWins;
     }
 
-    public function getHolidayType(): ?HolidayType
+    /**
+     * @return list<HolidayType>|null
+     */
+    public function getHolidayTypes(): ?array
     {
-        return $this->holidayType;
+        return $this->holidayTypes;
     }
 
     public function getSubstitutionAllowed(): int
@@ -244,10 +250,13 @@ final class WorkPatternRule
         $this->holidayWins = $holidayWins;
     }
 
-    public function updateHolidayType(?HolidayType $holidayType): void
+    /**
+     * @param list<HolidayType>|null $holidayTypes
+     */
+    public function updateHolidayTypes(?array $holidayTypes): void
     {
         // Allow explicitly clearing holiday_type by passing null
-        $this->holidayType = $holidayType;
+        $this->holidayTypes = $holidayTypes;
     }
 
     public function updateSubstitutionAllowed(?int $substitutionAllowed): void
@@ -277,6 +286,21 @@ final class WorkPatternRule
     public function updateNotes(?string $notes): void
     {
         $this->notes = $notes;
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    public function getHolidayTypeValues(): ?array
+    {
+        if ($this->holidayTypes === null) {
+            return null;
+        }
+
+        return array_values(array_map(
+            static fn(HolidayType $holidayType): string => $holidayType->value,
+            $this->holidayTypes,
+        ));
     }
 
     private static function guardTargetCount(

@@ -166,18 +166,29 @@ final class AttendanceFineRateApplicationService
             newStatus: $newStatus
         );
 
+        $detailInfoPayload = $command->detailInfo ?? [];
+
         if ($command->deductionTypeId !== null) {
-            $rateInfo = $this->rateDetailInfoFactory->buildFromDeductionTypeId(
-                deductionTypeId: $command->deductionTypeId,
+            $detailInfoPayload = array_merge(
+                $detailInfoPayload,
+                $this->rateDetailInfoFactory
+                    ->buildFromDeductionTypeId(
+                        deductionTypeId: $command->deductionTypeId,
+                    )
+                    ->toArray(),
             );
         }
 
         $detailInfo = $this->detailInfoFactory
             ->update(
                 detailInfo: $data->getDetailInfo(),
-                payload: $rateInfo->toArray(),
+                payload: $detailInfoPayload,
             )
             ->build();
+
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
 
         return AttendanceFineRateResponse::fromEntity(
             entity: $this->repository->update(

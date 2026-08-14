@@ -19,7 +19,7 @@ final class MdbWorkPatternRuleSchema
             'rule_type' => $entity->getRuleType()->value,
             'target_count' => $entity->getTargetCount(),
             'holiday_wins' => $entity->getHolidayWins(),
-            'holiday_type' => $entity->getHolidayType()?->value,
+            'holiday_type' => $entity->getHolidayTypeValues(),
             'substitution_allowed' => $entity->getSubstitutionAllowed(),
             'excess_treatment' => $entity->getExcessTreatment()->value,
             'deficit_treatment' => $entity->getDeficitTreatment()->value,

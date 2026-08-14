@@ -17,7 +17,8 @@ final readonly class CreateWorkPatternRuleCommand
         public WorkPatternRuleType $ruleType,
         public ?int $targetCount,
         public int $holidayWins,
-        public ?HolidayType $holidayType,
+        /** @var list<HolidayType>|null */
+        public ?array $holidayTypes,
         public int $substitutionAllowed,
         public ExcessTreatment $excessTreatment,
         public DeficitTreatment $deficitTreatment,
@@ -31,7 +32,8 @@ final readonly class CreateWorkPatternRuleCommand
         WorkPatternRuleType $ruleType,
         ?int $targetCount,
         int $holidayWins,
-        ?HolidayType $holidayType,
+        /** @var list<HolidayType>|null $holidayTypes */
+        ?array $holidayTypes,
         int $substitutionAllowed,
         ExcessTreatment $excessTreatment,
         DeficitTreatment $deficitTreatment,
@@ -44,7 +46,7 @@ final readonly class CreateWorkPatternRuleCommand
             ruleType: $ruleType,
             targetCount: $targetCount,
             holidayWins: $holidayWins,
-            holidayType: $holidayType,
+            holidayTypes: $holidayTypes,
             substitutionAllowed: $substitutionAllowed,
             excessTreatment: $excessTreatment,
             deficitTreatment: $deficitTreatment,

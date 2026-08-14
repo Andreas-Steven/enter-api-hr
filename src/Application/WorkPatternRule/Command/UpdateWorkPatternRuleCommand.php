@@ -18,7 +18,8 @@ final readonly class UpdateWorkPatternRuleCommand
         public ?WorkPatternRuleType $ruleType,
         public ?int $targetCount,
         public ?int $holidayWins,
-        public ?HolidayType $holidayType,
+        /** @var list<HolidayType>|null */
+        public ?array $holidayTypes,
         public ?int $substitutionAllowed,
         public ?ExcessTreatment $excessTreatment,
         public ?DeficitTreatment $deficitTreatment,
@@ -27,6 +28,7 @@ final readonly class UpdateWorkPatternRuleCommand
         public ?array $detailInfo,
         public ?int $lockVersion,
         public bool $targetCountProvided = false,
+        public bool $holidayTypesProvided = false,
     ) {}
 
     public static function create(
@@ -35,7 +37,8 @@ final readonly class UpdateWorkPatternRuleCommand
         ?WorkPatternRuleType $ruleType = null,
         ?int $targetCount = null,
         ?int $holidayWins = null,
-        ?HolidayType $holidayType = null,
+        /** @var list<HolidayType>|null $holidayTypes */
+        ?array $holidayTypes = null,
         ?int $substitutionAllowed = null,
         ?ExcessTreatment $excessTreatment = null,
         ?DeficitTreatment $deficitTreatment = null,
@@ -44,6 +47,7 @@ final readonly class UpdateWorkPatternRuleCommand
         ?array $detailInfo = null,
         ?int $lockVersion = null,
         bool $targetCountProvided = false,
+        bool $holidayTypesProvided = false,
     ): self {
         return new self(
             id: $id,
@@ -51,7 +55,7 @@ final readonly class UpdateWorkPatternRuleCommand
             ruleType: $ruleType,
             targetCount: $targetCount,
             holidayWins: $holidayWins,
-            holidayType: $holidayType,
+            holidayTypes: $holidayTypes,
             substitutionAllowed: $substitutionAllowed,
             excessTreatment: $excessTreatment,
             deficitTreatment: $deficitTreatment,
@@ -60,6 +64,7 @@ final readonly class UpdateWorkPatternRuleCommand
             detailInfo: $detailInfo,
             lockVersion: $lockVersion,
             targetCountProvided: $targetCountProvided,
+            holidayTypesProvided: $holidayTypesProvided,
         );
     }
 }

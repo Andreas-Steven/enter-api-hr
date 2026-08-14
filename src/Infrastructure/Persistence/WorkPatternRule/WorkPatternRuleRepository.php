@@ -33,6 +33,7 @@ use App\Shared\ValueObject\Message;
 // Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Db\Query\Query;
+use Yiisoft\Db\QueryBuilder\Condition\JsonOverlaps;
 
 // use MongoDB\Collection;
 
@@ -142,7 +143,6 @@ final class WorkPatternRuleRepository implements WorkPatternRuleRepositoryInterf
                 'id',
                 'rule_type',
                 'holiday_wins',
-                'holiday_type',
                 'substitution_allowed',
                 'excess_treatment',
                 'deficit_treatment',
@@ -150,6 +150,13 @@ final class WorkPatternRuleRepository implements WorkPatternRuleRepositoryInterf
                 SyncMdb::field(),
             ]
         );
+
+        if (!empty($filter['holiday_type'])) {
+            $query->andWhere(new JsonOverlaps(
+                column: 'holiday_type',
+                values: $filter['holiday_type'],
+            ));
+        }
 
         if (!empty($filter['name'])) {
             $this->queryConditionApplier->orLike(
@@ -165,11 +172,17 @@ final class WorkPatternRuleRepository implements WorkPatternRuleRepositoryInterf
             ->limit($criteria->pageSize)
             ->offset($criteria->calculateOffset());
 
-        $rows = iterator_to_array(
-            $this->streamRows(
-                query: $query, 
-                jsonKeys: []
-            )
+        $rows = array_map(
+            function (array $row): array {
+                $row['holiday_type'] = $this->decodeHolidayTypeValues($row['holiday_type'] ?? null);
+                return $row;
+            },
+            iterator_to_array(
+                $this->streamRows(
+                    query: $query,
+                    jsonKeys: [],
+                )
+            ),
         );
 
         return new PaginatedResult(
@@ -205,7 +218,7 @@ final class WorkPatternRuleRepository implements WorkPatternRuleRepositoryInterf
                 ruleType: $entity->getRuleType(),
                 targetCount: $entity->getTargetCount(),
                 holidayWins: $entity->getHolidayWins(),
-                holidayType: $entity->getHolidayType(),
+                holidayTypes: $entity->getHolidayTypes(),
                 substitutionAllowed: $entity->getSubstitutionAllowed(),
                 excessTreatment: $entity->getExcessTreatment(),
                 deficitTreatment: $entity->getDeficitTreatment(),
@@ -313,7 +326,9 @@ final class WorkPatternRuleRepository implements WorkPatternRuleRepositoryInterf
             'rule_type' => $entity->getRuleType()->value,
             'target_count' => $entity->getTargetCount(),
             'holiday_wins' => $entity->getHolidayWins(),
-            'holiday_type' => $entity->getHolidayType()?->value,
+            'holiday_type' => $this->serializeHolidayTypes(
+                holidayTypes: $entity->getHolidayTypeValues(),
+            ),
             'substitution_allowed' => $entity->getSubstitutionAllowed(),
             'excess_treatment' => $entity->getExcessTreatment()->value,
             'deficit_treatment' => $entity->getDeficitTreatment()->value,
@@ -326,13 +341,61 @@ final class WorkPatternRuleRepository implements WorkPatternRuleRepositoryInterf
     }
 
     /**
+     * @return list<string>|null
+     */
+    private function decodeHolidayTypeValues(mixed $value): ?array
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            $value = json_last_error() === JSON_ERROR_NONE
+                ? (is_array($decoded) ? $decoded : [$decoded])
+                : [$value];
+        }
+
+        if (!is_array($value)) {
+            return null;
+        }
+
+        return array_values(array_map(
+            static fn(mixed $holidayType): string => (string) $holidayType,
+            $value,
+        ));
+    }
+
+    /**
+     * @return list<HolidayType>|null
+     */
+    private function hydrateHolidayTypes(mixed $value): ?array
+    {
+        $holidayTypeValues = $this->decodeHolidayTypeValues($value);
+
+        if ($holidayTypeValues === null) {
+            return null;
+        }
+
+        return array_map(
+            static fn(string $holidayType): HolidayType => HolidayType::from($holidayType),
+            $holidayTypeValues,
+        );
+    }
+
+    private function serializeHolidayTypes(?array $holidayTypes): ?string
+    {
+        return $holidayTypes === null
+            ? null
+            : json_encode($holidayTypes, JSON_THROW_ON_ERROR);
+    }
+
+    /**
      * @param array<string, mixed> $row
      */
     private function hydrateEntity(array $row): WorkPatternRule
     {
-        $holidayType = ($row['holiday_type'] ?? null) !== null
-            ? HolidayType::from((string) $row['holiday_type'])
-            : null;
+        $holidayTypes = $this->hydrateHolidayTypes($row['holiday_type'] ?? null);
 
         return WorkPatternRule::reconstitute(
             id: (int) $row['id'],
@@ -342,7 +405,7 @@ final class WorkPatternRuleRepository implements WorkPatternRuleRepositoryInterf
                 ? (int) $row['target_count']
                 : null,
             holidayWins: (int) $row['holiday_wins'],
-            holidayType: $holidayType,
+            holidayTypes: $holidayTypes,
             substitutionAllowed: (int) $row['substitution_allowed'],
             excessTreatment: ExcessTreatment::from((string) $row['excess_treatment']),
             deficitTreatment: DeficitTreatment::from((string) $row['deficit_treatment']),
