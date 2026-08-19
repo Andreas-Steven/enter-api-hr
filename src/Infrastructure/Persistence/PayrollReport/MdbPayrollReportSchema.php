@@ -16,9 +16,6 @@ final class MdbPayrollReportSchema
     {
         return [
             'name' => $entity->getName(),
-            'attendance_summary_id' => $entity->getAttendanceSummaryId(),
-            'payroll_summary' => $entity->getPayrollSummary(),
-            'notes' => $entity->getNotes(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             'lock_version' => $entity->getLockVersion()->value(),

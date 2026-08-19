@@ -29,15 +29,7 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class PayrollReportUpdateAction
 {
-    private const ALLOWED_KEYS = [
-        'name',
-        'attendance_summary_id',
-        'payroll_summary',
-        'notes',
-        'status',
-        'detail_info',
-        'lock_version',
-    ];
+    private const ALLOWED_KEYS = ['name', 'status', 'lock_version'];
 
     public function __construct(
         private PayrollReportInputValidator $inputValidator,
@@ -87,12 +79,9 @@ final class PayrollReportUpdateAction
         $command = UpdatePayrollReportCommand::create(
             id: (int) $id,
             name: $params->get('name'),
-            attendanceSummaryId: $params->get('attendance_summary_id') !== null ? (int) $params->get('attendance_summary_id') : null,
-            payrollSummary: $params->get('payroll_summary'),
-            notes: $params->get('notes'),
-            status: $params->get('status') !== null ? (int) $params->get('status') : null,
+            status: (int) $params->get('status'),
             detailInfo: $params->get('detail_info'),
-            lockVersion: $params->get('lock_version') !== null ? (int) $params->get('lock_version') : null,
+            lockVersion: (int) $params->get('lock_version'),
         );
 
         $response = $this->applicationService->update(

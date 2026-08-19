@@ -7,6 +7,6 @@ use App\Console;
 return [
     'hello' => Console\HelloCommand::class,
     'seed' => Console\SeederCommand::class,
-    'generate:attendance-summary' => Console\AttendanceSummaryGenerateCommand::class,
-    'generate:payroll-report' => Console\PayrollReportGenerateCommand::class,
+    'generate:attendance-summary' => Console\AttendanceSummaryCommand::class,
+    'generate:payroll-report' => Console\PayrollReportCommand::class,
 ];

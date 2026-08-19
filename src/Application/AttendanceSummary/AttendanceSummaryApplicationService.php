@@ -5,21 +5,18 @@ declare(strict_types=1);
 namespace App\Application\AttendanceSummary;
 
 // Application Layer
-use App\Application\AttendanceSummary\Command\CreateAttendanceSummaryCommand;
 use App\Application\AttendanceSummary\Command\GenerateAttendanceSummaryCommand;
 use App\Application\AttendanceSummary\Command\UpdateAttendanceSummaryCommand;
-use App\Application\AttendanceSummary\Dto\AttendanceSummaryListResponse;
 use App\Application\AttendanceSummary\Dto\AttendanceSummaryResponse;
-use App\Application\AttendanceSummary\Dto\BatchGenerationResult;
+use App\Application\AttendanceSummary\Dto\AttendanceSummaryResult;
 use App\Application\Shared\Factory\DetailInfoFactory;
-
 // Domain Layer
 use App\Domain\AttendanceSummary\Entity\AttendanceSummary;
 use App\Domain\AttendanceSummary\Repository\AttendanceSummaryRepositoryInterface;
 use App\Domain\AttendanceSummary\Service\AttendanceSummaryDomainService;
+use App\Domain\AttendanceSummary\ValueObject\Notes;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
-
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
@@ -28,8 +25,10 @@ use App\Shared\ValueObject\Message;
 
 /**
  * AttendanceSummary Application Service (Mandor/Alur Kerja)
- * 
- * Orchestrates use cases and coordinates domain & infrastructure
+ *
+ * Orchestrates use cases and coordinates domain & infrastructure. The create
+ * use case is auto-generation: given a period, the domain service builds one
+ * summary per active employee from their attendance records and employee rules.
  */
 final class AttendanceSummaryApplicationService
 {
@@ -38,8 +37,7 @@ final class AttendanceSummaryApplicationService
         private DetailInfoFactory $detailInfoFactory,
         private AttendanceSummaryRepositoryInterface $repository,
         private AttendanceSummaryDomainService $domainService,
-    ) {
-    }
+    ) {}
 
     public function getResource(): string
     {
@@ -50,43 +48,29 @@ final class AttendanceSummaryApplicationService
     {
         $data = $this->repository->findById(
             id: $id,
-            status: $status
+            status: $status,
         );
 
         if ($data === null) {
             throw new NotFoundException(
                 translate: Message::create(
-                    key: 'resource.not_found', 
+                    key: 'resource.not_found',
                     params: [
                         'resource' => $this->getResource(),
                         'field' => 'id',
-                        'value' => $id
-                    ]
-                )
+                        'value' => $id,
+                    ],
+                ),
             );
         }
-        
+
         return $data;
     }
-    
+
     public function list(SearchCriteria $criteria): PaginatedResult
     {
-        $result = $this->repository->list(
-            criteria: $criteria
-        );
-
-        $data = array_map(
-            static fn(array $row): array => AttendanceSummaryListResponse::fromRow($row)->toArray(),
-            $result->data,
-        );
-
-        return new PaginatedResult(
-            data: $data,
-            total: $result->total,
-            page: $result->page,
-            pageSize: $result->pageSize,
-            filter: $result->filter,
-            sort: $result->sort,
+        return $this->repository->list(
+            criteria: $criteria,
         );
     }
 
@@ -94,112 +78,62 @@ final class AttendanceSummaryApplicationService
     {
         $data = $this->getEntityById(
             id: $id,
-            status: null
+            status: null,
         );
-        
+
         return AttendanceSummaryResponse::fromEntity(
-            entity: $data
+            entity: $data,
         );
     }
 
-    public function generateAllFromAttendance(GenerateAttendanceSummaryCommand $command): BatchGenerationResult
+    /**
+     * Auto-generates AttendanceSummary records for a period.
+     *
+     * Delegates to the domain service which folds each employee's attendance
+     * together with their work-schedule rules into one summary per employee,
+     * keeping existing summaries for the period untouched.
+     */
+    public function generateAllFromAttendance(GenerateAttendanceSummaryCommand $command): AttendanceSummaryResult
     {
         return $this->domainService->generateAllFromAttendance(command: $command);
-    }
-
-    public function create(CreateAttendanceSummaryCommand $command): AttendanceSummaryResponse
-    {
-        $detailInfo = $this->detailInfoFactory
-            ->create(
-                detailInfo: []
-            )
-            ->build();
-
-        $data = AttendanceSummary::create(
-            name: $command->name,
-            employeeId: $command->employeeId,
-            branchId: $command->branchId,
-            divisionId: $command->divisionId,
-            positionId: $command->positionId,
-            employeeTypeId: $command->employeeTypeId,
-            status: ResourceStatus::from($command->status),
-            detailInfo: $detailInfo
-        );
-
-        return AttendanceSummaryResponse::fromEntity(
-            entity: $this->repository->insert(
-                entity: $data
-            )
-        );
     }
 
     public function update(int $id, UpdateAttendanceSummaryCommand $command): AttendanceSummaryResponse
     {
         $data = $this->getEntityById(
             id: $id,
-            status: null
+            status: null,
         );
 
         $this->repository->verifyLockVersion(
             entity: $data,
-            version: $command->lockVersion ?? null
+            version: $command->lockVersion ?? null,
         );
 
         $newStatus = ResourceStatus::tryFrom($command->status);
 
         $hasFieldChanges = $data->hasFieldChanges(
             data: (array) $command,
-            removeNulls: true
+            removeNulls: true,
         );
 
         $data->guardAgainstInvalidTransition(
             hasFieldChanges: $hasFieldChanges,
-            newStatus: $newStatus
+            newStatus: $newStatus,
         );
 
-        if ($command->name !== null) {
-            $data->updateName(newName: $command->name);
-        }
+        $data->updateName(
+            newName: $command->name,
+        );
 
-        if ($command->employeeId !== null) {
-            $data->setEmployeeId($command->employeeId);
-        }
-        if ($command->branchId !== null) {
-            $data->setBranchId($command->branchId);
-        }
-        if ($command->divisionId !== null) {
-            $data->setDivisionId($command->divisionId);
-        }
-        if ($command->positionId !== null) {
-            $data->setPositionId($command->positionId);
-        }
-        if ($command->employeeTypeId !== null) {
-            $data->setEmployeeTypeId($command->employeeTypeId);
-        }
-        if ($command->workPatternId !== null) {
-            $data->setWorkPatternId($command->workPatternId);
-        }
-        if ($command->period !== null) {
-            $data->setPeriod($command->period);
-        }
-        if ($command->attendanceDetail !== null) {
-            $data->setAttendanceDetail($command->attendanceDetail);
-        }
-        if ($command->permissionDetail !== null) {
-            $data->setPermissionDetail($command->permissionDetail);
-        }
-        if ($command->periodSummary !== null) {
-            $data->setPeriodSummary($command->periodSummary);
-        }
-        if ($command->timeSummary !== null) {
-            $data->setTimeSummary($command->timeSummary);
-        }
-        if ($command->notes !== null) {
-            $data->setNotes($command->notes);
-        }
+        $data->updateNotes(
+            notes: $command->notes !== null
+                ? Notes::fromNullable($command->notes)
+                : null,
+        );
 
         $data->applyStatus(
-            newStatus: $newStatus
+            newStatus: $newStatus,
         );
 
         $detailInfo = $this->detailInfoFactory
@@ -210,13 +144,13 @@ final class AttendanceSummaryApplicationService
             ->build();
 
         $data->updateDetailInfo(
-            detailInfo: $detailInfo
+            detailInfo: $detailInfo,
         );
 
         return AttendanceSummaryResponse::fromEntity(
             entity: $this->repository->update(
-                entity: $data
-            )
+                entity: $data,
+            ),
         );
     }
 
@@ -224,21 +158,21 @@ final class AttendanceSummaryApplicationService
     {
         $data = $this->getEntityById(
             id: $id,
-            status: null
+            status: null,
         );
 
         $this->repository->verifyLockVersion(
-            entity: $data, 
+            entity: $data,
             version: $lockVersion,
         );
 
         $this->domainService->guardPermission(
-            id: $id,
             authorizer: $this->auth,
-            permission: 'AttendanceSummary.delete',
+            permission: 'attendancesummary.delete',
             resource: $this->getResource(),
+            id: $id,
         );
-        
+
         $this->domainService->ensureDeletable(
             entity: $data,
             resource: $this->getResource(),
@@ -252,13 +186,13 @@ final class AttendanceSummaryApplicationService
             ->build();
 
         $data->updateDetailInfo(
-            detailInfo: $detailInfo
+            detailInfo: $detailInfo,
         );
 
         return AttendanceSummaryResponse::fromEntity(
             entity: $this->repository->delete(
-                entity: $data
-            )
+                entity: $data,
+            ),
         );
     }
 
@@ -266,25 +200,12 @@ final class AttendanceSummaryApplicationService
     {
         $data = $this->getEntityById(
             id: $id,
-            status: ResourceStatus::deleted()->value()
+            status: ResourceStatus::deleted()->value(),
         );
-        
-        if ($data === null) {
-            throw new NotFoundException(
-                translate: Message::create(
-                    key: 'resource.not_found', 
-                    params: [
-                        'resource' => $this->getResource(),
-                        'field' => 'id',
-                        'value' => $id
-                    ]
-                )
-            );
-        }
 
         $data->guardAgainstInvalidTransition(
             hasFieldChanges: false,
-            newStatus: ResourceStatus::restored()
+            newStatus: ResourceStatus::restored(),
         );
 
         $data->markAsRestored();
@@ -297,15 +218,15 @@ final class AttendanceSummaryApplicationService
             ->build();
 
         $data->updateDetailInfo(
-            detailInfo: $detailInfo
+            detailInfo: $detailInfo,
         );
 
         $restoredData = $this->repository->restore(
-            id: $data->getId()
+            id: $data->getId(),
         );
-        
+
         return AttendanceSummaryResponse::fromEntity(
-            entity: $restoredData
+            entity: $restoredData,
         );
     }
 }

@@ -6,7 +6,6 @@ namespace App\Infrastructure\Persistence\AttendanceSummary;
 
 // Domain Layer
 use App\Domain\AttendanceSummary\Entity\AttendanceSummary;
-
 // Vendor Layer
 use MongoDB\BSON\UTCDateTime;
 
@@ -16,17 +15,13 @@ final class MdbAttendanceSummarySchema
     {
         return [
             'name' => $entity->getName(),
-            'employee_id' => $entity->getEmployeeId(),
-            'branch_id' => $entity->getBranchId(),
-            'division_id' => $entity->getDivisionId(),
-            'position_id' => $entity->getPositionId(),
-            'employee_type_id' => $entity->getEmployeeTypeId(),
-            'work_pattern_id' => $entity->getWorkPatternId(),
             'period' => $entity->getPeriod(),
-            'attendance_detail' => $entity->getAttendanceDetail(),
-            'permission_detail' => $entity->getPermissionDetail(),
-            'period_summary' => $entity->getPeriodSummary(),
-            'time_summary' => $entity->getTimeSummary(),
+            'employee' => $entity->getEmployee()->toArray(),
+            'work_schedule' => $entity->getWorkSchedule()->toArray(),
+            'attendance' => $entity->getAttendance()->toArray(),
+            'permissions' => $entity->getPermissions()->toArray(),
+            'summary' => $entity->getSummary()->toArray(),
+            'policy' => $entity->getPolicy()->toArray(),
             'notes' => $entity->getNotes(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),

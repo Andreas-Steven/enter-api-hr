@@ -18,7 +18,6 @@ use Yiisoft\Validator\Rule\StringValue;
 use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
 use Yiisoft\Validator\Rule\StopOnError;
-use Yiisoft\Validator\Rule\Nested;
 
 /**
  * PayrollReport Input Validator
@@ -29,9 +28,9 @@ use Yiisoft\Validator\Rule\Nested;
 final class PayrollReportInputValidator extends AbstractValidator
 {
     /**
-     * PayrollReport for validation rules
+     * PayrollReports for validation rules
      * 
-     * This validator shows payrollreport of advanced validation rules including
+     * This validator shows payrollreports of advanced validation rules including
      * dependency checking and unique value validation.
      * 
      * @see HasNoDependencies
@@ -46,7 +45,7 @@ final class PayrollReportInputValidator extends AbstractValidator
      *             new Integer(min: 1),
      *             new HasNoDependencies(
      *                 map: [
-     *                     'other_table' => ['payroll_reports_id'],
+     *                     'other_table' => ['payroll_report_id'],
      *                 ],
      *                 message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
      *             ),
@@ -63,7 +62,7 @@ final class PayrollReportInputValidator extends AbstractValidator
      *             new Required(),
      *             new StringLength(max: 255),
      *             new UniqueValue(
-     *                 table: 'payrollreport',
+     *                 table: 'payrollreports',
      *                 column: 'name',
      *                 ignoreId: null,
      *             ),
@@ -79,7 +78,7 @@ final class PayrollReportInputValidator extends AbstractValidator
      *             new Required(),
      *             new StringLength(max: 255),
      *             new UniqueValue(
-     *                 table: 'payrollreport',
+     *                 table: 'payrollreports',
      *                 column: 'name',
      *                 ignoreId: $this->data['id'] ?? null,
      *             ),
@@ -94,60 +93,69 @@ final class PayrollReportInputValidator extends AbstractValidator
     {
         return match ($context) {
             ValidationContext::CREATE => [
-                'period' => [
-                    new Required(),
-                    new Integer(min: 1),
-                ],
-                'attendance_summary_id' => [
-                    new Integer(min: 1, skipOnEmpty: true),
-                ],
-                'payroll_summary' => [
-                    new Nested([
-                        'obligation_total_count' => [new Integer(min: 0, skipOnEmpty: true)],
-                        'obligation_unfulfilled_count' => [new Integer(min: 0, skipOnEmpty: true)],
-                        'daily_anomaly_count' => [new Integer(min: 0, skipOnEmpty: true)],
-                        'daily_late_count' => [new Integer(min: 0, skipOnEmpty: true)],
-                    ], skipOnEmpty: true),
-                ],
-                'notes' => [
-                    new StringValue(skipOnEmpty: true),
+                'name' => [
+                    new StopOnError([
+                        new Required(),
+                        new StringValue(),
+                        new Length(
+                            min: 3, 
+                            max: 255,
+                        ),
+                        new UniqueValue(
+                            table: 'payroll_report', 
+                            column: 'name', 
+                            ignoreId: null
+                        )
+                    ])
                 ],
                 'status' => [
                     new Required(),
                     new Integer(),
-                    new In(RecordStatus::draftOnlyStates()),
+                    new In(
+                        RecordStatus::draftOnlyStates(),
+                    ),
                 ],
             ],
             ValidationContext::UPDATE => [
                 'id' => [
                     new Required(),
-                    new Integer(min: 1),
+                    new Integer(
+                        min: 1,
+                    ),
                 ],
                 'name' => [
-                    new StringValue(skipOnEmpty: true),
-                    new Length(min: 3, max: 255, skipOnEmpty: true),
-                ],
-                'attendance_summary_id' => [
-                    new Integer(min: 1, skipOnEmpty: true),
-                ],
-                'payroll_summary' => [
-                    new Nested([
-                        'obligation_total_count' => [new Integer(min: 0, skipOnEmpty: true)],
-                        'obligation_unfulfilled_count' => [new Integer(min: 0, skipOnEmpty: true)],
-                        'daily_anomaly_count' => [new Integer(min: 0, skipOnEmpty: true)],
-                        'daily_late_count' => [new Integer(min: 0, skipOnEmpty: true)],
-                    ], skipOnEmpty: true),
-                ],
-                'notes' => [
-                    new StringValue(skipOnEmpty: true),
+                    new StopOnError([
+                        new StringValue(
+                            skipOnEmpty: true,
+                        ),
+                        new Length(
+                            min: 3, 
+                            max: 255,
+                            skipOnEmpty: true,
+                        ),
+                        new UniqueValue(
+                            table: 'payroll_report', 
+                            column: 'name', 
+                            ignoreId: $this->data['id'] ?? null
+                        )
+                    ])
                 ],
                 'status' => [
-                    new Integer(skipOnEmpty: true),
-                    new In(RecordStatus::searchableStates()),
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        RecordStatus::searchableStates(),
+                    ),
                 ],
                 'lock_version' => [
-                    new Required(when: fn() => $this->shouldValidateOptimisticLock()),
-                    new Integer(min: 1, skipOnEmpty: true),
+                    new Required(
+                        when: fn() => $this->shouldValidateOptimisticLock()
+                    ),
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
                 ],
             ],
             ValidationContext::DELETE => [
@@ -160,32 +168,53 @@ final class PayrollReportInputValidator extends AbstractValidator
             ],
             ValidationContext::SEARCH => [
                 'id' => [
-                    new Integer(skipOnEmpty: true),
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'name' => [
-                    new StringValue(skipOnEmpty: true),
-                    new Length(min: 1, max: 100, skipOnEmpty: true),
-                ],
-                'attendance_summary_id' => [
-                    new Integer(skipOnEmpty: true),
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        min: 1,
+                        max: 100,
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'status' => [
-                    new Integer(skipOnEmpty: true),
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'sync_mdb' => [
-                    new Integer(skipOnEmpty: true),
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'page' => [
-                    new Integer(min: 1, skipOnEmpty: true),
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'page_size' => [
-                    new Integer(min: 1, max: 200, skipOnEmpty: true),
+                    new Integer(
+                        min: 1,
+                        max: 200,
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'sort_by' => [
-                    new StringValue(skipOnEmpty: true),
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
                 ],
                 'sort_dir' => [
-                    new In(['asc', 'desc'], skipOnEmpty: true),
+                    new In(
+                        ['asc', 'desc'],
+                        skipOnEmpty: true,
+                    ),
                 ],
             ],
 

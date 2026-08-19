@@ -7,44 +7,22 @@ namespace App\Api\V1\AttendanceSummary\Action;
 // Application Layer
 use App\Application\AttendanceSummary\AttendanceSummaryApplicationService;
 use App\Application\Shared\Factory\SearchCriteriaFactory;
-
 // API Layer
 use App\Api\Shared\ResponseFactory;
 use App\Api\V1\AttendanceSummary\Validation\AttendanceSummaryInputValidator;
-
 // Shared Layer
-use App\Shared\Enums\RecordStatus;
-use App\Shared\Dto\SearchCriteria;
-use App\Shared\Request\RequestParams;
 use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
-
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class AttendanceSummaryDataAction
 {
-    private const ALLOWED_KEYS = [
-        'id',
-        'name',
-        'employee_id',
-        'branch_id',
-        'division_id',
-        'position_id',
-        'employee_type_id',
-        'work_pattern_id',
-        'period',
-        'status',
-    ];
+    private const ALLOWED_KEYS = ['id', 'name', 'period', 'employee_id', 'status'];
     private const ALLOWED_SORT = [
         'id' => 'id',
         'name' => 'name',
-        'employee_id' => 'employee_id',
-        'branch_id' => 'branch_id',
-        'division_id' => 'division_id',
-        'position_id' => 'position_id',
-        'employee_type_id' => 'employee_type_id',
         'period' => 'period',
         'status' => 'status',
     ];
@@ -54,8 +32,7 @@ final class AttendanceSummaryDataAction
         private AttendanceSummaryInputValidator $inputValidator,
         private AttendanceSummaryApplicationService $applicationService,
         private ResponseFactory $responseFactory,
-    ) {
-    }   
+    ) {}
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
@@ -64,8 +41,8 @@ final class AttendanceSummaryDataAction
 
         $filter = $payload->getFilter()
             ->onlyAllowed(
-                allowedKeys: self::ALLOWED_KEYS
-            )->with('status', RecordStatus::DRAFT->value);
+                allowedKeys: self::ALLOWED_KEYS,
+            );
 
         $this->inputValidator->validate(
             data: $filter,
@@ -74,7 +51,7 @@ final class AttendanceSummaryDataAction
 
         $criteria = $this->factory->createFromRequest(
             params: $payload,
-            allowedSort: self::ALLOWED_SORT
+            allowedSort: self::ALLOWED_SORT,
         );
 
         $resource = $this->applicationService->getResource();
@@ -83,10 +60,10 @@ final class AttendanceSummaryDataAction
         return $this->responseFactory->success(
             data: $result->data,
             translate: Message::create(
-                key: 'resource.list_retrieved', 
+                key: 'resource.list_retrieved',
                 params: [
-                    'resource' => $resource
-                ]
+                    'resource' => $resource,
+                ],
             ),
             meta: $result->getMeta(),
         );

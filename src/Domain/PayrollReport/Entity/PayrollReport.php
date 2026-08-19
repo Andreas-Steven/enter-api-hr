@@ -29,9 +29,6 @@ final class PayrollReport
     protected function __construct(
         private readonly ?int $id,
         private string $name,
-        private int $attendanceSummaryId,
-        private array $payrollSummary,
-        private ?string $notes,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
@@ -48,7 +45,6 @@ final class PayrollReport
 
     public static function create(
         string $name,
-        int $attendanceSummaryId,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
@@ -59,14 +55,11 @@ final class PayrollReport
         );
 
         return new self(
-            id: null,
-            name: $name,
-            attendanceSummaryId: $attendanceSummaryId,
-            payrollSummary: [],
-            notes: null,
-            status: $status,
-            detailInfo: $detailInfo,
-            syncMdb: $syncMdb,
+            id: null, 
+            name: $name, 
+            status: $status, 
+            detailInfo: $detailInfo, 
+            syncMdb: $syncMdb, 
             lockVersion: LockVersion::create()
         );
     }
@@ -74,9 +67,6 @@ final class PayrollReport
     public static function reconstitute(
         int $id,
         string $name,
-        int $attendanceSummaryId,
-        array $payrollSummary,
-        ?string $notes,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
@@ -84,14 +74,11 @@ final class PayrollReport
     ): self {
 
         return new self(
-            id: $id,
-            name: $name,
-            attendanceSummaryId: $attendanceSummaryId,
-            payrollSummary: $payrollSummary,
-            notes: $notes,
-            status: $status,
-            detailInfo: $detailInfo,
-            syncMdb: $syncMdb,
+            id: $id, 
+            name: $name, 
+            status: $status, 
+            detailInfo: $detailInfo, 
+            syncMdb: $syncMdb, 
             lockVersion: $lockVersion ?? LockVersion::create()
         );
     }
@@ -101,9 +88,6 @@ final class PayrollReport
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'attendance_summary_id' => $this->attendanceSummaryId,
-            'payroll_summary' => $this->payrollSummary,
-            'notes' => $this->notes,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
@@ -125,17 +109,9 @@ final class PayrollReport
         $this->status = ResourceStatus::restored();
     }
 
-    public function getAttendanceSummaryId(): int { return $this->attendanceSummaryId; }
-    public function setAttendanceSummaryId(int $attendanceSummaryId): void { $this->attendanceSummaryId = $attendanceSummaryId; }
-
-    public function getPayrollSummary(): array { return $this->payrollSummary; }
-    public function setPayrollSummary(array $data): void { $this->payrollSummary = $data; }
-
-    public function getNotes(): ?string { return $this->notes; }
-    public function setNotes(?string $notes): void { $this->notes = $notes; }
-
-    public function getSummaryType(): ?string
-    {
-        return $this->detailInfo->toArray()['summary_type'] ?? null;
-    }
+    /**
+     * Place PayrollReport-specific business functions here, in addition to those
+     * provided by common traits/concerns (Identifiable, Stateful, etc.).
+     */ 
+    
 }

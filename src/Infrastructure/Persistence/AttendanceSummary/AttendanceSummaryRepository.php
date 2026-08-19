@@ -11,39 +11,44 @@ use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
-
 // Infrastructure Layer
 use App\Infrastructure\Concerns\HasCoreFeatures;
 use App\Infrastructure\Concerns\HasMongoDBSync;
 use App\Infrastructure\Concerns\ManagesPersistence;
 use App\Infrastructure\Database\MongoDB\MongoDBService;
-use App\Infrastructure\Persistence\AttendanceSummary\MdbAttendanceSummarySchema;
 use App\Infrastructure\Security\CurrentUserAwareInterface;
-
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
 use App\Shared\Query\QueryConditionApplier;
-use App\Shared\ValueObject\Message;
-
 // Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Db\Query\Query;
 
-// use MongoDB\Collection;
-
 /**
  * AttendanceSummary Repository using Yiisoft/Db Query Builder
- * 
- * Pure query implementation using Yiisoft/Db for database operations
+ *
+ * Pure query implementation using Yiisoft/Db for database operations.
  */
 final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryInterface, CurrentUserAwareInterface
 {
-    use HasCoreFeatures, HasMongoDBSync, ManagesPersistence;
+    use HasCoreFeatures;
+    use HasMongoDBSync;
+    use ManagesPersistence;
 
     public const TABLE_NAME = 'attendance_summary';
     public const SEQUENCE_ID = 'attendance_summary_id_seq';
     private const LIKE_OPERATOR = 'ilike';
+
+    /** @var list<string> */
+    private const JSON_KEYS = [
+        'employee',
+        'work_schedule',
+        'attendance',
+        'permissions',
+        'summary',
+        'policy',
+    ];
 
     public function __construct(
         private ConnectionInterface $db,
@@ -52,7 +57,7 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
     ) {
         $this->initMongoDBSync(
             service: $mongoDBService,
-            collection: self::TABLE_NAME
+            collection: self::TABLE_NAME,
         );
     }
 
@@ -77,7 +82,7 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             return null;
         }
 
-        return $this->hydrateEntity($row);
+        return $this->hydrate($row);
     }
 
     public function findByName(string $name, ?int $status = null): ?AttendanceSummary
@@ -94,7 +99,7 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             return null;
         }
 
-        return $this->hydrateEntity($row)->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        return $this->hydrate($row);
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -108,23 +113,23 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
     }
 
     /**
-     * @return array<int, AttendanceSummary>
+     * @return list<AttendanceSummary>
      */
     public function findByPeriod(int $period, ?int $status = null): array
     {
+        /** @var array<int, array<string, mixed>> $rows */
         $rows = (new Query($this->db))
             ->from(self::TABLE_NAME)
             ->where(['period' => $period])
             ->andWhere($this->scopeWhereNotDeleted())
             ->andWhere($this->scopeByStatus($status))
+            ->orderBy(['id' => SORT_ASC])
             ->all();
 
-        $entities = [];
-        foreach ($rows as $row) {
-            $entities[] = $this->hydrateEntity($row);
-        }
-
-        return $entities;
+        return array_map(
+            fn(array $row): AttendanceSummary => $this->hydrate($row),
+            $rows
+        );
     }
 
     public function list(SearchCriteria $criteria): PaginatedResult
@@ -133,12 +138,18 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             ->select([
                 'id',
                 'name',
-                'employee_id',
                 'period',
-                'period_summary',
-                'time_summary',
+                'employee',
+                'work_schedule',
+                'attendance',
+                'permissions',
+                'summary',
+                'policy',
+                'notes',
                 'status',
                 'detail_info',
+                SyncMdb::field(),
+                LockVersion::field(),
             ])
             ->from(self::TABLE_NAME)
             ->where($this->scopeWhereNotDeleted());
@@ -150,23 +161,24 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             filters: $filter,
             allowedColumns: [
                 'id',
-                'employee_id',
-                'branch_id',
-                'division_id',
-                'position_id',
-                'employee_type_id',
-                'work_pattern_id',
                 'period',
                 'status',
                 SyncMdb::field(),
-            ]
+            ],
         );
 
         if (!empty($filter['name'])) {
             $this->queryConditionApplier->orLike(
-                query: $query, 
+                query: $query,
                 operator: self::LIKE_OPERATOR,
-                conditions: ['name' => '%' . $filter['name'] . '%']
+                conditions: ['name' => '%' . $filter['name'] . '%'],
+            );
+        }
+
+        if (!empty($filter['employee_id'])) {
+            $employeeId = (int) $filter['employee_id'];
+            $query->andWhere(
+                ['=', new \Yiisoft\Db\Expression\Expression("employee->>'id'"), (string) $employeeId],
             );
         }
 
@@ -178,9 +190,9 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
 
         $rows = iterator_to_array(
             $this->streamRows(
-                query: $query, 
-                jsonKeys: ['period_summary', 'time_summary', 'detail_info']
-            )
+                query: $query,
+                jsonKeys: self::JSON_KEYS,
+            ),
         );
 
         return new PaginatedResult(
@@ -191,20 +203,21 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             filter: $criteria->filter,
             sort: [
                 'by' => $criteria->sortBy,
-                'dir' => $criteria->sortDir
-            ]
+                'dir' => $criteria->sortDir,
+            ],
         );
     }
 
-    public function insert(AttendanceSummary $entity): AttendanceSummary 
+    public function insert(AttendanceSummary $entity): AttendanceSummary
     {
-        return $this->db->transaction(function() use ($entity) {
+        return $this->db->transaction(function () use ($entity) {
             $this->db->createCommand()
-                ->insert(self::TABLE_NAME, 
+                ->insert(
+                    self::TABLE_NAME,
                     $this->mapEntityToTable(
-                        entity: $entity, 
-                        lockVersion: LockVersion::create()->value()
-                    )
+                        entity: $entity,
+                        lockVersion: LockVersion::create()->value(),
+                    ),
                 )
                 ->execute();
 
@@ -213,26 +226,23 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             $newEntity = AttendanceSummary::reconstitute(
                 id: $newId,
                 name: $entity->getName(),
-                employeeId: $entity->getEmployeeId(),
-                branchId: $entity->getBranchId(),
-                divisionId: $entity->getDivisionId(),
-                positionId: $entity->getPositionId(),
-                employeeTypeId: $entity->getEmployeeTypeId(),
-                workPatternId: $entity->getWorkPatternId(),
                 period: $entity->getPeriod(),
-                attendanceDetail: $entity->getAttendanceDetail(),
-                permissionDetail: $entity->getPermissionDetail(),
-                periodSummary: $entity->getPeriodSummary(),
-                timeSummary: $entity->getTimeSummary(),
+                employee: $entity->getEmployee()->toArray(),
+                workSchedule: $entity->getWorkSchedule()->toArray(),
+                attendance: $entity->getAttendance()->toArray(),
+                permissions: $entity->getPermissions()->toArray(),
+                summary: $entity->getSummary()->toArray(),
+                policy: $entity->getPolicy()->toArray(),
                 notes: $entity->getNotes(),
                 status: $entity->getStatus(),
                 detailInfo: $entity->getDetailInfo(),
+                syncMdb: $entity->getSyncMdb(),
                 lockVersion: LockVersion::create(),
             );
 
             $this->syncMongoDB(
                 entity: $newEntity,
-                schemaClass: MdbAttendanceSummarySchema::class
+                schemaClass: MdbAttendanceSummarySchema::class,
             );
 
             return $newEntity;
@@ -241,45 +251,45 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
 
     public function update(AttendanceSummary $entity): AttendanceSummary
     {
-        return $this->db->transaction(function() use ($entity) {
+        return $this->db->transaction(function () use ($entity) {
             $currentLock = $entity->getLockVersion();
             $newLock = $this->upgradeEntityLockVersion($entity);
 
             $result = $this->db->createCommand()
                 ->update(
-                    self::TABLE_NAME, 
+                    self::TABLE_NAME,
                     $this->mapEntityToTable(
-                        entity: $entity, 
-                        lockVersion: $newLock->value()
-                    ), 
+                        entity: $entity,
+                        lockVersion: $newLock->value(),
+                    ),
                     $this->buildLockCondition(
-                        entity: $entity, 
-                        currentLockVersion: $currentLock->value()
-                    )
+                        entity: $entity,
+                        currentLockVersion: $currentLock->value(),
+                    ),
                 )
                 ->execute();
-            
+
             if ($result === 0) {
                 $this->handlePersistenceFailure($entity);
             }
-            
+
             $this->syncMongoDB(
                 entity: $entity,
-                schemaClass: MdbAttendanceSummarySchema::class
+                schemaClass: MdbAttendanceSummarySchema::class,
             );
-            
+
             return $entity;
         });
     }
 
     public function delete(AttendanceSummary $entity): AttendanceSummary
     {
-        return $this->db->transaction(function() use ($entity) {
+        return $this->db->transaction(function () use ($entity) {
             $result = $this->db->createCommand()
                 ->update(
                     self::TABLE_NAME,
-                    $this->getDeletedState(), 
-                    $this->buildSimpleCondition($entity)
+                    $this->getDeletedState(),
+                    $this->buildSimpleCondition($entity),
                 )
                 ->execute();
 
@@ -290,8 +300,8 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             $deletedEntity = $entity->markAsDeleted();
 
             $this->syncMongoDB(
-                entity: $deletedEntity, 
-                schemaClass: MdbAttendanceSummarySchema::class
+                entity: $deletedEntity,
+                schemaClass: MdbAttendanceSummarySchema::class,
             );
 
             return $deletedEntity;
@@ -312,26 +322,7 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             return null;
         }
 
-        $entity = AttendanceSummary::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            employeeId: (int) $row['employee_id'],
-            branchId: (int) $row['branch_id'],
-            divisionId: (int) $row['division_id'],
-            positionId: (int) $row['position_id'],
-            employeeTypeId: (int) $row['employee_type_id'],
-            workPatternId: $row['work_pattern_id'] !== null ? (int) $row['work_pattern_id'] : null,
-            period: $row['period'] !== null ? (int) $row['period'] : null,
-            attendanceDetail: $this->parseJsonColumn($row, 'attendance_detail'),
-            permissionDetail: $this->parseJsonColumn($row, 'permission_detail'),
-            periodSummary: $this->parseJsonColumn($row, 'period_summary'),
-            timeSummary: $this->parseJsonColumn($row, 'time_summary'),
-            notes: $row['notes'],
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
-        );
-
+        $entity = $this->hydrate($row);
         $entity->restore();
 
         return $this->update(
@@ -339,53 +330,42 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
         );
     }
 
-    private function hydrateEntity(array $row): AttendanceSummary
+    /**
+     * Hydrates a single DB row into an AttendanceSummary entity.
+     *
+     * @param array<string, mixed> $row
+     */
+    private function hydrate(array $row): AttendanceSummary
     {
         return AttendanceSummary::reconstitute(
             id: (int) $row['id'],
-            name: $row['name'],
-            employeeId: (int) $row['employee_id'],
-            branchId: (int) $row['branch_id'],
-            divisionId: (int) $row['division_id'],
-            positionId: (int) $row['position_id'],
-            employeeTypeId: (int) $row['employee_type_id'],
-            workPatternId: $row['work_pattern_id'] !== null ? (int) $row['work_pattern_id'] : null,
+            name: (string) $row['name'],
             period: $row['period'] !== null ? (int) $row['period'] : null,
-            attendanceDetail: $this->parseJsonColumn($row, 'attendance_detail'),
-            permissionDetail: $this->parseJsonColumn($row, 'permission_detail'),
-            periodSummary: $this->parseJsonColumn($row, 'period_summary'),
-            timeSummary: $this->parseJsonColumn($row, 'time_summary'),
-            notes: $row['notes'],
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
-    }
-
-    private function parseJsonColumn(array $row, string $key): array
-    {
-        $value = $row[$key] ?? null;
-        if (is_string($value)) {
-            return json_decode($value, true) ?? [];
-        }
-        return is_array($value) ? $value : [];
+            employee: $this->castToArray($row['employee'] ?? null),
+            workSchedule: $this->castToArray($row['work_schedule'] ?? null),
+            attendance: $this->castToArray($row['attendance'] ?? null),
+            permissions: $this->castToArray($row['permissions'] ?? null),
+            summary: $this->castToArray($row['summary'] ?? null),
+            policy: $this->castToArray($row['policy'] ?? null),
+            notes: $row['notes'] ?? null,
+            status: ResourceStatus::from((int) $row['status']),
+            detailInfo: DetailInfo::fromJson($row['detail_info'] ?? ''),
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
+            lockVersion: LockVersion::fromInt((int) ($row[LockVersion::field()] ?? LockVersion::DEFAULT_VALUE)),
+        );
     }
 
     private function mapEntityToTable(AttendanceSummary $entity, int $lockVersion): array
     {
         return [
             'name' => $entity->getName(),
-            'employee_id' => $entity->getEmployeeId(),
-            'branch_id' => $entity->getBranchId(),
-            'division_id' => $entity->getDivisionId(),
-            'position_id' => $entity->getPositionId(),
-            'employee_type_id' => $entity->getEmployeeTypeId(),
-            'work_pattern_id' => $entity->getWorkPatternId(),
             'period' => $entity->getPeriod(),
-            'attendance_detail' => json_encode($entity->getAttendanceDetail()),
-            'permission_detail' => json_encode($entity->getPermissionDetail()),
-            'period_summary' => json_encode($entity->getPeriodSummary()),
-            'time_summary' => json_encode($entity->getTimeSummary()),
+            'employee' => json_encode($entity->getEmployee()->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            'work_schedule' => json_encode($entity->getWorkSchedule()->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            'attendance' => json_encode($entity->getAttendance()->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            'permissions' => json_encode($entity->getPermissions()->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            'summary' => json_encode($entity->getSummary()->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            'policy' => json_encode($entity->getPolicy()->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
             'notes' => $entity->getNotes(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),

@@ -41,8 +41,8 @@ final class PayrollReportRepository implements PayrollReportRepositoryInterface,
 {
     use HasCoreFeatures, HasMongoDBSync, ManagesPersistence;
 
-    public const TABLE_NAME = 'payroll_reports';
-    public const SEQUENCE_ID = 'payroll_reports_id_seq';
+    public const TABLE_NAME = 'payroll_report';
+    public const SEQUENCE_ID = 'payroll_report_id_seq';
     private const LIKE_OPERATOR = 'ilike';
 
     public function __construct(
@@ -77,7 +77,13 @@ final class PayrollReportRepository implements PayrollReportRepositoryInterface,
             return null;
         }
 
-        return $this->hydrateEntity($row);
+        return PayrollReport::reconstitute(
+            id: (int) $row['id'],
+            name: $row['name'],
+            status: ResourceStatus::from((int)$row['status']),
+            detailInfo: DetailInfo::fromJson($row['detail_info']),
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+        );
     }
 
     public function findByName(string $name, ?int $status = null): ?PayrollReport
@@ -94,7 +100,13 @@ final class PayrollReportRepository implements PayrollReportRepositoryInterface,
             return null;
         }
 
-        return $this->hydrateEntity($row);
+        return PayrollReport::reconstitute(
+            id: (int) $row['id'],
+            name: $row['name'],
+            status: ResourceStatus::from((int)$row['status']),
+            detailInfo: DetailInfo::fromJson($row['detail_info']),
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -107,31 +119,12 @@ final class PayrollReportRepository implements PayrollReportRepositoryInterface,
             ->exists();
     }
 
-    public function findByAttendanceSummaryId(int $attendanceSummaryId, ?int $status = null): ?PayrollReport
-    {
-        $row = (new Query($this->db))
-            ->from(self::TABLE_NAME)
-            ->where(['attendance_summary_id' => $attendanceSummaryId])
-            ->andWhere($this->scopeWhereNotDeleted())
-            ->andWhere($this->scopeByStatus($status))
-            ->one();
-
-        if (!$row) {
-            return null;
-        }
-
-        return $this->hydrateEntity($row);
-    }
-
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         $query = (new Query($this->db))
             ->select([
                 'id',
                 'name',
-                'attendance_summary_id',
-                'payroll_summary',
-                'notes',
                 'status',
                 'detail_info',
                 SyncMdb::field(),
@@ -143,12 +136,11 @@ final class PayrollReportRepository implements PayrollReportRepositoryInterface,
         $filter = $criteria->filter;
 
         $this->queryConditionApplier->filterByExactMatch(
-            query: $query,
-            filters: $filter,
+            query: $query, 
+            filters: $filter, 
             allowedColumns: [
-                'id',
-                'attendance_summary_id',
-                'status',
+                'id', 
+                'status', 
                 SyncMdb::field(),
             ]
         );
@@ -170,7 +162,7 @@ final class PayrollReportRepository implements PayrollReportRepositoryInterface,
         $rows = iterator_to_array(
             $this->streamRows(
                 query: $query, 
-                jsonKeys: ['payroll_summary', 'detail_info']
+                jsonKeys: []
             )
         );
 
@@ -204,9 +196,6 @@ final class PayrollReportRepository implements PayrollReportRepositoryInterface,
             $newEntity = PayrollReport::reconstitute(
                 id: $newId,
                 name: $entity->getName(),
-                attendanceSummaryId: $entity->getAttendanceSummaryId(),
-                payrollSummary: $entity->getPayrollSummary(),
-                notes: $entity->getNotes(),
                 status: $entity->getStatus(),
                 detailInfo: $entity->getDetailInfo(),
                 lockVersion: LockVersion::create(),
@@ -297,9 +286,6 @@ final class PayrollReportRepository implements PayrollReportRepositoryInterface,
         $entity = PayrollReport::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
-            attendanceSummaryId: (int) $row['attendance_summary_id'],
-            payrollSummary: $this->parseJsonColumn($row, 'payroll_summary'),
-            notes: $row['notes'],
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()])
@@ -312,36 +298,10 @@ final class PayrollReportRepository implements PayrollReportRepositoryInterface,
         );
     }
 
-    private function hydrateEntity(array $row): PayrollReport
-    {
-        return PayrollReport::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            attendanceSummaryId: (int) $row['attendance_summary_id'],
-            payrollSummary: $this->parseJsonColumn($row, 'payroll_summary'),
-            notes: $row['notes'],
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
-    }
-
-    private function parseJsonColumn(array $row, string $key): array
-    {
-        $value = $row[$key] ?? null;
-        if (is_string($value)) {
-            return json_decode($value, true) ?? [];
-        }
-        return is_array($value) ? $value : [];
-    }
-
     private function mapEntityToTable(PayrollReport $entity, int $lockVersion): array
     {
         return [
             'name' => $entity->getName(),
-            'attendance_summary_id' => $entity->getAttendanceSummaryId(),
-            'payroll_summary' => json_encode($entity->getPayrollSummary()),
-            'notes' => $entity->getNotes(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             SyncMdb::field() => $entity->getSyncMdbValue(),

@@ -8,21 +8,15 @@ final readonly class UpdatePayrollReportCommand
 {
     public function __construct(
         public int $id,
-        public ?string $name = null,
-        public ?int $attendanceSummaryId = null,
-        public ?array $payrollSummary = null,
-        public ?string $notes = null,
-        public ?int $status = null,
-        public ?array $detailInfo = null,
-        public ?int $lockVersion = null,
+        public ?string $name,
+        public ?int $status,
+        public ?array $detailInfo,
+        public ?int $lockVersion,
     ) {}
 
     public static function create(
         int $id,
         ?string $name = null,
-        ?int $attendanceSummaryId = null,
-        ?array $payrollSummary = null,
-        ?string $notes = null,
         ?int $status = null,
         ?array $detailInfo = null,
         ?int $lockVersion = null,
@@ -30,9 +24,6 @@ final readonly class UpdatePayrollReportCommand
         return new self(
             id: $id,
             name: $name,
-            attendanceSummaryId: $attendanceSummaryId,
-            payrollSummary: $payrollSummary,
-            notes: $notes,
             status: $status,
             detailInfo: $detailInfo,
             lockVersion: $lockVersion,

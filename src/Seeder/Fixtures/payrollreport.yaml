@@ -25,7 +25,7 @@ App\Domain\Shared\ValueObject\DetailInfo:
 
 # 2. ENTITIES (Sesuaikan dengan signature method create)
 App\Domain\PayrollReport\Entity\PayrollReport:
-  payroll_reports_{1..5}:
+  payroll_report_{1..5}:
     __factory: 
       'App\Domain\PayrollReport\Entity\PayrollReport::create':
         # Sesuaikan urutan: name, status, detailInfo, syncMdb
@@ -34,7 +34,7 @@ App\Domain\PayrollReport\Entity\PayrollReport:
         - '@info_empty'   # $detailInfo
         - null            # $syncMdb
 
-  payroll_reports_{6..10}:
+  payroll_report_{6..10}:
     __factory: 
       'App\Domain\PayrollReport\Entity\PayrollReport::create':
         - '<company()> <sentence()>'  # $name

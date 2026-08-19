@@ -5,37 +5,41 @@ declare(strict_types=1);
 namespace App\Domain\AttendanceSummary\Service;
 
 // Application Layer
-use App\Application\AttendanceSummary\AttendanceSummaryDetailInfoFactory;
 use App\Application\AttendanceSummary\Command\GenerateAttendanceSummaryCommand;
-use App\Application\AttendanceSummary\Dto\BatchGenerationResult;
+use App\Application\AttendanceSummary\Dto\AttendanceSummaryResult;
 use App\Application\Shared\Factory\DetailInfoFactory;
-
 // Domain Layer
+use App\Domain\Attendance\Entity\Attendance;
+use App\Domain\Attendance\Repository\AttendanceRepositoryInterface;
+use App\Domain\Attendance\ValueObject\AttendanceItem;
+use App\Domain\AttendanceCalendar\Repository\AttendanceCalendarRepositoryInterface;
+use App\Domain\AttendancePermission\Entity\AttendancePermission;
+use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInterface;
 use App\Domain\AttendanceSummary\Entity\AttendanceSummary;
 use App\Domain\AttendanceSummary\Repository\AttendanceSummaryRepositoryInterface;
-use App\Domain\AttendanceSummary\Result\GenerationResult;
+use App\Domain\AttendanceSummary\ValueObject\AttendanceData;
+use App\Domain\AttendanceSummary\ValueObject\EmployeeSnapshot;
 use App\Domain\AttendanceSummary\ValueObject\Name;
-use App\Domain\AttendanceReview\Entity\AttendanceReview;
-use App\Domain\AttendanceReview\ValueObject\ReviewOverrides;
-use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInterface;
-use App\Domain\EmployeeLeave\Entity\EmployeeLeave;
-use App\Domain\EmployeeLeave\Repository\EmployeeLeaveRepositoryInterface;
+use App\Domain\AttendanceSummary\ValueObject\Notes;
+use App\Domain\AttendanceSummary\ValueObject\Period;
+use App\Domain\AttendanceSummary\ValueObject\PermissionCollection;
+use App\Domain\AttendanceSummary\ValueObject\Policy;
+use App\Domain\AttendanceSummary\ValueObject\Summary;
+use App\Domain\AttendanceSummary\ValueObject\WorkSchedule;
 use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
-use App\Domain\Employee\ValueObject\EmployeeCollection;
-use App\Domain\Employee\Entity\Employee;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
 use App\Domain\Shared\Enums\ApprovalStatus;
-use App\Domain\Shared\Enums\PermissionType;
 use App\Domain\Shared\ValueObject\ResourceStatus;
-
 // Shared Layer
+use App\Shared\Dto\SearchCriteria;
 use App\Shared\Exception\BadRequestException;
-use App\Shared\ValueObject\Message;
 
 /**
  * AttendanceSummary Domain Service
  *
- * Pure business logic and domain rules
+ * Pure business logic and domain rules. Owns the auto-generation flow that
+ * folds an employee's daily attendance (together with their work-schedule
+ * rules) into one AttendanceSummary per employee per period.
  */
 final class AttendanceSummaryDomainService
 {
@@ -43,1001 +47,309 @@ final class AttendanceSummaryDomainService
 
     public function __construct(
         private DetailInfoFactory $detailInfoFactory,
-        private AttendanceSummaryDetailInfoFactory $summaryDetailInfoFactory,
         private AttendanceSummaryRepositoryInterface $repository,
+        private AttendanceRepositoryInterface $attendanceRepository,
         private EmployeeRepositoryInterface $employeeRepository,
         private AttendancePermissionRepositoryInterface $permissionRepository,
-        private EmployeeLeaveRepositoryInterface $employeeLeaveRepository,
+        private AttendanceCalendarRepositoryInterface $calendarRepository,
     ) {}
 
     /**
-     * Builds an AttendanceSummary entity from attendance data for a single employee.
+     * Orchestrates the full AttendanceSummary generation flow for a period:
+     * resolves the active employees, loads their attendance, computes every
+     * calculated field via the Summary Value Object and persists the result.
      *
-     * Contains domain logic for:
-     * - Attendance detail aggregation and transformation
-     * - Period/time summary calculation
-     * - Uniqueness enforcement (domain rule)
-     * - Employee snapshot creation
-     *
-     * Does NOT persist the entity — persistence is the application service's responsibility.
+     * Re-running for the same period is idempotent: summaries that already
+     * exist for an (employee, period) are kept untouched (counted as skipped).
      */
-    public function generateForEmployee(
-        Employee $employee,
-        int $period,
-        ?string $notes = null,
-        ?array $detailInfo = null,
-    ): AttendanceSummary {
-        $attendanceDetail = $this->summaryDetailInfoFactory->buildAttendanceDetail(
-            employeeId: $employee->getId(),
-            period: $period,
-        );
+    public function generateAllFromAttendance(GenerateAttendanceSummaryCommand $command): AttendanceSummaryResult
+    {
+        $periodVo = Period::fromNullable($command->period);
+        $periodDays = array_values(iterator_to_array($periodVo->iterateDays()));
 
-        [$snapshotData, $workPatternSnapshot] = $this->buildEmployeeSnapshot($employee);
+        $employees = $this->resolveEmployees($command);
+        $attendances = $this->attendanceRepository->findByPeriod($command->period);
 
-        [$permissionDetail, $permissionSummary] = $this->buildPermissionSummary(
-            employeeId: $employee->getId(),
-            period: $period,
-        );
+        // Load holidays for the period (shared across all employees).
+        $holidays = $this->calendarRepository->findByPeriod($command->period);
 
-        [$periodSummary, $timeSummary] = $this->calculateSummaries(
-            attendanceDetail: $attendanceDetail,
-            workPatternSnapshot: $workPatternSnapshot,
-            permissionSummary: $permissionSummary,
-        );
+        [$dailyByEmployee, $rawByEmployee] = $this->groupAttendanceByEmployee($attendances);
 
-        $name = Name::fromEmployeeAndPeriod(
-            employeeId: $employee->getId(),
-            period: $period,
-        )->getValue();
-
-        $this->ensureUniqueName($name);
-
-        $builtDetailInfo = $this->detailInfoFactory
-            ->create(detailInfo: array_merge($snapshotData, $detailInfo ?? []))
+        // New summaries are always ACTIVE; older period summaries are marked COMPLETE.
+        $status = ResourceStatus::active();
+        $detailInfo = $this->detailInfoFactory
+            ->create(detailInfo: $command->detailInfo ?? [])
             ->build();
 
-        $data = AttendanceSummary::create(
-            name: $name,
-            employeeId: $employee->getId(),
-            branchId: $employee->getBranchId(),
-            divisionId: $employee->getDivisionId(),
-            positionId: $employee->getPositionId(),
-            employeeTypeId: $employee->getEmployeeTypeId(),
-            status: ResourceStatus::active(),
-            detailInfo: $builtDetailInfo
-        );
+        // Mark summaries from previous periods as COMPLETE.
+        $this->markPreviousPeriodSummariesAsCompleted($command->period);
 
-        $data->setPeriod($period);
-        $data->setAttendanceDetail($attendanceDetail);
-        $data->setPermissionDetail($permissionDetail);
-        $data->setPeriodSummary($periodSummary);
-        $data->setTimeSummary($timeSummary);
-
-        if ($workPatternSnapshot !== null && isset($workPatternSnapshot['id'])) {
-            $data->setWorkPatternId((int) $workPatternSnapshot['id']);
-        }
-
-        if ($notes !== null) {
-            $data->setNotes($notes);
-        }
-
-        return $data;
-    }
-
-    /**
-     * Builds AttendanceSummary entities for a collection of employees.
-     *
-     * Iterates over the employees and delegates to generateForEmployee() for
-     * each. Domain rule violations (BadRequestException, e.g. duplicate name)
-     * are treated as skips; other exceptions are recorded as errors.
-     *
-     * Does NOT persist the entities — persistence is the application service's
-     * responsibility. Returns a GenerationResult containing the built entities,
-     * the skip count, and any errors encountered.
-     */
-    public function generateBatch(
-        EmployeeCollection $employees,
-        int $period,
-        ?string $notes = null,
-        ?array $detailInfo = null,
-    ): GenerationResult {
-        $entities = [];
-        $skippedCount = 0;
+        $created = 0;
+        $skipped = 0;
         $errors = [];
 
         foreach ($employees as $employee) {
-            try {
-                $entities[] = $this->generateForEmployee(
-                    employee: $employee,
-                    period: $period,
-                    notes: $notes,
-                    detailInfo: $detailInfo,
-                );
-            } catch (BadRequestException $e) {
-                $skippedCount++;
-            } catch (\Exception $e) {
-                $errors[$employee->getId()] = $e->getMessage();
+            $employeeId = $employee->getId();
+
+            if ($employeeId === null) {
+                continue;
             }
-        }
 
-        return GenerationResult::create(
-            entities: $entities,
-            skippedCount: $skippedCount,
-            errors: $errors,
-        );
-    }
-
-    /**
-     * Orchestrates the full AttendanceSummary generation flow:
-     * resolves source employees, builds AttendanceSummary entities,
-     * and persists them.
-     */
-    public function generateAllFromAttendance(GenerateAttendanceSummaryCommand $command): BatchGenerationResult
-    {
-        $employees = $this->resolveEmployees($command);
-
-        $generation = $this->generateBatch(
-            employees: $employees,
-            period: $command->period,
-            notes: $command->notes,
-            detailInfo: $command->detailInfo,
-        );
-
-        return $this->persistGeneratedEntities($generation);
-    }
-
-    /**
-     * Resolves the source employees for generation.
-     *
-     * If employeeId is provided (and > 0), only that employee is used.
-     * Otherwise, all active employees are loaded.
-     */
-    private function resolveEmployees(GenerateAttendanceSummaryCommand $command): EmployeeCollection
-    {
-        if ($command->employeeId !== null && $command->employeeId > 0) {
-            return EmployeeCollection::fromNullable([
-                $this->employeeRepository->findById($command->employeeId),
-            ]);
-        }
-
-        return EmployeeCollection::fromArray(
-            $this->employeeRepository->findAllActive()
-        );
-    }
-
-    /**
-     * Persists built AttendanceSummary entities and aggregates the outcome.
-     */
-    private function persistGeneratedEntities(GenerationResult $generation): BatchGenerationResult
-    {
-        $created = 0;
-        $errors = $generation->errors;
-
-        foreach ($generation->entities as $entity) {
             try {
+                $name = Name::fromString(sprintf('SUMMARY-EK%d-%d', $employeeId, $command->period));
+
+                // Keep existing summaries untouched (idempotent re-generation).
+                if ($this->repository->existsByName($name->toString())) {
+                    $skipped++;
+                    continue;
+                }
+
+                $dailyItems = $dailyByEmployee[$employeeId] ?? [];
+                $rawDaily = $rawByEmployee[$employeeId] ?? [];
+
+                // Load approved permissions for this employee in the period.
+                $permissionEntities = $this->permissionRepository->findByEmployeeAndPeriod(
+                    employeeId: $employeeId,
+                    period: $command->period,
+                );
+                [$permissionItems, $permissionDateMap] = $this->buildPermissionSnapshot(
+                    $permissionEntities,
+                );
+
+                $employeeSnapshot = EmployeeSnapshot::fromEmployee($employee);
+                $workSchedule = WorkSchedule::fromEmployee($employee);
+                $policy = Policy::fromDailyItems($dailyItems);
+
+                // Filter holidays by the employee's branch scope.
+                $holidayDates = $this->filterHolidaysByBranch($holidays, $employee->getBranchId());
+
+                // Build attendance data with correct is_obligation_day flags.
+                $attendanceData = AttendanceData::fromRawDailyItems(
+                    $rawDaily,
+                    $workSchedule,
+                    $holidayDates,
+                );
+                $permissions = PermissionCollection::fromArray($permissionItems);
+                $summary = Summary::compute(
+                    workSchedule: $workSchedule,
+                    dailyItems: $dailyItems,
+                    periodDays: $periodDays,
+                    permissionDateMap: $permissionDateMap,
+                    holidayDates: $holidayDates,
+                    policy: $policy,
+                );
+
+                $entity = AttendanceSummary::create(
+                    name: $name,
+                    employee: $employeeSnapshot,
+                    workSchedule: $workSchedule,
+                    attendance: $attendanceData,
+                    permissions: $permissions,
+                    summary: $summary,
+                    policy: $policy,
+                    status: $status,
+                    detailInfo: $detailInfo,
+                    period: $periodVo,
+                    notes: Notes::fromNullable($command->notes),
+                );
+
                 $this->repository->insert(entity: $entity);
                 $created++;
-            } catch (\Exception $e) {
-                $errors[$entity->getEmployeeId()] = $e->getMessage();
+            } catch (BadRequestException $e) {
+                // Domain rule violation (e.g. invalid generated name) => skip.
+                $skipped++;
+            } catch (\Throwable $e) {
+                $errors[$employeeId] = $e->getMessage();
             }
         }
 
-        return BatchGenerationResult::create(
+        return AttendanceSummaryResult::create(
             created: $created,
-            skipped: $generation->skippedCount,
+            skipped: $skipped,
             errors: $errors,
         );
     }
 
     /**
-     * Enforces the domain rule that an AttendanceSummary name must be unique.
+     * Resolves the employees to generate for.
      *
-     * @throws BadRequestException
+     * When employeeId is supplied (and > 0) only that employee is used;
+     * otherwise every active employee is loaded.
+     *
+     * @return list<\App\Domain\Employee\Entity\Employee>
      */
-    private function ensureUniqueName(string $name): void
+    private function resolveEmployees(GenerateAttendanceSummaryCommand $command): array
     {
-        if ($this->repository->existsByName($name)) {
-            throw new BadRequestException(
-                translate: Message::create(
-                    key: 'resource.already_exists',
-                    params: [
-                        'resource' => AttendanceSummary::RESOURCE,
-                        'field' => 'name',
-                        'value' => $name
-                    ]
-                )
-            );
+        if ($command->employeeId !== null && $command->employeeId > 0) {
+            $employee = $this->employeeRepository->findById($command->employeeId);
+            return $employee === null ? [] : [$employee];
         }
+
+        return $this->employeeRepository->findAllActive();
     }
 
     /**
-     * Builds a snapshot of the employee's master data (branch, division, position,
-     * employee type, work pattern) for embedding in the summary's detail_info.
+     * Groups the period's attendance into per-employee lookups.
      *
-     * @return array{0: array, 1: ?array} [snapshotData, workPatternSnapshot]
+     * Returns two maps keyed by employee id:
+     *  - daily: date => AttendanceItem (normalized, used for calculation)
+     *  - raw:   date => raw item array (preserves full info, used for the
+     *    attendance detail snapshot)
+     *
+     * @param list<Attendance> $attendances
+     *
+     * @return array{0: array<int, array<string, AttendanceItem>>, 1: array<int, array<string, array>>}
      */
-    private function buildEmployeeSnapshot(Employee $employee): array
+    private function groupAttendanceByEmployee(array $attendances): array
     {
-        $employeeDetailInfo = $employee->getDetailInfo();
-        $branchSnapshot = $employeeDetailInfo->get('branch');
-        $workPatternSnapshot = $employeeDetailInfo->get('branch.work_pattern');
+        $dailyByEmployee = [];
+        $rawByEmployee = [];
 
-        if ($branchSnapshot !== null) {
-            unset($branchSnapshot['work_pattern']);
+        foreach ($attendances as $attendance) {
+            $date = $attendance->getDate();
+
+            foreach ($attendance->getAttendance() as $rawItem) {
+                if (!is_array($rawItem) || !isset($rawItem['employee_id'])) {
+                    continue;
+                }
+
+                $employeeId = (int) $rawItem['employee_id'];
+                $rawByEmployee[$employeeId][$date] = $rawItem;
+
+                try {
+                    $dailyByEmployee[$employeeId][$date] = AttendanceItem::fromArray($rawItem);
+                } catch (\Throwable) {
+                    // Keep the raw entry for the snapshot even if normalization
+                    // fails; the summary simply treats that day as unprocessed.
+                }
+            }
         }
 
-        $snapshotData = [
-            'employee' => [
-                'id' => $employee->getId(),
-                'name' => $employee->getName(),
-            ],
-            'branch' => $branchSnapshot,
-            'division' => $employeeDetailInfo->get('division'),
-            'position' => $employeeDetailInfo->get('position'),
-            'employee_type' => $employeeDetailInfo->get('employee_type'),
-            'work_pattern' => $workPatternSnapshot,
-        ];
-
-        return [$snapshotData, $workPatternSnapshot];
+        return [$dailyByEmployee, $rawByEmployee];
     }
 
-    private function initializeRuleStats(?array $workPatternSnapshot): array
+    /**
+     * Builds the permission snapshot array and a flat date => permission-type
+     * map from the employee's approved AttendancePermission records.
+     *
+     * Only approved permissions are included. The date map expands multi-day
+     * permissions (start_date..end_date) into individual calendar days.
+     *
+     * @param AttendancePermission[] $permissions
+     *
+     * @return array{0: list<array<string, mixed>>, 1: array<string, int>}
+     */
+    private function buildPermissionSnapshot(array $permissions): array
     {
-        $workingDays = $workPatternSnapshot['working_days'] ?? [];
+        $items = [];
+        $dateMap = [];
 
-        if (!is_array($workingDays)) {
+        foreach ($permissions as $permission) {
+            if ($permission->getApproved() !== ApprovalStatus::APPROVED->value) {
+                continue;
+            }
+
+            $detailInfo = $permission->getDetailInfo();
+            $totalDay = $detailInfo->get('total_day') ?? 1;
+
+            $items[] = [
+                'id' => $permission->getId(),
+                'permission_type' => $permission->getPermissionType(),
+                'start_date' => $permission->getStartDate(),
+                'end_date' => $permission->getEndDate(),
+                'total_day' => $totalDay,
+                'approved' => $permission->getApproved(),
+                'permission' => $detailInfo->get('permission'),
+            ];
+
+            // Expand the date range into individual days for the summary map.
+            $startDate = $permission->getStartDate();
+            $endDate = $permission->getEndDate() ?? $startDate;
+
+            if ($startDate === null) {
+                continue;
+            }
+
+            try {
+                $current = new \DateTimeImmutable($startDate);
+                $end = new \DateTimeImmutable($endDate);
+            } catch (\Throwable) {
+                continue;
+            }
+
+            while ($current <= $end) {
+                $dateStr = $current->format('Y-m-d');
+                $dateMap[$dateStr] = $permission->getPermissionType();
+                $current = $current->modify('+1 day');
+            }
+        }
+
+        return [$items, $dateMap];
+    }
+
+    /**
+     * Filters holidays to only those applicable to the employee's branch.
+     *
+     * Returns a map of date (Y-m-d) => day_off value for holidays whose scope
+     * includes the given branch id.
+     *
+     * @param array<int, \App\Domain\AttendanceCalendar\Entity\AttendanceCalendar> $holidays
+     *
+     * @return array<string, int>
+     */
+    private function filterHolidaysByBranch(array $holidays, ?int $branchId): array
+    {
+        if ($branchId === null) {
             return [];
         }
 
-        $ruleStats = [];
-        foreach ($workingDays as $day) {
-            $rule = is_array($day) ? ($day['work_pattern_rule'] ?? null) : null;
-
-            if (!is_array($rule) || !isset($rule['id'])) {
+        $result = [];
+        foreach ($holidays as $holiday) {
+            $scopeBranchIds = $holiday->getScope()->getBranchIds();
+            if (!in_array($branchId, $scopeBranchIds, true)) {
                 continue;
             }
-
-            $ruleId = (int) $rule['id'];
-            if ($ruleId <= 0 || isset($ruleStats[$ruleId])) {
-                continue;
-            }
-
-            $ruleStats[$ruleId] = $this->createRuleStat($rule);
+            $result[$holiday->getDate()] = $holiday->getDayOff();
         }
 
-        return $ruleStats;
+        return $result;
     }
 
     /**
-     * @param array<string, mixed> $rule
-     * @return array<string, mixed>
+     * Marks all AttendanceSummary records from periods strictly older than the
+     * given period as COMPLETE, so only the current period remains ACTIVE.
      */
-    private function createRuleStat(array $rule): array
+    private function markPreviousPeriodSummariesAsCompleted(int $currentPeriod): void
     {
-        $targetCount = $rule['target_count'] ?? null;
-
-        return [
-            'target' => $targetCount === null ? null : (int) $targetCount,
-            'fulfilled' => 0,
-            'obligation_days' => 0,
-            'rule_type' => $rule['rule_type'] ?? null,
-            'excess_treatment' => $rule['excess_treatment'] ?? null,
-            'deficit_treatment' => $rule['deficit_treatment'] ?? null,
-            'substitution_allowed' => (int) ($rule['substitution_allowed'] ?? 0),
-        ];
-    }
-
-    private function buildPermissionSummary(int $employeeId, int $period): array
-    {
-        $permissions = $this->permissionRepository->findByEmployeeAndPeriod(
-            employeeId: $employeeId,
-            period: $period,
-        );
-        $employeeLeaves = $this->employeeLeaveRepository->findByEmployeeAndPeriod(
-            employeeId: $employeeId,
-            period: $period,
+        // Load all ACTIVE summaries (status = 1) across every period.
+        $criteria = new SearchCriteria(
+            page: 1,
+            pageSize: 10000,
+            filter: ['status' => 1],
+            sortBy: 'id',
+            sortDir: 'asc',
         );
 
-        $employeeLeaves = $this->synchronizeEmployeeLeaves(
-            permissions: $permissions,
-            employeeLeaves: $employeeLeaves,
-        );
+        $result = $this->repository->list($criteria);
 
-        $permissionDetail = [];
-        $permissionSummary = [
-            'leave_days' => 0,
-            'sick_days' => 0,
-            'permission_days' => 0,
-            'leave_quota_used_count' => 0,
-        ];
-        $approvedPermissionIds = [];
-
-        foreach ($permissions as $permission) {
-            if ($permission->getApproved() !== ApprovalStatus::APPROVED->value) {
+        foreach ($result->data as $row) {
+            $rowPeriod = (int) ($row['period'] ?? 0);
+            if ($rowPeriod >= $currentPeriod) {
                 continue;
             }
 
-            $permissionType = PermissionType::tryFrom($permission->getPermissionType());
-            $startDate = $permission->getStartDate();
-            if ($permissionType === null || $startDate === null) {
+            $id = (int) ($row['id'] ?? 0);
+            if ($id <= 0) {
                 continue;
             }
 
-            $endDate = $permission->getEndDate() ?? $startDate;
-            $periodDayCount = $this->countDaysInAttendancePeriod(
-                startDate: $startDate,
-                endDate: $endDate,
-                period: $period,
-            );
-            if ($periodDayCount === 0) {
+            $existing = $this->repository->findById($id);
+            if ($existing === null) {
                 continue;
             }
 
-            $summaryKey = $this->permissionSummaryKey($permissionType);
-            $permissionSummary[$summaryKey] += $periodDayCount;
-
-            $permissionId = $permission->getId();
-            if ($permissionId !== null) {
-                $approvedPermissionIds[(string) $permissionId] = true;
-            }
-
-            $employeeLeave = $this->findEmployeeLeaveForPermission(
-                permissionType: $permissionType,
-                startDate: $startDate,
-                endDate: $endDate,
-                employeeLeaves: $employeeLeaves,
-            );
-
-            if ($employeeLeave !== null && $this->employeeLeaveTypeAliases($permissionType) !== []) {
-                $permissionSummary['leave_quota_used_count'] += $periodDayCount;
-            }
-
-            $permissionDetail[] = [
-                'id' => $permissionId,
-                'employee_id' => $permission->getEmployeeId(),
-                'permission_type' => $permissionType->value,
-                'permission' => [
-                    'id' => $permissionType->value,
-                    'name' => $permissionType->getLabel(),
-                ],
-                'start_date' => $startDate,
-                'end_date' => $permission->getEndDate(),
-                'period' => $permission->getPeriod(),
-                'total_day' => $this->countInclusiveDays($startDate, $endDate),
-                'period_day_count' => $periodDayCount,
-                'note' => $permission->getNote(),
-                'approved' => $permission->getApproved(),
-                'approved_note' => $permission->getApprovedNote(),
-                'status' => $permission->getStatus()->value(),
-                'employee_leave_id' => $employeeLeave?->getId(),
-            ];
+            $existing->applyStatus(ResourceStatus::completed());
+            $this->repository->update($existing);
         }
-
-        foreach ($employeeLeaves as $employeeLeave) {
-            $summaryKey = $this->employeeLeaveSummaryKey($employeeLeave->getLeaveType());
-            if ($summaryKey === null) {
-                continue;
-            }
-
-            foreach ($employeeLeave->getLeaveRecords() as $record) {
-                if (!is_array($record)) {
-                    continue;
-                }
-
-                $permissionId = $this->leaveRecordPermissionId($record);
-                if ($permissionId !== null && isset($approvedPermissionIds[(string) $permissionId])) {
-                    continue;
-                }
-
-                $recordDays = $this->countLeaveRecordDays(
-                    record: $record,
-                    period: $period,
-                );
-                $permissionSummary[$summaryKey] += $recordDays;
-                $permissionSummary['leave_quota_used_count'] += $recordDays;
-            }
-        }
-
-        return [$permissionDetail, $permissionSummary];
-    }
-
-    private function synchronizeEmployeeLeaves(array $permissions, array $employeeLeaves): array
-    {
-        $leaveMap = [];
-        foreach ($employeeLeaves as $employeeLeave) {
-            if ($employeeLeave->getId() !== null) {
-                $leaveMap[(string) $employeeLeave->getId()] = $employeeLeave;
-            }
-        }
-
-        $changedLeaveIds = [];
-        foreach ($permissions as $permission) {
-            if ($permission->getApproved() !== ApprovalStatus::APPROVED->value) {
-                continue;
-            }
-
-            $permissionType = PermissionType::tryFrom($permission->getPermissionType());
-            $permissionId = $permission->getId();
-            $startDate = $permission->getStartDate();
-            if ($permissionType === null || $permissionId === null || $startDate === null) {
-                continue;
-            }
-
-            if ($this->employeeLeaveTypeAliases($permissionType) === []) {
-                continue;
-            }
-
-            $endDate = $permission->getEndDate() ?? $startDate;
-            $employeeLeave = $this->findEmployeeLeaveForPermission(
-                permissionType: $permissionType,
-                startDate: $startDate,
-                endDate: $endDate,
-                employeeLeaves: array_values($leaveMap),
-            );
-            if ($employeeLeave === null || $employeeLeave->getId() === null) {
-                continue;
-            }
-
-            $leaveId = (string) $employeeLeave->getId();
-            $leaveRecords = $employeeLeave->getLeaveRecords();
-            $recordExists = false;
-            foreach ($leaveRecords as $record) {
-                if (is_array($record) && $this->leaveRecordPermissionId($record) === $permissionId) {
-                    $recordExists = true;
-                    break;
-                }
-            }
-
-            if ($recordExists) {
-                continue;
-            }
-
-            $totalDays = $this->countInclusiveDays($startDate, $endDate);
-            if ($totalDays === 0) {
-                continue;
-            }
-
-            $leaveRecords[] = [
-                'attendance_permission_id' => $permissionId,
-                'permission_type' => $permissionType->value,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'total_day' => $totalDays,
-                'period' => $permission->getPeriod(),
-            ];
-            $employeeLeave->setLeaveRecords($leaveRecords);
-            $employeeLeave->setUsedAmount(($employeeLeave->getUsedAmount() ?? 0) + $totalDays);
-            $leaveMap[$leaveId] = $employeeLeave;
-            $changedLeaveIds[$leaveId] = true;
-        }
-
-        foreach (array_keys($changedLeaveIds) as $leaveId) {
-            $leaveMap[$leaveId] = $this->employeeLeaveRepository->update(
-                $leaveMap[$leaveId],
-            );
-        }
-
-        return array_values($leaveMap);
-    }
-
-    private function findEmployeeLeaveForPermission(
-        PermissionType $permissionType,
-        string $startDate,
-        string $endDate,
-        array $employeeLeaves,
-    ): ?EmployeeLeave {
-        $aliases = $this->employeeLeaveTypeAliases($permissionType);
-        if ($aliases === []) {
-            return null;
-        }
-
-        foreach ($employeeLeaves as $employeeLeave) {
-            if (!in_array(
-                $this->normalizeLeaveType($employeeLeave->getLeaveType()),
-                $aliases,
-                true,
-            )) {
-                continue;
-            }
-
-            if (
-                $employeeLeave->getPeriodStartDate() <= $endDate
-                && $employeeLeave->getPeriodEndDate() >= $startDate
-            ) {
-                return $employeeLeave;
-            }
-        }
-
-        return null;
-    }
-
-    private function permissionSummaryKey(PermissionType $permissionType): string
-    {
-        return match ($permissionType) {
-            PermissionType::SICK,
-            PermissionType::SICK_WITH_RECEIPT => 'sick_days',
-            PermissionType::ANNUAL_LEAVE => 'leave_days',
-            PermissionType::LEAVE_EARLY,
-            PermissionType::LATE,
-            PermissionType::PERMISSION_LEAVE,
-            PermissionType::UNPAID_LEAVE => 'permission_days',
-        };
-    }
-
-    private function employeeLeaveSummaryKey(string $leaveType): ?string
-    {
-        return match ($this->normalizeLeaveType($leaveType)) {
-            'ANNUAL', 'ANNUAL_LEAVE' => 'leave_days',
-            'SICK', 'SICK_LEAVE' => 'sick_days',
-            'PERMISSION', 'PERMISSION_LEAVE', 'UNPAID', 'UNPAID_LEAVE' => 'permission_days',
-            default => null,
-        };
-    }
-
-    private function employeeLeaveTypeAliases(PermissionType $permissionType): array
-    {
-        return match ($permissionType) {
-            PermissionType::SICK, PermissionType::SICK_WITH_RECEIPT => ['SICK', 'SICK_LEAVE'],
-            PermissionType::ANNUAL_LEAVE => ['ANNUAL', 'ANNUAL_LEAVE'],
-            PermissionType::PERMISSION_LEAVE => ['PERMISSION', 'PERMISSION_LEAVE'],
-            PermissionType::UNPAID_LEAVE => ['UNPAID', 'UNPAID_LEAVE'],
-            PermissionType::LEAVE_EARLY, PermissionType::LATE => [],
-        };
-    }
-
-    private function normalizeLeaveType(string $leaveType): string
-    {
-        return strtoupper(str_replace(['-', ' '], '_', trim($leaveType)));
-    }
-
-    private function leaveRecordPermissionId(array $record): ?int
-    {
-        foreach (['attendance_permission_id', 'permission_id'] as $key) {
-            if (isset($record[$key]) && (int) $record[$key] > 0) {
-                return (int) $record[$key];
-            }
-        }
-
-        return null;
-    }
-
-    private function countLeaveRecordDays(array $record, int $period): int
-    {
-        $startDate = $record['start_date'] ?? $record['date'] ?? null;
-        if (!is_string($startDate) || $startDate === '') {
-            return (int) ((int) ($record['period'] ?? 0) === $period
-                ? max(0, (int) ($record['total_day'] ?? 0))
-                : 0);
-        }
-
-        $endDate = $record['end_date'] ?? $startDate;
-        if (!is_string($endDate) || $endDate === '') {
-            $endDate = $startDate;
-        }
-
-        return $this->countDaysInAttendancePeriod(
-            startDate: $startDate,
-            endDate: $endDate,
-            period: $period,
-        );
-    }
-
-    private function countDaysInAttendancePeriod(string $startDate, string $endDate, int $period): int
-    {
-        [$periodStart, $periodEnd] = $this->attendancePeriodDateRange($period);
-        $from = $startDate > $periodStart ? $startDate : $periodStart;
-        $to = $endDate < $periodEnd ? $endDate : $periodEnd;
-
-        return $this->countInclusiveDays($from, $to);
-    }
-
-    private function countInclusiveDays(string $startDate, string $endDate): int
-    {
-        if ($startDate > $endDate) {
-            return 0;
-        }
-
-        $start = new \DateTimeImmutable($startDate);
-        $end = new \DateTimeImmutable($endDate);
-
-        return $start->diff($end)->days + 1;
-    }
-
-    private function attendancePeriodDateRange(int $period): array
-    {
-        $year = intdiv($period, 100);
-        $month = $period % 100;
-        if ($year < 1 || $month < 1 || $month > 12) {
-            throw new \InvalidArgumentException(sprintf('Invalid attendance period: %d', $period));
-        }
-
-        $periodEnd = \DateTimeImmutable::createFromFormat(
-            '!Y-m-d',
-            sprintf('%04d-%02d-25', $year, $month),
-        );
-        if ($periodEnd === false) {
-            throw new \InvalidArgumentException(sprintf('Invalid attendance period: %d', $period));
-        }
-
-        return [
-            $periodEnd->modify('-1 month')->modify('+1 day')->format('Y-m-d'),
-            $periodEnd->format('Y-m-d'),
-        ];
-    }
-
-    /**
-     * Calculates period and time summaries from attendance detail entries.
-     *
-     * Period summary is now rule-aware: attendance records are grouped by
-     * their work_pattern_rule, and obligation/deficit/excess are computed
-     * per rule against its period target.
-     *
-     * Review-aware: when ReviewOverrides are provided, treatments that
-     * trigger manual review (MANUAL_REVIEW, REQUIRE_APPROVAL) are resolved
-     * using the override treatment from approved review items. Pending
-     * (unresolved) review items are counted in `pending_review_count` and
-     * their deficit/excess is held (not counted toward any bucket).
-     *
-     * @param array<int, array> $attendanceDetail
-     * @param array<string, mixed>|null $workPatternSnapshot
-     * @param ReviewOverrides|null $overrides Approved review overrides to apply
-     * @param array{missing_in_policy?: ?string, missing_out_policy?: ?string}|null $missingPolicyConfig Missing policy treatments for day-level evaluation
-     * @return array{0: array, 1: array}
-     */
-    private function calculateSummaries(
-        array $attendanceDetail,
-        ?array $workPatternSnapshot = null,
-        ?ReviewOverrides $overrides = null,
-        ?array $missingPolicyConfig = null,
-        ?array $permissionSummary = null,
-    ): array
-    {
-        $presentDays = 0;
-        $lateCount = 0;
-        $lateMinTotal = 0;
-        $earlyOutCount = 0;
-        $earlyOutMinTotal = 0;
-        $incompleteCount = 0;
-        $pendingReviewCount = 0;
-
-        // Group fulfilled attendance by rule_id
-        $ruleStats = $this->initializeRuleStats($workPatternSnapshot); // rule_id => ['target' => ?int, 'fulfilled' => int, 'obligation_days' => int, 'excess_treatment' => string, 'deficit_treatment' => string, 'rule_type' => string]
-        $obligationDayCount = 0;
-
-        // Day-level missing events for SEND_TO_REVIEW evaluation
-        $dayLevelPendingCount = 0;
-
-        foreach ($attendanceDetail as $entry) {
-            $info = $entry['info'] ?? [];
-            $detail = $info['detail'] ?? [];
-            $isObligationDay = $entry['is_obligation_day'] ?? false;
-            $rule = $entry['work_pattern_rule'] ?? null;
-
-            if ($info['in'] ?? false) {
-                $presentDays++;
-            }
-
-            if ($detail['late'] ?? false) {
-                $lateCount++;
-                $lateMinTotal += (int)($detail['late_minutes'] ?? 0);
-            }
-
-            if (($detail['early_out'] ?? 0) > 0) {
-                $earlyOutCount++;
-                $earlyOutMinTotal += (int)$detail['early_out'];
-            }
-
-            $missingIn = (bool)($detail['missing_in'] ?? false);
-            $missingOut = (bool)($detail['missing_out'] ?? false);
-
-            if ($missingIn || $missingOut) {
-                $incompleteCount++;
-            }
-
-            // Day-level missing policy evaluation (SEND_TO_REVIEW)
-            if ($missingPolicyConfig !== null && ($missingIn || $missingOut)) {
-                $date = $entry['date'] ?? null;
-                $missingInPolicy = $missingPolicyConfig['missing_in_policy'] ?? null;
-                $missingOutPolicy = $missingPolicyConfig['missing_out_policy'] ?? null;
-
-                // Check missing_in
-                if ($missingIn && $missingInPolicy === 'SEND_TO_REVIEW') {
-                    $dayOverrides = $overrides?->forDays() ?? [];
-                    $dateStr = (string) $date;
-                    if (isset($dayOverrides[$dateStr]) && $dayOverrides[$dateStr]['missing_in']) {
-                        // Override exists — apply resolved treatment
-                        $resolvedTreatment = $dayOverrides[$dateStr]['resolved_treatment'];
-                        if ($resolvedTreatment === 'TREAT_AS_ABSENT') {
-                            // Count as absent — handled in absent_days below
-                        }
-                        // IGNORE_MISSING_EVENT → do nothing
-                    } else {
-                        // Pending review — count it
-                        $dayLevelPendingCount++;
-                    }
-                }
-
-                // Check missing_out
-                if ($missingOut && $missingOutPolicy === 'SEND_TO_REVIEW') {
-                    $dayOverrides = $overrides?->forDays() ?? [];
-                    $dateStr = (string) $date;
-                    if (isset($dayOverrides[$dateStr]) && $dayOverrides[$dateStr]['missing_out']) {
-                        // Override exists — apply resolved treatment
-                        $resolvedTreatment = $dayOverrides[$dateStr]['resolved_treatment'];
-                        if ($resolvedTreatment === 'TREAT_AS_ABSENT') {
-                            // Count as absent — handled in absent_days below
-                        }
-                        // IGNORE_MISSING_EVENT → do nothing
-                    } else {
-                        // Pending review — count it
-                        $dayLevelPendingCount++;
-                    }
-                }
-            }
-
-            // Only count obligation days
-            if (!$isObligationDay) {
-                continue;
-            }
-
-            $obligationDayCount++;
-
-            // Determine if this day counts as "fulfilled" for the rule
-            $isFulfilled = ($detail['full_day'] ?? false) || ($detail['half_day'] ?? false);
-
-            if ($rule !== null && isset($rule['id'])) {
-                $ruleId = (int) $rule['id'];
-
-                if (!isset($ruleStats[$ruleId])) {
-                    $ruleStats[$ruleId] = $this->createRuleStat($rule);
-                }
-
-                if ($isFulfilled) {
-                    $ruleStats[$ruleId]['fulfilled']++;
-                }
-
-                $ruleStats[$ruleId]['obligation_days']++;
-            }
-        }
-
-        // Calculate per-rule aggregates
-        $obligationTotalCount = 0;
-        $obligationUnfulfilledCount = 0;
-        $excessCount = 0;
-        $overtimeDayCount = 0;
-        $leaveQuotaUsedCount = 0;
-        $deductionDayCount = 0;
-
-        foreach ($ruleStats as $ruleId => $stat) {
-            // REQUIRED_WEEKDAY derives its target from scheduled days in the period.
-            // Other rule types use target_count directly as a period target.
-            $target = ($stat['rule_type'] ?? null) === 'REQUIRED_WEEKDAY'
-                ? $stat['obligation_days']
-                : ($stat['target'] ?? 0);
-            $fulfilled = $stat['fulfilled'];
-            $deficit = max(0, $target - $fulfilled);
-            $excess = max(0, $fulfilled - $target);
-
-            $ruleStats[$ruleId]['period_target'] = $target;
-
-            $obligationTotalCount += $target;
-            $obligationUnfulfilledCount += $deficit;
-
-            // Apply excess_treatment (with override support)
-            if ($excess > 0) {
-                $excessTreatment = $stat['excess_treatment'];
-
-                // Check for override (REQUIRE_APPROVAL → resolved treatment)
-                if ($excessTreatment === 'REQUIRE_APPROVAL' && $overrides !== null) {
-                    $overrideTreatment = $overrides->forRule((int) $ruleId, 'EXCESS_REQUIRE_APPROVAL');
-                    if ($overrideTreatment !== null) {
-                        $excessTreatment = $overrideTreatment;
-                    } else {
-                        // Pending review — hold the excess, count as pending
-                        $excessCount += $excess;
-                        $pendingReviewCount++;
-                        continue;
-                    }
-                }
-
-                $excessCount += $excess;
-                if ($excessTreatment === 'COUNT_AS_OVERTIME') {
-                    $overtimeDayCount += $excess;
-                }
-                // IGNORE_EXCESS, NO_OVERTIME → excess counted but no overtime
-            }
-
-            // Apply deficit_treatment (with override support)
-            if ($deficit > 0) {
-                $deficitTreatment = $stat['deficit_treatment'];
-
-                // Check for override (MANUAL_REVIEW → resolved treatment)
-                if ($deficitTreatment === 'MANUAL_REVIEW' && $overrides !== null) {
-                    $overrideTreatment = $overrides->forRule((int) $ruleId, 'DEFICIT_MANUAL_REVIEW');
-                    if ($overrideTreatment !== null) {
-                        $deficitTreatment = $overrideTreatment;
-                    } else {
-                        // Pending review — hold the deficit, count as pending
-                        $pendingReviewCount++;
-                        continue;
-                    }
-                }
-
-                if ($deficitTreatment === 'TREAT_AS_ABSENT') {
-                    $deductionDayCount += $deficit;
-                } elseif ($deficitTreatment === 'USE_EMPLOYEE_LEAVE') {
-                    $leaveQuotaUsedCount += $deficit;
-                }
-                // EXCUSED or other → no action (deficit held without penalty)
-            }
-        }
-
-        $pendingReviewCount += $dayLevelPendingCount;
-
-        $actualLeaveDays = (int) ($permissionSummary['leave_days'] ?? 0);
-        $actualSickDays = (int) ($permissionSummary['sick_days'] ?? 0);
-        $actualPermissionDays = (int) ($permissionSummary['permission_days'] ?? 0);
-        $actualLeaveQuotaUsedCount = (int) ($permissionSummary['leave_quota_used_count'] ?? 0);
-
-        $periodSummary = [
-            'present_days' => $presentDays,
-            'absent_days' => 0,
-            'leave_days' => $actualLeaveDays + $leaveQuotaUsedCount,
-            'sick_days' => $actualSickDays,
-            'permission_days' => $actualPermissionDays,
-            'hek_count' => $obligationDayCount,
-            'valid_present_count' => array_sum(array_map(fn($s) => $s['fulfilled'], $ruleStats)),
-            'obligation_total_count' => $obligationTotalCount,
-            'obligation_unfulfilled_count' => $obligationUnfulfilledCount,
-            'deficit_count' => $obligationUnfulfilledCount,
-            'excess_count' => $excessCount,
-            'overtime_day_count' => $overtimeDayCount,
-            'leave_quota_used_count' => $actualLeaveQuotaUsedCount + $leaveQuotaUsedCount,
-            'deduction_day_count' => $deductionDayCount,
-            'pending_review_count' => $pendingReviewCount,
-            'rule_breakdown' => $this->buildRuleBreakdown($ruleStats),
-        ];
-
-        $timeSummary = [
-            'overtime_min_total' => 0,
-            'late_count' => $lateCount,
-            'late_min_total' => $lateMinTotal,
-            'early_out_count' => $earlyOutCount,
-            'early_out_min_total' => $earlyOutMinTotal,
-            'incomplete_count' => $incompleteCount,
-        ];
-
-        return [$periodSummary, $timeSummary];
-    }
-
-    /**
-     * Builds a per-rule breakdown for audit/display purposes.
-     */
-    private function buildRuleBreakdown(array $ruleStats): array
-    {
-        $breakdown = [];
-        foreach ($ruleStats as $ruleId => $stat) {
-            $target = $stat['period_target'] ?? $stat['target'];
-            $breakdown[] = [
-                'rule_id' => $ruleId,
-                'rule_type' => $stat['rule_type'],
-                'target_count' => $target,
-                'fulfilled_count' => $stat['fulfilled'],
-                'deficit_count' => max(0, $target - $stat['fulfilled']),
-                'excess_count' => max(0, $stat['fulfilled'] - $target),
-                'excess_treatment' => $stat['excess_treatment'],
-                'deficit_treatment' => $stat['deficit_treatment'],
-            ];
-        }
-        return $breakdown;
-    }
-
-    /**
-     * Recalculates an existing AttendanceSummary's period/time summaries
-     * using approved review overrides.
-     *
-     * This is the sync-back mechanism: when a review item is resolved
-     * (approved with an override treatment), the source summary's
-     * summaries are recomputed to reflect the resolver's decision.
-     *
-     * The method mutates the passed AttendanceSummary entity in-place
-     * (updates periodSummary and timeSummary). Persistence is the
-     * caller's responsibility.
-     *
-     * @param AttendanceReview[] $reviews All review items for the employee+period
-     */
-    public function recalculateForReviewOverrides(
-        AttendanceSummary $summary,
-        array $reviews,
-    ): void {
-        $overrides = ReviewOverrides::fromReviews($reviews);
-
-        $missingPolicyConfig = $this->resolveMissingPolicyFromSummary($summary);
-        $workPatternSnapshot = $summary->getDetailInfo()->get('work_pattern');
-
-        $existingPeriodSummary = $summary->getPeriodSummary();
-        $existingRuleLeaveQuotaUsed = $this->countRuleLeaveQuotaUsage(
-            ruleBreakdown: $existingPeriodSummary['rule_breakdown'] ?? [],
-        );
-        $permissionLeaveQuotaUsed = $this->countPermissionQuotaUsage(
-            permissionDetail: $summary->getPermissionDetail(),
-        );
-        $existingActualLeaveQuotaUsed = max(
-            0,
-            max(
-                (int) ($existingPeriodSummary['leave_quota_used_count'] ?? 0),
-                $permissionLeaveQuotaUsed,
-            ) - $existingRuleLeaveQuotaUsed,
-        );
-
-        [$periodSummary, $timeSummary] = $this->calculateSummaries(
-            attendanceDetail: $summary->getAttendanceDetail(),
-            workPatternSnapshot: is_array($workPatternSnapshot) ? $workPatternSnapshot : null,
-            overrides: $overrides,
-            missingPolicyConfig: $missingPolicyConfig,
-            permissionSummary: [
-                'leave_days' => max(
-                    0,
-                    (int) ($existingPeriodSummary['leave_days'] ?? 0) - $existingRuleLeaveQuotaUsed,
-                ),
-                'sick_days' => (int) ($existingPeriodSummary['sick_days'] ?? 0),
-                'permission_days' => (int) ($existingPeriodSummary['permission_days'] ?? 0),
-                'leave_quota_used_count' => $existingActualLeaveQuotaUsed,
-            ],
-        );
-
-        $summary->setPeriodSummary($periodSummary);
-        $summary->setTimeSummary($timeSummary);
-    }
-
-    private function countRuleLeaveQuotaUsage(array $ruleBreakdown): int
-    {
-        $count = 0;
-        foreach ($ruleBreakdown as $rule) {
-            if (($rule['deficit_treatment'] ?? null) !== 'USE_EMPLOYEE_LEAVE') {
-                continue;
-            }
-
-            $count += max(0, (int) ($rule['deficit_count'] ?? 0));
-        }
-
-        return $count;
-    }
-
-    private function countPermissionQuotaUsage(array $permissionDetail): int
-    {
-        $count = 0;
-        foreach ($permissionDetail as $permission) {
-            if ((int) ($permission['employee_leave_id'] ?? 0) <= 0) {
-                continue;
-            }
-
-            $count += max(
-                0,
-                (int) ($permission['period_day_count'] ?? $permission['total_day'] ?? 0),
-            );
-        }
-
-        return $count;
-    }
-
-    /**
-     * Extracts the missing_in_policy and missing_out_policy from the
-     * summary's branch snapshot in detail_info.
-     *
-     * @return array{missing_in_policy?: ?string, missing_out_policy?: ?string}
-     */
-    private function resolveMissingPolicyFromSummary(AttendanceSummary $summary): ?array
-    {
-        $policyDetail = $summary->getDetailInfo()->get('branch.attendance_policies.policy_detail');
-
-        if (!is_array($policyDetail)) {
-            return null;
-        }
-
-        return [
-            'missing_in_policy' => $policyDetail['missing_in_policy'] ?? null,
-            'missing_out_policy' => $policyDetail['missing_out_policy'] ?? null,
-        ];
     }
 }

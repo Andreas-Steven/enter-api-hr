@@ -6,14 +6,13 @@ namespace App\Domain\AttendanceSummary\Repository;
 
 // Domain Layer
 use App\Domain\AttendanceSummary\Entity\AttendanceSummary;
-
 // Shared Layer
 use App\Shared\Dto\SearchCriteria;
 use App\Shared\Dto\PaginatedResult;
 
 /**
  * AttendanceSummary Repository Interface
- * 
+ *
  * Pure repository pattern for AttendanceSummary aggregate root operations.
  * Only handles aggregate root persistence and basic lookups.
  */
@@ -31,14 +30,14 @@ interface AttendanceSummaryRepositoryInterface
      * @return array<int, AttendanceSummary>
      */
     public function findByPeriod(int $period, ?int $status = null): array;
-    
+
     public function list(SearchCriteria $criteria): PaginatedResult;
-    
-    public function insert(AttendanceSummary $AttendanceSummary): AttendanceSummary;
 
-    public function update(AttendanceSummary $AttendanceSummary): AttendanceSummary;
+    public function insert(AttendanceSummary $attendanceSummary): AttendanceSummary;
 
-    public function delete(AttendanceSummary $AttendanceSummary): AttendanceSummary;
+    public function update(AttendanceSummary $attendanceSummary): AttendanceSummary;
+
+    public function delete(AttendanceSummary $attendanceSummary): AttendanceSummary;
 
     public function restore(int $id): ?AttendanceSummary;
 

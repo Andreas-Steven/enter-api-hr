@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Application\PayrollReport\Dto;
+namespace App\Application\AttendanceSummary\Dto;
 
 /**
  * Application-level DTO representing the final outcome of a batch
- * PayrollReport generation operation (after persistence).
+ * AttendanceSummary generation operation (after persistence).
  *
  * Intended for API/console response serialization via toArray().
  */
-final readonly class BatchGenerationResult
+final readonly class AttendanceSummaryResult
 {
     /**
      * @param int $created

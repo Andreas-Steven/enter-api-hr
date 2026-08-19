@@ -6,9 +6,7 @@ namespace App\Application\PayrollReport;
 
 // Application Layer
 use App\Application\PayrollReport\Command\CreatePayrollReportCommand;
-use App\Application\PayrollReport\Command\GeneratePayrollReportCommand;
 use App\Application\PayrollReport\Command\UpdatePayrollReportCommand;
-use App\Application\PayrollReport\Dto\BatchGenerationResult;
 use App\Application\PayrollReport\Dto\PayrollReportResponse;
 use App\Application\Shared\Factory\DetailInfoFactory;
 
@@ -36,7 +34,7 @@ final class PayrollReportApplicationService
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private PayrollReportRepositoryInterface $repository,
-        private PayrollReportDomainService $domainService,
+        private PayrollReportDomainService $domainService
     ) {
     }
 
@@ -87,11 +85,6 @@ final class PayrollReportApplicationService
         );
     }
 
-    public function generateAllFromAttendanceSummary(GeneratePayrollReportCommand $command): BatchGenerationResult
-    {
-        return $this->domainService->generateAllFromAttendanceSummary(command: $command);
-    }
-
     public function create(CreatePayrollReportCommand $command): PayrollReportResponse
     {
         $detailInfo = $this->detailInfoFactory
@@ -102,17 +95,9 @@ final class PayrollReportApplicationService
 
         $data = PayrollReport::create(
             name: $command->name,
-            attendanceSummaryId: $command->attendanceSummaryId,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
         );
-
-        if ($command->payrollSummary !== null) {
-            $data->setPayrollSummary($command->payrollSummary);
-        }
-        if ($command->notes !== null) {
-            $data->setNotes($command->notes);
-        }
 
         return PayrollReportResponse::fromEntity(
             entity: $this->repository->insert(
@@ -145,18 +130,9 @@ final class PayrollReportApplicationService
             newStatus: $newStatus
         );
 
-        if ($command->name !== null) {
-            $data->updateName(newName: $command->name);
-        }
-        if ($command->attendanceSummaryId !== null) {
-            $data->setAttendanceSummaryId($command->attendanceSummaryId);
-        }
-        if ($command->payrollSummary !== null) {
-            $data->setPayrollSummary($command->payrollSummary);
-        }
-        if ($command->notes !== null) {
-            $data->setNotes($command->notes);
-        }
+        $data->updateName(
+            newName: $command->name
+        );
 
         $data->applyStatus(
             newStatus: $newStatus
@@ -195,7 +171,7 @@ final class PayrollReportApplicationService
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'payroll-report.delete',
+            permission: 'payrollreport.delete',
             resource: $this->getResource(),
         );
         

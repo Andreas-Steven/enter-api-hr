@@ -6,39 +6,35 @@ namespace App\Api\V1\AttendanceSummary\Action;
 
 // Application Layer
 use App\Application\AttendanceSummary\AttendanceSummaryApplicationService;
-
+use App\Application\AttendanceSummary\Command\GenerateAttendanceSummaryCommand;
 // API Layer
 use App\Api\Shared\ResponseFactory;
 use App\Api\V1\AttendanceSummary\Validation\AttendanceSummaryInputValidator;
-use App\Application\AttendanceSummary\Command\GenerateAttendanceSummaryCommand;
-
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
-use App\Shared\Request\RawParams;
 use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
-use App\Shared\Security\InputSanitizer;
-
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class AttendanceSummaryCreateAction 
+/**
+ * Auto-generates AttendanceSummary records.
+ *
+ * Input is a single `period` (YYYYMM). The application service builds one
+ * summary per active employee from their attendance records and employee rules,
+ * keeping any existing summaries for the period untouched. The response reports
+ * how many were created, skipped (already existing) and any per-employee errors.
+ */
+final class AttendanceSummaryCreateAction
 {
-    private const ALLOWED_KEYS = [
-        'period',
-        'notes',
-        'status',
-        'detail_info',
-        'sync_mdb',
-    ];
+    private const ALLOWED_KEYS = ['period'];
 
     public function __construct(
         private AttendanceSummaryInputValidator $inputValidator,
         private AttendanceSummaryApplicationService $applicationService,
         private ResponseFactory $responseFactory,
-    ) {
-    }
+    ) {}
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
@@ -47,8 +43,8 @@ final class AttendanceSummaryCreateAction
 
         $params = $payload->getRawParams()
             ->onlyAllowed(
-                allowedKeys: self::ALLOWED_KEYS
-            )->with('status', RecordStatus::DRAFT->value)
+                allowedKeys: self::ALLOWED_KEYS,
+            )
             ->sanitize();
 
         $this->inputValidator->validate(
@@ -58,9 +54,7 @@ final class AttendanceSummaryCreateAction
 
         $command = GenerateAttendanceSummaryCommand::create(
             period: (int) $params->get('period'),
-            status: (int) $params->get('status'),
-            notes: $params->get('notes'),
-            detailInfo: $params->get('detail_info')
+            status: RecordStatus::DRAFT->value,
         );
 
         $resource = $this->applicationService->getResource();
@@ -71,9 +65,9 @@ final class AttendanceSummaryCreateAction
             translate: Message::create(
                 key: 'resource.created',
                 params: [
-                    'resource' => $resource
-                ]
-            )
+                    'resource' => $resource,
+                ],
+            ),
         );
     }
 }
