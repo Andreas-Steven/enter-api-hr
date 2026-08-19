@@ -182,6 +182,13 @@ final class AttendanceSummaryRepository implements AttendanceSummaryRepositoryIn
             );
         }
 
+        if (!empty($filter['employee_name'])) {
+            $employeeName = (string) $filter['employee_name'];
+            $query->andWhere(
+                ['ilike', new \Yiisoft\Db\Expression\Expression("employee->>'name'"), '%' . $employeeName . '%'],
+            );
+        }
+
         $total = (clone $query)->count();
 
         $query->orderBy($criteria->getOrderClause())

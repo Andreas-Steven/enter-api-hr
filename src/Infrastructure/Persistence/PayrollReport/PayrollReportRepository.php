@@ -186,6 +186,20 @@ final class PayrollReportRepository implements PayrollReportRepositoryInterface,
             );
         }
 
+        if (!empty($filter['employee_id'])) {
+            $employeeId = (int) $filter['employee_id'];
+            $query->andWhere(
+                ['=', new Expression("employee->>'id'"), (string) $employeeId],
+            );
+        }
+
+        if (!empty($filter['employee_name'])) {
+            $employeeName = (string) $filter['employee_name'];
+            $query->andWhere(
+                ['ilike', new Expression("employee->>'name'"), '%' . $employeeName . '%'],
+            );
+        }
+
         $total = (clone $query)->count();
 
         $query->orderBy($criteria->getOrderClause())

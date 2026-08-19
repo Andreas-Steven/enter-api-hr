@@ -19,7 +19,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class AttendanceSummaryDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'period', 'employee_id', 'status'];
+    private const ALLOWED_KEYS = ['id', 'name', 'period', 'employee_id', 'employee_name', 'status'];
     private const ALLOWED_SORT = [
         'id' => 'id',
         'name' => 'name',

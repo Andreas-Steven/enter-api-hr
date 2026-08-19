@@ -25,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class PayrollReportDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'period', 'status'];
+    private const ALLOWED_KEYS = ['id', 'name', 'period', 'employee_id', 'employee_name', 'status'];
     private const ALLOWED_SORT = [
         'id' => 'id',
         'name' => 'name',

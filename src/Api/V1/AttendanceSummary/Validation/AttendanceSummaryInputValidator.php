@@ -122,6 +122,16 @@ final class AttendanceSummaryInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'employee_name' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        min: 1,
+                        max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,

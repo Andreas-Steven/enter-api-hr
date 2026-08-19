@@ -109,6 +109,21 @@ final class PayrollReportInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
+                'employee_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'employee_name' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        min: 1,
+                        max: 255,
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,
