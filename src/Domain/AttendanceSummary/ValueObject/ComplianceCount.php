@@ -33,11 +33,11 @@ final readonly class ComplianceCount
     public static function fromArray(array $data): self
     {
         return new self(
-            (int) ($data['fulfilled'] ?? 0),
-            (int) ($data['unfulfilled'] ?? 0),
-            (int) ($data['deficit'] ?? 0),
-            (int) ($data['excess'] ?? 0),
-            (int) ($data['pending_review'] ?? 0),
+            (int) ($data['fulfilled'] ?? $data['fulfilled_days'] ?? 0),
+            (int) ($data['unfulfilled'] ?? $data['unfulfilled_days'] ?? 0),
+            (int) ($data['deficit'] ?? $data['deficit_days'] ?? 0),
+            (int) ($data['excess'] ?? $data['excess_days'] ?? 0),
+            (int) ($data['pending_review'] ?? $data['pending_review_days'] ?? 0),
         );
     }
 

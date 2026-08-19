@@ -16,6 +16,11 @@ final class MdbPayrollReportSchema
     {
         return [
             'name' => $entity->getName(),
+            'period' => $entity->getPeriod(),
+            'employee' => $entity->getEmployee()->toArray(),
+            'attendance_summary' => $entity->getAttendanceSummary()->toArray(),
+            'payroll_summary' => $entity->getPayrollSummary()->toArray(),
+            'notes' => $entity->getNotes(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             'lock_version' => $entity->getLockVersion()->value(),

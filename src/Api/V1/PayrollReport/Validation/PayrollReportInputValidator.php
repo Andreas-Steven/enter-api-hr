@@ -21,99 +21,21 @@ use Yiisoft\Validator\Rule\StopOnError;
 
 /**
  * PayrollReport Input Validator
- * 
+ *
  * Menggunakan pattern AbstractValidator dengan ValidationContext
  * untuk validasi input yang berbeda per operation
  */
 final class PayrollReportInputValidator extends AbstractValidator
 {
-    /**
-     * PayrollReports for validation rules
-     * 
-     * This validator shows payrollreports of advanced validation rules including
-     * dependency checking and unique value validation.
-     * 
-     * @see HasNoDependencies
-     * @see UniqueValue
-     * 
-     * Usage payrollreport for HasNoDependencies:
-     * ```php
-     * ValidationContext::DELETE => [
-     *     'id' => [
-     *         new StopOnError([
-     *             new Required(),
-     *             new Integer(min: 1),
-     *             new HasNoDependencies(
-     *                 map: [
-     *                     'other_table' => ['payroll_report_id'],
-     *                 ],
-     *                 message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
-     *             ),
-     *         ]),
-     *     ],
-     * ],
-     * ```
-     * 
-     * Usage payrollreport for UniqueValue:
-     * ```php
-     * ValidationContext::CREATE => [
-     *     'name' => [
-     *         new StopOnError([
-     *             new Required(),
-     *             new StringLength(max: 255),
-     *             new UniqueValue(
-     *                 table: 'payrollreports',
-     *                 column: 'name',
-     *                 ignoreId: null,
-     *             ),
-     *         ]),
-     *     ],
-     * ],
-     * 
-     * Usage payrollreport for UniqueValue with exclusion (for updates):
-     * ```php
-     * ValidationContext::UPDATE => [
-     *     'name' => [
-     *         new StopOnError([
-     *             new Required(),
-     *             new StringLength(max: 255),
-     *             new UniqueValue(
-     *                 table: 'payrollreports',
-     *                 column: 'name',
-     *                 ignoreId: $this->data['id'] ?? null,
-     *             ),
-     *         ]),
-     *     ],
-     * ],
-     * ```
-     */
-    
-
     protected function rules(string $context): array
     {
         return match ($context) {
             ValidationContext::CREATE => [
-                'name' => [
+                'period' => [
                     new StopOnError([
                         new Required(),
-                        new StringValue(),
-                        new Length(
-                            min: 3, 
-                            max: 255,
-                        ),
-                        new UniqueValue(
-                            table: 'payroll_report', 
-                            column: 'name', 
-                            ignoreId: null
-                        )
-                    ])
-                ],
-                'status' => [
-                    new Required(),
-                    new Integer(),
-                    new In(
-                        RecordStatus::draftOnlyStates(),
-                    ),
+                        new Integer(min: 190001, max: 999912),
+                    ]),
                 ],
             ],
             ValidationContext::UPDATE => [
@@ -129,13 +51,13 @@ final class PayrollReportInputValidator extends AbstractValidator
                             skipOnEmpty: true,
                         ),
                         new Length(
-                            min: 3, 
+                            min: 3,
                             max: 255,
                             skipOnEmpty: true,
                         ),
                         new UniqueValue(
-                            table: 'payroll_report', 
-                            column: 'name', 
+                            table: 'payroll_report',
+                            column: 'name',
                             ignoreId: $this->data['id'] ?? null
                         )
                     ])
@@ -160,7 +82,7 @@ final class PayrollReportInputValidator extends AbstractValidator
             ],
             ValidationContext::DELETE => [
                 'id' => [
-                    new Required(), 
+                    new Required(),
                     new Integer(
                         min: 1,
                     ),
@@ -179,6 +101,11 @@ final class PayrollReportInputValidator extends AbstractValidator
                     new Length(
                         min: 1,
                         max: 100,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'period' => [
+                    new Integer(
                         skipOnEmpty: true,
                     ),
                 ],

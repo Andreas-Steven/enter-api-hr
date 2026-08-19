@@ -1,43 +1,59 @@
-# 1. VALUE OBJECTS (Tetap sama)
+# 1. VALUE OBJECTS
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
-    __factory: 
+    __factory:
       'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
   status_active:
-    __factory: 
+    __factory:
       'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
 
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
-    __factory: 
+    __factory:
       'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-    
-  # info_with_nested_category:
-  #   __factory: 
-  #     'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
-  #       - category: 
-  #           id: 1
-  #           name: 'Sony'
-  #         brand: 'Sony'
-  #         specs:
-  #           color: 'Black'
-  #           warranty: '1 Year'
 
-# 2. ENTITIES (Sesuaikan dengan signature method create)
+App\Domain\PayrollReport\ValueObject\EmployeeSnapshot:
+  employee_snapshot_1:
+    __factory:
+      'App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray':
+        - id: 1
+          name: 'John Doe'
+          type:
+            id: 1
+            name: 'Karyawan Tetap'
+          position:
+            id: 1
+            name: 'Staff'
+          division:
+            id: 1
+            code: 'IT'
+            name: 'Informasi Teknologi'
+          branch:
+            id: 1
+            code: 'JKT'
+            name: 'Enterkomputer Head Office Mangga Dua'
+
+App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef:
+  summary_ref_1:
+    __factory:
+      'App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromValues':
+        - 1
+        - 'SUMMARY-EK1-202608'
+
+App\Domain\PayrollReport\ValueObject\PayrollSummary:
+  payroll_summary_empty:
+    __factory:
+      'App\Domain\PayrollReport\ValueObject\PayrollSummary::empty': []
+
+# 2. ENTITIES
 App\Domain\PayrollReport\Entity\PayrollReport:
   payroll_report_{1..5}:
-    __factory: 
+    __factory:
       'App\Domain\PayrollReport\Entity\PayrollReport::create':
-        # Sesuaikan urutan: name, status, detailInfo, syncMdb
-        - '<company()>'   # $name
-        - '@status_draft' # $status
-        - '@info_empty'   # $detailInfo
-        - null            # $syncMdb
-
-  payroll_report_{6..10}:
-    __factory: 
-      'App\Domain\PayrollReport\Entity\PayrollReport::create':
-        - '<company()> <sentence()>'  # $name
-        - '@status_active'                       # $status
-        - '@info_empty'                          # $detailInfo
-        - 123                                    # $syncMdb
+        name: 'PAYROLL-<current()>-202608'
+        period: 202608
+        employee: '@employee_snapshot_1'
+        attendanceSummary: '@summary_ref_1'
+        payrollSummary: '@payroll_summary_empty'
+        status: '@status_draft'
+        detailInfo: '@info_empty'

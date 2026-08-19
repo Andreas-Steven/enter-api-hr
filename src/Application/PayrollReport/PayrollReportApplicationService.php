@@ -6,14 +6,20 @@ namespace App\Application\PayrollReport;
 
 // Application Layer
 use App\Application\PayrollReport\Command\CreatePayrollReportCommand;
+use App\Application\PayrollReport\Command\GeneratePayrollReportCommand;
 use App\Application\PayrollReport\Command\UpdatePayrollReportCommand;
 use App\Application\PayrollReport\Dto\PayrollReportResponse;
+use App\Application\PayrollReport\Dto\PayrollReportResult;
 use App\Application\Shared\Factory\DetailInfoFactory;
 
 // Domain Layer
 use App\Domain\PayrollReport\Entity\PayrollReport;
 use App\Domain\PayrollReport\Repository\PayrollReportRepositoryInterface;
 use App\Domain\PayrollReport\Service\PayrollReportDomainService;
+use App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef;
+use App\Domain\PayrollReport\ValueObject\EmployeeSnapshot;
+use App\Domain\PayrollReport\ValueObject\Notes;
+use App\Domain\PayrollReport\ValueObject\PayrollSummary;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 
@@ -25,8 +31,11 @@ use App\Shared\ValueObject\Message;
 
 /**
  * PayrollReport Application Service (Mandor/Alur Kerja)
- * 
- * Orchestrates use cases and coordinates domain & infrastructure
+ *
+ * Orchestrates use cases and coordinates domain & infrastructure. The create
+ * use case is auto-generation: given a period, the domain service builds one
+ * payroll report per active employee from their AttendanceSummary records and
+ * the configured AttendanceFineRate deduction rates.
  */
 final class PayrollReportApplicationService
 {
@@ -53,7 +62,7 @@ final class PayrollReportApplicationService
         if ($data === null) {
             throw new NotFoundException(
                 translate: Message::create(
-                    key: 'resource.not_found', 
+                    key: 'resource.not_found',
                     params: [
                         'resource' => $this->getResource(),
                         'field' => 'id',
@@ -62,10 +71,10 @@ final class PayrollReportApplicationService
                 )
             );
         }
-        
+
         return $data;
     }
-    
+
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         return $this->repository->list(
@@ -79,10 +88,22 @@ final class PayrollReportApplicationService
             id: $id,
             status: null
         );
-        
+
         return PayrollReportResponse::fromEntity(
             entity: $data
         );
+    }
+
+    /**
+     * Auto-generates PayrollReport records for a period.
+     *
+     * Delegates to the domain service which folds each employee's
+     * AttendanceSummary together with the configured AttendanceFineRate
+     * deduction rates into one PayrollReport per employee.
+     */
+    public function generateAllFromAttendanceSummary(GeneratePayrollReportCommand $command): PayrollReportResult
+    {
+        return $this->domainService->generateAllFromAttendanceSummary(command: $command);
     }
 
     public function create(CreatePayrollReportCommand $command): PayrollReportResponse
@@ -95,8 +116,13 @@ final class PayrollReportApplicationService
 
         $data = PayrollReport::create(
             name: $command->name,
+            period: $command->period,
+            employee: EmployeeSnapshot::fromArray($command->employee ?? []),
+            attendanceSummary: AttendanceSummaryRef::fromArray($command->attendanceSummary ?? []),
+            payrollSummary: PayrollSummary::fromArray($command->payrollSummary ?? []),
             status: ResourceStatus::from($command->status),
-            detailInfo: $detailInfo
+            detailInfo: $detailInfo,
+            notes: Notes::fromNullable($command->notes),
         );
 
         return PayrollReportResponse::fromEntity(
@@ -130,9 +156,35 @@ final class PayrollReportApplicationService
             newStatus: $newStatus
         );
 
-        $data->updateName(
-            newName: $command->name
-        );
+        if ($command->name !== null) {
+            $data->updateName(
+                newName: $command->name
+            );
+        }
+
+        if ($command->notes !== null) {
+            $data->updateNotes(
+                notes: Notes::fromNullable($command->notes)
+            );
+        }
+
+        if ($command->payrollSummary !== null) {
+            $data->updatePayrollSummary(
+                payrollSummary: PayrollSummary::fromArray($command->payrollSummary)
+            );
+        }
+
+        if ($command->employee !== null) {
+            $data->updateEmployee(
+                employee: EmployeeSnapshot::fromArray($command->employee)
+            );
+        }
+
+        if ($command->attendanceSummary !== null) {
+            $data->updateAttendanceSummary(
+                attendanceSummary: AttendanceSummaryRef::fromArray($command->attendanceSummary)
+            );
+        }
 
         $data->applyStatus(
             newStatus: $newStatus
@@ -164,17 +216,17 @@ final class PayrollReportApplicationService
         );
 
         $this->repository->verifyLockVersion(
-            entity: $data, 
+            entity: $data,
             version: $lockVersion,
         );
 
         $this->domainService->guardPermission(
             id: $id,
             authorizer: $this->auth,
-            permission: 'payrollreport.delete',
+            permission: 'payroll-report.delete',
             resource: $this->getResource(),
         );
-        
+
         $this->domainService->ensureDeletable(
             entity: $data,
             resource: $this->getResource(),
@@ -204,19 +256,6 @@ final class PayrollReportApplicationService
             id: $id,
             status: ResourceStatus::deleted()->value()
         );
-        
-        if ($data === null) {
-            throw new NotFoundException(
-                translate: Message::create(
-                    key: 'resource.not_found', 
-                    params: [
-                        'resource' => $this->getResource(),
-                        'field' => 'id',
-                        'value' => $id
-                    ]
-                )
-            );
-        }
 
         $data->guardAgainstInvalidTransition(
             hasFieldChanges: false,
@@ -239,7 +278,7 @@ final class PayrollReportApplicationService
         $restoredData = $this->repository->restore(
             id: $data->getId()
         );
-        
+
         return PayrollReportResponse::fromEntity(
             entity: $restoredData
         );

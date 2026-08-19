@@ -6,8 +6,10 @@ namespace App\Seeder;
 
 // Domain Layer
 use App\Domain\PayrollReport\Entity\PayrollReport;
-// use App\Infrastructure\Persistence\PayrollReport\PayrollReportRepository;
 use App\Domain\PayrollReport\Repository\PayrollReportRepositoryInterface;
+use App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef;
+use App\Domain\PayrollReport\ValueObject\EmployeeSnapshot;
+use App\Domain\PayrollReport\ValueObject\PayrollSummary;
 
 // PSR Interfaces
 use Psr\Clock\ClockInterface;
@@ -50,12 +52,16 @@ final class SeedPayrollReportData extends AbstractSeederData
     {
         // Create new entity with proper DetailInfo
         $newEntity = PayrollReport::create(
-            $entity->getName(),
-            $entity->getStatus(),
-            $detailInfo
+            name: $entity->getName(),
+            period: $entity->getPeriod(),
+            employee: $entity->getEmployee(),
+            attendanceSummary: $entity->getAttendanceSummary(),
+            payrollSummary: $entity->getPayrollSummary(),
+            status: $entity->getStatus(),
+            detailInfo: $detailInfo,
         );
-        
+
         // Use repository to insert
-        $this->repository->insert($newEntity);   
+        $this->repository->insert($newEntity);
     }
 }
