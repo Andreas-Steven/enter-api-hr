@@ -17,7 +17,7 @@ final class MdbPayrollDeductionTypeSchema
         return [
             'name' => $entity->getName(),
             'category' => $entity->getCategory(),
-            'creates_debt' => $entity->getCreatesDebt(),
+            'creates_debt' => $entity->getCreatesDebt()->value,
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             'lock_version' => $entity->getLockVersion()->value(),

@@ -8,7 +8,7 @@ use App\Api;
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
 use App\Api\V1\PayrollReport\Action as PayrollReportV1;
-use App\Api\V1\AttendanceFineRate\Action as AttendanceFineRateV1;
+use App\Api\V1\PayrollRatePolicies\Action as PayrollRatePoliciesV1;
 use App\Api\V1\WorkPatternRule\Action as WorkPatternRuleV1;
 use App\Api\V1\AttendanceSummary\Action as AttendanceSummaryV1;
 use App\Api\V1\EmployeeDebtTransaction\Action as EmployeeDebtTransactionV1;
@@ -863,35 +863,35 @@ return [
                 ->name('v1/work-pattern-rule/restore')
                 ->defaults(['permission' => 'work-pattern-rule.restore']),
 
-            // AttendanceFineRate Routes
-            Route::get('/attendance-fine-rate')
-                ->action(AttendanceFineRateV1\AttendanceFineRateDataAction::class)
-                ->name('v1/attendance-fine-rate/index')
-                ->defaults(['permission' => 'attendance-fine-rate.index']),
-            Route::post('/attendance-fine-rate/data')
-                ->action(AttendanceFineRateV1\AttendanceFineRateDataAction::class)
-                ->name('v1/attendance-fine-rate/data')
-                ->defaults(['permission' => 'attendance-fine-rate.data']),
-            Route::get('/attendance-fine-rate/{id:\d+}')
-                ->action(AttendanceFineRateV1\AttendanceFineRateViewAction::class)
-                ->name('v1/attendance-fine-rate/view')
-                ->defaults(['permission' => 'attendance-fine-rate.view']),
-            Route::post('/attendance-fine-rate/create')
-                ->action(AttendanceFineRateV1\AttendanceFineRateCreateAction::class)
-                ->name('v1/attendance-fine-rate/create')
-                ->defaults(['permission' => 'attendance-fine-rate.create']),
-            Route::put('/attendance-fine-rate/{id:\d+}')
-                ->action(AttendanceFineRateV1\AttendanceFineRateUpdateAction::class)
-                ->name('v1/attendance-fine-rate/update')
-                ->defaults(['permission' => 'attendance-fine-rate.update']),
-            Route::delete('/attendance-fine-rate/{id:\d+}')
-                ->action(AttendanceFineRateV1\AttendanceFineRateDeleteAction::class)
-                ->name('v1/attendance-fine-rate/delete')
-                ->defaults(['permission' => 'attendance-fine-rate.delete']),
-            Route::post('/attendance-fine-rate/{id:\d+}/restore')
-                ->action(AttendanceFineRateV1\AttendanceFineRateRestoreAction::class)
-                ->name('v1/attendance-fine-rate/restore')
-                ->defaults(['permission' => 'attendance-fine-rate.restore']),
+            // PayrollRatePolicies Routes
+            Route::get('/payroll-rate-policies')
+                ->action(PayrollRatePoliciesV1\PayrollRatePoliciesDataAction::class)
+                ->name('v1/payroll-rate-policies/index')
+                ->defaults(['permission' => 'payroll-rate-policies.index']),
+            Route::post('/payroll-rate-policies/data')
+                ->action(PayrollRatePoliciesV1\PayrollRatePoliciesDataAction::class)
+                ->name('v1/payroll-rate-policies/data')
+                ->defaults(['permission' => 'payroll-rate-policies.data']),
+            Route::get('/payroll-rate-policies/{id:\d+}')
+                ->action(PayrollRatePoliciesV1\PayrollRatePoliciesViewAction::class)
+                ->name('v1/payroll-rate-policies/view')
+                ->defaults(['permission' => 'payroll-rate-policies.view']),
+            Route::post('/payroll-rate-policies/create')
+                ->action(PayrollRatePoliciesV1\PayrollRatePoliciesCreateAction::class)
+                ->name('v1/payroll-rate-policies/create')
+                ->defaults(['permission' => 'payroll-rate-policies.create']),
+            Route::put('/payroll-rate-policies/{id:\d+}')
+                ->action(PayrollRatePoliciesV1\PayrollRatePoliciesUpdateAction::class)
+                ->name('v1/payroll-rate-policies/update')
+                ->defaults(['permission' => 'payroll-rate-policies.update']),
+            Route::delete('/payroll-rate-policies/{id:\d+}')
+                ->action(PayrollRatePoliciesV1\PayrollRatePoliciesDeleteAction::class)
+                ->name('v1/payroll-rate-policies/delete')
+                ->defaults(['permission' => 'payroll-rate-policies.delete']),
+            Route::post('/payroll-rate-policies/{id:\d+}/restore')
+                ->action(PayrollRatePoliciesV1\PayrollRatePoliciesRestoreAction::class)
+                ->name('v1/payroll-rate-policies/restore')
+                ->defaults(['permission' => 'payroll-rate-policies.restore']),
 
             // PayrollReport Routes
             Route::get('/payroll-report')

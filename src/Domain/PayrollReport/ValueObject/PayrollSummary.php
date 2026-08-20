@@ -9,15 +9,17 @@ namespace App\Domain\PayrollReport\ValueObject;
  * one period (the `payroll_summary` JSONB column).
  *
  * Folds the source AttendanceSummary's calculated summary together with the
- * AttendanceFineRate deduction amounts into the per-field Value Objects:
+ * PayrollRatePolicies deduction amounts into the per-field Value Objects:
  *
  *   - {@see ScheduleCount}       (HEK days + obligation days)
  *   - {@see AttendanceCount}     (present / absent / sick / leave days)
  *   - {@see ComplianceCount}     (fulfilled / unfulfilled / deficit / excess / pending review)
  *   - {@see TimeStatistic}       (late count, early-out count, incomplete count)
- *   - {@see OvertimeStatistic}   (overtime days + minutes)
  *   - {@see LeaveStatistic}      (leave quota used)
  *   - {@see DeductionBreakdown}  (total amount + per-incident breakdown)
+ *
+ * Overtime is stored separately in {@see OvertimeSummary} (top-level field)
+ * because it is an earning, not a deduction.
  */
 final readonly class PayrollSummary
 {
@@ -26,7 +28,6 @@ final readonly class PayrollSummary
         private AttendanceCount $attendance,
         private ComplianceCount $compliance,
         private TimeStatistic $time,
-        private OvertimeStatistic $overtime,
         private LeaveStatistic $leave,
         private DeductionBreakdown $deduction,
     ) {}
@@ -38,7 +39,6 @@ final readonly class PayrollSummary
             AttendanceCount::empty(),
             ComplianceCount::empty(),
             TimeStatistic::empty(),
-            OvertimeStatistic::empty(),
             LeaveStatistic::empty(),
             DeductionBreakdown::empty(),
         );
@@ -51,7 +51,6 @@ final readonly class PayrollSummary
             AttendanceCount::fromArray($data['attendance'] ?? []),
             ComplianceCount::fromArray($data['compliance'] ?? []),
             TimeStatistic::fromArray($data['time'] ?? []),
-            OvertimeStatistic::fromArray($data['overtime'] ?? []),
             LeaveStatistic::fromArray($data['leave'] ?? []),
             DeductionBreakdown::fromArray($data['deduction'] ?? []),
         );
@@ -62,7 +61,6 @@ final readonly class PayrollSummary
         AttendanceCount $attendance,
         ComplianceCount $compliance,
         TimeStatistic $time,
-        OvertimeStatistic $overtime,
         LeaveStatistic $leave,
         DeductionBreakdown $deduction,
     ): self {
@@ -71,7 +69,6 @@ final readonly class PayrollSummary
             $attendance,
             $compliance,
             $time,
-            $overtime,
             $leave,
             $deduction,
         );
@@ -97,11 +94,6 @@ final readonly class PayrollSummary
         return $this->time;
     }
 
-    public function getOvertime(): OvertimeStatistic
-    {
-        return $this->overtime;
-    }
-
     public function getLeave(): LeaveStatistic
     {
         return $this->leave;
@@ -120,7 +112,6 @@ final readonly class PayrollSummary
             'attendance' => $this->attendance->toArray(),
             'compliance' => $this->compliance->toArray(),
             'time' => $this->time->toArray(),
-            'overtime' => $this->overtime->toArray(),
             'leave' => $this->leave->toArray(),
             'deduction' => $this->deduction->toArray(),
         ];

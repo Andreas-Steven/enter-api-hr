@@ -90,6 +90,11 @@ return [
     'resource.status_already_set' => 'Cannot update {resource}. The status is already "{current_status}"',
     'resource.modification_denied_on_deleted' => 'Action prohibited: The requested operation cannot be performed because the {resource} is marked as "{status}".',
 
+    // PayrollRatePolicies
+    'payroll_rate_policy.invalid_debt_creating_type' => 'PayrollRatePolicies must use a deduction type that does not create debt. "{deduction_type}" creates debt.',
+    'payroll_rate_policy.earning_must_not_have_deduction_type' => 'Earning rate "{rate_type}" must not have a deduction_type_id.',
+    'payroll_rate_policy.deduction_requires_deduction_type' => 'Deduction rate "{rate_type}" requires a deduction_type_id.',
+
     // Access & Rate Limit
     'operation.not_allowed' => 'This operation is not allowed',
     'access.denied' => 'Access to this resource is denied',

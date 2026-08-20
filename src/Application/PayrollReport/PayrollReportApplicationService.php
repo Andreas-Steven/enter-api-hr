@@ -19,6 +19,8 @@ use App\Domain\PayrollReport\Service\PayrollReportDomainService;
 use App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef;
 use App\Domain\PayrollReport\ValueObject\EmployeeSnapshot;
 use App\Domain\PayrollReport\ValueObject\Notes;
+use App\Domain\PayrollReport\ValueObject\OvertimeSummary;
+use App\Domain\PayrollReport\ValueObject\PayrollNet;
 use App\Domain\PayrollReport\ValueObject\PayrollSummary;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
@@ -35,7 +37,7 @@ use App\Shared\ValueObject\Message;
  * Orchestrates use cases and coordinates domain & infrastructure. The create
  * use case is auto-generation: given a period, the domain service builds one
  * payroll report per active employee from their AttendanceSummary records and
- * the configured AttendanceFineRate deduction rates.
+ * the configured PayrollRatePolicies deduction rates.
  */
 final class PayrollReportApplicationService
 {
@@ -98,7 +100,7 @@ final class PayrollReportApplicationService
      * Auto-generates PayrollReport records for a period.
      *
      * Delegates to the domain service which folds each employee's
-     * AttendanceSummary together with the configured AttendanceFineRate
+     * AttendanceSummary together with the configured PayrollRatePolicies
      * deduction rates into one PayrollReport per employee.
      */
     public function generateAllFromAttendanceSummary(GeneratePayrollReportCommand $command): PayrollReportResult
@@ -120,6 +122,8 @@ final class PayrollReportApplicationService
             employee: EmployeeSnapshot::fromArray($command->employee ?? []),
             attendanceSummary: AttendanceSummaryRef::fromArray($command->attendanceSummary ?? []),
             payrollSummary: PayrollSummary::fromArray($command->payrollSummary ?? []),
+            overtimeSummary: OvertimeSummary::fromArray($command->overtimeSummary ?? []),
+            payrollNet: PayrollNet::fromArray($command->payrollNet ?? []),
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo,
             notes: Notes::fromNullable($command->notes),
@@ -171,6 +175,18 @@ final class PayrollReportApplicationService
         if ($command->payrollSummary !== null) {
             $data->updatePayrollSummary(
                 payrollSummary: PayrollSummary::fromArray($command->payrollSummary)
+            );
+        }
+
+        if ($command->overtimeSummary !== null) {
+            $data->updateOvertimeSummary(
+                overtimeSummary: OvertimeSummary::fromArray($command->overtimeSummary)
+            );
+        }
+
+        if ($command->payrollNet !== null) {
+            $data->updatePayrollNet(
+                payrollNet: PayrollNet::fromArray($command->payrollNet)
             );
         }
 

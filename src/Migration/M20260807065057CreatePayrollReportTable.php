@@ -38,8 +38,12 @@ final class M20260807065057CreatePayrollReportTable implements RevertibleMigrati
             'employee' => $cb::json()->notNull()->defaultValue([]),
             // 2. Reference to the source AttendanceSummary (id + name)
             'attendance_summary' => $cb::json()->notNull()->defaultValue([]),
-            // 3. Calculated payroll summary (schedule, attendance, compliance, time, overtime, leave, deduction)
+            // 3. Calculated payroll summary (schedule, attendance, compliance, time, leave, deduction)
             'payroll_summary' => $cb::json()->notNull()->defaultValue([]),
+            // 4. Overtime summary (per-day items + totals) - earning, not deduction
+            'overtime_summary' => $cb::json()->notNull()->defaultValue([]),
+            // 5. Payroll net (total_overtime, total_deduction, type, amount)
+            'payroll_net' => $cb::json()->notNull()->defaultValue([]),
 
             'notes' => $cb::text()->null(),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),

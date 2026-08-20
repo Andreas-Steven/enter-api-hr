@@ -196,6 +196,7 @@ final readonly class Summary
         $excess = 0;
         $overtimeDays = 0;
         $overtimeMinutes = 0;
+        $overtimeItems = [];
 
         foreach ($dailyItems as $date => $item) {
             $detail = $item->info['detail'] ?? [];
@@ -246,12 +247,14 @@ final readonly class Summary
                     $excess++;
                     $overtimeDays++;
                     $overtimeMinutes += $diff;
+                    $overtimeItems[] = ['date' => $date, 'minutes' => $diff];
                 }
                 // Within grace OR full_day: fulfilled, no deficit/excess.
             } elseif ($required === 0 && $workDuration > 0) {
                 // Worked on a non-obligation day => counts as overtime.
                 $overtimeDays++;
                 $overtimeMinutes += $workDuration;
+                $overtimeItems[] = ['date' => $date, 'minutes' => $workDuration];
             }
         }
 
@@ -336,6 +339,7 @@ final readonly class Summary
             OvertimeStatistic::fromValues(
                 days: $overtimeDays,
                 minutes: $overtimeMinutes,
+                items: $overtimeItems,
             ),
             DeductionStatistic::fromValues(days: $deductionDays),
             LeaveStatistic::fromValues(quotaUsed: $leaveQuotaUsed),

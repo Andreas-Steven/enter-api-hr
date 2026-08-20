@@ -13,6 +13,8 @@ final readonly class CreatePayrollReportCommand
         public ?array $employee = null,
         public ?array $attendanceSummary = null,
         public ?array $payrollSummary = null,
+        public ?array $overtimeSummary = null,
+        public ?array $payrollNet = null,
         public ?string $notes = null,
         public ?array $detailInfo = null,
     ) {}
@@ -24,6 +26,8 @@ final readonly class CreatePayrollReportCommand
         ?array $employee = null,
         ?array $attendanceSummary = null,
         ?array $payrollSummary = null,
+        ?array $overtimeSummary = null,
+        ?array $payrollNet = null,
         ?string $notes = null,
         ?array $detailInfo = null,
     ): self {
@@ -34,6 +38,8 @@ final readonly class CreatePayrollReportCommand
             employee: $employee,
             attendanceSummary: $attendanceSummary,
             payrollSummary: $payrollSummary,
+            overtimeSummary: $overtimeSummary,
+            payrollNet: $payrollNet,
             notes: $notes,
             detailInfo: $detailInfo,
         );

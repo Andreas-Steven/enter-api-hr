@@ -104,7 +104,7 @@ final readonly class PayrollDeductionDetailInfoFactory
                 'id' => $deductionType->getId(),
                 'name' => $deductionType->getName(),
                 'category' => $deductionType->getCategory(),
-                'creates_debt' => $deductionType->getCreatesDebt(),
+                'creates_debt' => $deductionType->getCreatesDebt()->value,
             ],
             employee_debt: $debt,
         );

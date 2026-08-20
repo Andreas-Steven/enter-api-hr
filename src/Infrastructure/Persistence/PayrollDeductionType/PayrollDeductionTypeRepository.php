@@ -212,7 +212,7 @@ final class PayrollDeductionTypeRepository implements PayrollDeductionTypeReposi
                 id: $newId,
                 name: $entity->getName(),
                 category: $entity->getCategory(),
-                createsDebt: (int) $entity->getCreatesDebt(),
+                createsDebt: $entity->getCreatesDebt()->value,
                 status: $entity->getStatus(),
                 detailInfo: $entity->getDetailInfo(),
                 lockVersion: LockVersion::create(),
@@ -322,7 +322,7 @@ final class PayrollDeductionTypeRepository implements PayrollDeductionTypeReposi
         return [
             'name' => $entity->getName(),
             'category' => $entity->getCategory(),
-            'creates_debt' => $entity->getCreatesDebt(),
+            'creates_debt' => $entity->getCreatesDebt()->value,
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             SyncMdb::field() => $entity->getSyncMdbValue(),

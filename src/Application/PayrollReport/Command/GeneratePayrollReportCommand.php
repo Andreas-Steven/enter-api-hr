@@ -9,7 +9,7 @@ namespace App\Application\PayrollReport\Command;
  *
  * The only input that drives generation is the period (YYYYMM). Payroll reports
  * are generated for every active employee from their AttendanceSummary records
- * and the configured AttendanceFineRate deduction rates. An optional
+ * and the configured PayrollRatePolicies deduction rates. An optional
  * `attendanceSummaryId` restricts generation to a single summary (used by
  * the console command / override flow).
  */

@@ -4,74 +4,57 @@ declare(strict_types=1);
 
 namespace App\Domain\PayrollReport\ValueObject;
 
-// Domain Layer
-use App\Domain\Shared\Enums\IncidentType;
-
 /**
  * Deduction breakdown (the `payroll_summary.deduction` block).
  *
- * Aggregates the total deduction amount and a per-incident-type breakdown.
- * Each incident type entry has a count (or days for ABSENT) and the
- * corresponding deduction amount, calculated from the AttendanceFineRate
- * configuration multiplied by the occurrence count.
+ * References PayrollDeduction records by ID. Each item corresponds to one
+ * PayrollDeduction row persisted in the payroll_deduction table.
  *
- * Breakdown shape:
- *   LATE:        { count, amount }
- *   ABSENT:      { days, amount }
- *   EARLY_OUT:   { count, amount }
- *   MISSING_IN:  { count, amount }
- *   MISSING_OUT: { count, amount }
+ * Shape:
+ *   {
+ *     total_amount: int,
+ *     items: [
+ *       {
+ *         id: int,
+ *         name: string,
+ *         deduction_type_id: int,
+ *         amount: int,
+ *         note: ?string
+ *       }
+ *     ]
+ *   }
  */
 final readonly class DeductionBreakdown
 {
-    /** @return array<string, array<string, int>> */
-    private static function defaultBreakdown(): array
-    {
-        return [
-            IncidentType::LATE->value => ['count' => 0, 'amount' => 0],
-            IncidentType::ABSENT->value => ['days' => 0, 'amount' => 0],
-            IncidentType::EARLY_OUT->value => ['count' => 0, 'amount' => 0],
-            IncidentType::MISSING_IN->value => ['count' => 0, 'amount' => 0],
-            IncidentType::MISSING_OUT->value => ['count' => 0, 'amount' => 0],
-        ];
-    }
-
     /**
      * @param int $totalAmount
-     * @param array<string, array<string, int>> $breakdown
+     * @param list<array<string, mixed>> $items
      */
     private function __construct(
         private int $totalAmount,
-        private array $breakdown,
+        private array $items,
     ) {}
 
     public static function empty(): self
     {
-        return new self(0, self::defaultBreakdown());
+        return new self(0, []);
     }
 
     public static function fromArray(array $data): self
     {
-        $breakdown = array_replace_recursive(
-            self::defaultBreakdown(),
-            $data['breakdown'] ?? [],
-        );
+        $items = $data['items'] ?? [];
 
-        return new self(
-            (int) ($data['total_amount'] ?? 0),
-            $breakdown,
-        );
+        $totalAmount = (int) ($data['total_amount'] ?? 0);
+
+        return new self($totalAmount, $items);
     }
 
     /**
-     * @param array<string, array<string, int>> $breakdown
+     * @param list<array<string, mixed>> $items
      */
-    public static function fromValues(int $totalAmount, array $breakdown): self
+    public static function fromValues(int $totalAmount, array $items): self
     {
-        return new self(
-            $totalAmount,
-            array_replace_recursive(self::defaultBreakdown(), $breakdown),
-        );
+        return new self($totalAmount, $items);
     }
 
     public function getTotalAmount(): int
@@ -79,20 +62,10 @@ final readonly class DeductionBreakdown
         return $this->totalAmount;
     }
 
-    /**
-     * Returns the breakdown entry for a given incident type.
-     *
-     * @return array<string, int>
-     */
-    public function getEntry(IncidentType $type): array
+    /** @return list<array<string, mixed>> */
+    public function getItems(): array
     {
-        return $this->breakdown[$type->value] ?? ['count' => 0, 'amount' => 0];
-    }
-
-    /** @return array<string, array<string, int>> */
-    public function getBreakdown(): array
-    {
-        return $this->breakdown;
+        return $this->items;
     }
 
     /** @return array<string, mixed> */
@@ -100,7 +73,7 @@ final readonly class DeductionBreakdown
     {
         return [
             'total_amount' => $this->totalAmount,
-            'breakdown' => $this->breakdown,
+            'items' => $this->items,
         ];
     }
 }

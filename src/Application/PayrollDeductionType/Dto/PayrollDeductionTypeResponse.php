@@ -25,7 +25,7 @@ final readonly class PayrollDeductionTypeResponse
             id: $entity->getId(),
             name: $entity->getName(),
             category: $entity->getCategory(),
-            creates_debt: $entity->getCreatesDebt(),
+            creates_debt: $entity->getCreatesDebt()->value,
             status: $entity->getStatus()->value(),
             detail_info: $entity->getDetailInfo()->toArray(),
             sync_mdb: $entity->getSyncMdbValue(),

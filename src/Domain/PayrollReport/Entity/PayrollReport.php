@@ -24,6 +24,8 @@ use App\Domain\PayrollReport\ValueObject\Notes;
 use App\Domain\PayrollReport\ValueObject\EmployeeSnapshot;
 use App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef;
 use App\Domain\PayrollReport\ValueObject\PayrollSummary;
+use App\Domain\PayrollReport\ValueObject\OvertimeSummary;
+use App\Domain\PayrollReport\ValueObject\PayrollNet;
 
 final class PayrollReport
 {
@@ -40,6 +42,8 @@ final class PayrollReport
         private EmployeeSnapshot $employee,
         private AttendanceSummaryRef $attendanceSummary,
         private PayrollSummary $payrollSummary,
+        private OvertimeSummary $overtimeSummary,
+        private PayrollNet $payrollNet,
         private ?string $notes,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
@@ -61,6 +65,8 @@ final class PayrollReport
         EmployeeSnapshot $employee,
         AttendanceSummaryRef $attendanceSummary,
         PayrollSummary $payrollSummary,
+        OvertimeSummary $overtimeSummary,
+        PayrollNet $payrollNet,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?Notes $notes = null,
@@ -78,6 +84,8 @@ final class PayrollReport
             employee: $employee,
             attendanceSummary: $attendanceSummary,
             payrollSummary: $payrollSummary,
+            overtimeSummary: $overtimeSummary,
+            payrollNet: $payrollNet,
             notes: $notes?->toString(),
             status: $status,
             detailInfo: $detailInfo,
@@ -93,6 +101,8 @@ final class PayrollReport
         array $employee,
         array $attendanceSummary,
         array $payrollSummary,
+        array $overtimeSummary,
+        array $payrollNet,
         ?string $notes,
         ResourceStatus $status,
         DetailInfo $detailInfo,
@@ -106,6 +116,8 @@ final class PayrollReport
             employee: EmployeeSnapshot::fromArray($employee),
             attendanceSummary: AttendanceSummaryRef::fromArray($attendanceSummary),
             payrollSummary: PayrollSummary::fromArray($payrollSummary),
+            overtimeSummary: OvertimeSummary::fromArray($overtimeSummary),
+            payrollNet: PayrollNet::fromArray($payrollNet),
             notes: $notes,
             status: $status,
             detailInfo: $detailInfo,
@@ -123,6 +135,8 @@ final class PayrollReport
             'employee' => $this->employee->toArray(),
             'attendance_summary' => $this->attendanceSummary->toArray(),
             'payroll_summary' => $this->payrollSummary->toArray(),
+            'overtime_summary' => $this->overtimeSummary->toArray(),
+            'payroll_net' => $this->payrollNet->toArray(),
             'notes' => $this->notes,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
@@ -168,6 +182,16 @@ final class PayrollReport
         return $this->payrollSummary;
     }
 
+    public function getOvertimeSummary(): OvertimeSummary
+    {
+        return $this->overtimeSummary;
+    }
+
+    public function getPayrollNet(): PayrollNet
+    {
+        return $this->payrollNet;
+    }
+
     public function getNotes(): ?string
     {
         return $this->notes;
@@ -181,6 +205,16 @@ final class PayrollReport
     public function updatePayrollSummary(PayrollSummary $payrollSummary): void
     {
         $this->payrollSummary = $payrollSummary;
+    }
+
+    public function updateOvertimeSummary(OvertimeSummary $overtimeSummary): void
+    {
+        $this->overtimeSummary = $overtimeSummary;
+    }
+
+    public function updatePayrollNet(PayrollNet $payrollNet): void
+    {
+        $this->payrollNet = $payrollNet;
     }
 
     public function updateEmployee(EmployeeSnapshot $employee): void

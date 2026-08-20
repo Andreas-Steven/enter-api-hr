@@ -57,6 +57,8 @@ final class SeedPayrollReportData extends AbstractSeederData
             employee: $entity->getEmployee(),
             attendanceSummary: $entity->getAttendanceSummary(),
             payrollSummary: $entity->getPayrollSummary(),
+            overtimeSummary: $entity->getOvertimeSummary(),
+            payrollNet: $entity->getPayrollNet(),
             status: $entity->getStatus(),
             detailInfo: $detailInfo,
         );

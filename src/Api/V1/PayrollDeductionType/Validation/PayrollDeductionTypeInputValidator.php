@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Api\V1\PayrollDeductionType\Validation;
 
 // Domain Layer
+use App\Domain\Shared\Enums\CreatesDebt;
 use App\Domain\Shared\Enums\DeductionType as DeductionTypeEnum;
 
 // Shared Layer
@@ -128,7 +129,7 @@ final class PayrollDeductionTypeInputValidator extends AbstractValidator
                     new Required(),
                     new Integer(),
                     new In(
-                        [0, 1],
+                        CreatesDebt::values(),
                     ),
                 ],
                 'status' => [
@@ -184,7 +185,7 @@ final class PayrollDeductionTypeInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                     new In(
-                        [0, 1],
+                        CreatesDebt::values(),
                         skipOnEmpty: true,
                     ),
                 ],

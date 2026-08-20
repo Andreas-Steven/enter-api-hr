@@ -20,6 +20,8 @@ final class MdbPayrollReportSchema
             'employee' => $entity->getEmployee()->toArray(),
             'attendance_summary' => $entity->getAttendanceSummary()->toArray(),
             'payroll_summary' => $entity->getPayrollSummary()->toArray(),
+            'overtime_summary' => $entity->getOvertimeSummary()->toArray(),
+            'payroll_net' => $entity->getPayrollNet()->toArray(),
             'notes' => $entity->getNotes(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),

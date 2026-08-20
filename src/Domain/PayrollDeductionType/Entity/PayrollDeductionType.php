@@ -17,6 +17,7 @@ use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
+use App\Domain\Shared\Enums\CreatesDebt;
 
 final class PayrollDeductionType
 {
@@ -30,7 +31,7 @@ final class PayrollDeductionType
         private readonly ?int $id,
         private string $name,
         private string $category,
-        private int $createsDebt,
+        private CreatesDebt $createsDebt,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
@@ -62,7 +63,7 @@ final class PayrollDeductionType
             id: null,
             name: $name,
             category: $category,
-            createsDebt: $createsDebt,
+            createsDebt: CreatesDebt::from($createsDebt),
             status: $status,
             detailInfo: $detailInfo,
             syncMdb: $syncMdb,
@@ -85,7 +86,7 @@ final class PayrollDeductionType
             id: $id,
             name: $name,
             category: $category,
-            createsDebt: $createsDebt,
+            createsDebt: CreatesDebt::from($createsDebt),
             status: $status,
             detailInfo: $detailInfo,
             syncMdb: $syncMdb,
@@ -99,7 +100,7 @@ final class PayrollDeductionType
             'id' => $this->id,
             'name' => $this->name,
             'category' => $this->category,
-            'creates_debt' => $this->createsDebt,
+            'creates_debt' => $this->createsDebt->value,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
@@ -144,7 +145,7 @@ final class PayrollDeductionType
         $this->category = $newCategory;
     }
 
-    public function getCreatesDebt(): int
+    public function getCreatesDebt(): CreatesDebt
     {
         return $this->createsDebt;
     }
@@ -155,11 +156,12 @@ final class PayrollDeductionType
             return;
         }
 
-        if ($this->createsDebt === $newCreatesDebt) {
+        $newEnum = CreatesDebt::from($newCreatesDebt);
+        if ($this->createsDebt === $newEnum) {
             return;
         }
 
-        $this->createsDebt = $newCreatesDebt;
+        $this->createsDebt = $newEnum;
     }
 
 }

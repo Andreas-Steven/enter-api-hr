@@ -279,7 +279,7 @@ final class EmployeeDebtTransactionApplicationService
             period: $period,
             amount: $amount,
             note: $note->toString(),
-            status: ResourceStatus::from(RecordStatus::DRAFT->value),
+            status: ResourceStatus::from(RecordStatus::ACTIVE->value),
             detailInfo: $deductionDetailInfo
         );
 

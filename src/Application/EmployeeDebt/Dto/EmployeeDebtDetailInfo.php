@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\EmployeeDebt\Dto;
 
+use App\Domain\Shared\Enums\CreatesDebt;
+
 final readonly class EmployeeDebtDetailInfo
 {
     public function __construct(
@@ -31,6 +33,7 @@ final readonly class EmployeeDebtDetailInfo
 
     public function createsDebt(): bool
     {
-        return !empty($this->deduction_type['creates_debt']);
+        $value = (int) ($this->deduction_type['creates_debt'] ?? 0);
+        return CreatesDebt::from($value)->isYes();
     }
 }

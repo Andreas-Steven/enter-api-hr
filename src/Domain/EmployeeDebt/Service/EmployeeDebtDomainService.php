@@ -24,7 +24,7 @@ use App\Shared\Exception\ConflictException;
  * Pure business logic and domain rules.
  *
  * EmployeeDebt is a standalone module that only records debts for
- * PayrollDeductionType with creates_debt = 1. Payment tracking is manual
+ * PayrollDeductionType with CreatesDebt::YES. Payment tracking is manual
  * (paid_amount / remaining_amount / is_settled). There is no installment
  * system and no auto-generation of PayrollDeduction records.
  *
@@ -43,7 +43,7 @@ final class EmployeeDebtDomainService
 
     /**
      * Guard: EmployeeDebt hanya boleh dibuat dengan PayrollDeductionType
-     * yang memiliki creates_debt = 1. Tolak jika tidak.
+     * yang memiliki CreatesDebt::YES. Tolak jika tidak.
      */
     public function guardCreatesDebt(EmployeeDebtDetailInfo $debtInfo): void
     {

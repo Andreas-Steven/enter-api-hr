@@ -90,6 +90,11 @@ return [
     'resource.status_already_set' => 'Tidak dapat memperbarui {resource}. Status sudah bernilai "{current_status}"',
     'resource.modification_denied_on_deleted' => 'Tindakan dilarang: Operasi yang diminta tidak dapat dilakukan karena {resource} ditandai sebagai "{status}".',
 
+    // PayrollRatePolicies
+    'payroll_rate_policy.invalid_debt_creating_type' => 'PayrollRatePolicies harus menggunakan jenis potongan yang tidak membuat hutang. "{deduction_type}" membuat hutang.',
+    'payroll_rate_policy.earning_must_not_have_deduction_type' => 'Rate earning "{rate_type}" tidak boleh memiliki deduction_type_id.',
+    'payroll_rate_policy.deduction_requires_deduction_type' => 'Rate deduction "{rate_type}" wajib memiliki deduction_type_id.',
+
     // Access & Rate Limit
     'operation.not_allowed' => 'Operasi ini tidak diizinkan',
     'access.denied' => 'Akses ke sumber daya ini ditolak',

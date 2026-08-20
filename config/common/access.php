@@ -347,17 +347,17 @@ return [
     'work-pattern-rule.delete' => $isKasir,
     'work-pattern-rule.restore' => $isSuperAdmin,
 
-    // AttendanceFineRate Access Rules
-    'attendance-fine-rate.index' => static fn (Actor $actor): bool => true,
-    'attendance-fine-rate.data' => [
+    // PayrollRatePolicies Access Rules
+    'payroll-rate-policies.index' => static fn (Actor $actor): bool => true,
+    'payroll-rate-policies.data' => [
         $isSuperAdmin,
         $isKasir,
     ],
-    'attendance-fine-rate.view' => $isKasir,
-    'attendance-fine-rate.create' => $isKasir,
-    'attendance-fine-rate.update' => $isKasir,
-    'attendance-fine-rate.delete' => $isKasir,
-    'attendance-fine-rate.restore' => $isSuperAdmin,
+    'payroll-rate-policies.view' => $isKasir,
+    'payroll-rate-policies.create' => $isKasir,
+    'payroll-rate-policies.update' => $isKasir,
+    'payroll-rate-policies.delete' => $isKasir,
+    'payroll-rate-policies.restore' => $isSuperAdmin,
 
     // PayrollReport Access Rules
     'payroll-report.index' => static fn (Actor $actor): bool => true,

@@ -26,7 +26,7 @@ use Psr\Http\Message\ServerRequestInterface;
  *
  * Input is a single `period` (YYYYMM). The application service builds one
  * payroll report per active employee from their AttendanceSummary records and
- * the configured AttendanceFineRate deduction rates. Existing reports for the
+ * the configured PayrollRatePolicies deduction rates. Existing reports for the
  * period are recalculated (updated) instead of duplicated. The response reports
  * how many were created, skipped, updated and any per-summary errors.
  */
