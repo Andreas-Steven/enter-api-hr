@@ -19,6 +19,7 @@ final class PolicyDetail
     private ?int $earlyGraceOut;
     private ?int $minWorkHalfDay;
     private ?int $minWorkFullDay;
+    private ?int $minOvertimeMinutes;
     private ?MissingPolicy $missingInPolicy; 
     private ?MissingPolicy $missingOutPolicy; 
 
@@ -27,6 +28,7 @@ final class PolicyDetail
         ?int $earlyGraceOut = null,
         ?int $minWorkHalfDay = null,
         ?int $minWorkFullDay = null,
+        ?int $minOvertimeMinutes = null,
         ?MissingPolicy $missingInPolicy = null,
         ?MissingPolicy $missingOutPolicy = null
     ) {
@@ -35,11 +37,13 @@ final class PolicyDetail
         $this->validateMinutes($earlyGraceOut, 'early_grace_out');
         $this->validateMinutes($minWorkHalfDay, 'min_work_half_day');
         $this->validateMinutes($minWorkFullDay, 'min_work_full_day');
+        $this->validateMinutes($minOvertimeMinutes, 'min_overtime_minutes');
 
         $this->lateGraceIn = $lateGraceIn;
         $this->earlyGraceOut = $earlyGraceOut;
         $this->minWorkHalfDay = $minWorkHalfDay;
         $this->minWorkFullDay = $minWorkFullDay;
+        $this->minOvertimeMinutes = $minOvertimeMinutes;
         $this->missingInPolicy = $missingInPolicy;
         $this->missingOutPolicy = $missingOutPolicy;
     }
@@ -73,6 +77,7 @@ final class PolicyDetail
             $data['early_grace_out'] ?? null,
             $data['min_work_half_day'] ?? null,
             $data['min_work_full_day'] ?? null,
+            $data['min_overtime_minutes'] ?? null,
             $missingIn,
             $missingOut
         );
@@ -129,6 +134,7 @@ final class PolicyDetail
             'early_grace_out' => $this->earlyGraceOut,
             'min_work_half_day' => $this->minWorkHalfDay,
             'min_work_full_day' => $this->minWorkFullDay,
+            'min_overtime_minutes' => $this->minOvertimeMinutes,
             'missing_in_policy' => $this->missingInPolicy,
             'missing_out_policy' => $this->missingOutPolicy,
         ];
@@ -153,6 +159,11 @@ final class PolicyDetail
     public function getMinWorkFullDay(): ?int
     {
         return $this->minWorkFullDay;
+    }
+
+    public function getMinOvertimeMinutes(): ?int
+    {
+        return $this->minOvertimeMinutes;
     }
 
     public function getMissingInPolicy(): ?MissingPolicy

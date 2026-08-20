@@ -183,6 +183,9 @@ final readonly class Summary
 
         // Grace periods from policy (applied to deficit/excess threshold).
         $earlyGraceOut = $policy?->getEarlyGraceOut() ?? 0;
+        // Minimum overtime threshold: surplus minutes must reach this value
+        // before the day qualifies as overtime (prevents micro-overtime).
+        $minOvertimeMinutes = $policy?->getMinOvertimeMinutes() ?? 0;
 
         // 2. Fold daily attendance into raw signals.
         $presentDays = 0;
@@ -245,16 +248,21 @@ final readonly class Summary
                 } elseif ($diff > 0) {
                     // Worked beyond the required duration (overtime on working day).
                     $excess++;
-                    $overtimeDays++;
-                    $overtimeMinutes += $diff;
-                    $overtimeItems[] = ['date' => $date, 'minutes' => $diff];
+                    if ($diff >= $minOvertimeMinutes) {
+                        $overtimeDays++;
+                        $overtimeMinutes += $diff;
+                        $overtimeItems[] = ['date' => $date, 'minutes' => $diff];
+                    }
                 }
                 // Within grace OR full_day: fulfilled, no deficit/excess.
             } elseif ($required === 0 && $workDuration > 0) {
-                // Worked on a non-obligation day => counts as overtime.
-                $overtimeDays++;
-                $overtimeMinutes += $workDuration;
-                $overtimeItems[] = ['date' => $date, 'minutes' => $workDuration];
+                // Worked on a non-obligation day => counts as overtime when
+                // the worked duration reaches the minimum overtime threshold.
+                if ($workDuration >= $minOvertimeMinutes) {
+                    $overtimeDays++;
+                    $overtimeMinutes += $workDuration;
+                    $overtimeItems[] = ['date' => $date, 'minutes' => $workDuration];
+                }
             }
         }
 

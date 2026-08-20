@@ -216,6 +216,10 @@ return [
                 ->action(AttendanceV1\AttendanceAdjustmentAction::class)
                 ->name('v1/attendance/adjustment')
                 ->defaults(['permission' => 'attendance.adjustment']),
+            Route::post('/attendance/{id:\d+}/show')
+                ->action(AttendanceV1\AttendanceShowAction::class)
+                ->name('v1/attendance/show')
+                ->defaults(['permission' => 'attendance.view']),
             
             /**
              * Employee Module

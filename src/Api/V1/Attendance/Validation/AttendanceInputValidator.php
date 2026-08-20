@@ -231,6 +231,15 @@ final class AttendanceInputValidator extends AbstractValidator
                         min: 1,
                     ),
                 ],
+                'date' => [
+                    new StopOnError([
+                        new Required(),
+                        new StringValue(),
+                        new Length(
+                            exactly: 10,
+                        ),
+                    ])
+                ],
             ],
             ValidationContext::ADJUSTMENT => [
                 'date' => [

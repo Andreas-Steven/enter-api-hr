@@ -140,6 +140,13 @@ final class AttendancePoliciesInputValidator extends AbstractValidator
                                 skipOnEmpty: true,
                             ),
                         ],
+                        'min_overtime_minutes' => [
+                            new Integer(
+                                min: 0,
+                                max: 1440,
+                                skipOnEmpty: true,
+                            ),
+                        ],
                         'missing_in_policy' => [
                             new StringValue(
                                 skipOnEmpty: true,
@@ -208,6 +215,13 @@ final class AttendancePoliciesInputValidator extends AbstractValidator
                             ),
                         ],
                         'min_work_full_day' => [
+                            new Integer(
+                                min: 0,
+                                max: 1440,
+                                skipOnEmpty: true,
+                            ),
+                        ],
+                        'min_overtime_minutes' => [
                             new Integer(
                                 min: 0,
                                 max: 1440,

@@ -17,7 +17,6 @@ use App\Domain\Attendance\ValueObject\AttendancePeriod;
 use App\Shared\Dto\PaginatedResult;
 use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
-use DateTimeImmutable;
 
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
@@ -29,7 +28,7 @@ use Yiisoft\Router\CurrentRoute;
 
 final class AttendanceShowAction
 {
-    private const ALLOWED_KEYS = ['employee_id'];
+    private const ALLOWED_KEYS = ['employee_id', 'date'];
 
     public function __construct(
         private AttendanceInputValidator $inputValidator,
@@ -81,8 +80,10 @@ final class AttendanceShowAction
         );
 
         $employeeId = (int) ($data->get('employee_id') ?? 0);
+        $dateString = (string) ($data->get('date') ?? '');
+
         $period = AttendancePeriod::fromDateString(
-            (new DateTimeImmutable())->format('Y-m-d')
+            $dateString
         )->toInt();
 
         $attendance = $this->applicationService->reportData(
@@ -95,6 +96,27 @@ final class AttendanceShowAction
             period: $period
         );
 
+        // Filter attendance to the specific date
+        $attendance = array_values(array_filter(
+            $attendance,
+            static fn(array $row): bool => ($row['date'] ?? null) === $dateString
+        ));
+
+        // Filter permission to entries active on the specific date
+        $permission = array_values(array_filter(
+            $permission,
+            static function (array $row) use ($dateString): bool {
+                $startDate = $row['start_date'] ?? null;
+                $endDate = $row['end_date'] ?? null;
+
+                if ($startDate === null || $startDate > $dateString) {
+                    return false;
+                }
+
+                return $endDate === null || $endDate >= $dateString;
+            }
+        ));
+
         $data = [
             'attendance' => $attendance,
             'permission' => $permission,
@@ -105,7 +127,7 @@ final class AttendanceShowAction
             total: count($attendance),
             page: 1,
             pageSize: count($attendance) > 0 ? count($attendance) : 10,
-            filter: ['employee_id' => $employeeId, 'period' => $period],
+            filter: ['employee_id' => $employeeId, 'date' => $dateString],
             sort: ['by' => 'date', 'dir' => 'asc']
         );
 
@@ -114,7 +136,7 @@ final class AttendanceShowAction
             total: count($permission),
             page: 1,
             pageSize: count($permission) > 0 ? count($permission) : 10,
-            filter: ['employee_id' => $employeeId, 'period' => $period],
+            filter: ['employee_id' => $employeeId, 'date' => $dateString],
             sort: ['by' => 'date', 'dir' => 'asc']
         );
 

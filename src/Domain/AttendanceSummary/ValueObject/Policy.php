@@ -27,6 +27,7 @@ final readonly class Policy
             'early_grace_out' => null,
             'min_work_full_day' => null,
             'min_work_half_day' => null,
+            'min_overtime_minutes' => null,
             'missing_in_policy' => null,
             'missing_out_policy' => null,
         ];
@@ -74,6 +75,7 @@ final readonly class Policy
             'early_grace_out' => $detail['early_grace_out'] ?? null,
             'min_work_full_day' => $detail['min_work_full_day'] ?? null,
             'min_work_half_day' => $detail['min_work_half_day'] ?? null,
+            'min_overtime_minutes' => $detail['min_overtime_minutes'] ?? null,
             'missing_in_policy' => $detail['missing_in_policy'] ?? null,
             'missing_out_policy' => $detail['missing_out_policy'] ?? null,
         ]);
@@ -101,6 +103,11 @@ final readonly class Policy
     public function getEarlyGraceOut(): int
     {
         return (int) ($this->data['early_grace_out'] ?? 0);
+    }
+
+    public function getMinOvertimeMinutes(): int
+    {
+        return (int) ($this->data['min_overtime_minutes'] ?? 0);
     }
 
     /** @return array<string, mixed> */
