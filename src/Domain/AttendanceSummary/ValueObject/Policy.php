@@ -6,6 +6,7 @@ namespace App\Domain\AttendanceSummary\ValueObject;
 
 // Domain Layer
 use App\Domain\Attendance\ValueObject\AttendanceItem;
+use App\Domain\Shared\Enums\MissingPolicy;
 
 /**
  * Snapshot of the attendance policy used to evaluate a summary.
@@ -108,6 +109,29 @@ final readonly class Policy
     public function getMinOvertimeMinutes(): int
     {
         return (int) ($this->data['min_overtime_minutes'] ?? 0);
+    }
+
+    public function getMissingInPolicy(): ?MissingPolicy
+    {
+        return self::resolveMissingPolicy($this->data['missing_in_policy'] ?? null);
+    }
+
+    public function getMissingOutPolicy(): ?MissingPolicy
+    {
+        return self::resolveMissingPolicy($this->data['missing_out_policy'] ?? null);
+    }
+
+    private static function resolveMissingPolicy(mixed $value): ?MissingPolicy
+    {
+        if ($value instanceof MissingPolicy) {
+            return $value;
+        }
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return MissingPolicy::tryFrom((string) $value);
     }
 
     /** @return array<string, mixed> */

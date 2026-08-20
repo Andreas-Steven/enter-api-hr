@@ -69,4 +69,41 @@ enum ReviewReason: string
             self::MISSING_SEND_TO_REVIEW => MissingPolicy::class,
         };
     }
+
+    /**
+     * Returns the source treatment value that triggers this review reason.
+     *
+     * Used to compute the treatment_options for a review item: all cases of
+     * the source enum except this triggering value.
+     */
+    public function sourceTriggerValue(): string
+    {
+        return match ($this) {
+            self::DEFICIT_MANUAL_REVIEW => 'MANUAL_REVIEW',
+            self::EXCESS_REQUIRE_APPROVAL => 'REQUIRE_APPROVAL',
+            self::MISSING_SEND_TO_REVIEW => 'SEND_TO_REVIEW',
+        };
+    }
+
+    /**
+     * Returns the treatment options available for a review item with this
+     * reason: all cases of the source enum except the triggering value.
+     *
+     * @return list<string>
+     */
+    public function treatmentOptions(): array
+    {
+        $enumClass = $this->sourceEnumClass();
+        $trigger = $this->sourceTriggerValue();
+
+        $options = [];
+
+        foreach ($enumClass::cases() as $case) {
+            if ($case->value !== $trigger) {
+                $options[] = $case->value;
+            }
+        }
+
+        return $options;
+    }
 }

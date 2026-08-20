@@ -17,7 +17,7 @@ use Yiisoft\Db\Migration\RevertibleMigrationInterface;
 /**
  * Creates payroll_report table with status tracking and JSON detail_info.
  */
-final class M20260807065057CreatePayrollReportTable implements RevertibleMigrationInterface
+final class M20260807065058CreatePayrollReportTable implements RevertibleMigrationInterface
 {
     private const TABLE_NAME = 'payroll_report';
 

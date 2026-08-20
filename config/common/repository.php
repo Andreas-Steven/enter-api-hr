@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
+use App\Domain\AttendanceReview\Repository\AttendanceReviewRepositoryInterface;
 use App\Domain\PayrollReport\Repository\PayrollReportRepositoryInterface;
 use App\Domain\PayrollRatePolicies\Repository\PayrollRatePoliciesRepositoryInterface;
 use App\Domain\WorkPatternRule\Repository\WorkPatternRuleRepositoryInterface;
@@ -32,6 +33,7 @@ use App\Domain\EmployeeDivision\Repository\EmployeeDivisionRepositoryInterface;
 use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInterface;
 use App\Domain\WorkPattern\Repository\WorkPatternRepositoryInterface;
 use App\Infrastructure\Persistence\Example\ExampleRepository;
+use App\Infrastructure\Persistence\AttendanceReview\AttendanceReviewRepository;
 use App\Infrastructure\Persistence\PayrollReport\PayrollReportRepository;
 use App\Infrastructure\Persistence\PayrollRatePolicies\PayrollRatePoliciesRepository;
 use App\Infrastructure\Persistence\WorkPatternRule\WorkPatternRuleRepository;
@@ -292,6 +294,14 @@ return [
     ],
     PayrollReportRepositoryInterface::class => [
         'class' => PayrollReportRepository::class,
+        'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
+        'setCurrentUser()' => [Reference::to(CurrentUser::class)],
+        '__construct()' => [
+            'params' => $params['app/optimisticLock'] ?? [],
+        ],
+    ],
+    AttendanceReviewRepositoryInterface::class => [
+        'class' => AttendanceReviewRepository::class,
         'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
         'setCurrentUser()' => [Reference::to(CurrentUser::class)],
         '__construct()' => [

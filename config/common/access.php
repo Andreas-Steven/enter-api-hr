@@ -370,4 +370,17 @@ return [
     'payroll-report.update' => $isKasir,
     'payroll-report.delete' => $isKasir,
     'payroll-report.restore' => $isSuperAdmin,
+
+    // AttendanceReview Access Rules
+    'attendance-review.index' => static fn (Actor $actor): bool => true,
+    'attendance-review.data' => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'attendance-review.view' => $isKasir,
+    'attendance-review.create' => $isKasir,
+    'attendance-review.update' => $isKasir,
+    'attendance-review.delete' => $isKasir,
+    'attendance-review.restore' => $isSuperAdmin,
+    'attendance-review.resolve' => $isKasir,
 ];

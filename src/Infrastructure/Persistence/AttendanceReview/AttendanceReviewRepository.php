@@ -1,0 +1,396 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Infrastructure\Persistence\AttendanceReview;
+
+// Domain Layer
+use App\Domain\AttendanceReview\Entity\AttendanceReview;
+use App\Domain\AttendanceReview\Repository\AttendanceReviewRepositoryInterface;
+use App\Domain\Shared\ValueObject\ResourceStatus;
+use App\Domain\Shared\ValueObject\DetailInfo;
+use App\Domain\Shared\ValueObject\LockVersion;
+use App\Domain\Shared\ValueObject\SyncMdb;
+
+// Infrastructure Layer
+use App\Infrastructure\Concerns\HasCoreFeatures;
+use App\Infrastructure\Concerns\HasMongoDBSync;
+use App\Infrastructure\Concerns\ManagesPersistence;
+use App\Infrastructure\Database\MongoDB\MongoDBService;
+use App\Infrastructure\Persistence\AttendanceReview\MdbAttendanceReviewSchema;
+use App\Infrastructure\Security\CurrentUserAwareInterface;
+
+// Shared Layer
+use App\Shared\Dto\PaginatedResult;
+use App\Shared\Dto\SearchCriteria;
+use App\Shared\Query\QueryConditionApplier;
+use App\Shared\ValueObject\Message;
+
+// Vendor Layer
+use Yiisoft\Db\Connection\ConnectionInterface;
+use Yiisoft\Db\Expression\Expression;
+use Yiisoft\Db\Query\Query;
+
+/**
+ * AttendanceReview Repository using Yiisoft/Db Query Builder
+ *
+ * Pure query implementation using Yiisoft/Db for database operations
+ */
+final class AttendanceReviewRepository implements AttendanceReviewRepositoryInterface, CurrentUserAwareInterface
+{
+    use HasCoreFeatures, HasMongoDBSync, ManagesPersistence;
+
+    public const TABLE_NAME = 'attendance_review';
+    public const SEQUENCE_ID = 'attendance_review_id_seq';
+    private const LIKE_OPERATOR = 'ilike';
+
+    /** @var list<string> */
+    private const JSON_KEYS = [
+        'employee',
+        'attendance_summary',
+        'items',
+        'counts',
+        'detail_info',
+    ];
+
+    public function __construct(
+        private ConnectionInterface $db,
+        private QueryConditionApplier $queryConditionApplier,
+        private MongoDBService $mongoDBService,
+    ) {
+        $this->initMongoDBSync(
+            service: $mongoDBService,
+            collection: self::TABLE_NAME
+        );
+    }
+
+    public function getResource(): string
+    {
+        return AttendanceReview::RESOURCE;
+    }
+
+    public function findById(int $id, ?int $status = null): ?AttendanceReview
+    {
+        /** @var array<string, mixed>|false $row */
+        $row = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where([
+                'id' => $id,
+            ])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->one();
+
+        if (!$row) {
+            return null;
+        }
+
+        return $this->hydrate($row);
+    }
+
+    public function findByName(string $name, ?int $status = null): ?AttendanceReview
+    {
+        /** @var array<string, mixed>|false $row */
+        $row = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['name' => $name])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->one();
+
+        if (!$row) {
+            return null;
+        }
+
+        return $this->hydrate($row);
+    }
+
+    public function existsByName(string $name, ?int $status = null): bool
+    {
+        return (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['name' => $name])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->exists();
+    }
+
+    /**
+     * @return list<AttendanceReview>
+     */
+    public function findByPeriod(int $period, ?int $status = null): array
+    {
+        /** @var array<int, array<string, mixed>> $rows */
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['period' => $period])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->orderBy(['id' => SORT_ASC])
+            ->all();
+
+        return array_map(
+            fn(array $row): AttendanceReview => $this->hydrate($row),
+            $rows
+        );
+    }
+
+    public function findByAttendanceSummaryId(int $attendanceSummaryId, ?int $status = null): ?AttendanceReview
+    {
+        /** @var array<string, mixed>|false $row */
+        $row = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['=', new Expression("attendance_summary->>'id'"), (string) $attendanceSummaryId])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->one();
+
+        if (!$row) {
+            return null;
+        }
+
+        return $this->hydrate($row);
+    }
+
+    public function list(SearchCriteria $criteria): PaginatedResult
+    {
+        $query = (new Query($this->db))
+            ->select([
+                'id',
+                'name',
+                'period',
+                'employee',
+                'attendance_summary',
+                'items',
+                'counts',
+                'review_status',
+                'notes',
+                'status',
+                'detail_info',
+                SyncMdb::field(),
+                LockVersion::field(),
+            ])
+            ->from(self::TABLE_NAME)
+            ->where($this->scopeWhereNotDeleted());
+
+        $filter = $criteria->filter;
+
+        $this->queryConditionApplier->filterByExactMatch(
+            query: $query,
+            filters: $filter,
+            allowedColumns: [
+                'id',
+                'period',
+                'review_status',
+                'status',
+                SyncMdb::field(),
+            ]
+        );
+
+        if (!empty($filter['name'])) {
+            $this->queryConditionApplier->orLike(
+                query: $query,
+                operator: self::LIKE_OPERATOR,
+                conditions: ['name' => '%' . $filter['name'] . '%']
+            );
+        }
+
+        if (!empty($filter['employee_id'])) {
+            $employeeId = (int) $filter['employee_id'];
+            $query->andWhere(
+                ['=', new Expression("employee->>'id'"), (string) $employeeId],
+            );
+        }
+
+        if (!empty($filter['employee_name'])) {
+            $employeeName = (string) $filter['employee_name'];
+            $query->andWhere(
+                ['ilike', new Expression("employee->>'name'"), '%' . $employeeName . '%'],
+            );
+        }
+
+        $total = (clone $query)->count();
+
+        $query->orderBy($criteria->getOrderClause())
+            ->limit($criteria->pageSize)
+            ->offset($criteria->calculateOffset());
+
+        $rows = iterator_to_array(
+            $this->streamRows(
+                query: $query,
+                jsonKeys: self::JSON_KEYS
+            )
+        );
+
+        return new PaginatedResult(
+            data: $rows,
+            total: $total,
+            page: $criteria->page,
+            pageSize: $criteria->pageSize,
+            filter: $criteria->filter,
+            sort: [
+                'by' => $criteria->sortBy,
+                'dir' => $criteria->sortDir
+            ]
+        );
+    }
+
+    public function insert(AttendanceReview $entity): AttendanceReview
+    {
+        return $this->db->transaction(function() use ($entity) {
+            $this->db->createCommand()
+                ->insert(self::TABLE_NAME,
+                    $this->mapEntityToTable(
+                        entity: $entity,
+                        lockVersion: LockVersion::create()->value()
+                    )
+                )
+                ->execute();
+
+            $newId = (int) $this->db->getLastInsertID(self::SEQUENCE_ID);
+
+            $newEntity = AttendanceReview::reconstitute(
+                id: $newId,
+                name: $entity->getName(),
+                period: $entity->getPeriod(),
+                employee: $entity->getEmployee()->toArray(),
+                attendanceSummary: $entity->getAttendanceSummary()->toArray(),
+                items: $entity->getItems()->toArray(),
+                counts: $entity->getCounts()->toArray(),
+                reviewStatus: $entity->getReviewStatus()->value,
+                notes: $entity->getNotes(),
+                status: $entity->getStatus(),
+                detailInfo: $entity->getDetailInfo(),
+                lockVersion: LockVersion::create(),
+            );
+
+            $this->syncMongoDB(
+                entity: $newEntity,
+                schemaClass: MdbAttendanceReviewSchema::class
+            );
+
+            return $newEntity;
+        });
+    }
+
+    public function update(AttendanceReview $entity): AttendanceReview
+    {
+        return $this->db->transaction(function() use ($entity) {
+            $currentLock = $entity->getLockVersion();
+            $newLock = $this->upgradeEntityLockVersion($entity);
+
+            $result = $this->db->createCommand()
+                ->update(
+                    self::TABLE_NAME,
+                    $this->mapEntityToTable(
+                        entity: $entity,
+                        lockVersion: $newLock->value()
+                    ),
+                    $this->buildLockCondition(
+                        entity: $entity,
+                        currentLockVersion: $currentLock->value()
+                    )
+                )
+                ->execute();
+
+            if ($result === 0) {
+                $this->handlePersistenceFailure($entity);
+            }
+
+            $this->syncMongoDB(
+                entity: $entity,
+                schemaClass: MdbAttendanceReviewSchema::class
+            );
+
+            return $entity;
+        });
+    }
+
+    public function delete(AttendanceReview $entity): AttendanceReview
+    {
+        return $this->db->transaction(function() use ($entity) {
+            $result = $this->db->createCommand()
+                ->update(
+                    self::TABLE_NAME,
+                    $this->getDeletedState(),
+                    $this->buildSimpleCondition($entity)
+                )
+                ->execute();
+
+            if ($result === 0) {
+                $this->handlePersistenceFailure($entity, false);
+            }
+
+            $deletedEntity = $entity->markAsDeleted();
+
+            $this->syncMongoDB(
+                entity: $deletedEntity,
+                schemaClass: MdbAttendanceReviewSchema::class
+            );
+
+            return $deletedEntity;
+        });
+    }
+
+    public function restore(int $id): ?AttendanceReview
+    {
+        /** @var array<string, mixed>|false $row */
+        $row = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['id' => $id])
+            ->andWhere($this->scopeWhereDeleted())
+            ->one();
+
+        if (!$row) {
+            return null;
+        }
+
+        $entity = $this->hydrate($row);
+
+        $entity->restore();
+
+        return $this->update(
+            entity: $entity,
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function hydrate(array $row): AttendanceReview
+    {
+        return AttendanceReview::reconstitute(
+            id: (int) $row['id'],
+            name: (string) $row['name'],
+            period: $row['period'] !== null ? (int) $row['period'] : null,
+            employee: $this->castToArray($row['employee'] ?? null),
+            attendanceSummary: $this->castToArray($row['attendance_summary'] ?? null),
+            items: $this->castToArray($row['items'] ?? null),
+            counts: $this->castToArray($row['counts'] ?? null),
+            reviewStatus: (string) ($row['review_status'] ?? 'OPEN'),
+            notes: $row['notes'] ?? null,
+            status: ResourceStatus::from((int) $row['status']),
+            detailInfo: DetailInfo::fromJson($row['detail_info'] ?? ''),
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
+            lockVersion: LockVersion::fromInt((int) ($row[LockVersion::field()] ?? LockVersion::DEFAULT_VALUE)),
+        );
+    }
+
+    private function mapEntityToTable(AttendanceReview $entity, int $lockVersion): array
+    {
+        return [
+            'name' => $entity->getName(),
+            'period' => $entity->getPeriod(),
+            'employee' => $entity->getEmployee()->toArray(),
+            'attendance_summary' => $entity->getAttendanceSummary()->toArray(),
+            'items' => $entity->getItems()->toArray(),
+            'counts' => $entity->getCounts()->toArray(),
+            'review_status' => $entity->getReviewStatus()->value,
+            'notes' => $entity->getNotes(),
+            'status' => $entity->getStatus()->value(),
+            'detail_info' => $entity->getDetailInfo()->toArray(),
+            SyncMdb::field() => $entity->getSyncMdbValue(),
+            LockVersion::field() => $lockVersion,
+        ];
+    }
+}

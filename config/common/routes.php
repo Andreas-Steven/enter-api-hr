@@ -7,6 +7,7 @@ use App\Api;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
+use App\Api\V1\AttendanceReview\Action as AttendanceReviewV1;
 use App\Api\V1\PayrollReport\Action as PayrollReportV1;
 use App\Api\V1\PayrollRatePolicies\Action as PayrollRatePoliciesV1;
 use App\Api\V1\WorkPatternRule\Action as WorkPatternRuleV1;
@@ -926,6 +927,41 @@ return [
                 ->action(PayrollReportV1\PayrollReportRestoreAction::class)
                 ->name('v1/payroll-report/restore')
                 ->defaults(['permission' => 'payroll-report.restore']),
+
+            // AttendanceReview Routes
+            Route::get('/attendance-review')
+                ->action(AttendanceReviewV1\AttendanceReviewDataAction::class)
+                ->name('v1/attendance-review/index')
+                ->defaults(['permission' => 'attendance-review.index']),
+            Route::post('/attendance-review/data')
+                ->action(AttendanceReviewV1\AttendanceReviewDataAction::class)
+                ->name('v1/attendance-review/data')
+                ->defaults(['permission' => 'attendance-review.data']),
+            Route::get('/attendance-review/{id:\d+}')
+                ->action(AttendanceReviewV1\AttendanceReviewViewAction::class)
+                ->name('v1/attendance-review/view')
+                ->defaults(['permission' => 'attendance-review.view']),
+            Route::post('/attendance-review/create')
+                ->action(AttendanceReviewV1\AttendanceReviewCreateAction::class)
+                ->name('v1/attendance-review/create')
+                ->defaults(['permission' => 'attendance-review.create']),
+            Route::put('/attendance-review/{id:\d+}')
+                ->action(AttendanceReviewV1\AttendanceReviewUpdateAction::class)
+                ->name('v1/attendance-review/update')
+                ->defaults(['permission' => 'attendance-review.update']),
+            Route::delete('/attendance-review/{id:\d+}')
+                ->action(AttendanceReviewV1\AttendanceReviewDeleteAction::class)
+                ->name('v1/attendance-review/delete')
+                ->defaults(['permission' => 'attendance-review.delete']),
+            Route::post('/attendance-review/{id:\d+}/restore')
+                ->action(AttendanceReviewV1\AttendanceReviewRestoreAction::class)
+                ->name('v1/attendance-review/restore')
+                ->defaults(['permission' => 'attendance-review.restore']),
+            Route::post('/attendance-review/{id:\d+}/resolve')
+                ->action(AttendanceReviewV1\AttendanceReviewResolveAction::class)
+                ->name('v1/attendance-review/resolve')
+                ->defaults(['permission' => 'attendance-review.resolve']),
+
 
 
 
