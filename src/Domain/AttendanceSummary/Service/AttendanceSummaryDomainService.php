@@ -124,10 +124,16 @@ final class AttendanceSummaryDomainService
                 $holidayDates = $this->filterHolidaysByBranch($holidays, $employee->getBranchId());
 
                 // Build attendance data with correct is_obligation_day flags.
+                // Period days and permission date map are passed so that absent
+                // obligation days (no attendance record, no approved leave/sick)
+                // are injected into the attendance array — enabling downstream
+                // ABSENT deduction generation in PayrollReport.
                 $attendanceData = AttendanceData::fromRawDailyItems(
                     $rawDaily,
                     $workSchedule,
                     $holidayDates,
+                    $periodDays,
+                    $permissionDateMap,
                 );
                 $permissions = PermissionCollection::fromArray($permissionItems);
                 $summary = Summary::compute(

@@ -7,6 +7,7 @@ namespace App\Domain\PayrollReport\Service;
 // Application Layer
 use App\Application\PayrollReport\Command\GeneratePayrollReportCommand;
 use App\Application\PayrollReport\Dto\PayrollReportResult;
+use App\Application\PayrollDeduction\PayrollDeductionDetailInfoFactory;
 use App\Application\Shared\Factory\DetailInfoFactory;
 
 // Domain Layer
@@ -57,6 +58,7 @@ final class PayrollReportDomainService
 
     public function __construct(
         private DetailInfoFactory $detailInfoFactory,
+        private PayrollDeductionDetailInfoFactory $deductionInfoFactory,
         private PayrollReportRepositoryInterface $repository,
         private AttendanceSummaryRepositoryInterface $attendanceSummaryRepository,
         private PayrollRatePoliciesRepositoryInterface $ratePolicyRepository,
@@ -240,6 +242,13 @@ final class PayrollReportDomainService
                 continue;
             }
 
+            $deductionTypeId = $rate->getDeductionTypeId();
+            if ($deductionTypeId === null || $deductionTypeId < 1) {
+                // Deduction rate type must reference a PayrollDeductionType.
+                // Skip if misconfigured (no deduction_type_id set).
+                continue;
+            }
+
             $note = sprintf('%s %s', $rateTypeStr, $date);
 
             $existing = $existingByKey[$key] ?? null;
@@ -249,20 +258,45 @@ final class PayrollReportDomainService
                 if ($existing->getAmount() !== $amount) {
                     $existing->setAmount($amount);
                     $existing->setNote($note);
+
+                    // Rebuild enriched detail_info (fixes legacy records that
+                    // only have change_log without employee/deduction_type).
+                    $info = $this->deductionInfoFactory->buildFromIds(
+                        employeeId: $employeeId,
+                        deductionTypeId: $deductionTypeId,
+                        employeeDebtId: null,
+                    );
+                    $detailInfo = $this->detailInfoFactory
+                        ->update(
+                            detailInfo: $existing->getDetailInfo(),
+                            payload: $info->toArray(),
+                        )
+                        ->build();
+                    $existing->updateDetailInfo(detailInfo: $detailInfo);
+
                     $this->deductionRepository->update($existing);
                 }
                 continue;
             }
 
             // Create new PayrollDeduction.
+            // Build enriched detail_info with employee + payroll_deduction_type
+            // relations (mirrors the manual create flow in
+            // PayrollDeductionApplicationService::create).
+            $info = $this->deductionInfoFactory->buildFromIds(
+                employeeId: $employeeId,
+                deductionTypeId: $deductionTypeId,
+                employeeDebtId: null,
+            );
+
             $detailInfo = $this->detailInfoFactory
-                ->create(detailInfo: [])
+                ->create(detailInfo: $info->toArray())
                 ->build();
 
             $deduction = PayrollDeduction::create(
                 name: DeductionName::generate($employeeId)->toString(),
                 employeeId: $employeeId,
-                deductionTypeId: $rate->getDeductionTypeId(),
+                deductionTypeId: $deductionTypeId,
                 employeeDebtId: null,
                 period: $period,
                 amount: $amount,
