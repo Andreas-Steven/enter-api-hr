@@ -93,13 +93,13 @@ final class GeneralAffairInputValidator extends AbstractValidator
     {
         return match ($context) {
             ValidationContext::CREATE => [
-                'name' => [
+                /* 'name' => [
                     new StopOnError([
                         new Required(),
                         new StringValue(),
                         new Length(min: 1, max: 255),
                     ])
-                ],
+                ], */
                 'product_id' => [
                     new StopOnError([
                         new Required(),
@@ -148,12 +148,12 @@ final class GeneralAffairInputValidator extends AbstractValidator
                         min: 1,
                     ),
                 ],
-                'name' => [
+                /* 'name' => [
                     new StopOnError([
                         new StringValue(skipOnEmpty: true),
                         new Length(min: 1, max: 255, skipOnEmpty: true),
                     ])
-                ],
+                ], */
                 'product_id' => [
                     new StopOnError([
                         new Integer(
@@ -222,7 +222,7 @@ final class GeneralAffairInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
-                'name' => [
+                /* 'name' => [
                     new StringValue(
                         skipOnEmpty: true,
                     ),
@@ -231,7 +231,7 @@ final class GeneralAffairInputValidator extends AbstractValidator
                         max: 100,
                         skipOnEmpty: true,
                     ),
-                ],
+                ], */
                 'status' => [
                     new Integer(
                         skipOnEmpty: true,

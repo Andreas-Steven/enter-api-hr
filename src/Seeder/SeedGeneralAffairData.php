@@ -50,9 +50,13 @@ final class SeedGeneralAffairData extends AbstractSeederData
     {
         // Create new entity with proper DetailInfo
         $newEntity = GeneralAffair::create(
-            $entity->getName(),
-            $entity->getStatus(),
-            $detailInfo
+            /* $entity->getName(), */
+            productId: $entity->getProductId(),
+            categoryId: $entity->getCategoryId(),
+            locationId: $entity->getLocationId(),
+            asset: $entity->getAsset(),
+            status: $entity->getStatus(),
+            detailInfo: $detailInfo
         );
         
         // Use repository to insert

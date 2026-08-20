@@ -80,7 +80,7 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
 
         return GeneralAffair::reconstitute(
             id: (int) $row['id'],
-            name: (string) $row['name'],
+            /* name: (string) $row['name'], */
             productId: (int) $row['product_id'],
             categoryId: (int) $row['category_id'],
             locationId: (int) $row['location_id'],
@@ -91,9 +91,8 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
         );
     }
 
-    public function findByName(string $name, ?int $status = null): ?GeneralAffair
+    /* public function findByName(string $name, ?int $status = null): ?GeneralAffair
     {
-        /** @var array<string, mixed>|false $row */
         $row = (new Query($this->db))
             ->from(self::TABLE_NAME)
             ->where(['name' => $name])
@@ -126,14 +125,14 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
             ->andWhere($this->scopeWhereNotDeleted())
             ->andWhere($this->scopeByStatus($status))
             ->exists();
-    }
+    } */
 
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         $query = (new Query($this->db))
             ->select([
                 'id',
-                'name',
+                /* 'name', */
                 'product_id',
                 'category_id',
                 'location_id',
@@ -158,13 +157,13 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
             ]
         );
 
-        if (!empty($filter['name'])) {
+        /* if (!empty($filter['name'])) {
             $this->queryConditionApplier->orLike(
-                query: $query, 
+                query: $query,
                 operator: self::LIKE_OPERATOR,
                 conditions: ['name' => '%' . $filter['name'] . '%']
             );
-        }
+        } */
 
         $total = (clone $query)->count();
 
@@ -208,7 +207,7 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
 
             $newEntity = GeneralAffair::reconstitute(
                 id: $newId,
-                name: $entity->getName(),
+                /* name: $entity->getName(), */
                 productId: $entity->getProductId(),
                 categoryId: $entity->getCategoryId(),
                 locationId: $entity->getLocationId(),
@@ -302,7 +301,7 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
 
         $entity = GeneralAffair::reconstitute(
             id: (int) $row['id'],
-            name: (string) $row['name'],
+            /* name: (string) $row['name'], */
             productId: (int) $row['product_id'],
             categoryId: (int) $row['category_id'],
             locationId: (int) $row['location_id'],
@@ -322,7 +321,7 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
     private function mapEntityToTable(GeneralAffair $entity, int $lockVersion): array
     {
         return [
-            'name' => $entity->getName(),
+            /* 'name' => $entity->getName(), */
             'product_id' => $entity->getProductId(),
             'category_id' => $entity->getCategoryId(),
             'location_id' => $entity->getLocationId(),
@@ -362,7 +361,7 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
 
         return GeneralAffair::reconstitute(
             id: (int) $row['id'],
-            name: (string) $row['name'],
+            /* name: (string) $row['name'], */
             productId: (int) $row['product_id'],
             categoryId: (int) $row['category_id'],
             locationId: (int) $row['location_id'],

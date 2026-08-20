@@ -10,7 +10,7 @@ final readonly class GeneralAffairResponse
 {
     public function __construct(
         public int $id,
-        public string $name,
+        /* public string $name, */
         public int $productId,
         public int $categoryId,
         public int $locationId,
@@ -25,7 +25,7 @@ final readonly class GeneralAffairResponse
     {
         return new self(
             id: $entity->getId(),
-            name: $entity->getName(),
+            /* name: $entity->getName(), */
             productId: $entity->getProductId(),
             categoryId: $entity->getCategoryId(),
             locationId: $entity->getLocationId(),

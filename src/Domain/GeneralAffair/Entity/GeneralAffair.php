@@ -29,7 +29,7 @@ final class GeneralAffair
 
     protected function __construct(
         private readonly ?int $id,
-        private string $name,
+        /* private string $name, */
         private int $productId,
         private int $categoryId,
         private int $locationId,
@@ -49,7 +49,7 @@ final class GeneralAffair
     }
 
     public static function create(
-        string $name,
+        /* string $name, */
         int $productId,
         int $categoryId,
         int $locationId,
@@ -65,7 +65,7 @@ final class GeneralAffair
 
         return new self(
             id: null,
-            name: $name,
+            /* name: $name, */
             productId: $productId,
             categoryId: $categoryId,
             locationId: $locationId,
@@ -79,7 +79,7 @@ final class GeneralAffair
 
     public static function reconstitute(
         int $id,
-        string $name,
+        /* string $name, */
         int $productId,
         int $categoryId,
         int $locationId,
@@ -92,7 +92,7 @@ final class GeneralAffair
 
         return new self(
             id: $id,
-            name: $name,
+            /* name: $name, */
             productId: $productId,
             categoryId: $categoryId,
             locationId: $locationId,
@@ -108,7 +108,7 @@ final class GeneralAffair
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
+            /* 'name' => $this->name, */
             'product_id' => $this->productId,
             'category_id' => $this->categoryId,
             'location_id' => $this->locationId,

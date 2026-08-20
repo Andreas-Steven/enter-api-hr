@@ -23,10 +23,10 @@ interface GeneralAffairRepositoryInterface
 
     public function findById(int $id, ?int $status = null): ?GeneralAffair;
 
-    public function findByName(string $name, ?int $status = null): ?GeneralAffair;
+    /* public function findByName(string $name, ?int $status = null): ?GeneralAffair;
 
-    public function existsByName(string $name, ?int $status = null): bool;
-    
+    public function existsByName(string $name, ?int $status = null): bool; */
+
     public function list(SearchCriteria $criteria): PaginatedResult;
     
     public function insert(GeneralAffair $generalAffair): GeneralAffair;

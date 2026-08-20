@@ -25,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class GeneralAffairCreateAction 
 {
-    private const ALLOWED_KEYS = ['name', 'product_id', 'category_id', 'location_id', 'asset', 'status', 'sync_mdb'];
+    private const ALLOWED_KEYS = ['product_id', 'category_id', 'location_id', 'asset', 'status', 'sync_mdb'];
 
     public function __construct(
         private GeneralAffairInputValidator $inputValidator,
@@ -51,7 +51,7 @@ final class GeneralAffairCreateAction
         );
 
         $command = CreateGeneralAffairCommand::create(
-            name: (string) $params->get('name'),
+            /* name: (string) $params->get('name'), */
             productId: (int) $params->get('product_id'),
             categoryId: (int) $params->get('category_id'),
             locationId: (int) $params->get('location_id'),

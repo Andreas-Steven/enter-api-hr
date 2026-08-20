@@ -7,7 +7,7 @@ namespace App\Application\GeneralAffair\Command;
 final readonly class CreateGeneralAffairCommand
 {
     public function __construct(
-        public string $name,
+        /* public string $name, */
         public int $productId,
         public int $categoryId,
         public int $locationId,
@@ -17,7 +17,7 @@ final readonly class CreateGeneralAffairCommand
     ) {}
 
     public static function create(
-        string $name,
+        /* string $name, */
         int $productId,
         int $categoryId,
         int $locationId,
@@ -26,7 +26,7 @@ final readonly class CreateGeneralAffairCommand
         ?array $detailInfo = null,
     ): self {
         return new self(
-            name: $name,
+            /* name: $name, */
             productId: $productId,
             categoryId: $categoryId,
             locationId: $locationId,

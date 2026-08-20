@@ -25,10 +25,10 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class GeneralAffairDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'status'];
+    private const ALLOWED_KEYS = ['id', /* 'name', */ 'status'];
     private const ALLOWED_SORT = [
-        'id' => 'id', 
-        'name' => 'name', 
+        'id' => 'id',
+        /* 'name' => 'name', */
         'status' => 'status',
     ];
 

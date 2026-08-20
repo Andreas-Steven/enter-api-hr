@@ -15,7 +15,7 @@ final class MdbGeneralAffairSchema
     public static function toArray(GeneralAffair $entity): array
     {
         return [
-            'name' => $entity->getName(),
+            /* 'name' => $entity->getName(), */
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             'lock_version' => $entity->getLockVersion()->value(),

@@ -155,7 +155,7 @@ final class GeneralAffairApplicationService
                 ->build();
     
             $data = GeneralAffair::create(
-                name: $command->name,
+                /* name: $command->name, */
                 productId: $command->productId,
                 categoryId: $command->categoryId,
                 locationId: $command->locationId,
@@ -201,11 +201,11 @@ final class GeneralAffairApplicationService
             newStatus: $newStatus
         );
 
-        if ($command->name !== null) {
+        /* if ($command->name !== null) {
             $data->updateName(
                 newName: $command->name
             );
-        }
+        } */
 
         if ($command->productId !== null) {
             $data->updateProductId(

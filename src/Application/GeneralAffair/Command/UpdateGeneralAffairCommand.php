@@ -8,7 +8,7 @@ final readonly class UpdateGeneralAffairCommand
 {
     public function __construct(
         public int $id,
-        public ?string $name,
+        /* public ?string $name, */
         public ?int $productId,
         public ?int $categoryId,
         public ?int $locationId,
@@ -20,7 +20,7 @@ final readonly class UpdateGeneralAffairCommand
 
     public static function create(
         int $id,
-        ?string $name = null,
+        /* ?string $name = null, */
         ?int $productId = null,
         ?int $categoryId = null,
         ?int $locationId = null,
@@ -31,7 +31,7 @@ final readonly class UpdateGeneralAffairCommand
     ): self {
         return new self(
             id: $id,
-            name: $name,
+            /* name: $name, */
             productId: $productId,
             categoryId: $categoryId,
             locationId: $locationId,

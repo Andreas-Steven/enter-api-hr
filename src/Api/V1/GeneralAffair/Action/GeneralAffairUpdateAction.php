@@ -29,7 +29,7 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class GeneralAffairUpdateAction
 {
-    private const ALLOWED_KEYS = ['name', 'product_id', 'category_id', 'location_id', 'status', 'lock_version'];
+    private const ALLOWED_KEYS = ['product_id', 'category_id', 'location_id', 'status', 'lock_version'];
 
     public function __construct(
         private GeneralAffairInputValidator $inputValidator,
@@ -78,7 +78,7 @@ final class GeneralAffairUpdateAction
 
         $command = UpdateGeneralAffairCommand::create(
             id: (int) $id,
-            name: $params->get('name'),
+            /* name: $params->get('name'), */
             productId: $params->get('product_id'),
             categoryId: $params->get('category_id'),
             locationId: $params->get('location_id'),
