@@ -265,6 +265,7 @@ final class AttendanceSummary
             'overtime_day_count' => $overtime->getDays(),
             'overtime_minute_count' => $overtime->getMinutes(),
             'leave_quota_used_count' => $leave->getQuotaUsed(),
+            'leave_remaining_amount' => $leave->getRemainingAmount(),
             'deduction_day_count' => $deduction->getDays(),
             'pending_review_count' => $compliance->getPendingReview(),
             'rule_breakdown' => $this->summary->getRules(),

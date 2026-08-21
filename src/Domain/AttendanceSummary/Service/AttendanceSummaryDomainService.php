@@ -27,8 +27,10 @@ use App\Domain\AttendanceSummary\ValueObject\Policy;
 use App\Domain\AttendanceSummary\ValueObject\Summary;
 use App\Domain\AttendanceSummary\ValueObject\WorkSchedule;
 use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
+use App\Domain\EmployeeLeave\Repository\EmployeeLeaveRepositoryInterface;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
 use App\Domain\Shared\Enums\ApprovalStatus;
+use App\Domain\Shared\Enums\LeaveType;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 // Shared Layer
 use App\Shared\Dto\SearchCriteria;
@@ -52,6 +54,7 @@ final class AttendanceSummaryDomainService
         private EmployeeRepositoryInterface $employeeRepository,
         private AttendancePermissionRepositoryInterface $permissionRepository,
         private AttendanceCalendarRepositoryInterface $calendarRepository,
+        private EmployeeLeaveRepositoryInterface $employeeLeaveRepository,
     ) {}
 
     /**
@@ -136,6 +139,15 @@ final class AttendanceSummaryDomainService
                     $permissionDateMap,
                 );
                 $permissions = PermissionCollection::fromArray($permissionItems);
+
+                // Resolve the remaining ANNUAL leave quota snapshot for this
+                // employee/period so the summary can surface `remaining_amount`
+                // alongside `quota_used`. Null when no matching quota exists.
+                $leaveRemainingAmount = $this->resolveLeaveRemainingAmount(
+                    employeeId: $employeeId,
+                    period: $command->period,
+                );
+
                 $summary = Summary::compute(
                     workSchedule: $workSchedule,
                     dailyItems: $dailyItems,
@@ -143,6 +155,7 @@ final class AttendanceSummaryDomainService
                     permissionDateMap: $permissionDateMap,
                     holidayDates: $holidayDates,
                     policy: $policy,
+                    leaveRemainingAmount: $leaveRemainingAmount,
                 );
 
                 $entity = AttendanceSummary::create(
@@ -291,6 +304,31 @@ final class AttendanceSummaryDomainService
         }
 
         return [$items, $dateMap];
+    }
+
+    /**
+     * Resolves the remaining ANNUAL leave quota for an employee in a period.
+     *
+     * Returns the `remaining_amount` of the first active ANNUAL EmployeeLeave
+     * whose validity range overlaps the period, or null when none exists.
+     */
+    private function resolveLeaveRemainingAmount(int $employeeId, int $period): ?int
+    {
+        $quotas = $this->employeeLeaveRepository->findByEmployeeAndPeriod(
+            employeeId: $employeeId,
+            period: $period,
+        );
+
+        foreach ($quotas as $quota) {
+            if (
+                $quota->getLeaveType() === LeaveType::ANNUAL->value
+                && $quota->getStatus()->isActive()
+            ) {
+                return $quota->getRemainingAmount();
+            }
+        }
+
+        return null;
     }
 
     /**

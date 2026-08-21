@@ -35,6 +35,12 @@ return [
     'attendance_permission.end_time_required' => 'Waktu Selesai Revisi diperlukan untuk jenis izin: {type}',
 
     /**
+     * Employee Leave
+     */
+    'employee_leave.quota_exceeded' => 'Sisa kuota cuti tidak cukup. Sisa: {remaining}, diminta: {requested} (permission_id: {permission_id}).',
+    'employee_leave.invalid_total_day' => 'total_day harus bilangan bulat positif. Diberikan: {total_day}.',
+
+    /**
      * Employee Debt
      */
     'employee_debt.invalid_approval_transition' => 'Transisi persetujuan tidak valid dari {from} ke {to}',

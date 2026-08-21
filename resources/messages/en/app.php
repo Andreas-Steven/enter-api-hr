@@ -35,6 +35,12 @@ return [
     'attendance_permission.end_time_required' => 'Revision End Time is required for permission type: {type}',
 
     /**
+     * Employee Leave
+     */
+    'employee_leave.quota_exceeded' => 'Insufficient leave quota. Remaining: {remaining}, requested: {requested} (permission_id: {permission_id}).',
+    'employee_leave.invalid_total_day' => 'total_day must be a positive integer. Got: {total_day}.',
+
+    /**
      * Employee Debt
      */
     'employee_debt.invalid_approval_transition' => 'Invalid approval transition from {from} to {to}',

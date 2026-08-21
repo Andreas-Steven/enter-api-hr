@@ -95,6 +95,7 @@ final readonly class Summary
      * @param array<string, int> $permissionDateMap  Map of date (Y-m-d) => PermissionType value for approved permissions.
      * @param array<string, int> $holidayDates  Set of holiday dates (Y-m-d => day_off value).
      * @param Policy|null $policy  Attendance policy (grace periods, min work).
+     * @param int|null $leaveRemainingAmount  Remaining leave quota snapshot from EmployeeLeave (ANNUAL), null when no quota record exists.
      */
     public static function compute(
         WorkSchedule $workSchedule,
@@ -103,6 +104,7 @@ final readonly class Summary
         array $permissionDateMap = [],
         array $holidayDates = [],
         ?Policy $policy = null,
+        ?int $leaveRemainingAmount = null,
     ): self {
         // 1. Determine schedule counts (HEK + Obligation) per rule.
         $hekDays = 0;
@@ -350,7 +352,10 @@ final readonly class Summary
                 items: $overtimeItems,
             ),
             DeductionStatistic::fromValues(days: $deductionDays),
-            LeaveStatistic::fromValues(quotaUsed: $leaveQuotaUsed),
+            LeaveStatistic::fromValues(
+                quotaUsed: $leaveQuotaUsed,
+                remainingAmount: $leaveRemainingAmount,
+            ),
             [],
         );
     }

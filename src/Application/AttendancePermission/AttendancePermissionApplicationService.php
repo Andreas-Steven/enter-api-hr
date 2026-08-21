@@ -19,6 +19,10 @@ use App\Domain\AttendancePermission\Repository\AttendancePermissionRepositoryInt
 use App\Domain\AttendancePermission\Service\AttendancePermissionDomainService;
 use App\Domain\AttendancePermission\ValueObject\Revision;
 use App\Domain\AttendancePermission\ValueObject\AttendancePeriod;
+use App\Domain\EmployeeLeave\Entity\EmployeeLeave;
+use App\Domain\EmployeeLeave\Repository\EmployeeLeaveRepositoryInterface;
+use App\Domain\Shared\Enums\PermissionType;
+use App\Domain\Shared\Enums\LeaveType;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\Enums\ApprovalStatus;
@@ -41,7 +45,8 @@ final class AttendancePermissionApplicationService
         private DetailInfoFactory $detailInfoFactory,
         private AttendancePermissionRepositoryInterface $repository,
         private AttendancePermissionDomainService $domainService,
-        private AttendancePermissionDetailInfoFactory $permissionInfoFactory
+        private AttendancePermissionDetailInfoFactory $permissionInfoFactory,
+        private EmployeeLeaveRepositoryInterface $employeeLeaveRepository,
     ) {
     }
 
@@ -309,7 +314,7 @@ final class AttendancePermissionApplicationService
     public function approve(int $id, ApproveAttendancePermissionCommand $command): AttendancePermissionResponse
     {
         $data = $this->getEntityById(
-            id: $id, 
+            id: $id,
             status: null
         );
 
@@ -345,10 +350,26 @@ final class AttendancePermissionApplicationService
             detailInfo: $detailInfo
         );
 
+        // Sync leave quota BEFORE persisting the permission so the quota
+        // guard (insufficient remaining) can abort the approval without
+        // leaving a half-approved permission behind. The EmployeeLeave
+        // entity is mutated in memory here and persisted after the
+        // permission, so a quota failure rolls back cleanly.
+        $leaveToDebit = $this->syncLeaveRecordOnApprove(
+            permission: $data,
+            note: $command->approvedNote,
+        );
+
+        $updated = $this->repository->update(
+            entity: $data
+        );
+
+        if ($leaveToDebit !== null) {
+            $this->employeeLeaveRepository->update(entity: $leaveToDebit);
+        }
+
         return AttendancePermissionResponse::fromEntity(
-            entity: $this->repository->update(
-                entity: $data
-            )
+            entity: $updated
         );
     }
 
@@ -367,6 +388,19 @@ final class AttendancePermissionApplicationService
             version: $command->lockVersion ?? null
         );
 
+        // Capture previous approval state BEFORE applying rejection. Only
+        // permissions that were previously APPROVED have a leave_record that
+        // needs to be reversed; rejecting a PENDING permission leaves no
+        // leave footprint to undo.
+        $wasApproved = $data->getApproved() === ApprovalStatus::APPROVED->value;
+
+        $leaveToReverse = $wasApproved
+            ? $this->syncLeaveRecordOnReject(
+                permission: $data,
+                note: $command->approvedNote,
+            )
+            : null;
+
         $data->applyApproval(
             newStatus: ApprovalStatus::REJECTED,
             note: $command->approvedNote
@@ -375,7 +409,7 @@ final class AttendancePermissionApplicationService
         $data->applyStatus(
             newStatus: $newStatus
         );
-        
+
         $detailInfo = $this->detailInfoFactory
             ->update(
                 detailInfo: $data->getDetailInfo(),
@@ -386,9 +420,135 @@ final class AttendancePermissionApplicationService
 
         $data->updateDetailInfo(detailInfo: $detailInfo);
 
+        $updated = $this->repository->update(entity: $data);
+
+        if ($leaveToReverse !== null) {
+            $this->employeeLeaveRepository->update(entity: $leaveToReverse);
+        }
+
         return AttendancePermissionResponse::fromEntity(
-            entity: $this->repository->update(entity: $data)
+            entity: $updated
         );
+    }
+
+    /**
+     * Resolves the EmployeeLeave quota record that should be debited for the
+     * given permission, or null when the permission type has no leave quota
+     * mapping or no matching active EmployeeLeave exists.
+     *
+     * Mapping (PermissionType -> LeaveType):
+     *  - ANNUAL_LEAVE -> ANNUAL
+     *
+     * Other permission types (SICK, LEAVE_EARLY, LATE, PERMISSION_LEAVE,
+     * UNPAID_LEAVE) do not consume a tracked quota here and are skipped.
+     * Add new mappings to {@see mapPermissionTypeToLeaveType()} to extend.
+     */
+    private function resolveLeaveForPermission(AttendancePermission $permission): ?EmployeeLeave
+    {
+        $leaveType = $this->mapPermissionTypeToLeaveType($permission->getPermission());
+        if ($leaveType === null) {
+            return null;
+        }
+
+        $quotas = $this->employeeLeaveRepository->findByEmployeeAndPeriod(
+            employeeId: $permission->getEmployeeId(),
+            period: $permission->getPeriod(),
+        );
+
+        foreach ($quotas as $quota) {
+            if ($quota->getLeaveType() === $leaveType->value && $quota->getStatus()->isActive()) {
+                return $quota;
+            }
+        }
+
+        return null;
+    }
+
+    private function mapPermissionTypeToLeaveType(PermissionType $permissionType): ?LeaveType
+    {
+        return match ($permissionType) {
+            PermissionType::ANNUAL_LEAVE => LeaveType::ANNUAL,
+            default => null,
+        };
+    }
+
+    /**
+     * Computes the total day count covered by the permission (inclusive of
+     * start and end dates), mirroring AttendancePermissionDetailInfoFactory.
+     */
+    private function computeTotalDay(AttendancePermission $permission): int
+    {
+        $start = $permission->getStartDate();
+        $end = $permission->getEndDate();
+
+        if ($start === null) {
+            return 1;
+        }
+        if ($end === null) {
+            return 1;
+        }
+
+        $startDt = new \DateTime($start);
+        $endDt = new \DateTime($end);
+        $diff = $startDt->diff($endDt);
+
+        return $diff->days + 1;
+    }
+
+    /**
+     * Appends an "approved" leave_record to the matching EmployeeLeave and
+     * returns the mutated entity for the caller to persist. Returns null
+     * when there is no matching quota to debit.
+     *
+     * The quota guard runs inside EmployeeLeave::addLeaveRecord() and throws
+     * a ConflictException when remaining < total_day, which aborts the
+     * approval flow.
+     */
+    private function syncLeaveRecordOnApprove(AttendancePermission $permission, ?string $note): ?EmployeeLeave
+    {
+        $leave = $this->resolveLeaveForPermission($permission);
+        if ($leave === null) {
+            return null;
+        }
+
+        $leave->addLeaveRecord(
+            permissionId: (int) $permission->getId(),
+            startDate: $permission->getStartDate() ?? '',
+            endDate: $permission->getEndDate(),
+            totalDay: $this->computeTotalDay($permission),
+            status: 'approved',
+            note: $note,
+        );
+
+        return $leave;
+    }
+
+    /**
+     * Appends a "rejected" leave_record to the matching EmployeeLeave to
+     * reverse a previously-approved consumption, and returns the mutated
+     * entity for the caller to persist. Returns null when there is no
+     * matching quota to reverse.
+     *
+     * used_amount is recomputed as sum(approved) - sum(rejected), so the
+     * rejected record restores the quota without erasing the audit trail.
+     */
+    private function syncLeaveRecordOnReject(AttendancePermission $permission, ?string $note): ?EmployeeLeave
+    {
+        $leave = $this->resolveLeaveForPermission($permission);
+        if ($leave === null) {
+            return null;
+        }
+
+        $leave->addLeaveRecord(
+            permissionId: (int) $permission->getId(),
+            startDate: $permission->getStartDate() ?? '',
+            endDate: $permission->getEndDate(),
+            totalDay: $this->computeTotalDay($permission),
+            status: 'rejected',
+            note: $note,
+        );
+
+        return $leave;
     }
 
     public function list(SearchCriteria $criteria): PaginatedResult

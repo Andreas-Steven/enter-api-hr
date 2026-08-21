@@ -7,6 +7,7 @@ namespace App\Domain\EmployeeLeave\Entity;
 // Shared Layer
 use App\Shared\ValueObject\Message;
 use App\Shared\Exception\BadRequestException;
+use App\Shared\Exception\ConflictException;
 
 // Domain Layer
 use App\Domain\Shared\Concerns\Entity\Stateful;
@@ -367,5 +368,99 @@ final class EmployeeLeave
         }
 
         $this->setLeaveRecords($newLeaveRecords);
+    }
+
+    /**
+     * Appends a leave_record linked to an AttendancePermission and
+     * recalculates used_amount from the full record history.
+     *
+     * A record with status "approved" consumes quota; a record with status
+     * "rejected" reverses a previously-approved record (kept as history so
+     * the audit trail stays intact). used_amount is always derived as:
+     *
+     *   sum(total_day where status = approved)
+     *   - sum(total_day where status = rejected)
+     *
+     * Quota guard: when adding an "approved" record, the remaining quota
+     * (initial_amount + adjustment_amount - used_amount) must be >= total_day.
+     * Otherwise a ConflictException is thrown so the caller (approval flow)
+     * can abort before persisting anything.
+     *
+     * @param int         $permissionId  AttendancePermission id that triggered this record
+     * @param string      $startDate     leave start date (Y-m-d)
+     * @param string|null $endDate       leave end date (Y-m-d), null for single day
+     * @param int         $totalDay      number of days consumed (always positive)
+     * @param string      $status        "approved" or "rejected"
+     * @param string|null $note          optional note (e.g. approved_note / reject reason)
+     */
+    public function addLeaveRecord(
+        int $permissionId,
+        string $startDate,
+        ?string $endDate,
+        int $totalDay,
+        string $status,
+        ?string $note = null,
+    ): void {
+        if ($totalDay < 1) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee_leave.invalid_total_day',
+                    params: ['total_day' => $totalDay],
+                    domain: 'app',
+                )
+            );
+        }
+
+        // Quota guard only applies to consuming (approved) records.
+        if ($status === 'approved') {
+            $remaining = $this->getRemainingAmount() ?? 0;
+            if ($remaining < $totalDay) {
+                throw new ConflictException(
+                    translate: Message::create(
+                        key: 'employee_leave.quota_exceeded',
+                        params: [
+                            'remaining' => $remaining,
+                            'requested' => $totalDay,
+                            'permission_id' => $permissionId,
+                        ],
+                        domain: 'app',
+                    )
+                );
+            }
+        }
+
+        $this->leaveRecords[] = [
+            'permission_id' => $permissionId,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'total_day' => $totalDay,
+            'status' => $status,
+            'note' => $note,
+        ];
+
+        $this->recalculateUsedAmount();
+    }
+
+    /**
+     * Recomputes used_amount from the leave_records history.
+     *
+     * used_amount = sum(total_day where status = approved)
+     *             - sum(total_day where status = rejected)
+     */
+    public function recalculateUsedAmount(): void
+    {
+        $used = 0;
+        foreach ($this->leaveRecords as $record) {
+            $recordStatus = $record['status'] ?? null;
+            $recordDay = (int) ($record['total_day'] ?? 0);
+
+            if ($recordStatus === 'approved') {
+                $used += $recordDay;
+            } elseif ($recordStatus === 'rejected') {
+                $used -= $recordDay;
+            }
+        }
+
+        $this->usedAmount = $used;
     }
 }

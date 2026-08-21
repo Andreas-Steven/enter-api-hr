@@ -23,6 +23,7 @@ final class MdbEmployeeLeaveSchema
             'initial_amount' => $entity->getInitialAmount(),
             'adjustment_amount' => $entity->getAdjustmentAmount(),
             'used_amount' => $entity->getUsedAmount(),
+            'remaining_amount' => $entity->getRemainingAmount(),
             'leave_records' => $entity->getLeaveRecords(),
             'adjustment_records' => $entity->getAdjustmentRecords(),
             'status' => $entity->getStatus()->value(),
