@@ -20,8 +20,7 @@ use App\Domain\AttendanceReview\Service\AttendanceReviewDomainService;
 use App\Domain\AttendanceReview\ValueObject\AttendanceSummaryRef;
 use App\Domain\AttendanceReview\ValueObject\EmployeeSnapshot;
 use App\Domain\AttendanceReview\ValueObject\Notes;
-use App\Domain\AttendanceReview\ValueObject\ReviewCounts;
-use App\Domain\AttendanceReview\ValueObject\ReviewItemCollection;
+use App\Domain\AttendanceReview\ValueObject\ReviewItemEvidence;
 use App\Domain\Shared\Enums\ReviewStatus;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
@@ -38,7 +37,7 @@ use App\Shared\ValueObject\Message;
  * Orchestrates use cases and coordinates domain & infrastructure. The create
  * use case is auto-generation: given a period, the domain service scans each
  * AttendanceSummary for review-triggering conditions and builds one
- * AttendanceReview per summary.
+ * AttendanceReview per evidence case (one row per case).
  */
 final class AttendanceReviewApplicationService
 {
@@ -103,7 +102,7 @@ final class AttendanceReviewApplicationService
      * Delegates to the domain service which scans each AttendanceSummary for
      * review-triggering conditions (missing in/out with SEND_TO_REVIEW policy,
      * deficit with MANUAL_REVIEW treatment, excess with REQUIRE_APPROVAL
-     * treatment) and builds one review per summary.
+     * treatment) and builds one review per evidence case.
      */
     public function generateAllFromAttendanceSummary(
         GenerateAttendanceReviewCommand $command,
@@ -119,21 +118,20 @@ final class AttendanceReviewApplicationService
             ->create(
                 detailInfo: $command->detailInfo ?? []
             )
+            ->withEmptyApproval()
             ->build();
 
-        $items = ReviewItemCollection::fromArray($command->items ?? []);
-        $counts = ReviewCounts::fromItemCollection($items);
+        $evidence = ReviewItemEvidence::fromArray($command->evidence ?? []);
         $reviewStatus = $command->reviewStatus !== null
-            ? ReviewStatus::tryFrom($command->reviewStatus) ?? $counts->deriveReviewStatus()
-            : $counts->deriveReviewStatus();
+            ? ReviewStatus::tryFrom($command->reviewStatus) ?? ReviewStatus::OPEN
+            : ReviewStatus::OPEN;
 
         $data = AttendanceReview::create(
             name: $command->name,
             period: $command->period,
             employee: EmployeeSnapshot::fromArray($command->employee ?? []),
             attendanceSummary: AttendanceSummaryRef::fromArray($command->attendanceSummary ?? []),
-            items: $items,
-            counts: $counts,
+            evidence: $evidence,
             reviewStatus: $reviewStatus,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo,
@@ -213,11 +211,13 @@ final class AttendanceReviewApplicationService
     }
 
     /**
-     * Resolves a single review item by applying the reviewer's decision.
+     * Resolves a single review case by applying the reviewer's decision.
      *
-     * The reviewer chooses a treatment from the item's `treatment_options`.
-     * The entity updates the item status to RESOLVED, records the decision,
-     * recomputes counts and derives the new aggregate review status.
+     * The reviewer chooses a treatment from the evidence's `treatment_options`.
+     * The entity records the decision in dedicated database fields, sets
+     * review_status to CLOSE (2) and transitions the resource status to
+     * COMPLETED (3). The detail_info is updated with approved_at / approved_by
+     * via DetailInfoFactory::withApproved().
      */
     public function resolveItem(
         ResolveAttendanceReviewItemCommand $command,
@@ -232,10 +232,8 @@ final class AttendanceReviewApplicationService
             version: $command->lockVersion,
         );
 
-        $data->resolveItem(
-            itemId: $command->itemId,
+        $data->resolve(
             resolvedTreatment: $command->resolvedTreatment,
-            resolvedBy: $command->resolvedBy,
             note: $command->note,
         );
 
@@ -244,6 +242,7 @@ final class AttendanceReviewApplicationService
                 detailInfo: $data->getDetailInfo(),
                 payload: [],
             )
+            ->withApproved()
             ->build();
 
         $data->updateDetailInfo(

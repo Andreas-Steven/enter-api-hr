@@ -17,10 +17,12 @@ use Yiisoft\Db\Migration\RevertibleMigrationInterface;
 /**
  * Creates attendance_review table with status tracking and JSONB columns.
  *
- * Each row is one review per employee per period, generated from the
- * AttendanceSummary. The items array holds the individual review-triggering
- * conditions (missing in/out, deficit, excess) and the counts block holds
- * denormalized per-status counters for fast filtering.
+ * Each row is one review per evidence case (one row per case), generated
+ * from the AttendanceSummary. The evidence column holds the single
+ * review-triggering condition (missing in/out, deficit, excess) and the
+ * decision is recorded in dedicated database columns (resolved_treatment,
+ * resolved_treatment). The review_status is a smallint
+ * (1 = OPEN, 2 = CLOSE).
  */
 final class M20260807065057CreateAttendanceReviewTable implements RevertibleMigrationInterface
 {
@@ -43,12 +45,12 @@ final class M20260807065057CreateAttendanceReviewTable implements RevertibleMigr
             'employee' => $cb::json()->notNull()->defaultValue([]),
             // 2. Reference to the source AttendanceSummary (id + name)
             'attendance_summary' => $cb::json()->notNull()->defaultValue([]),
-            // 3. Review items (per-day or per-rule triggers with evidence + decision)
-            'items' => $cb::json()->notNull()->defaultValue([]),
-            // 4. Denormalized counts (total, pending, approved, rejected, resolved)
-            'counts' => $cb::json()->notNull()->defaultValue([]),
-            // 5. Aggregate review status (OPEN, IN_PROGRESS, COMPLETED)
-            'review_status' => $cb::string(20)->notNull()->defaultValue('OPEN'),
+            // 3. Evidence for this review case (single object, not a list)
+            'evidence' => $cb::json()->notNull()->defaultValue([]),
+            // 4. Aggregate review status (1 = OPEN, 2 = CLOSE)
+            'review_status' => $cb::smallint()->notNull()->defaultValue(1),
+            // 5. Reviewer's decision (populated when the case is resolved)
+            'resolved_treatment' => $cb::string(50)->null(),
 
             'notes' => $cb::text()->null(),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
@@ -60,6 +62,8 @@ final class M20260807065057CreateAttendanceReviewTable implements RevertibleMigr
                     'deleted_by' => null,
                     'updated_at' => null,
                     'updated_by' => null,
+                    'approved_at' => null,
+                    'approved_by' => null,
                 ],
             ]),
             'sync_mdb' => $cb::smallint()->null()->comment('null: sync to MDB, 1: not sync to MDB'),

@@ -14,7 +14,6 @@ use App\Domain\Shared\Concerns\Entity\Identifiable;
 use App\Domain\Shared\Concerns\Entity\Descriptive;
 
 use App\Domain\Shared\Enums\ReviewStatus;
-use App\Domain\Shared\Enums\ReviewItemStatus;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
@@ -23,8 +22,7 @@ use App\Domain\Shared\ValueObject\SyncMdb;
 use App\Domain\AttendanceReview\ValueObject\AttendanceSummaryRef;
 use App\Domain\AttendanceReview\ValueObject\EmployeeSnapshot;
 use App\Domain\AttendanceReview\ValueObject\Notes;
-use App\Domain\AttendanceReview\ValueObject\ReviewCounts;
-use App\Domain\AttendanceReview\ValueObject\ReviewItemCollection;
+use App\Domain\AttendanceReview\ValueObject\ReviewItemEvidence;
 
 final class AttendanceReview
 {
@@ -40,9 +38,9 @@ final class AttendanceReview
         private ?int $period,
         private readonly EmployeeSnapshot $employee,
         private readonly AttendanceSummaryRef $attendanceSummary,
-        private ReviewItemCollection $items,
-        private ReviewCounts $counts,
+        private ReviewItemEvidence $evidence,
         private ReviewStatus $reviewStatus,
+        private ?string $resolvedTreatment,
         private ?string $notes,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
@@ -59,19 +57,18 @@ final class AttendanceReview
     }
 
     /**
-     * Creates a new auto-generated AttendanceReview.
+     * Creates a new auto-generated AttendanceReview for a single evidence case.
      *
-     * The name, employee snapshot, attendance summary reference, items and
-     * counts are produced by the generation flow from the source
-     * AttendanceSummary.
+     * The name, employee snapshot, attendance summary reference and evidence
+     * are produced by the generation flow from the source AttendanceSummary.
+     * Each evidence case becomes its own review record.
      */
     public static function create(
         string $name,
         ?int $period,
         EmployeeSnapshot $employee,
         AttendanceSummaryRef $attendanceSummary,
-        ReviewItemCollection $items,
-        ReviewCounts $counts,
+        ReviewItemEvidence $evidence,
         ReviewStatus $reviewStatus,
         ResourceStatus $status,
         DetailInfo $detailInfo,
@@ -89,9 +86,9 @@ final class AttendanceReview
             period: $period,
             employee: $employee,
             attendanceSummary: $attendanceSummary,
-            items: $items,
-            counts: $counts,
+            evidence: $evidence,
             reviewStatus: $reviewStatus,
+            resolvedTreatment: null,
             notes: $notes?->toString(),
             status: $status,
             detailInfo: $detailInfo,
@@ -111,9 +108,9 @@ final class AttendanceReview
         ?int $period,
         array $employee,
         array $attendanceSummary,
-        array $items,
-        array $counts,
-        string $reviewStatus,
+        array $evidence,
+        int $reviewStatus,
+        ?string $resolvedTreatment,
         ?string $notes,
         ResourceStatus $status,
         DetailInfo $detailInfo,
@@ -126,9 +123,9 @@ final class AttendanceReview
             period: $period,
             employee: EmployeeSnapshot::fromArray($employee),
             attendanceSummary: AttendanceSummaryRef::fromArray($attendanceSummary),
-            items: ReviewItemCollection::fromArray($items),
-            counts: ReviewCounts::fromArray($counts),
+            evidence: ReviewItemEvidence::fromArray($evidence),
             reviewStatus: ReviewStatus::tryFrom($reviewStatus) ?? ReviewStatus::OPEN,
+            resolvedTreatment: $resolvedTreatment,
             notes: $notes,
             status: $status,
             detailInfo: $detailInfo,
@@ -145,9 +142,9 @@ final class AttendanceReview
             'period' => $this->period,
             'employee' => $this->employee->toArray(),
             'attendance_summary' => $this->attendanceSummary->toArray(),
-            'items' => $this->items->toArray(),
-            'counts' => $this->counts->toArray(),
+            'evidence' => $this->evidence->toArray(),
             'review_status' => $this->reviewStatus->value,
+            'resolved_treatment' => $this->resolvedTreatment,
             'notes' => $this->notes,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
@@ -188,19 +185,19 @@ final class AttendanceReview
         return $this->attendanceSummary;
     }
 
-    public function getItems(): ReviewItemCollection
+    public function getEvidence(): ReviewItemEvidence
     {
-        return $this->items;
-    }
-
-    public function getCounts(): ReviewCounts
-    {
-        return $this->counts;
+        return $this->evidence;
     }
 
     public function getReviewStatus(): ReviewStatus
     {
         return $this->reviewStatus;
+    }
+
+    public function getResolvedTreatment(): ?string
+    {
+        return $this->resolvedTreatment;
     }
 
     public function getNotes(): ?string
@@ -226,81 +223,53 @@ final class AttendanceReview
     }
 
     /**
-     * Resolves a single review item by applying the reviewer's decision.
+     * Resolves this review case by applying the reviewer's decision.
      *
-     * Updates the item's status to RESOLVED, records the decision, rebuilds
-     * the items collection, recomputes the counts and derives the new
-     * aggregate review status.
+     * Validates the treatment against the evidence's treatment_options,
+     * records the resolved_treatment, sets the review_status to CLOSE (2)
+     * and transitions the resource status to COMPLETED (3). The reviewer
+     * and timestamp are recorded in detail_info.change_log via
+     * DetailInfoFactory::withApproved() by the application service.
      */
-    public function resolveItem(
-        string $itemId,
+    public function resolve(
         string $resolvedTreatment,
-        ?int $resolvedBy,
         ?string $note,
     ): void {
-        $rawItems = $this->items->toArray();
-        $found = false;
-
-        foreach ($rawItems as $i => $rawItem) {
-            if ($rawItem['item_id'] !== $itemId) {
-                continue;
-            }
-
-            // Validate treatment option.
-            $allowed = $rawItem['treatment_options'];
-            if (!in_array($resolvedTreatment, $allowed, true)) {
-                throw new BadRequestException(
-                    translate: Message::create(
-                        key: 'attendance_review.invalid_treatment',
-                        domain: 'app',
-                        params: [
-                            'item_id' => $itemId,
-                            'treatment' => $resolvedTreatment,
-                            'allowed' => implode(', ', $allowed),
-                        ],
-                    ),
-                );
-            }
-
-            // Only pending items can be resolved.
-            if ($rawItem['status'] !== ReviewItemStatus::PENDING->value) {
-                throw new BadRequestException(
-                    translate: Message::create(
-                        key: 'attendance_review.item_not_pending',
-                        domain: 'app',
-                        params: [
-                            'item_id' => $itemId,
-                            'status' => $rawItem['status'],
-                        ],
-                    ),
-                );
-            }
-
-            $rawItem['status'] = ReviewItemStatus::RESOLVED->value;
-            $rawItem['decision'] = [
-                'resolved_treatment' => $resolvedTreatment,
-                'resolved_by' => $resolvedBy,
-                'resolved_at' => date('c'),
-                'note' => $note,
-            ];
-
-            $rawItems[$i] = $rawItem;
-            $found = true;
-            break;
-        }
-
-        if (!$found) {
+        // Only open reviews can be resolved.
+        if ($this->reviewStatus === ReviewStatus::CLOSE) {
             throw new BadRequestException(
                 translate: Message::create(
-                    key: 'attendance_review.item_not_found',
+                    key: 'attendance_review.already_closed',
                     domain: 'app',
-                    params: ['item_id' => $itemId],
+                    params: [
+                        'id' => $this->id,
+                    ],
                 ),
             );
         }
 
-        $this->items = ReviewItemCollection::fromArray($rawItems);
-        $this->counts = ReviewCounts::fromItemCollection($this->items);
-        $this->reviewStatus = $this->counts->deriveReviewStatus();
+        // Validate treatment option.
+        $allowed = $this->evidence->getTreatmentOptions();
+        if (!in_array($resolvedTreatment, $allowed, true)) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'attendance_review.invalid_treatment',
+                    domain: 'app',
+                    params: [
+                        'treatment' => $resolvedTreatment,
+                        'allowed' => implode(', ', $allowed),
+                    ],
+                ),
+            );
+        }
+
+        $this->resolvedTreatment = $resolvedTreatment;
+
+        if ($note !== null) {
+            $this->notes = $note;
+        }
+
+        $this->reviewStatus = ReviewStatus::CLOSE;
+        $this->status = ResourceStatus::completed();
     }
 }

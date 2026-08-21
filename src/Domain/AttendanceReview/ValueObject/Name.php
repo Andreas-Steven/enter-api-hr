@@ -11,7 +11,11 @@ use App\Shared\ValueObject\Message;
 /**
  * AttendanceReview Name Value Object.
  *
- * Validates the auto-generated review name (e.g. "REVIEW-EK5-202608").
+ * Validates the auto-generated review name. Each evidence case gets its own
+ * review record with a unique name:
+ *   REVIEW-EK{employeeId}-{period}-{evidenceKey}
+ *   e.g. REVIEW-EK4-202608-D2026-08-10-missing_out
+ *        REVIEW-EK4-202608-R1-deficit
  */
 final readonly class Name
 {
@@ -59,13 +63,21 @@ final readonly class Name
     }
 
     /**
-     * Builds the auto-generated name from the employee id and period.
+     * Builds the auto-generated name from the employee id, period and a
+     * per-evidence unique key.
      *
-     * Format: REVIEW-EK{employeeId}-{period}  e.g. REVIEW-EK5-202608
+     * Format: REVIEW-EK{employeeId}-{period}-{evidenceKey}
+     *   e.g. REVIEW-EK4-202608-D2026-08-10-missing_out
+     *        REVIEW-EK4-202608-R1-deficit
      */
-    public static function fromEmployeeAndPeriod(int $employeeId, int $period): self
-    {
-        return self::fromString(sprintf('REVIEW-EK%d-%d', $employeeId, $period));
+    public static function fromEmployeePeriodAndKey(
+        int $employeeId,
+        int $period,
+        string $evidenceKey,
+    ): self {
+        return self::fromString(
+            sprintf('REVIEW-EK%d-%d-%s', $employeeId, $period, $evidenceKey)
+        );
     }
 
     public function toString(): string

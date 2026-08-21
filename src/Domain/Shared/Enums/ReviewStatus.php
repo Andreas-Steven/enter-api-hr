@@ -7,32 +7,33 @@ namespace App\Domain\Shared\Enums;
 /**
  * Aggregate-level status of an AttendanceReview.
  *
- * - OPEN:        review has been generated and contains pending items awaiting
- *                reviewer decisions.
- * - IN_PROGRESS: at least one item has been resolved but others remain pending.
- * - COMPLETED:   every item has been resolved (or the review had no items at
- *                all, meaning no review-triggering conditions were found).
+ * Stored as an integer in the database:
+ * - 1 (OPEN):  review has been generated and is awaiting a reviewer decision.
+ * - 2 (CLOSE): review has been resolved (the evidence case is closed).
  */
-enum ReviewStatus: string
+enum ReviewStatus: int
 {
-    case OPEN = 'OPEN';
-    case IN_PROGRESS = 'IN_PROGRESS';
-    case COMPLETED = 'COMPLETED';
+    case OPEN = 1;
+    case CLOSE = 2;
 
     public function label(): string
     {
         return match ($this) {
             self::OPEN => 'Open',
-            self::IN_PROGRESS => 'In Progress',
-            self::COMPLETED => 'Completed',
+            self::CLOSE => 'Close',
         };
     }
 
     /**
-     * @return list<string>
+     * @return list<int>
      */
     public static function values(): array
     {
         return array_column(self::cases(), 'value');
+    }
+
+    public static function fromInt(int $value): ?self
+    {
+        return self::tryFrom($value);
     }
 }

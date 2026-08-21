@@ -87,23 +87,29 @@ enum ReviewReason: string
 
     /**
      * Returns the treatment options available for a review item with this
-     * reason: all cases of the source enum except the triggering value.
+     * reason, as list of string values.
+     *
+     * Delegates to {@see ReviewTreatment::optionsForReason()} for the
+     * explicit per-reason mapping.
      *
      * @return list<string>
      */
     public function treatmentOptions(): array
     {
-        $enumClass = $this->sourceEnumClass();
-        $trigger = $this->sourceTriggerValue();
+        return array_map(
+            static fn(ReviewTreatment $t): string => $t->value,
+            ReviewTreatment::optionsForReason($this),
+        );
+    }
 
-        $options = [];
-
-        foreach ($enumClass::cases() as $case) {
-            if ($case->value !== $trigger) {
-                $options[] = $case->value;
-            }
-        }
-
-        return $options;
+    /**
+     * Returns the treatment options for this reason as detailed array
+     * (value, label, description) for API responses.
+     *
+     * @return list<array{value: string, label: string, description: string}>
+     */
+    public function detailedTreatmentOptions(): array
+    {
+        return ReviewTreatment::detailedOptionsForReason($this);
     }
 }

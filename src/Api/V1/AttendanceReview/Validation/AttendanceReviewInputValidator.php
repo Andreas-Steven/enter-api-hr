@@ -157,14 +157,6 @@ final class AttendanceReviewInputValidator extends AbstractValidator
                         min: 1,
                     ),
                 ],
-                'item_id' => [
-                    new Required(),
-                    new StringValue(),
-                    new Length(
-                        min: 1,
-                        max: 100,
-                    ),
-                ],
                 'resolved_treatment' => [
                     new Required(),
                     new StringValue(),
@@ -230,7 +222,7 @@ final class AttendanceReviewInputValidator extends AbstractValidator
                     ),
                 ],
                 'review_status' => [
-                    new StringValue(
+                    new Integer(
                         skipOnEmpty: true,
                     ),
                 ],

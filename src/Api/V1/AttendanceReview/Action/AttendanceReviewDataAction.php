@@ -25,11 +25,21 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class AttendanceReviewDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'name', 'status'];
+    private const ALLOWED_KEYS = [
+        'id',
+        'name',
+        'status',
+        'period',
+        'review_status',
+        'employee_id',
+        'employee_name',
+    ];
     private const ALLOWED_SORT = [
-        'id' => 'id', 
-        'name' => 'name', 
+        'id' => 'id',
+        'name' => 'name',
         'status' => 'status',
+        'review_status' => 'review_status',
+        'period' => 'period',
     ];
 
     public function __construct(

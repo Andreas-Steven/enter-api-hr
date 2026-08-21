@@ -25,24 +25,25 @@ use Yiisoft\Http\Status;
 use Yiisoft\Router\CurrentRoute;
 
 /**
- * Resolves a single review item.
+ * Resolves a single AttendanceReview case.
  *
  * Input:
  *   POST /v1/attendance-review/{id}/resolve
  *   {
- *     "item_id": "seq-001",
  *     "resolved_treatment": "TREAT_AS_ABSENT",
  *     "note": "Karyawan tidak hadir, ditandai absen",
  *     "lock_version": 1
  *   }
  *
- * The reviewer chooses a treatment from the item's `treatment_options`. The
- * entity updates the item status to RESOLVED, records the decision, recomputes
- * counts and derives the new aggregate review status.
+ * The reviewer chooses a treatment from the evidence's `treatment_options`.
+ * The entity records the resolved_treatment, sets review_status to
+ * CLOSE (2) and transitions the resource status to COMPLETED (3). The
+ * detail_info is updated with approved_at / approved_by via
+ * DetailInfoFactory::withApproved().
  */
 final class AttendanceReviewResolveAction
 {
-    private const ALLOWED_KEYS = ['item_id', 'resolved_treatment', 'note', 'lock_version'];
+    private const ALLOWED_KEYS = ['resolved_treatment', 'note', 'lock_version'];
 
     public function __construct(
         private AttendanceReviewInputValidator $inputValidator,
@@ -90,7 +91,6 @@ final class AttendanceReviewResolveAction
 
         $command = ResolveAttendanceReviewItemCommand::create(
             reviewId: (int) $id,
-            itemId: (string) $params->get('item_id'),
             resolvedTreatment: (string) $params->get('resolved_treatment'),
             note: $params->get('note'),
             lockVersion: $params->get('lock_version') !== null
@@ -109,7 +109,7 @@ final class AttendanceReviewResolveAction
                 domain: 'app',
                 params: [
                     'resource' => $resource,
-                    'item_id' => $command->itemId,
+                    'id' => $command->reviewId,
                 ]
             ),
         );
