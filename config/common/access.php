@@ -197,7 +197,9 @@ return [
     ],
     'employee-leave.view' => $isKasir,
     'employee-leave.create' => $isKasir,
+    'employee-leave.assign' => $isKasir,
     'employee-leave.update' => $isKasir,
+    'employee-leave.adjust' => $isKasir,
     'employee-leave.delete' => $isKasir,
     'employee-leave.restore' => $isSuperAdmin,
 

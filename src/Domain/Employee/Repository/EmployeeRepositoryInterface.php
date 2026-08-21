@@ -30,6 +30,27 @@ interface EmployeeRepositoryInterface
      */
     public function findAllActive(): array;
 
+    /**
+     * @return array<int, Employee>
+     */
+    public function findByBranchId(int $branchId): array;
+
+    /**
+     * @return array<int, Employee>
+     */
+    public function findByDivisionId(int $divisionId): array;
+
+    /**
+     * @return array<int, Employee>
+     */
+    public function findByEmployeeTypeId(int $employeeTypeId): array;
+
+    /**
+     * @param array<int, int> $ids
+     * @return array<int, Employee>
+     */
+    public function findByIds(array $ids): array;
+
     public function existsByName(string $name, ?int $status = null): bool;
     
     public function list(SearchCriteria $criteria): PaginatedResult;

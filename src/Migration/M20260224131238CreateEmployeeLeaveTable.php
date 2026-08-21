@@ -40,14 +40,13 @@ final class M20260224131238CreateEmployeeLeaveTable implements RevertibleMigrati
             'employee_id' => $cb::integer()->notNull(),
             'period_start_date' => $cb::date()->notNull(),
             'period_end_date' => $cb::date()->notNull(),
-            'total_amount' => $cb::integer()->notNull(),
-            'adjustment_amount' => $cb::integer(),
+            'initial_amount' => $cb::integer()->notNull(),
             'used_amount' => $cb::integer(),
             'leave_records' => $cb::json()->defaultValue([]),
+            'adjustment_records' => $cb::json()->notNull()->defaultValue([]),
             'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
             'detail_info' => $cb::json()->notNull()->defaultValue([
-                'note' => null,
-                'employee' => [],
+                'employee' => null,
                 'change_log' => [
                     'created_at' => null,
                     'created_by' => null,

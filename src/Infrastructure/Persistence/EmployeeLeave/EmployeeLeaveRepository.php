@@ -77,22 +77,7 @@ final class EmployeeLeaveRepository implements EmployeeLeaveRepositoryInterface,
             return null;
         }
 
-        return EmployeeLeave::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            leaveType: $row['leave_type'],
-            employeeId: (int) $row['employee_id'],
-            periodStartDate: $row['period_start_date'],
-            periodEndDate: $row['period_end_date'],
-            totalAmount: (int) $row['total_amount'],
-            adjustmentAmount: $row['adjustment_amount'],
-            usedAmount: $row['used_amount'],
-            leaveRecords: is_string($row['leave_records']) ? json_decode($row['leave_records'], true) : $row['leave_records'],
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        );
+        return $this->reconstituteFromRow($row);
     }
 
     public function findByName(string $name, ?int $status = null): ?EmployeeLeave
@@ -109,22 +94,7 @@ final class EmployeeLeaveRepository implements EmployeeLeaveRepositoryInterface,
             return null;
         }
 
-        return EmployeeLeave::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            leaveType: $row['leave_type'],
-            employeeId: (int) $row['employee_id'],
-            periodStartDate: $row['period_start_date'],
-            periodEndDate: $row['period_end_date'],
-            totalAmount: (int) $row['total_amount'],
-            adjustmentAmount: $row['adjustment_amount'],
-            usedAmount: $row['used_amount'],
-            leaveRecords: is_string($row['leave_records']) ? json_decode($row['leave_records'], true) : $row['leave_records'],
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        );
+        return $this->reconstituteFromRow($row);
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -158,26 +128,46 @@ final class EmployeeLeaveRepository implements EmployeeLeaveRepositoryInterface,
             ->all();
 
         return array_map(
-            fn(array $row): EmployeeLeave => EmployeeLeave::reconstitute(
-                id: (int) $row['id'],
-                name: $row['name'],
-                leaveType: $row['leave_type'],
-                employeeId: (int) $row['employee_id'],
-                periodStartDate: $row['period_start_date'],
-                periodEndDate: $row['period_end_date'],
-                totalAmount: (int) $row['total_amount'],
-                adjustmentAmount: $row['adjustment_amount'] !== null ? (int) $row['adjustment_amount'] : null,
-                usedAmount: $row['used_amount'] !== null ? (int) $row['used_amount'] : null,
-                leaveRecords: is_string($row['leave_records'])
-                    ? (json_decode($row['leave_records'], true) ?? [])
-                    : ($row['leave_records'] ?? []),
-                status: ResourceStatus::from((int) $row['status']),
-                detailInfo: DetailInfo::fromJson($row['detail_info']),
-                syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
-                lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-            ),
+            fn(array $row): EmployeeLeave => $this->reconstituteFromRow($row),
             $rows,
         );
+    }
+
+    public function findByEmployeeTypeAndPeriod(
+        int $employeeId,
+        string $leaveType,
+        string $periodStartDate,
+        string $periodEndDate,
+        ?int $status = null,
+    ): ?EmployeeLeave {
+        $row = (new Query($this->db))
+            ->select([
+                'id',
+                'name',
+                'leave_type',
+                'employee_id',
+                'period_start_date',
+                'period_end_date',
+                'initial_amount',
+                'used_amount',
+                'leave_records',
+                'adjustment_records',
+                'status',
+                'detail_info',
+                SyncMdb::field(),
+                LockVersion::field(),
+            ])
+            ->from(self::TABLE_NAME)
+            ->where(['employee_id' => $employeeId])
+            ->andWhere(['leave_type' => $leaveType])
+            ->andWhere(['period_start_date' => $periodStartDate])
+            ->andWhere(['period_end_date' => $periodEndDate])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->orderBy(['id' => SORT_ASC])
+            ->one();
+
+        return $row === null ? null : $this->reconstituteFromRow($row);
     }
 
     public function list(SearchCriteria $criteria): PaginatedResult
@@ -190,10 +180,10 @@ final class EmployeeLeaveRepository implements EmployeeLeaveRepositoryInterface,
                 'employee_id',
                 'period_start_date',
                 'period_end_date',
-                'total_amount',
-                'adjustment_amount',
+                'initial_amount',
                 'used_amount',
                 'leave_records',
+                'adjustment_records',
                 'status',
                 'detail_info',
                 SyncMdb::field(),
@@ -239,8 +229,8 @@ final class EmployeeLeaveRepository implements EmployeeLeaveRepositoryInterface,
 
         $rows = iterator_to_array(
             $this->streamRows(
-                query: $query, 
-                jsonKeys: ['leave_records']
+                query: $query,
+                jsonKeys: ['leave_records', 'adjustment_records']
             )
         );
 
@@ -280,10 +270,10 @@ final class EmployeeLeaveRepository implements EmployeeLeaveRepositoryInterface,
                 employeeId: $entity->getEmployeeId(),
                 periodStartDate: $entity->getPeriodStartDate(),
                 periodEndDate: $entity->getPeriodEndDate(),
-                totalAmount: $entity->getTotalAmount(),
-                adjustmentAmount: $entity->getAdjustmentAmount(),
+                initialAmount: $entity->getInitialAmount(),
                 usedAmount: $entity->getUsedAmount(),
                 leaveRecords: $entity->getLeaveRecords(),
+                adjustmentRecords: $entity->getAdjustmentRecords(),
                 status: $entity->getStatus(),
                 detailInfo: $entity->getDetailInfo(),
                 syncMdb: $entity->getSyncMdb(),
@@ -372,22 +362,7 @@ final class EmployeeLeaveRepository implements EmployeeLeaveRepositoryInterface,
             return null;
         }
 
-        $entity = EmployeeLeave::reconstitute(
-            id: (int) $row['id'],
-            name: $row['name'],
-            leaveType: $row['leave_type'],
-            employeeId: (int) $row['employee_id'],
-            periodStartDate: $row['period_start_date'],
-            periodEndDate: $row['period_end_date'],
-            totalAmount: (int) $row['total_amount'],
-            adjustmentAmount: $row['adjustment_amount'],
-            usedAmount: $row['used_amount'],
-            leaveRecords: is_string($row['leave_records']) ? json_decode($row['leave_records'], true) : $row['leave_records'],
-            status: ResourceStatus::from((int)$row['status']),
-            detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
-        );
+        $entity = $this->reconstituteFromRow($row);
 
         $entity->restore();
 
@@ -430,14 +405,41 @@ final class EmployeeLeaveRepository implements EmployeeLeaveRepositoryInterface,
             'employee_id' => $entity->getEmployeeId(),
             'period_start_date' => $entity->getPeriodStartDate(),
             'period_end_date' => $entity->getPeriodEndDate(),
-            'total_amount' => $entity->getTotalAmount(),
-            'adjustment_amount' => $entity->getAdjustmentAmount(),
+            'initial_amount' => $entity->getInitialAmount(),
             'used_amount' => $entity->getUsedAmount(),
             'leave_records' => $entity->getLeaveRecords(),
+            'adjustment_records' => $entity->getAdjustmentRecords(),
             'status' => $entity->getStatus()->value(),
             'detail_info' => $entity->getDetailInfo()->toArray(),
             SyncMdb::field() => $entity->getSyncMdbValue(),
             LockVersion::field() => $lockVersion,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function reconstituteFromRow(array $row): EmployeeLeave
+    {
+        return EmployeeLeave::reconstitute(
+            id: (int) $row['id'],
+            name: $row['name'],
+            leaveType: $row['leave_type'],
+            employeeId: (int) $row['employee_id'],
+            periodStartDate: $row['period_start_date'],
+            periodEndDate: $row['period_end_date'],
+            initialAmount: (int) $row['initial_amount'],
+            usedAmount: $row['used_amount'] !== null ? (int) $row['used_amount'] : null,
+            leaveRecords: is_string($row['leave_records'])
+                ? (json_decode($row['leave_records'], true) ?? [])
+                : ($row['leave_records'] ?? []),
+            adjustmentRecords: is_string($row['adjustment_records'] ?? null)
+                ? (json_decode($row['adjustment_records'], true) ?? [])
+                : ($row['adjustment_records'] ?? []),
+            status: ResourceStatus::from((int) $row['status']),
+            detailInfo: DetailInfo::fromJson($row['detail_info']),
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
+        );
     }
 }

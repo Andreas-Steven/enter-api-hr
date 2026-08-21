@@ -1,53 +1,50 @@
 # 1. VALUE OBJECTS (Tetap sama)
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
-    __factory: 
+    __factory:
       'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
   status_active:
-    __factory: 
+    __factory:
       'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
 
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
-    __factory: 
+    __factory:
       'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-    
-  # info_with_nested_category:
-  #   __factory: 
-  #     'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
-  #       - category: 
-  #           id: 1
-  #           name: 'Sony'
-  #         brand: 'Sony'
-  #         specs:
-  #           color: 'Black'
-  #           warranty: '1 Year'
 
 # 2. ENTITIES (Sesuaikan dengan signature method create)
+# create(name, leaveType, employeeId, periodStartDate, periodEndDate,
+#        initialAmount, usedAmount, leaveRecords,
+#        adjustmentRecords, status, detailInfo, syncMdb)
 App\Domain\EmployeeLeave\Entity\EmployeeLeave:
   employee_leave_{1..5}:
-    __factory: 
+    __factory:
       'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
-        # Sesuaikan urutan: name, status, detailInfo, syncMdb
-        - '<company()>'   # $name
-        - 'annual'
-        - '<numberBetween(1, 10)>'
-        - '<date("Y-m-d")>'
-        - '<date("Y-m-d")>'
-        - '<numberBetween(1, 12)>'
-        - '@status_draft' # $status
-        - '@info_empty'   # $detailInfo
-        - null            # $syncMdb
+        - '<company()>'                        # $name
+        - 'annual'                             # $leaveType
+        - '<numberBetween(1, 10)>'             # $employeeId
+        - '<date("Y-m-d")>'                    # $periodStartDate
+        - '<date("Y-m-d")>'                    # $periodEndDate
+        - '<numberBetween(1, 12)>'             # $initialAmount
+        - null                                 # $usedAmount
+        - []                                   # $leaveRecords
+        - []                                   # $adjustmentRecords
+        - '@status_draft'                      # $status
+        - '@info_empty'                        # $detailInfo
+        - null                                 # $syncMdb
 
   employee_leave_{6..10}:
-    __factory: 
+    __factory:
       'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
-        - '<company()> <sentence()>'  # $name
-        - 'annual'
-        - '<numberBetween(1, 10)>'
-        - '<date("Y-m-d")>'
-        - '<date("Y-m-d")>'
-        - '<numberBetween(1, 12)>'
-        - '@status_active'                       # $status
-        - '@info_empty'                          # $detailInfo
-        - null                                   # $syncMdb
+        - '<company()> <sentence()>'           # $name
+        - 'annual'                             # $leaveType
+        - '<numberBetween(1, 10)>'             # $employeeId
+        - '<date("Y-m-d")>'                    # $periodStartDate
+        - '<date("Y-m-d")>'                    # $periodEndDate
+        - '<numberBetween(1, 12)>'             # $initialAmount
+        - null                                 # $usedAmount
+        - []                                   # $leaveRecords
+        - []                                   # $adjustmentRecords
+        - '@status_active'                     # $status
+        - '@info_empty'                        # $detailInfo
+        - null                                 # $syncMdb

@@ -25,15 +25,15 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class EmployeeLeaveDataAction
 {
-    private const ALLOWED_KEYS = ['id', 'leave_type', 'employee_id', 'period_start_date', 'period_end_date', 'total_amount', 'status'];
+    private const ALLOWED_KEYS = ['id', 'leave_type', 'employee_id', 'period_start_date', 'period_end_date', 'initial_amount', 'status'];
     private const ALLOWED_SORT = [
-        'id' => 'id', 
-        'name' => 'name', 
+        'id' => 'id',
+        'name' => 'name',
         'leave_type' => 'leave_type',
         'employee_id' => 'employee_id',
         'period_start_date' => 'period_start_date',
         'period_end_date' => 'period_end_date',
-        'total_amount' => 'total_amount',
+        'initial_amount' => 'initial_amount',
         'status' => 'status',
     ];
 

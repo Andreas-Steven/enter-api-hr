@@ -17,15 +17,14 @@ use App\Shared\Enums\RecordStatus;
 use App\Shared\Request\RawParams;
 use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
-use App\Shared\Security\InputSanitizer;
 
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class EmployeeLeaveCreateAction 
+final class EmployeeLeaveCreateAction
 {
-    private const ALLOWED_KEYS = ['name', 'leave_type', 'employee_id', 'period_start_date', 'period_end_date', 'total_amount', 'adjustment_amount', 'leave_records', 'status', 'sync_mdb'];
+    private const ALLOWED_KEYS = ['name', 'leave_type', 'employee_id', 'period_start_date', 'period_end_date', 'initial_amount', 'leave_records', 'status', 'sync_mdb'];
 
     public function __construct(
         private EmployeeLeaveInputValidator $inputValidator,
@@ -56,8 +55,7 @@ final class EmployeeLeaveCreateAction
             employeeId: (int) $params->get('employee_id'),
             periodStartDate: (string) $params->get('period_start_date'),
             periodEndDate: (string) $params->get('period_end_date'),
-            totalAmount: (int) $params->get('total_amount'),
-            adjustmentAmount: $params->has('adjustment_amount') ? (int) $params->get('adjustment_amount') : null,
+            initialAmount: (int) $params->get('initial_amount'),
             usedAmount: $params->has('used_amount') ? (int) $params->get('used_amount') : null,
             leaveRecords: $params->has('leave_records') ? (array) $params->get('leave_records') : [],
             status: (int) $params->get('status'),

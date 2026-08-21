@@ -11,6 +11,10 @@ use App\Shared\Context\ValidationContext;
 use App\Shared\Validation\Rules\HasNoDependencies;
 use App\Shared\Validation\Rules\UniqueValue;
 
+// Domain Layer
+use App\Domain\Shared\Enums\AdjustmentType;
+use App\Domain\Shared\Enums\AdjustmentReason;
+
 // Vendor Layer
 use Yiisoft\Validator\Rule\Required;
 use Yiisoft\Validator\Rule\Integer;
@@ -98,14 +102,9 @@ final class EmployeeLeaveInputValidator extends AbstractValidator
                         new Required(),
                         new StringValue(),
                         new Length(
-                            min: 3, 
+                            min: 3,
                             max: 255,
                         ),
-                        // new UniqueValue(
-                        //     table: 'employee_leave', 
-                        //     column: 'name', 
-                        //     ignoreId: null
-                        // )
                     ])
                 ],
                 'leave_type' => [
@@ -136,7 +135,7 @@ final class EmployeeLeaveInputValidator extends AbstractValidator
                         new StringValue(),
                     ])
                 ],
-                'total_amount' => [
+                'initial_amount' => [
                     new Required(),
                     new Integer(
                         min: 0,
@@ -147,6 +146,67 @@ final class EmployeeLeaveInputValidator extends AbstractValidator
                     new Integer(),
                     new In(
                         RecordStatus::draftOnlyStates(),
+                    ),
+                ],
+            ],
+            ValidationContext::ASSIGN => [
+                'name' => [
+                    new StopOnError([
+                        new Required(),
+                        new StringValue(),
+                        new Length(
+                            min: 3,
+                            max: 255,
+                        ),
+                    ])
+                ],
+                'leave_type' => [
+                    new StopOnError([
+                        new Required(),
+                        new StringValue(),
+                        new Length(
+                            min: 1,
+                            max: 100,
+                        ),
+                    ])
+                ],
+                'period_start_date' => [
+                    new StopOnError([
+                        new Required(),
+                        new StringValue(),
+                    ])
+                ],
+                'period_end_date' => [
+                    new StopOnError([
+                        new Required(),
+                        new StringValue(),
+                    ])
+                ],
+                'initial_amount' => [
+                    new Required(),
+                    new Integer(
+                        min: 0,
+                    ),
+                ],
+                'status' => [
+                    new Required(),
+                    new Integer(),
+                    new In(
+                        RecordStatus::searchableStates(),
+                    ),
+                ],
+                'scope' => [
+                    new Required(),
+                    new \Yiisoft\Validator\Rule\Nested(
+                        rules: [
+                            'branch_id' => new Integer(min: 1, skipOnEmpty: true),
+                            'division_id' => new Integer(min: 1, skipOnEmpty: true),
+                            'employee_type_id' => new Integer(min: 1, skipOnEmpty: true),
+                            'employee_ids' => new \Yiisoft\Validator\Rule\Each(
+                                rules: [new Integer(min: 1)],
+                                skipOnEmpty: true,
+                            ),
+                        ],
                     ),
                 ],
             ],
@@ -206,7 +266,7 @@ final class EmployeeLeaveInputValidator extends AbstractValidator
                         ),
                     ])
                 ],
-                'total_amount' => [
+                'initial_amount' => [
                     new Integer(
                         min: 0,
                         skipOnEmpty: true,
@@ -232,9 +292,55 @@ final class EmployeeLeaveInputValidator extends AbstractValidator
             ],
             ValidationContext::DELETE => [
                 'id' => [
-                    new Required(), 
+                    new Required(),
                     new Integer(
                         min: 1,
+                    ),
+                ],
+            ],
+            ValidationContext::ADJUST => [
+                'id' => [
+                    new Required(),
+                    new Integer(
+                        min: 1,
+                    ),
+                ],
+                'adjustment_amount' => [
+                    new Required(),
+                    new Integer(
+                        min: 1,
+                    ),
+                ],
+                'adjustment_type' => [
+                    new Required(),
+                    new StringValue(),
+                    new In(
+                        AdjustmentType::values(),
+                    ),
+                ],
+                'adjustment_leave_type' => [
+                    new Required(),
+                    new StringValue(),
+                    new In(
+                        AdjustmentReason::values(),
+                    ),
+                ],
+                'adjustment_note' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                    new Length(
+                        max: 500,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'lock_version' => [
+                    new Required(
+                        when: fn() => $this->shouldValidateOptimisticLock()
+                    ),
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
                     ),
                 ],
             ],
@@ -280,7 +386,7 @@ final class EmployeeLeaveInputValidator extends AbstractValidator
                         skipOnEmpty: true,
                     ),
                 ],
-                'total_amount' => [
+                'initial_amount' => [
                     new Integer(
                         min: 0,
                         skipOnEmpty: true,

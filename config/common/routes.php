@@ -517,10 +517,18 @@ return [
                 ->action(EmployeeLeaveV1\EmployeeLeaveCreateAction::class)
                 ->name('v1/employee-leave/create')
                 ->defaults(['permission' => 'employee-leave.create']),
+            Route::post('/employee-leave/assign')
+                ->action(EmployeeLeaveV1\EmployeeLeaveAssignAction::class)
+                ->name('v1/employee-leave/assign')
+                ->defaults(['permission' => 'employee-leave.assign']),
             Route::put('/employee-leave/{id:\d+}')
                 ->action(EmployeeLeaveV1\EmployeeLeaveUpdateAction::class)
                 ->name('v1/employee-leave/update')
                 ->defaults(['permission' => 'employee-leave.update']),
+            Route::put('/employee-leave/{id:\d+}/adjustment')
+                ->action(EmployeeLeaveV1\EmployeeLeaveAdjustAction::class)
+                ->name('v1/employee-leave/adjustment')
+                ->defaults(['permission' => 'employee-leave.adjust']),
             Route::delete('/employee-leave/{id:\d+}')
                 ->action(EmployeeLeaveV1\EmployeeLeaveDeleteAction::class)
                 ->name('v1/employee-leave/delete')

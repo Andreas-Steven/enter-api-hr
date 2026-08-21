@@ -221,6 +221,79 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
     }
 
     /**
+     * @return array<int, Employee>
+     */
+    public function findByBranchId(int $branchId): array
+    {
+        return $this->findActiveByCondition(['branch_id' => $branchId]);
+    }
+
+    /**
+     * @return array<int, Employee>
+     */
+    public function findByDivisionId(int $divisionId): array
+    {
+        return $this->findActiveByCondition(['division_id' => $divisionId]);
+    }
+
+    /**
+     * @return array<int, Employee>
+     */
+    public function findByEmployeeTypeId(int $employeeTypeId): array
+    {
+        return $this->findActiveByCondition(['employee_type_id' => $employeeTypeId]);
+    }
+
+    /**
+     * @param array<int, int> $ids
+     * @return array<int, Employee>
+     */
+    public function findByIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['in', 'id', $ids])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere(['status' => ResourceStatus::active()->value()])
+            ->all();
+
+        $employees = [];
+        foreach ($rows as $row) {
+            $employee = $this->reconstituteFromRow($row);
+            $employees[$employee->getId()] = $employee;
+        }
+
+        return $employees;
+    }
+
+    /**
+     * @param array<string, mixed> $condition
+     * @return array<int, Employee>
+     */
+    private function findActiveByCondition(array $condition): array
+    {
+        /** @var array<int, array<string, mixed>> $rows */
+        $rows = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where($condition)
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere(['status' => ResourceStatus::active()->value()])
+            ->all();
+
+        $employees = [];
+        foreach ($rows as $row) {
+            $employee = $this->reconstituteFromRow($row);
+            $employees[$employee->getId()] = $employee;
+        }
+
+        return $employees;
+    }
+
+    /**
      * @param array<string, mixed> $row
      */
     private function reconstituteFromRow(array $row): Employee

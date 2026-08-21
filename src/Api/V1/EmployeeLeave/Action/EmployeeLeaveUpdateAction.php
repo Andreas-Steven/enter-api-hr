@@ -29,7 +29,7 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class EmployeeLeaveUpdateAction
 {
-    private const ALLOWED_KEYS = ['name', 'leave_type', 'employee_id', 'period_start_date', 'period_end_date', 'total_amount', 'adjustment_amount', 'used_amount', 'leave_records', 'status', 'lock_version'];
+    private const ALLOWED_KEYS = ['name', 'leave_type', 'employee_id', 'period_start_date', 'period_end_date', 'initial_amount', 'used_amount', 'leave_records', 'status', 'lock_version'];
 
     public function __construct(
         private EmployeeLeaveInputValidator $inputValidator,
@@ -83,8 +83,7 @@ final class EmployeeLeaveUpdateAction
             employeeId: $params->has('employee_id') ? (int) $params->get('employee_id') : null,
             periodStartDate: $params->get('period_start_date'),
             periodEndDate: $params->get('period_end_date'),
-            totalAmount: $params->has('total_amount') ? (int) $params->get('total_amount') : null,
-            adjustmentAmount: $params->has('adjustment_amount') ? (int) $params->get('adjustment_amount') : null,
+            initialAmount: $params->has('initial_amount') ? (int) $params->get('initial_amount') : null,
             usedAmount: $params->has('used_amount') ? (int) $params->get('used_amount') : null,
             leaveRecords: $params->has('leave_records') ? (array) $params->get('leave_records') : null,
             status: $params->has('status') ? (int) $params->get('status') : null,

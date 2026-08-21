@@ -50,17 +50,20 @@ final class SeedEmployeeLeaveData extends AbstractSeederData
     {
         // Create new entity with proper DetailInfo
         $newEntity = EmployeeLeave::create(
-            $entity->getName(),
-            $entity->getLeaveType(),
-            $entity->getEmployeeId(),
-            $entity->getPeriodStartDate(),
-            $entity->getPeriodEndDate(),
-            $entity->getTotalAmount(),
-            $entity->getStatus(),
-            $detailInfo
+            name: $entity->getName(),
+            leaveType: $entity->getLeaveType(),
+            employeeId: $entity->getEmployeeId(),
+            periodStartDate: $entity->getPeriodStartDate(),
+            periodEndDate: $entity->getPeriodEndDate(),
+            initialAmount: $entity->getInitialAmount(),
+            usedAmount: $entity->getUsedAmount(),
+            leaveRecords: $entity->getLeaveRecords(),
+            adjustmentRecords: [],
+            status: $entity->getStatus(),
+            detailInfo: $detailInfo,
         );
-        
+
         // Use repository to insert
-        $this->repository->insert($newEntity);   
+        $this->repository->insert($newEntity);
     }
 }

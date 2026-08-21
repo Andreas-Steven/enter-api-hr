@@ -5,17 +5,26 @@ declare(strict_types=1);
 namespace App\Application\EmployeeLeave;
 
 // Application Layer
+use App\Application\EmployeeLeave\Command\AdjustEmployeeLeaveCommand;
+use App\Application\EmployeeLeave\Command\AssignEmployeeLeaveCommand;
 use App\Application\EmployeeLeave\Command\CreateEmployeeLeaveCommand;
 use App\Application\EmployeeLeave\Command\UpdateEmployeeLeaveCommand;
 use App\Application\EmployeeLeave\Dto\EmployeeLeaveResponse;
+use App\Application\EmployeeLeave\Dto\EmployeeLeaveResult;
 use App\Application\Shared\Factory\DetailInfoFactory;
 
 // Domain Layer
 use App\Domain\EmployeeLeave\Entity\EmployeeLeave;
 use App\Domain\EmployeeLeave\Repository\EmployeeLeaveRepositoryInterface;
 use App\Domain\EmployeeLeave\Service\EmployeeLeaveDomainService;
+use App\Domain\Shared\Contract\DateTimeProviderInterface;
+use App\Domain\Shared\Enums\AdjustmentType;
+use App\Domain\Shared\Enums\AdjustmentReason;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
+
+// Infrastructure Layer
+use App\Infrastructure\Security\CurrentUser;
 
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
@@ -25,8 +34,11 @@ use App\Shared\ValueObject\Message;
 
 /**
  * EmployeeLeave Application Service (Mandor/Alur Kerja)
- * 
- * Orchestrates use cases and coordinates domain & infrastructure
+ *
+ * Orchestrates use cases and coordinates domain & infrastructure. The create
+ * use case supports both a single-employee leave quota and a grand-assign
+ * that creates quotas for many employees at once (by branch, division,
+ * employee type, or explicit employee IDs).
  */
 final class EmployeeLeaveApplicationService
 {
@@ -34,7 +46,10 @@ final class EmployeeLeaveApplicationService
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private EmployeeLeaveRepositoryInterface $repository,
-        private EmployeeLeaveDomainService $domainService
+        private EmployeeLeaveDomainService $domainService,
+        private EmployeeLeaveDetailInfoFactory $leaveInfoFactory,
+        private DateTimeProviderInterface $dateTime,
+        private CurrentUser $currentUser,
     ) {
     }
 
@@ -53,7 +68,7 @@ final class EmployeeLeaveApplicationService
         if ($data === null) {
             throw new NotFoundException(
                 translate: Message::create(
-                    key: 'resource.not_found', 
+                    key: 'resource.not_found',
                     params: [
                         'resource' => $this->getResource(),
                         'field' => 'id',
@@ -62,10 +77,10 @@ final class EmployeeLeaveApplicationService
                 )
             );
         }
-        
+
         return $data;
     }
-    
+
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         return $this->repository->list(
@@ -79,17 +94,28 @@ final class EmployeeLeaveApplicationService
             id: $id,
             status: null
         );
-        
+
         return EmployeeLeaveResponse::fromEntity(
             entity: $data
         );
     }
 
+    /**
+     * Creates a single EmployeeLeave for one employee.
+     *
+     * The employee snapshot (id, name, type, position, division, branch) is
+     * stored inside detail_info.employee so the leave record stays readable
+     * even if the employee master data changes afterwards.
+     */
     public function create(CreateEmployeeLeaveCommand $command): EmployeeLeaveResponse
     {
+        $leaveInfo = $this->leaveInfoFactory->buildFromPrimitives(
+            employeeId: $command->employeeId,
+        );
+
         $detailInfo = $this->detailInfoFactory
             ->create(
-                detailInfo: []
+                detailInfo: $leaveInfo->toArray()
             )
             ->build();
 
@@ -99,12 +125,12 @@ final class EmployeeLeaveApplicationService
             employeeId: $command->employeeId,
             periodStartDate: $command->periodStartDate,
             periodEndDate: $command->periodEndDate,
-            totalAmount: $command->totalAmount,
-            adjustmentAmount: $command->adjustmentAmount,
+            initialAmount: $command->initialAmount,
             usedAmount: $command->usedAmount,
             leaveRecords: $command->leaveRecords,
+            adjustmentRecords: [],
             status: ResourceStatus::from($command->status),
-            detailInfo: $detailInfo
+            detailInfo: $detailInfo,
         );
 
         return EmployeeLeaveResponse::fromEntity(
@@ -112,6 +138,19 @@ final class EmployeeLeaveApplicationService
                 entity: $data
             )
         );
+    }
+
+    /**
+     * Grand-assign: creates one EmployeeLeave per active employee matching the
+     * command's scope (branch_id, division_id, employee_type_id, or an
+     * explicit list of employee_ids).
+     *
+     * Delegates to the domain service and returns an EmployeeLeaveResult
+     * summary (created / skipped / errors / items).
+     */
+    public function assign(AssignEmployeeLeaveCommand $command): EmployeeLeaveResult
+    {
+        return $this->domainService->assignToEmployees($command);
     }
 
     public function update(int $id, UpdateEmployeeLeaveCommand $command): EmployeeLeaveResponse
@@ -174,15 +213,9 @@ final class EmployeeLeaveApplicationService
             );
         }
 
-        if (!empty($command->totalAmount)) {
-            $data->updateTotalAmount(
-                newTotalAmount: $command->totalAmount
-            );
-        }
-
-        if ($command->adjustmentAmount !== null) {
-            $data->updateAdjustmentAmount(
-                newAdjustmentAmount: $command->adjustmentAmount
+        if (!empty($command->initialAmount)) {
+            $data->updateInitialAmount(
+                newInitialAmount: $command->initialAmount
             );
         }
 
@@ -198,10 +231,66 @@ final class EmployeeLeaveApplicationService
             );
         }
 
+        // Build the detail_info payload. Refresh the employee snapshot
+        // stored inside detail_info.employee using the new employee_id (or
+        // the existing one as fallback) so it stays in sync with the record.
+        $leaveInfo = $this->leaveInfoFactory->buildFromPrimitives(
+            employeeId: $command->employeeId ?? $data->getEmployeeId(),
+        );
+
+        $detailInfoPayload = array_merge(
+            $leaveInfo->toArray(),
+            $command->detailInfo ?? [],
+        );
+
         $detailInfo = $this->detailInfoFactory
             ->update(
                 detailInfo: $data->getDetailInfo(),
-                payload: $command->detailInfo ?? [],
+                payload: $detailInfoPayload,
+            )
+            ->build();
+
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
+
+        return EmployeeLeaveResponse::fromEntity(
+            entity: $this->repository->update(
+                entity: $data
+            )
+        );
+    }
+
+    /**
+     * Appends a single adjustment transaction to an existing EmployeeLeave
+     * record and recalculates adjustment_amount.
+     *
+     * Used by PUT /v1/employee-leave/{id}/adjustment.
+     */
+    public function adjust(AdjustEmployeeLeaveCommand $command): EmployeeLeaveResponse
+    {
+        $data = $this->getEntityById(
+            id: $command->id,
+            status: null
+        );
+
+        $this->repository->verifyLockVersion(
+            entity: $data,
+            version: $command->lockVersion ?? null
+        );
+
+        $data->addAdjustment(
+            amount: $command->amount,
+            type: AdjustmentType::from($command->adjustmentType),
+            reason: AdjustmentReason::from($command->adjustmentLeaveType),
+            note: $command->note,
+        );
+
+        // Update detail_info change_log so the adjustment is auditable.
+        $detailInfo = $this->detailInfoFactory
+            ->update(
+                detailInfo: $data->getDetailInfo(),
+                payload: [],
             )
             ->build();
 
@@ -224,7 +313,7 @@ final class EmployeeLeaveApplicationService
         );
 
         $this->repository->verifyLockVersion(
-            entity: $data, 
+            entity: $data,
             version: $lockVersion,
         );
 
@@ -234,7 +323,7 @@ final class EmployeeLeaveApplicationService
             permission: 'employee-leave.delete',
             resource: $this->getResource(),
         );
-        
+
         $this->domainService->ensureDeletable(
             entity: $data,
             resource: $this->getResource(),
@@ -264,11 +353,11 @@ final class EmployeeLeaveApplicationService
             id: $id,
             status: ResourceStatus::deleted()->value()
         );
-        
+
         if ($data === null) {
             throw new NotFoundException(
                 translate: Message::create(
-                    key: 'resource.not_found', 
+                    key: 'resource.not_found',
                     params: [
                         'resource' => $this->getResource(),
                         'field' => 'id',
@@ -299,7 +388,7 @@ final class EmployeeLeaveApplicationService
         $restoredData = $this->repository->restore(
             id: $data->getId()
         );
-        
+
         return EmployeeLeaveResponse::fromEntity(
             entity: $restoredData
         );

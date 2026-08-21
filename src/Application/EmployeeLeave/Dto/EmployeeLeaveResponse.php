@@ -15,10 +15,12 @@ final readonly class EmployeeLeaveResponse
         public int $employee_id,
         public string $period_start_date,
         public string $period_end_date,
-        public int $total_amount,
-        public ?int $adjustment_amount,
+        public int $initial_amount,
+        public int $adjustment_amount,
         public ?int $used_amount,
+        public ?int $remaining_amount,
         public array $leave_records,
+        public array $adjustment_records,
         public int $status,
         public array $detail_info,
         public ?int $sync_mdb,
@@ -27,6 +29,17 @@ final readonly class EmployeeLeaveResponse
 
     public static function fromEntity(EmployeeLeave $entity): self
     {
+        $detailInfo = $entity->getDetailInfo()->toArray();
+
+        $adjustmentRecords = array_map(
+            static fn (array $record): array => array_filter(
+                $record,
+                static fn (string $key): bool => !in_array($key, ['id', 'created_at', 'created_by'], true),
+                ARRAY_FILTER_USE_KEY,
+            ),
+            $entity->getAdjustmentRecords(),
+        );
+
         return new self(
             id: $entity->getId(),
             name: $entity->getName(),
@@ -34,12 +47,14 @@ final readonly class EmployeeLeaveResponse
             employee_id: $entity->getEmployeeId(),
             period_start_date: $entity->getPeriodStartDate(),
             period_end_date: $entity->getPeriodEndDate(),
-            total_amount: $entity->getTotalAmount(),
+            initial_amount: $entity->getInitialAmount(),
             adjustment_amount: $entity->getAdjustmentAmount(),
             used_amount: $entity->getUsedAmount(),
+            remaining_amount: $entity->getRemainingAmount(),
             leave_records: $entity->getLeaveRecords(),
+            adjustment_records: $adjustmentRecords,
             status: $entity->getStatus()->value(),
-            detail_info: $entity->getDetailInfo()->toArray(),
+            detail_info: $detailInfo,
             sync_mdb: $entity->getSyncMdbValue(),
             lock_version: $entity->getLockVersion()->value(),
         );

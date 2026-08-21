@@ -12,6 +12,8 @@ use App\Shared\Exception\BadRequestException;
 use App\Domain\Shared\Concerns\Entity\Stateful;
 use App\Domain\Shared\Concerns\Entity\Identifiable;
 use App\Domain\Shared\Concerns\Entity\Descriptive;
+use App\Domain\Shared\Enums\AdjustmentType;
+use App\Domain\Shared\Enums\AdjustmentReason;
 
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
@@ -33,10 +35,10 @@ final class EmployeeLeave
         private int $employeeId,
         private string $periodStartDate,
         private string $periodEndDate,
-        private int $totalAmount,
-        private ?int $adjustmentAmount,
+        private int $initialAmount,
         private ?int $usedAmount,
         private array $leaveRecords,
+        private array $adjustmentRecords,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
@@ -57,10 +59,10 @@ final class EmployeeLeave
         int $employeeId,
         string $periodStartDate,
         string $periodEndDate,
-        int $totalAmount,
-        ?int $adjustmentAmount,
+        int $initialAmount,
         ?int $usedAmount,
         array $leaveRecords,
+        array $adjustmentRecords,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
@@ -71,19 +73,19 @@ final class EmployeeLeave
         );
 
         return new self(
-            id: null, 
-            name: $name, 
+            id: null,
+            name: $name,
             leaveType: $leaveType,
             employeeId: $employeeId,
             periodStartDate: $periodStartDate,
             periodEndDate: $periodEndDate,
-            totalAmount: $totalAmount,
-            adjustmentAmount: $adjustmentAmount,
+            initialAmount: $initialAmount,
             usedAmount: $usedAmount,
             leaveRecords: $leaveRecords,
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            adjustmentRecords: $adjustmentRecords,
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: LockVersion::create()
         );
     }
@@ -95,10 +97,10 @@ final class EmployeeLeave
         int $employeeId,
         string $periodStartDate,
         string $periodEndDate,
-        int $totalAmount,
-        ?int $adjustmentAmount,
+        int $initialAmount,
         ?int $usedAmount,
         array $leaveRecords,
+        array $adjustmentRecords,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
@@ -106,19 +108,19 @@ final class EmployeeLeave
     ): self {
 
         return new self(
-            id: $id, 
-            name: $name, 
+            id: $id,
+            name: $name,
             leaveType: $leaveType,
             employeeId: $employeeId,
             periodStartDate: $periodStartDate,
             periodEndDate: $periodEndDate,
-            totalAmount: $totalAmount,
-            adjustmentAmount: $adjustmentAmount,
+            initialAmount: $initialAmount,
             usedAmount: $usedAmount,
             leaveRecords: $leaveRecords,
-            status: $status, 
-            detailInfo: $detailInfo, 
-            syncMdb: $syncMdb, 
+            adjustmentRecords: $adjustmentRecords,
+            status: $status,
+            detailInfo: $detailInfo,
+            syncMdb: $syncMdb,
             lockVersion: $lockVersion ?? LockVersion::create()
         );
     }
@@ -132,10 +134,12 @@ final class EmployeeLeave
             'employee_id' => $this->employeeId,
             'period_start_date' => $this->periodStartDate,
             'period_end_date' => $this->periodEndDate,
-            'total_amount' => $this->totalAmount,
-            'adjustment_amount' => $this->adjustmentAmount,
+            'initial_amount' => $this->initialAmount,
+            'adjustment_amount' => $this->getAdjustmentAmount(),
             'used_amount' => $this->usedAmount,
+            'remaining_amount' => $this->getRemainingAmount(),
             'leave_records' => $this->leaveRecords,
+            'adjustment_records' => $this->adjustmentRecords,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
@@ -181,14 +185,40 @@ final class EmployeeLeave
         return $this->periodEndDate;
     }
 
-    public function getTotalAmount(): int
+    public function getInitialAmount(): int
     {
-        return $this->totalAmount;
+        return $this->initialAmount;
     }
 
-    public function getAdjustmentAmount(): ?int
+    /**
+     * Returns the signed sum of all adjustment_records.
+     *
+     * Derived from adjustment_records — not stored separately — so it is
+     * always consistent with the transaction history.
+     */
+    public function getAdjustmentAmount(): int
     {
-        return $this->adjustmentAmount;
+        $total = 0;
+        foreach ($this->adjustmentRecords as $record) {
+            $total += $record['adjustment_type'] === 'minus'
+                ? -$record['amount']
+                : $record['amount'];
+        }
+        return $total;
+    }
+
+    /**
+     * Returns the remaining leave quota available for use.
+     *
+     * Formula: initial_amount + adjustment_amount - used_amount.
+     */
+    public function getRemainingAmount(): ?int
+    {
+        if ($this->usedAmount === null) {
+            return $this->initialAmount + $this->getAdjustmentAmount();
+        }
+
+        return $this->initialAmount + $this->getAdjustmentAmount() - $this->usedAmount;
     }
 
     public function setLeaveType(string $leaveType): void
@@ -247,32 +277,58 @@ final class EmployeeLeave
         $this->periodEndDate = $newPeriodEndDate;
     }
 
-    public function setTotalAmount(int $totalAmount): void
+    public function setInitialAmount(int $initialAmount): void
     {
-        $this->totalAmount = $totalAmount;
+        $this->initialAmount = $initialAmount;
     }
 
-    public function updateTotalAmount(?int $newTotalAmount): void
+    public function updateInitialAmount(?int $newInitialAmount): void
     {
-        if ($newTotalAmount === null) {
+        if ($newInitialAmount === null) {
             return;
         }
 
-        $this->totalAmount = $newTotalAmount;
+        $this->initialAmount = $newInitialAmount;
     }
 
-    public function setAdjustmentAmount(?int $adjustmentAmount): void
+    /**
+     * Returns the full history of adjustment transactions.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function getAdjustmentRecords(): array
     {
-        $this->adjustmentAmount = $adjustmentAmount;
+        return $this->adjustmentRecords;
     }
 
-    public function updateAdjustmentAmount(?int $newAdjustmentAmount): void
+    public function setAdjustmentRecords(array $adjustmentRecords): void
     {
-        if ($newAdjustmentAmount === null) {
-            return;
-        }
+        $this->adjustmentRecords = $adjustmentRecords;
+    }
 
-        $this->adjustmentAmount = $newAdjustmentAmount;
+    /**
+     * Appends a new adjustment transaction to adjustment_records and
+     * recalculates adjustment_amount as the sum of all records.
+     *
+     * @param int $amount           absolute amount (always positive)
+     * @param AdjustmentType $type  direction: PLUS (add) or MINUS (subtract)
+     * @param AdjustmentReason $reason  reason category (REWARD, MANUAL, etc)
+     * @param string|null $note     free-form description (e.g. event name)
+     */
+    public function addAdjustment(
+        int $amount,
+        AdjustmentType $type,
+        AdjustmentReason $reason,
+        ?string $note = null,
+    ): void {
+        $signedAmount = $type === AdjustmentType::MINUS ? -$amount : $amount;
+
+        $this->adjustmentRecords[] = [
+            'amount' => $amount,
+            'adjustment_type' => $type->value,
+            'leave_type' => $reason->value,
+            'note' => $note,
+        ];
     }
     
     public function getUsedAmount(): ?int

@@ -33,6 +33,22 @@ interface EmployeeLeaveRepositoryInterface
      * @return array<int, EmployeeLeave>
      */
     public function findByEmployeeAndPeriod(int $employeeId, int $period, ?int $status = null): array;
+
+    /**
+     * Returns the first non-deleted EmployeeLeave matching the exact
+     * employee + leave type + period range, or null when none exists.
+     *
+     * Used by the grand-assign flow to detect whether an employee already
+     * has a leave quota for the same type and period so the new amount can
+     * be accumulated into adjustment_amount instead of creating a duplicate.
+     */
+    public function findByEmployeeTypeAndPeriod(
+        int $employeeId,
+        string $leaveType,
+        string $periodStartDate,
+        string $periodEndDate,
+        ?int $status = null,
+    ): ?EmployeeLeave;
     
     public function list(SearchCriteria $criteria): PaginatedResult;
     

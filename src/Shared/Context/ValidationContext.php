@@ -37,4 +37,6 @@ final class ValidationContext implements ValidationContextInterface
     public const ATTENDANCE_SHOW = 'attendance_show';
     public const ATTENDANCE_REPORT = 'attendance_report';
     public const ADJUSTMENT = 'adjustment';
+    public const ASSIGN = 'assign';
+    public const ADJUST = 'adjust';
 }
