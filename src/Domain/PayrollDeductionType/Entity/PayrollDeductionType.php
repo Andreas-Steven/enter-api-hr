@@ -107,6 +107,16 @@ final class PayrollDeductionType
             LockVersion::field() => $this->lockVersion->value(),
         ];
     }
+
+    public function toPersistence(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'category' => $this->category,
+            'creates_debt' => $this->createsDebt->value,
+        ];
+    }
     
     public function restore(): void
     {

@@ -8,12 +8,10 @@ use App\Application\AttendancePermission\Dto\AttendancePermissionDetailInfo;
 
 use App\Domain\Shared\Enums\PermissionType;
 use App\Domain\Employee\Repository\EmployeeRepositoryInterface;
-use App\Domain\Attendance\ValueObject\AttendanceRecords;
 use App\Domain\Attendance\Repository\AttendanceRepositoryInterface;
 
 use App\Shared\ValueObject\Message;
 use App\Shared\Exception\BadRequestException;
-use App\Shared\Exception\NotFoundException;
 
 final readonly class AttendancePermissionDetailInfoFactory
 {
@@ -30,7 +28,7 @@ final readonly class AttendancePermissionDetailInfoFactory
     ): AttendancePermissionDetailInfo {
         
         $permission = $this->buildPermissionArray($permissionId);
-        $permissionType = PermissionType::from($permissionId);
+        $permissionType = $permissionId !== null ? PermissionType::tryFrom($permissionId) : null;
         
         // Calculate total_day
         $totalDay = null;
@@ -46,13 +44,7 @@ final readonly class AttendancePermissionDetailInfoFactory
         // 1. Build Employee Info
         $employee = null;
         if ($employeeId !== null) {
-            $employeeEntity = $this->employeeRepository->findById($employeeId);
-            if ($employeeEntity !== null) {
-                $employee = [
-                    'id' => $employeeEntity->getId(),
-                    'name' => $employeeEntity->getName(),
-                ];
-            }
+            $employee = $this->employeeRepository->findById($employeeId);
         }
 
         $attendanceData = null;
@@ -74,7 +66,7 @@ final readonly class AttendancePermissionDetailInfoFactory
         }
 
         return new AttendancePermissionDetailInfo(
-            employee: $employee,
+            employee: $employee?->toPersistence(),
             permission: $permission,
             attendance: $attendanceData,
             totalDay: $totalDay,

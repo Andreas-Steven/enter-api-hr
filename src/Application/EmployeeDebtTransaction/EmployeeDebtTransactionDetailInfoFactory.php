@@ -46,12 +46,12 @@ final readonly class EmployeeDebtTransactionDetailInfoFactory
             );
         }
 
-        $debt = $this->employeeDebtRepository->findById(
+        $employeeDebt = $this->employeeDebtRepository->findById(
             id: $employeeDebtId,
             status: null
         );
 
-        if ($debt === null) {
+        if ($employeeDebt === null) {
             throw new NotFoundException(
                 translate: Message::create(
                     key: 'resource.not_found',
@@ -64,7 +64,7 @@ final readonly class EmployeeDebtTransactionDetailInfoFactory
             );
         }
 
-        $payrollDeduction = null;
+        $deduction = null;
         if ($payrollDeductionId !== null) {
             $deduction = $this->payrollDeductionRepository->findById(
                 id: $payrollDeductionId,
@@ -83,27 +83,12 @@ final readonly class EmployeeDebtTransactionDetailInfoFactory
                     )
                 );
             }
-
-            $payrollDeduction = [
-                'id' => $deduction->getId(),
-                'name' => $deduction->getName(),
-                'period' => $deduction->getPeriod(),
-                'amount' => $deduction->getAmount(),
-            ];
         }
 
         return new EmployeeDebtTransactionDetailInfo(
-            employee: [
-                'id' => $employee->getId(),
-                'name' => $employee->getName(),
-            ],
-            employee_debt: [
-                'id' => $debt->getId(),
-                'name' => $debt->getName(),
-                'amount' => $debt->getAmount(),
-                'remaining_amount' => $debt->getRemainingAmount(),
-            ],
-            payroll_deduction: $payrollDeduction,
+            employee: $employee->toPersistence(),
+            employee_debt: $employeeDebt->toPersistence(),
+            payroll_deduction: $deduction?->toPersistence(),
         );
     }
 

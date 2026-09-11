@@ -156,6 +156,16 @@ final class EmployeeDebt
         ];
     }
 
+    public function toPersistence(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'amount' => $this->amount,
+            'remaining_amount' => $this->remainingAmount,
+        ];
+    }
+
     public function restore(): void
     {
         if (!$this->status->isDeleted()) {

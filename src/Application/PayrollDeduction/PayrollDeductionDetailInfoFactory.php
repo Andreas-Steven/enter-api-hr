@@ -71,12 +71,12 @@ final readonly class PayrollDeductionDetailInfoFactory
 
         $debt = null;
         if ($employeeDebtId !== null) {
-            $debtEntity = $this->employeeDebtRepository->findById(
+            $debt = $this->employeeDebtRepository->findById(
                 id: $employeeDebtId,
                 status: null
             );
 
-            if ($debtEntity === null) {
+            if ($debt === null) {
                 throw new NotFoundException(
                     translate: Message::create(
                         key: 'resource.not_found',
@@ -88,25 +88,12 @@ final readonly class PayrollDeductionDetailInfoFactory
                     )
                 );
             }
-
-            $debt = [
-                'id' => $debtEntity->getId(),
-                'name' => $debtEntity->getName(),
-            ];
         }
 
         return new PayrollDeductionDetailInfo(
-            employee: [
-                'id' => $employee->getId(),
-                'name' => $employee->getName(),
-            ],
-            payroll_deduction_type: [
-                'id' => $deductionType->getId(),
-                'name' => $deductionType->getName(),
-                'category' => $deductionType->getCategory(),
-                'creates_debt' => $deductionType->getCreatesDebt()->value,
-            ],
-            employee_debt: $debt,
+            employee: $employee->toPersistence(),
+            payroll_deduction_type: $deductionType->toPersistence(),
+            employee_debt: $debt?->toPersistence(),
         );
     }
 

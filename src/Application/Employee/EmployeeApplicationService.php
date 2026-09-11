@@ -28,6 +28,11 @@ use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
 
 /**
+ * TODO:
+ * [ ] Make all DetailInfoBuilder to use toPresistance
+ */
+
+/**
  * Employee Application Service (Mandor/Alur Kerja)
  * 
  * Orchestrates use cases and coordinates domain & infrastructure

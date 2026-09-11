@@ -51,12 +51,7 @@ final readonly class PayrollRatePoliciesDetailInfoFactory
         }
 
         return new PayrollRatePoliciesDetailInfo(
-            deductionType: [
-                'id' => $deductionType->getId(),
-                'name' => $deductionType->getName(),
-                'category' => $deductionType->getCategory(),
-                'creates_debt' => $deductionType->getCreatesDebt()->value,
-            ],
+            deductionType: $deductionType->toPersistence(),
         );
     }
 

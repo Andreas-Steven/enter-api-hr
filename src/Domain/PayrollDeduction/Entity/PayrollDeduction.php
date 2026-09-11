@@ -130,6 +130,16 @@ final class PayrollDeduction
         ];
     }
 
+    public function toPersistence(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'period' => $this->period,
+            'amount' => $this->amount,
+        ];
+    }
+
     public function restore(): void
     {
         if (!$this->status->isDeleted()) {

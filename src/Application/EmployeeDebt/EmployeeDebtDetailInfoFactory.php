@@ -57,16 +57,8 @@ final readonly class EmployeeDebtDetailInfoFactory
         }
 
         return new EmployeeDebtDetailInfo(
-            employee: [
-                'id' => $employee->getId(),
-                'name' => $employee->getName(),
-            ],
-            deduction_type: [
-                'id' => $deductionType->getId(),
-                'name' => $deductionType->getName(),
-                'category' => $deductionType->getCategory(),
-                'creates_debt' => $deductionType->getCreatesDebt()->value,
-            ],
+            employee: $employee->toPersistence(),
+            deduction_type: $deductionType->toPersistence(),
         );
     }
 

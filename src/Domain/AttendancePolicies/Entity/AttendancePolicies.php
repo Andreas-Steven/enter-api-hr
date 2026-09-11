@@ -102,6 +102,15 @@ final class AttendancePolicies
             LockVersion::field() => $this->lockVersion->value(),
         ];
     }
+
+    public function toPersistence(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'policy_detail' => $this->getPolicyDetail()->toArray(),
+        ];
+    }
     
     public function restore(): void
     {

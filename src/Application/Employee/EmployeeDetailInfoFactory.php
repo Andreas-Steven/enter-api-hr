@@ -18,13 +18,6 @@ use App\Domain\EmployeePosition\Repository\EmployeePositionRepositoryInterface;
 use App\Domain\Branch\Repository\BranchRepositoryInterface;
 use App\Domain\EmployeeGrade\Repository\EmployeeGradeRepositoryInterface;
 
-// Domain Entity
-use App\Domain\EmployeeType\Entity\EmployeeType;
-use App\Domain\EmployeeDivision\Entity\EmployeeDivision;
-use App\Domain\EmployeePosition\Entity\EmployeePosition;
-use App\Domain\Branch\Entity\Branch;
-use App\Domain\EmployeeGrade\Entity\EmployeeGrade;
-
 final readonly class EmployeeDetailInfoFactory
 {
     public function __construct(
@@ -51,12 +44,12 @@ final readonly class EmployeeDetailInfoFactory
 
         $employeeType = null;
         if ($employeeTypeId !== null) {
-            $employeeTypeData = $this->employeeTypeRepo->findById(
+            $employeeType = $this->employeeTypeRepo->findById(
                 id: $employeeTypeId,
                 status: ResourceStatus::active()->value()
             );
 
-            if ($employeeTypeData === null) {
+            if ($employeeType === null) {
                 throw new NotFoundException(
                     translate: Message::create(
                         key: 'resource.not_found',
@@ -68,25 +61,16 @@ final readonly class EmployeeDetailInfoFactory
                     )
                 );
             }
-
-            $employeeType = EmployeeType::reconstitute(
-                id: $employeeTypeData->getId(),
-                name: $employeeTypeData->getName(),
-                status: $employeeTypeData->getStatus(),
-                detailInfo: $employeeTypeData->getDetailInfo(),
-                syncMdb: $employeeTypeData->getSyncMdb(),
-                lockVersion: $employeeTypeData->getLockVersion()
-            );
         }
 
         $employeePosition = null;
         if ($positionId !== null) {
-            $employeePositionData = $this->employeePositionRepo->findById(
+            $employeePosition = $this->employeePositionRepo->findById(
                 id: $positionId,
                 status: ResourceStatus::active()->value()
             );
 
-            if ($employeePositionData === null) {
+            if ($employeePosition === null) {
                 throw new NotFoundException(
                     translate: Message::create(
                         key: 'resource.not_found',
@@ -98,25 +82,16 @@ final readonly class EmployeeDetailInfoFactory
                     )
                 );
             }
-
-            $employeePosition = EmployeePosition::reconstitute(
-                id: $employeePositionData->getId(),
-                name: $employeePositionData->getName(),
-                status: $employeePositionData->getStatus(),
-                detailInfo: $employeePositionData->getDetailInfo(),
-                syncMdb: $employeePositionData->getSyncMdb(),
-                lockVersion: $employeePositionData->getLockVersion()
-            );
         }
 
         $employeeDivision = null;
         if ($divisionId !== null) {
-            $employeeDivisionData = $this->employeeDivisionRepo->findById(
+            $employeeDivision = $this->employeeDivisionRepo->findById(
                 id: $divisionId,
                 status: ResourceStatus::active()->value()
             );
 
-            if ($employeeDivisionData === null) {
+            if ($employeeDivision === null) {
                 throw new NotFoundException(
                     translate: Message::create(
                         key: 'resource.not_found',
@@ -128,26 +103,16 @@ final readonly class EmployeeDetailInfoFactory
                     )
                 );
             }
-
-            $employeeDivision = EmployeeDivision::reconstitute(
-                id: $employeeDivisionData->getId(),
-                name: $employeeDivisionData->getName(),
-                code: $employeeDivisionData->getCode(),
-                status: $employeeDivisionData->getStatus(),
-                detailInfo: $employeeDivisionData->getDetailInfo(),
-                syncMdb: $employeeDivisionData->getSyncMdb(),
-                lockVersion: $employeeDivisionData->getLockVersion()
-            );
         }
 
         $branch = null;
         if ($branchId !== null) {
-            $branchData = $this->branchRepo->findById(
+            $branch = $this->branchRepo->findById(
                 id: $branchId,
                 status: ResourceStatus::active()->value()
             );
 
-            if ($branchData === null) {
+            if ($branch === null) {
                 throw new NotFoundException(
                     translate: Message::create(
                         key: 'resource.not_found',
@@ -159,56 +124,22 @@ final readonly class EmployeeDetailInfoFactory
                     )
                 );
             }
-
-            $branch = Branch::reconstitute(
-                id: $branchData->getId(),
-                name: $branchData->getName(),
-                code: $branchData->getCode(),
-                address: $branchData->getAddress(),
-                attendancePoliciesId: $branchData->getAttendancePoliciesId(),
-                workPatternId: $branchData->getWorkPatternId(),
-                status: $branchData->getStatus(),
-                branchType: $branchData->getType(),
-                detailInfo: $branchData->getDetailInfo(),
-                syncMdb: $branchData->getSyncMdb(),
-                lockVersion: $branchData->getLockVersion()
-            );
         }
 
         $employeeGrade = null;
         if ($gradeId !== null) {
-            $employeeGradeData = $this->employeeGradeRepo->findById(
+            $employeeGrade = $this->employeeGradeRepo->findById(
                 id: $gradeId,
                 status: ResourceStatus::active()->value()
             );
-
-            if ($employeeGradeData !== null) {
-                $employeeGrade = EmployeeGrade::reconstitute(
-                    id: $employeeGradeData->getId(),
-                    name: $employeeGradeData->getName(),
-                    level: $employeeGradeData->getLevel(),
-                    status: $employeeGradeData->getStatus(),
-                    detailInfo: $employeeGradeData->getDetailInfo(),
-                    syncMdb: $employeeGradeData->getSyncMdb(),
-                    lockVersion: $employeeGradeData->getLockVersion()
-                );
-            }
-        }
-
-        $divisionSnapshot = $employeeDivision?->toPersistence();
-
-        $branchSnapshot = $branch?->toPersistence();
-        if ($branch !== null) {
-            $branchSnapshot['attendance_policies'] = $branch->getDetailInfo()->get('attendance_policies');
-            $branchSnapshot['work_pattern'] = $branch->getDetailInfo()->get('work_pattern');
         }
 
         return new EmployeeDetailInfo(
             sso: $ssoData,
-            division: $divisionSnapshot,
+            branch: $branch?->toPersistence(),
+            division: $employeeDivision?->toPersistence(),
             position: $employeePosition?->toPersistence(),
             employeeType: $employeeType?->toPersistence(),
-            branch: $branchSnapshot,
             grade: $employeeGrade?->toPersistence(),
         );
     }

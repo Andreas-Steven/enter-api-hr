@@ -138,6 +138,8 @@ final class Branch
             'id' => $this->id,
             'name' => $this->name,
             'code' => $this->code,
+            'attendance_policies' => $this->detailInfo->get('attendance_policies'),
+            'work_pattern' => $this->detailInfo->get('work_pattern'),
         ];
     }
 

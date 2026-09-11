@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Application\GeneralAffair;
 
 use App\Application\GeneralAffair\Dto\GeneralAffairDetailInfo;
+use App\Domain\GeneralAffairCategory\Entity\GeneralAffairCategory;
 use App\Domain\GeneralAffairCategory\Repository\GeneralAffairCategoryRepositoryInterface;
+use App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation;
 use App\Domain\GeneralAffairLocation\Repository\GeneralAffairLocationRepositoryInterface;
+use App\Domain\GeneralAffairProduct\Entity\GeneralAffairProduct;
 use App\Domain\GeneralAffairProduct\Repository\GeneralAffairProductRepositoryInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Shared\Exception\NotFoundException;
@@ -27,20 +30,15 @@ final readonly class GeneralAffairDetailInfoFactory
         ?int $productId,
         ?int $categoryId,
         ?int $locationId,
-    ): GeneralAffairDetailInfo 
-    {
-        $product = $this->buildProductArray(productId: $productId);
-        $category = $this->buildCategoryArray(categoryId: $categoryId);
-        $location = $this->buildLocationArray(locationId: $locationId);
-
+    ): GeneralAffairDetailInfo {
         return new GeneralAffairDetailInfo(
-            product: $product,
-            category: $category,
-            location: $location,
+            product: $this->buildProduct(productId: $productId)?->toPersistence(),
+            category: $this->buildCategory(categoryId: $categoryId)?->toPersistence(),
+            location: $this->buildLocation(locationId: $locationId)?->toPersistence(),
         );
     }
 
-    private function buildProductArray(?int $productId): ?array
+    private function buildProduct(?int $productId): ?GeneralAffairProduct
     {
         if ($productId === null) {
             return null;
@@ -64,13 +62,10 @@ final readonly class GeneralAffairDetailInfoFactory
             );
         }
 
-        return [
-            'id' => $product->getId(),
-            'name' => $product->getName(),
-        ];
+        return $product;
     }
 
-    private function buildCategoryArray(?int $categoryId): ?array
+    private function buildCategory(?int $categoryId): ?GeneralAffairCategory
     {
         if ($categoryId === null) {
             return null;
@@ -94,13 +89,10 @@ final readonly class GeneralAffairDetailInfoFactory
             );
         }
 
-        return [
-            'id' => $category->getId(),
-            'name' => $category->getName(),
-        ];
+        return $category;
     }
 
-    private function buildLocationArray(?int $locationId): ?array
+    private function buildLocation(?int $locationId): ?GeneralAffairLocation
     {
         if ($locationId === null) {
             return null;
@@ -124,9 +116,6 @@ final readonly class GeneralAffairDetailInfoFactory
             );
         }
 
-        return [
-            'id' => $location->getId(),
-            'name' => $location->getName(),
-        ];
+        return $location;
     }
 }

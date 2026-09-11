@@ -183,6 +183,14 @@ final class Employee
             LockVersion::field() => $this->lockVersion->value(),
         ];
     }
+
+    public function toPersistence(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+        ];
+    }
     
     public function restore(): void
     {

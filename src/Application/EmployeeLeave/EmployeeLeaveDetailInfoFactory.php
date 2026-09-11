@@ -29,11 +29,11 @@ final readonly class EmployeeLeaveDetailInfoFactory
         $employee = null;
 
         if ($employeeId !== null) {
-            $employeeEntity = $this->employeeRepository->findById($employeeId);
+            $employee = $this->employeeRepository->findById($employeeId);
 
-            $snapshot = $employeeEntity === null
+            $snapshot = $employee === null
                 ? EmployeeSnapshot::empty()
-                : EmployeeSnapshot::fromEmployee($employeeEntity);
+                : EmployeeSnapshot::fromEmployee($employee);
 
             $employee = $snapshot->toArray();
         }
