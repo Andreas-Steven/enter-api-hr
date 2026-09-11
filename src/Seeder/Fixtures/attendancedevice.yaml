@@ -1,43 +1,136 @@
-# 1. VALUE OBJECTS (Tetap sama)
+# 1. VALUE OBJECTS
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 2
   status_active:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
-
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 1
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
-    __factory: 
-      'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-    
-  # info_with_nested_category:
-  #   __factory: 
-  #     'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
-  #       - category: 
-  #           id: 1
-  #           name: 'Sony'
-  #         brand: 'Sony'
-  #         specs:
-  #           color: 'Black'
-  #           warranty: '1 Year'
-
-# 2. ENTITIES (Sesuaikan dengan signature method create)
+    __factory:
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - {  }
 App\Domain\AttendanceDevice\Entity\AttendanceDevice:
-  attendance_device_{1..5}:
-    __factory: 
+  attendance_device_1:
+    __factory:
       'App\Domain\AttendanceDevice\Entity\AttendanceDevice::create':
-        # Sesuaikan urutan: name, status, detailInfo, syncMdb
-        - '<company()>'   # $name
-        - '@status_draft' # $status
-        - '@info_empty'   # $detailInfo
-        - null            # $syncMdb
-
-  attendance_device_{6..10}:
-    __factory: 
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - '<numberBetween(0,1)>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\IpAddress::create(\Faker\Factory::create()->ipv4()))>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\DeviceLocation::fromArray(["lat" => -6.2, "lng" => 106.8]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  attendance_device_2:
+    __factory:
       'App\Domain\AttendanceDevice\Entity\AttendanceDevice::create':
-        - '<company()> <sentence()>'  # $name
-        - '@status_active'                       # $status
-        - '@info_empty'                          # $detailInfo
-        - 123                                    # $syncMdb
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - '<numberBetween(0,1)>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\IpAddress::create(\Faker\Factory::create()->ipv4()))>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\DeviceLocation::fromArray(["lat" => -6.2, "lng" => 106.8]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  attendance_device_3:
+    __factory:
+      'App\Domain\AttendanceDevice\Entity\AttendanceDevice::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - '<numberBetween(0,1)>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\IpAddress::create(\Faker\Factory::create()->ipv4()))>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\DeviceLocation::fromArray(["lat" => -6.2, "lng" => 106.8]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  attendance_device_4:
+    __factory:
+      'App\Domain\AttendanceDevice\Entity\AttendanceDevice::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - '<numberBetween(0,1)>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\IpAddress::create(\Faker\Factory::create()->ipv4()))>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\DeviceLocation::fromArray(["lat" => -6.2, "lng" => 106.8]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  attendance_device_5:
+    __factory:
+      'App\Domain\AttendanceDevice\Entity\AttendanceDevice::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - '<numberBetween(0,1)>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\IpAddress::create(\Faker\Factory::create()->ipv4()))>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\DeviceLocation::fromArray(["lat" => -6.2, "lng" => 106.8]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  attendance_device_6:
+    __factory:
+      'App\Domain\AttendanceDevice\Entity\AttendanceDevice::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - '<numberBetween(0,1)>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\IpAddress::create(\Faker\Factory::create()->ipv4()))>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\DeviceLocation::fromArray(["lat" => -6.2, "lng" => 106.8]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  attendance_device_7:
+    __factory:
+      'App\Domain\AttendanceDevice\Entity\AttendanceDevice::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - '<numberBetween(0,1)>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\IpAddress::create(\Faker\Factory::create()->ipv4()))>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\DeviceLocation::fromArray(["lat" => -6.2, "lng" => 106.8]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  attendance_device_8:
+    __factory:
+      'App\Domain\AttendanceDevice\Entity\AttendanceDevice::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - '<numberBetween(0,1)>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\IpAddress::create(\Faker\Factory::create()->ipv4()))>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\DeviceLocation::fromArray(["lat" => -6.2, "lng" => 106.8]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  attendance_device_9:
+    __factory:
+      'App\Domain\AttendanceDevice\Entity\AttendanceDevice::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - '<numberBetween(0,1)>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\IpAddress::create(\Faker\Factory::create()->ipv4()))>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\DeviceLocation::fromArray(["lat" => -6.2, "lng" => 106.8]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  attendance_device_10:
+    __factory:
+      'App\Domain\AttendanceDevice\Entity\AttendanceDevice::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - '<numberBetween(0,1)>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\IpAddress::create(\Faker\Factory::create()->ipv4()))>'
+        - '<(App\Domain\AttendanceDevice\ValueObject\DeviceLocation::fromArray(["lat" => -6.2, "lng" => 106.8]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null

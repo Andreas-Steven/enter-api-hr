@@ -1,43 +1,146 @@
-# 1. VALUE OBJECTS (Tetap sama)
+# 1. VALUE OBJECTS
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 2
   status_active:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
-
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 1
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
-    __factory: 
-      'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-    
-  # info_with_nested_category:
-  #   __factory: 
-  #     'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
-  #       - category: 
-  #           id: 1
-  #           name: 'Sony'
-  #         brand: 'Sony'
-  #         specs:
-  #           color: 'Black'
-  #           warranty: '1 Year'
-
-# 2. ENTITIES (Sesuaikan dengan signature method create)
+    __factory:
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - {  }
 App\Domain\AttendanceShift\Entity\AttendanceShift:
-  attendance_shift_{1..5}:
-    __factory: 
+  attendance_shift_1:
+    __factory:
       'App\Domain\AttendanceShift\Entity\AttendanceShift::create':
-        # Sesuaikan urutan: name, status, detailInfo, syncMdb
-        - '<company()>'   # $name
-        - '@status_draft' # $status
-        - '@info_empty'   # $detailInfo
-        - null            # $syncMdb
-
-  attendance_shift_{6..10}:
-    __factory: 
+        - '<company()>'
+        - '<(App\Domain\AttendanceShift\ValueObject\StartTime::fromString("08:00:00"))>'
+        - '<(App\Domain\AttendanceShift\ValueObject\EndTime::fromString("17:00:00"))>'
+        - '<numberBetween(0,60)>'
+        - 0
+        - '<(App\Domain\AttendanceShift\ValueObject\DefaultWorkTime::fromInt(480))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  attendance_shift_2:
+    __factory:
       'App\Domain\AttendanceShift\Entity\AttendanceShift::create':
-        - '<company()> <sentence()>'  # $name
-        - '@status_active'                       # $status
-        - '@info_empty'                          # $detailInfo
-        - 123                                    # $syncMdb
+        - '<company()>'
+        - '<(App\Domain\AttendanceShift\ValueObject\StartTime::fromString("08:00:00"))>'
+        - '<(App\Domain\AttendanceShift\ValueObject\EndTime::fromString("17:00:00"))>'
+        - '<numberBetween(0,60)>'
+        - 0
+        - '<(App\Domain\AttendanceShift\ValueObject\DefaultWorkTime::fromInt(480))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  attendance_shift_3:
+    __factory:
+      'App\Domain\AttendanceShift\Entity\AttendanceShift::create':
+        - '<company()>'
+        - '<(App\Domain\AttendanceShift\ValueObject\StartTime::fromString("08:00:00"))>'
+        - '<(App\Domain\AttendanceShift\ValueObject\EndTime::fromString("17:00:00"))>'
+        - '<numberBetween(0,60)>'
+        - 0
+        - '<(App\Domain\AttendanceShift\ValueObject\DefaultWorkTime::fromInt(480))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  attendance_shift_4:
+    __factory:
+      'App\Domain\AttendanceShift\Entity\AttendanceShift::create':
+        - '<company()>'
+        - '<(App\Domain\AttendanceShift\ValueObject\StartTime::fromString("08:00:00"))>'
+        - '<(App\Domain\AttendanceShift\ValueObject\EndTime::fromString("17:00:00"))>'
+        - '<numberBetween(0,60)>'
+        - 0
+        - '<(App\Domain\AttendanceShift\ValueObject\DefaultWorkTime::fromInt(480))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  attendance_shift_5:
+    __factory:
+      'App\Domain\AttendanceShift\Entity\AttendanceShift::create':
+        - '<company()>'
+        - '<(App\Domain\AttendanceShift\ValueObject\StartTime::fromString("08:00:00"))>'
+        - '<(App\Domain\AttendanceShift\ValueObject\EndTime::fromString("17:00:00"))>'
+        - '<numberBetween(0,60)>'
+        - 0
+        - '<(App\Domain\AttendanceShift\ValueObject\DefaultWorkTime::fromInt(480))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  attendance_shift_6:
+    __factory:
+      'App\Domain\AttendanceShift\Entity\AttendanceShift::create':
+        - '<company()>'
+        - '<(App\Domain\AttendanceShift\ValueObject\StartTime::fromString("08:00:00"))>'
+        - '<(App\Domain\AttendanceShift\ValueObject\EndTime::fromString("17:00:00"))>'
+        - '<numberBetween(0,60)>'
+        - 0
+        - '<(App\Domain\AttendanceShift\ValueObject\DefaultWorkTime::fromInt(480))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  attendance_shift_7:
+    __factory:
+      'App\Domain\AttendanceShift\Entity\AttendanceShift::create':
+        - '<company()>'
+        - '<(App\Domain\AttendanceShift\ValueObject\StartTime::fromString("08:00:00"))>'
+        - '<(App\Domain\AttendanceShift\ValueObject\EndTime::fromString("17:00:00"))>'
+        - '<numberBetween(0,60)>'
+        - 0
+        - '<(App\Domain\AttendanceShift\ValueObject\DefaultWorkTime::fromInt(480))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  attendance_shift_8:
+    __factory:
+      'App\Domain\AttendanceShift\Entity\AttendanceShift::create':
+        - '<company()>'
+        - '<(App\Domain\AttendanceShift\ValueObject\StartTime::fromString("08:00:00"))>'
+        - '<(App\Domain\AttendanceShift\ValueObject\EndTime::fromString("17:00:00"))>'
+        - '<numberBetween(0,60)>'
+        - 0
+        - '<(App\Domain\AttendanceShift\ValueObject\DefaultWorkTime::fromInt(480))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  attendance_shift_9:
+    __factory:
+      'App\Domain\AttendanceShift\Entity\AttendanceShift::create':
+        - '<company()>'
+        - '<(App\Domain\AttendanceShift\ValueObject\StartTime::fromString("08:00:00"))>'
+        - '<(App\Domain\AttendanceShift\ValueObject\EndTime::fromString("17:00:00"))>'
+        - '<numberBetween(0,60)>'
+        - 0
+        - '<(App\Domain\AttendanceShift\ValueObject\DefaultWorkTime::fromInt(480))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  attendance_shift_10:
+    __factory:
+      'App\Domain\AttendanceShift\Entity\AttendanceShift::create':
+        - '<company()>'
+        - '<(App\Domain\AttendanceShift\ValueObject\StartTime::fromString("08:00:00"))>'
+        - '<(App\Domain\AttendanceShift\ValueObject\EndTime::fromString("17:00:00"))>'
+        - '<numberBetween(0,60)>'
+        - 0
+        - '<(App\Domain\AttendanceShift\ValueObject\DefaultWorkTime::fromInt(480))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null

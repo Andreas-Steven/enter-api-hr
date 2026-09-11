@@ -1,43 +1,136 @@
-# 1. VALUE OBJECTS (Tetap sama)
+# 1. VALUE OBJECTS
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 2
   status_active:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
-
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 1
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
-    __factory: 
-      'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-    
-  # info_with_nested_category:
-  #   __factory: 
-  #     'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
-  #       - category: 
-  #           id: 1
-  #           name: 'Sony'
-  #         brand: 'Sony'
-  #         specs:
-  #           color: 'Black'
-  #           warranty: '1 Year'
-
-# 2. ENTITIES (Sesuaikan dengan signature method create)
+    __factory:
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - {  }
 App\Domain\Branch\Entity\Branch:
-  branches_{1..5}:
-    __factory: 
+  branch_1:
+    __factory:
       'App\Domain\Branch\Entity\Branch::create':
-        # Sesuaikan urutan: name, status, detailInfo, syncMdb
-        - '<company()>'   # $name
-        - '@status_draft' # $status
-        - '@info_empty'   # $detailInfo
-        - null            # $syncMdb
-
-  branches_{6..10}:
-    __factory: 
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - null
+        - null
+        - '@status_active'
+        - null
+        - '@info_empty'
+        - null
+  branch_2:
+    __factory:
       'App\Domain\Branch\Entity\Branch::create':
-        - '<company()> <sentence()>'  # $name
-        - '@status_active'                       # $status
-        - '@info_empty'                          # $detailInfo
-        - 123                                    # $syncMdb
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - null
+        - null
+        - '@status_active'
+        - null
+        - '@info_empty'
+        - null
+  branch_3:
+    __factory:
+      'App\Domain\Branch\Entity\Branch::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - null
+        - null
+        - '@status_active'
+        - null
+        - '@info_empty'
+        - null
+  branch_4:
+    __factory:
+      'App\Domain\Branch\Entity\Branch::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - null
+        - null
+        - '@status_active'
+        - null
+        - '@info_empty'
+        - null
+  branch_5:
+    __factory:
+      'App\Domain\Branch\Entity\Branch::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - null
+        - null
+        - '@status_active'
+        - null
+        - '@info_empty'
+        - null
+  branch_6:
+    __factory:
+      'App\Domain\Branch\Entity\Branch::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - null
+        - null
+        - '@status_active'
+        - null
+        - '@info_empty'
+        - null
+  branch_7:
+    __factory:
+      'App\Domain\Branch\Entity\Branch::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - null
+        - null
+        - '@status_active'
+        - null
+        - '@info_empty'
+        - null
+  branch_8:
+    __factory:
+      'App\Domain\Branch\Entity\Branch::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - null
+        - null
+        - '@status_active'
+        - null
+        - '@info_empty'
+        - null
+  branch_9:
+    __factory:
+      'App\Domain\Branch\Entity\Branch::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - null
+        - null
+        - '@status_active'
+        - null
+        - '@info_empty'
+        - null
+  branch_10:
+    __factory:
+      'App\Domain\Branch\Entity\Branch::create':
+        - '<company()>'
+        - '<word()>'
+        - '<address()>'
+        - null
+        - null
+        - '@status_active'
+        - null
+        - '@info_empty'
+        - null

@@ -1,0 +1,116 @@
+# 1. VALUE OBJECTS
+App\Domain\Shared\ValueObject\ResourceStatus:
+  status_draft:
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 2
+  status_active:
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 1
+App\Domain\Shared\ValueObject\DetailInfo:
+  info_empty:
+    __factory:
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - {  }
+App\Domain\PayrollRatePolicies\Entity\PayrollRatePolicies:
+  payroll_rate_policies_1:
+    __factory:
+      'App\Domain\PayrollRatePolicies\Entity\PayrollRatePolicies::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\PayrollRateType::from("LATE"))>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(100000,5000000)>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  payroll_rate_policies_2:
+    __factory:
+      'App\Domain\PayrollRatePolicies\Entity\PayrollRatePolicies::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\PayrollRateType::from("LATE"))>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(100000,5000000)>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  payroll_rate_policies_3:
+    __factory:
+      'App\Domain\PayrollRatePolicies\Entity\PayrollRatePolicies::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\PayrollRateType::from("LATE"))>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(100000,5000000)>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  payroll_rate_policies_4:
+    __factory:
+      'App\Domain\PayrollRatePolicies\Entity\PayrollRatePolicies::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\PayrollRateType::from("LATE"))>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(100000,5000000)>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  payroll_rate_policies_5:
+    __factory:
+      'App\Domain\PayrollRatePolicies\Entity\PayrollRatePolicies::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\PayrollRateType::from("LATE"))>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(100000,5000000)>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  payroll_rate_policies_6:
+    __factory:
+      'App\Domain\PayrollRatePolicies\Entity\PayrollRatePolicies::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\PayrollRateType::from("LATE"))>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(100000,5000000)>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  payroll_rate_policies_7:
+    __factory:
+      'App\Domain\PayrollRatePolicies\Entity\PayrollRatePolicies::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\PayrollRateType::from("LATE"))>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(100000,5000000)>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  payroll_rate_policies_8:
+    __factory:
+      'App\Domain\PayrollRatePolicies\Entity\PayrollRatePolicies::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\PayrollRateType::from("LATE"))>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(100000,5000000)>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  payroll_rate_policies_9:
+    __factory:
+      'App\Domain\PayrollRatePolicies\Entity\PayrollRatePolicies::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\PayrollRateType::from("LATE"))>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(100000,5000000)>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  payroll_rate_policies_10:
+    __factory:
+      'App\Domain\PayrollRatePolicies\Entity\PayrollRatePolicies::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\PayrollRateType::from("LATE"))>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(100000,5000000)>'
+        - '@status_active'
+        - '@info_empty'
+        - null

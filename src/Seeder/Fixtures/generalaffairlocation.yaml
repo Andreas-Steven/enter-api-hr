@@ -1,43 +1,86 @@
-# 1. VALUE OBJECTS (Tetap sama)
+# 1. VALUE OBJECTS
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 2
   status_active:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
-
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 1
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
-    __factory: 
-      'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-    
-  # info_with_nested_category:
-  #   __factory: 
-  #     'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
-  #       - category: 
-  #           id: 1
-  #           name: 'Sony'
-  #         brand: 'Sony'
-  #         specs:
-  #           color: 'Black'
-  #           warranty: '1 Year'
-
-# 2. ENTITIES (Sesuaikan dengan signature method create)
+    __factory:
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - {  }
 App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation:
-  general_affair_location_{1..5}:
-    __factory: 
+  general_affair_location_1:
+    __factory:
       'App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation::create':
-        # Sesuaikan urutan: name, status, detailInfo, syncMdb
-        - '<company()>'   # $name
-        - '@status_draft' # $status
-        - '@info_empty'   # $detailInfo
-        - null            # $syncMdb
-
-  general_affair_location_{6..10}:
-    __factory: 
+        - '<company()>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_location_2:
+    __factory:
       'App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation::create':
-        - '<company()> <sentence()>'  # $name
-        - '@status_active'                       # $status
-        - '@info_empty'                          # $detailInfo
-        - 123                                    # $syncMdb
+        - '<company()>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_location_3:
+    __factory:
+      'App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation::create':
+        - '<company()>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_location_4:
+    __factory:
+      'App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation::create':
+        - '<company()>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_location_5:
+    __factory:
+      'App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation::create':
+        - '<company()>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_location_6:
+    __factory:
+      'App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation::create':
+        - '<company()>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_location_7:
+    __factory:
+      'App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation::create':
+        - '<company()>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_location_8:
+    __factory:
+      'App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation::create':
+        - '<company()>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_location_9:
+    __factory:
+      'App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation::create':
+        - '<company()>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_location_10:
+    __factory:
+      'App\Domain\GeneralAffairLocation\Entity\GeneralAffairLocation::create':
+        - '<company()>'
+        - '@status_active'
+        - '@info_empty'
+        - null

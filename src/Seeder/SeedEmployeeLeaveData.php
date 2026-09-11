@@ -4,34 +4,21 @@ declare(strict_types=1);
 
 namespace App\Seeder;
 
-// Domain Layer
 use App\Domain\EmployeeLeave\Entity\EmployeeLeave;
-// use App\Infrastructure\Persistence\EmployeeLeave\EmployeeLeaveRepository;
 use App\Domain\EmployeeLeave\Repository\EmployeeLeaveRepositoryInterface;
-
-// PSR Interfaces
-use Psr\Clock\ClockInterface;
-
-// Vendor Layer
-use Yiisoft\Db\Connection\ConnectionInterface;
-
-// Application Layer
-use App\Application\Shared\Factory\DetailInfoFactory;
-use App\Shared\Query\QueryConditionApplier;
-
-// Infrastructure Layer
 use App\Infrastructure\Seeder\AbstractSeederData;
-use App\Infrastructure\Database\MongoDB\MongoDBService;
+use App\Application\Shared\Factory\DetailInfoFactory;
+use Psr\Clock\ClockInterface;
+use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Aliases\Aliases;
 
 /**
- * Seeds employeeleave table using Alice fixtures.
+ * Seeds EmployeeLeave table using Alice fixtures.
  */
 final class SeedEmployeeLeaveData extends AbstractSeederData
 {
     private EmployeeLeaveRepositoryInterface $repository;
 
-    // Fixture constants
     protected const YAML_FILE = 'employeeleave.yaml';
     protected const ENTITY_CLASS = EmployeeLeave::class;
 
@@ -48,22 +35,7 @@ final class SeedEmployeeLeaveData extends AbstractSeederData
 
     protected function insertEntity(object $entity, mixed $detailInfo): void
     {
-        // Create new entity with proper DetailInfo
-        $newEntity = EmployeeLeave::create(
-            name: $entity->getName(),
-            leaveType: $entity->getLeaveType(),
-            employeeId: $entity->getEmployeeId(),
-            periodStartDate: $entity->getPeriodStartDate(),
-            periodEndDate: $entity->getPeriodEndDate(),
-            initialAmount: $entity->getInitialAmount(),
-            usedAmount: $entity->getUsedAmount(),
-            leaveRecords: $entity->getLeaveRecords(),
-            adjustmentRecords: [],
-            status: $entity->getStatus(),
-            detailInfo: $detailInfo,
-        );
-
-        // Use repository to insert
-        $this->repository->insert($newEntity);
+        $entity->updateDetailInfo($detailInfo);
+        $this->repository->insert($entity);
     }
 }

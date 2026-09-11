@@ -1,43 +1,166 @@
-# 1. VALUE OBJECTS (Tetap sama)
+# 1. VALUE OBJECTS
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 2
   status_active:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
-
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 1
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
-    __factory: 
-      'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-    
-  # info_with_nested_category:
-  #   __factory: 
-  #     'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
-  #       - category: 
-  #           id: 1
-  #           name: 'Sony'
-  #         brand: 'Sony'
-  #         specs:
-  #           color: 'Black'
-  #           warranty: '1 Year'
-
-# 2. ENTITIES (Sesuaikan dengan signature method create)
+    __factory:
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - {  }
 App\Domain\AttendanceSummary\Entity\AttendanceSummary:
-  attendance_summary_{1..5}:
-    __factory: 
+  attendance_summary_1:
+    __factory:
       'App\Domain\AttendanceSummary\Entity\AttendanceSummary::create':
-        # Sesuaikan urutan: name, status, detailInfo, syncMdb
-        - '<company()>'   # $name
-        - '@status_draft' # $status
-        - '@info_empty'   # $detailInfo
-        - null            # $syncMdb
-
-  attendance_summary_{6..10}:
-    __factory: 
+        - '<(App\Domain\AttendanceSummary\ValueObject\Name::fromString(\Faker\Factory::create()->company()))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\WorkSchedule::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\AttendanceData::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\PermissionCollection::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Summary::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Policy::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+        - null
+  attendance_summary_2:
+    __factory:
       'App\Domain\AttendanceSummary\Entity\AttendanceSummary::create':
-        - '<company()> <sentence()>'  # $name
-        - '@status_active'                       # $status
-        - '@info_empty'                          # $detailInfo
-        - 123                                    # $syncMdb
+        - '<(App\Domain\AttendanceSummary\ValueObject\Name::fromString(\Faker\Factory::create()->company()))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\WorkSchedule::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\AttendanceData::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\PermissionCollection::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Summary::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Policy::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+        - null
+  attendance_summary_3:
+    __factory:
+      'App\Domain\AttendanceSummary\Entity\AttendanceSummary::create':
+        - '<(App\Domain\AttendanceSummary\ValueObject\Name::fromString(\Faker\Factory::create()->company()))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\WorkSchedule::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\AttendanceData::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\PermissionCollection::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Summary::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Policy::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+        - null
+  attendance_summary_4:
+    __factory:
+      'App\Domain\AttendanceSummary\Entity\AttendanceSummary::create':
+        - '<(App\Domain\AttendanceSummary\ValueObject\Name::fromString(\Faker\Factory::create()->company()))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\WorkSchedule::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\AttendanceData::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\PermissionCollection::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Summary::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Policy::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+        - null
+  attendance_summary_5:
+    __factory:
+      'App\Domain\AttendanceSummary\Entity\AttendanceSummary::create':
+        - '<(App\Domain\AttendanceSummary\ValueObject\Name::fromString(\Faker\Factory::create()->company()))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\WorkSchedule::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\AttendanceData::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\PermissionCollection::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Summary::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Policy::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+        - null
+  attendance_summary_6:
+    __factory:
+      'App\Domain\AttendanceSummary\Entity\AttendanceSummary::create':
+        - '<(App\Domain\AttendanceSummary\ValueObject\Name::fromString(\Faker\Factory::create()->company()))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\WorkSchedule::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\AttendanceData::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\PermissionCollection::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Summary::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Policy::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+        - null
+  attendance_summary_7:
+    __factory:
+      'App\Domain\AttendanceSummary\Entity\AttendanceSummary::create':
+        - '<(App\Domain\AttendanceSummary\ValueObject\Name::fromString(\Faker\Factory::create()->company()))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\WorkSchedule::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\AttendanceData::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\PermissionCollection::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Summary::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Policy::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+        - null
+  attendance_summary_8:
+    __factory:
+      'App\Domain\AttendanceSummary\Entity\AttendanceSummary::create':
+        - '<(App\Domain\AttendanceSummary\ValueObject\Name::fromString(\Faker\Factory::create()->company()))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\WorkSchedule::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\AttendanceData::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\PermissionCollection::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Summary::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Policy::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+        - null
+  attendance_summary_9:
+    __factory:
+      'App\Domain\AttendanceSummary\Entity\AttendanceSummary::create':
+        - '<(App\Domain\AttendanceSummary\ValueObject\Name::fromString(\Faker\Factory::create()->company()))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\WorkSchedule::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\AttendanceData::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\PermissionCollection::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Summary::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Policy::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+        - null
+  attendance_summary_10:
+    __factory:
+      'App\Domain\AttendanceSummary\Entity\AttendanceSummary::create':
+        - '<(App\Domain\AttendanceSummary\ValueObject\Name::fromString(\Faker\Factory::create()->company()))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\WorkSchedule::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\AttendanceData::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\PermissionCollection::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Summary::fromArray([]))>'
+        - '<(App\Domain\AttendanceSummary\ValueObject\Policy::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+        - null

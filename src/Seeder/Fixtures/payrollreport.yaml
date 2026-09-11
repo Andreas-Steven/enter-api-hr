@@ -2,58 +2,155 @@
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
     __factory:
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 2
   status_active:
     __factory:
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
-
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 1
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
     __factory:
-      'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-
-App\Domain\PayrollReport\ValueObject\EmployeeSnapshot:
-  employee_snapshot_1:
-    __factory:
-      'App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray':
-        - id: 1
-          name: 'John Doe'
-          type:
-            id: 1
-            name: 'Karyawan Tetap'
-          position:
-            id: 1
-            name: 'Staff'
-          division:
-            id: 1
-            code: 'IT'
-            name: 'Informasi Teknologi'
-          branch:
-            id: 1
-            code: 'JKT'
-            name: 'Enterkomputer Head Office Mangga Dua'
-
-App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef:
-  summary_ref_1:
-    __factory:
-      'App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromValues':
-        - 1
-        - 'SUMMARY-EK1-202608'
-
-App\Domain\PayrollReport\ValueObject\PayrollSummary:
-  payroll_summary_empty:
-    __factory:
-      'App\Domain\PayrollReport\ValueObject\PayrollSummary::empty': []
-
-# 2. ENTITIES
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - {  }
 App\Domain\PayrollReport\Entity\PayrollReport:
-  payroll_report_{1..5}:
+  payroll_report_1:
     __factory:
       'App\Domain\PayrollReport\Entity\PayrollReport::create':
-        name: 'PAYROLL-<current()>-202608'
-        period: 202608
-        employee: '@employee_snapshot_1'
-        attendanceSummary: '@summary_ref_1'
-        payrollSummary: '@payroll_summary_empty'
-        status: '@status_draft'
-        detailInfo: '@info_empty'
+        - '<company()>'
+        - null
+        - '<(App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\OvertimeSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollNet::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  payroll_report_2:
+    __factory:
+      'App\Domain\PayrollReport\Entity\PayrollReport::create':
+        - '<company()>'
+        - null
+        - '<(App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\OvertimeSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollNet::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  payroll_report_3:
+    __factory:
+      'App\Domain\PayrollReport\Entity\PayrollReport::create':
+        - '<company()>'
+        - null
+        - '<(App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\OvertimeSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollNet::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  payroll_report_4:
+    __factory:
+      'App\Domain\PayrollReport\Entity\PayrollReport::create':
+        - '<company()>'
+        - null
+        - '<(App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\OvertimeSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollNet::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  payroll_report_5:
+    __factory:
+      'App\Domain\PayrollReport\Entity\PayrollReport::create':
+        - '<company()>'
+        - null
+        - '<(App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\OvertimeSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollNet::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  payroll_report_6:
+    __factory:
+      'App\Domain\PayrollReport\Entity\PayrollReport::create':
+        - '<company()>'
+        - null
+        - '<(App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\OvertimeSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollNet::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  payroll_report_7:
+    __factory:
+      'App\Domain\PayrollReport\Entity\PayrollReport::create':
+        - '<company()>'
+        - null
+        - '<(App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\OvertimeSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollNet::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  payroll_report_8:
+    __factory:
+      'App\Domain\PayrollReport\Entity\PayrollReport::create':
+        - '<company()>'
+        - null
+        - '<(App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\OvertimeSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollNet::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  payroll_report_9:
+    __factory:
+      'App\Domain\PayrollReport\Entity\PayrollReport::create':
+        - '<company()>'
+        - null
+        - '<(App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\OvertimeSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollNet::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null
+  payroll_report_10:
+    __factory:
+      'App\Domain\PayrollReport\Entity\PayrollReport::create':
+        - '<company()>'
+        - null
+        - '<(App\Domain\PayrollReport\ValueObject\EmployeeSnapshot::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\AttendanceSummaryRef::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\OvertimeSummary::fromArray([]))>'
+        - '<(App\Domain\PayrollReport\ValueObject\PayrollNet::fromArray([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+        - null

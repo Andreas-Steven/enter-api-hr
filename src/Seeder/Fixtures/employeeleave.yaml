@@ -1,50 +1,166 @@
-# 1. VALUE OBJECTS (Tetap sama)
+# 1. VALUE OBJECTS
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
     __factory:
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 2
   status_active:
     __factory:
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
-
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 1
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
     __factory:
-      'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-
-# 2. ENTITIES (Sesuaikan dengan signature method create)
-# create(name, leaveType, employeeId, periodStartDate, periodEndDate,
-#        initialAmount, usedAmount, leaveRecords,
-#        adjustmentRecords, status, detailInfo, syncMdb)
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - {  }
 App\Domain\EmployeeLeave\Entity\EmployeeLeave:
-  employee_leave_{1..5}:
+  employee_leave_1:
     __factory:
       'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
-        - '<company()>'                        # $name
-        - 'annual'                             # $leaveType
-        - '<numberBetween(1, 10)>'             # $employeeId
-        - '<date("Y-m-d")>'                    # $periodStartDate
-        - '<date("Y-m-d")>'                    # $periodEndDate
-        - '<numberBetween(1, 12)>'             # $initialAmount
-        - null                                 # $usedAmount
-        - []                                   # $leaveRecords
-        - []                                   # $adjustmentRecords
-        - '@status_draft'                      # $status
-        - '@info_empty'                        # $detailInfo
-        - null                                 # $syncMdb
-
-  employee_leave_{6..10}:
+        - '<company()>'
+        - annual
+        - '<numberBetween(1,10)>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - '<numberBetween(1,20)>'
+        - 0
+        - {  }
+        - {  }
+        - '@status_active'
+        - '@info_empty'
+        - null
+  employee_leave_2:
     __factory:
       'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
-        - '<company()> <sentence()>'           # $name
-        - 'annual'                             # $leaveType
-        - '<numberBetween(1, 10)>'             # $employeeId
-        - '<date("Y-m-d")>'                    # $periodStartDate
-        - '<date("Y-m-d")>'                    # $periodEndDate
-        - '<numberBetween(1, 12)>'             # $initialAmount
-        - null                                 # $usedAmount
-        - []                                   # $leaveRecords
-        - []                                   # $adjustmentRecords
-        - '@status_active'                     # $status
-        - '@info_empty'                        # $detailInfo
-        - null                                 # $syncMdb
+        - '<company()>'
+        - annual
+        - '<numberBetween(1,10)>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - '<numberBetween(1,20)>'
+        - 0
+        - {  }
+        - {  }
+        - '@status_active'
+        - '@info_empty'
+        - null
+  employee_leave_3:
+    __factory:
+      'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
+        - '<company()>'
+        - annual
+        - '<numberBetween(1,10)>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - '<numberBetween(1,20)>'
+        - 0
+        - {  }
+        - {  }
+        - '@status_active'
+        - '@info_empty'
+        - null
+  employee_leave_4:
+    __factory:
+      'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
+        - '<company()>'
+        - annual
+        - '<numberBetween(1,10)>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - '<numberBetween(1,20)>'
+        - 0
+        - {  }
+        - {  }
+        - '@status_active'
+        - '@info_empty'
+        - null
+  employee_leave_5:
+    __factory:
+      'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
+        - '<company()>'
+        - annual
+        - '<numberBetween(1,10)>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - '<numberBetween(1,20)>'
+        - 0
+        - {  }
+        - {  }
+        - '@status_active'
+        - '@info_empty'
+        - null
+  employee_leave_6:
+    __factory:
+      'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
+        - '<company()>'
+        - annual
+        - '<numberBetween(1,10)>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - '<numberBetween(1,20)>'
+        - 0
+        - {  }
+        - {  }
+        - '@status_active'
+        - '@info_empty'
+        - null
+  employee_leave_7:
+    __factory:
+      'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
+        - '<company()>'
+        - annual
+        - '<numberBetween(1,10)>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - '<numberBetween(1,20)>'
+        - 0
+        - {  }
+        - {  }
+        - '@status_active'
+        - '@info_empty'
+        - null
+  employee_leave_8:
+    __factory:
+      'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
+        - '<company()>'
+        - annual
+        - '<numberBetween(1,10)>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - '<numberBetween(1,20)>'
+        - 0
+        - {  }
+        - {  }
+        - '@status_active'
+        - '@info_empty'
+        - null
+  employee_leave_9:
+    __factory:
+      'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
+        - '<company()>'
+        - annual
+        - '<numberBetween(1,10)>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - '<numberBetween(1,20)>'
+        - 0
+        - {  }
+        - {  }
+        - '@status_active'
+        - '@info_empty'
+        - null
+  employee_leave_10:
+    __factory:
+      'App\Domain\EmployeeLeave\Entity\EmployeeLeave::create':
+        - '<company()>'
+        - annual
+        - '<numberBetween(1,10)>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - '<numberBetween(1,20)>'
+        - 0
+        - {  }
+        - {  }
+        - '@status_active'
+        - '@info_empty'
+        - null

@@ -1,43 +1,226 @@
-# 1. VALUE OBJECTS (Tetap sama)
+# 1. VALUE OBJECTS
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 2
   status_active:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
-
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 1
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
-    __factory: 
-      'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-    
-  # info_with_nested_category:
-  #   __factory: 
-  #     'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
-  #       - category: 
-  #           id: 1
-  #           name: 'Sony'
-  #         brand: 'Sony'
-  #         specs:
-  #           color: 'Black'
-  #           warranty: '1 Year'
-
-# 2. ENTITIES (Sesuaikan dengan signature method create)
+    __factory:
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - {  }
 App\Domain\Employee\Entity\Employee:
-  employee_{1..5}:
-    __factory: 
+  employee_1:
+    __factory:
       'App\Domain\Employee\Entity\Employee::create':
-        # Sesuaikan urutan: name, status, detailInfo, syncMdb
-        - '<company()>'   # $name
-        - '@status_draft' # $status
-        - '@info_empty'   # $detailInfo
-        - null            # $syncMdb
-
-  employee_{6..10}:
-    __factory: 
+        - '<company()>'
+        - '<userName()>'
+        - '<numberBetween(1,100000)>'
+        - '@status_active'
+        - '@info_empty'
+        - '<(App\Domain\Employee\ValueObject\Image::fromArray([]))>'
+        - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - null
+        - "<numerify('################')>"
+        - '<email()>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - null
+  employee_2:
+    __factory:
       'App\Domain\Employee\Entity\Employee::create':
-        - '<company()> <sentence()>'  # $name
-        - '@status_active'                       # $status
-        - '@info_empty'                          # $detailInfo
-        - 123                                    # $syncMdb
+        - '<company()>'
+        - '<userName()>'
+        - '<numberBetween(1,100000)>'
+        - '@status_active'
+        - '@info_empty'
+        - '<(App\Domain\Employee\ValueObject\Image::fromArray([]))>'
+        - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - null
+        - "<numerify('################')>"
+        - '<email()>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - null
+  employee_3:
+    __factory:
+      'App\Domain\Employee\Entity\Employee::create':
+        - '<company()>'
+        - '<userName()>'
+        - '<numberBetween(1,100000)>'
+        - '@status_active'
+        - '@info_empty'
+        - '<(App\Domain\Employee\ValueObject\Image::fromArray([]))>'
+        - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - null
+        - "<numerify('################')>"
+        - '<email()>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - null
+  employee_4:
+    __factory:
+      'App\Domain\Employee\Entity\Employee::create':
+        - '<company()>'
+        - '<userName()>'
+        - '<numberBetween(1,100000)>'
+        - '@status_active'
+        - '@info_empty'
+        - '<(App\Domain\Employee\ValueObject\Image::fromArray([]))>'
+        - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - null
+        - "<numerify('################')>"
+        - '<email()>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - null
+  employee_5:
+    __factory:
+      'App\Domain\Employee\Entity\Employee::create':
+        - '<company()>'
+        - '<userName()>'
+        - '<numberBetween(1,100000)>'
+        - '@status_active'
+        - '@info_empty'
+        - '<(App\Domain\Employee\ValueObject\Image::fromArray([]))>'
+        - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - null
+        - "<numerify('################')>"
+        - '<email()>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - null
+  employee_6:
+    __factory:
+      'App\Domain\Employee\Entity\Employee::create':
+        - '<company()>'
+        - '<userName()>'
+        - '<numberBetween(1,100000)>'
+        - '@status_active'
+        - '@info_empty'
+        - '<(App\Domain\Employee\ValueObject\Image::fromArray([]))>'
+        - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - null
+        - "<numerify('################')>"
+        - '<email()>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - null
+  employee_7:
+    __factory:
+      'App\Domain\Employee\Entity\Employee::create':
+        - '<company()>'
+        - '<userName()>'
+        - '<numberBetween(1,100000)>'
+        - '@status_active'
+        - '@info_empty'
+        - '<(App\Domain\Employee\ValueObject\Image::fromArray([]))>'
+        - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - null
+        - "<numerify('################')>"
+        - '<email()>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - null
+  employee_8:
+    __factory:
+      'App\Domain\Employee\Entity\Employee::create':
+        - '<company()>'
+        - '<userName()>'
+        - '<numberBetween(1,100000)>'
+        - '@status_active'
+        - '@info_empty'
+        - '<(App\Domain\Employee\ValueObject\Image::fromArray([]))>'
+        - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - null
+        - "<numerify('################')>"
+        - '<email()>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - null
+  employee_9:
+    __factory:
+      'App\Domain\Employee\Entity\Employee::create':
+        - '<company()>'
+        - '<userName()>'
+        - '<numberBetween(1,100000)>'
+        - '@status_active'
+        - '@info_empty'
+        - '<(App\Domain\Employee\ValueObject\Image::fromArray([]))>'
+        - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - null
+        - "<numerify('################')>"
+        - '<email()>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - null
+  employee_10:
+    __factory:
+      'App\Domain\Employee\Entity\Employee::create':
+        - '<company()>'
+        - '<userName()>'
+        - '<numberBetween(1,100000)>'
+        - '@status_active'
+        - '@info_empty'
+        - '<(App\Domain\Employee\ValueObject\Image::fromArray([]))>'
+        - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
+        - "<date('Y-m-d')>"
+        - "<date('Y-m-d')>"
+        - null
+        - "<numerify('################')>"
+        - '<email()>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - '<numberBetween(1,100)>'
+        - null

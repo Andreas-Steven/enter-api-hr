@@ -13,6 +13,7 @@ use App\Shared\ValueObject\Message;
 
 // Vendor Layer
 use Faker\Factory;
+use Nelmio\Alice\Faker\Provider\AliceProvider;
 use Nelmio\Alice\Loader\NativeLoader;
 use Yiisoft\Db\Connection\ConnectionInterface;
 use Psr\Clock\ClockInterface;
@@ -100,6 +101,7 @@ abstract class AbstractSeederData
         }
 
         $faker = Factory::create();
+        $faker->addProvider(new AliceProvider());
 
         $fakerDir = $this->aliases->get('@src/Seeder/Faker');
         if (is_dir($fakerDir)) {

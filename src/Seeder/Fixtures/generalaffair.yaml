@@ -1,43 +1,116 @@
-# 1. VALUE OBJECTS (Tetap sama)
+# 1. VALUE OBJECTS
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 2
   status_active:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
-
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 1
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
-    __factory: 
-      'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-    
-  # info_with_nested_category:
-  #   __factory: 
-  #     'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
-  #       - category: 
-  #           id: 1
-  #           name: 'Sony'
-  #         brand: 'Sony'
-  #         specs:
-  #           color: 'Black'
-  #           warranty: '1 Year'
-
-# 2. ENTITIES (Sesuaikan dengan signature method create)
+    __factory:
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - {  }
 App\Domain\GeneralAffair\Entity\GeneralAffair:
-  general_affair_{1..5}:
-    __factory: 
+  general_affair_1:
+    __factory:
       'App\Domain\GeneralAffair\Entity\GeneralAffair::create':
-        # Sesuaikan urutan: name, status, detailInfo, syncMdb
-        - '<company()>'   # $name
-        - '@status_draft' # $status
-        - '@info_empty'   # $detailInfo
-        - null            # $syncMdb
-
-  general_affair_{6..10}:
-    __factory: 
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<(App\Domain\GeneralAffair\ValueObject\Asset::fromJson([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_2:
+    __factory:
       'App\Domain\GeneralAffair\Entity\GeneralAffair::create':
-        - '<company()> <sentence()>'  # $name
-        - '@status_active'                       # $status
-        - '@info_empty'                          # $detailInfo
-        - 123                                    # $syncMdb
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<(App\Domain\GeneralAffair\ValueObject\Asset::fromJson([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_3:
+    __factory:
+      'App\Domain\GeneralAffair\Entity\GeneralAffair::create':
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<(App\Domain\GeneralAffair\ValueObject\Asset::fromJson([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_4:
+    __factory:
+      'App\Domain\GeneralAffair\Entity\GeneralAffair::create':
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<(App\Domain\GeneralAffair\ValueObject\Asset::fromJson([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_5:
+    __factory:
+      'App\Domain\GeneralAffair\Entity\GeneralAffair::create':
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<(App\Domain\GeneralAffair\ValueObject\Asset::fromJson([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_6:
+    __factory:
+      'App\Domain\GeneralAffair\Entity\GeneralAffair::create':
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<(App\Domain\GeneralAffair\ValueObject\Asset::fromJson([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_7:
+    __factory:
+      'App\Domain\GeneralAffair\Entity\GeneralAffair::create':
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<(App\Domain\GeneralAffair\ValueObject\Asset::fromJson([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_8:
+    __factory:
+      'App\Domain\GeneralAffair\Entity\GeneralAffair::create':
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<(App\Domain\GeneralAffair\ValueObject\Asset::fromJson([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_9:
+    __factory:
+      'App\Domain\GeneralAffair\Entity\GeneralAffair::create':
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<(App\Domain\GeneralAffair\ValueObject\Asset::fromJson([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null
+  general_affair_10:
+    __factory:
+      'App\Domain\GeneralAffair\Entity\GeneralAffair::create':
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<numberBetween(1,10)>'
+        - '<(App\Domain\GeneralAffair\ValueObject\Asset::fromJson([]))>'
+        - '@status_active'
+        - '@info_empty'
+        - null

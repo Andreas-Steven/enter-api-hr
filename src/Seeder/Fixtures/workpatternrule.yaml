@@ -1,43 +1,166 @@
-# 1. VALUE OBJECTS (Tetap sama)
+# 1. VALUE OBJECTS
 App\Domain\Shared\ValueObject\ResourceStatus:
   status_draft:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [2]
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 2
   status_active:
-    __factory: 
-      'App\Domain\Shared\ValueObject\ResourceStatus::from': [1]
-
+    __factory:
+      'App\Domain\Shared\ValueObject\ResourceStatus::from':
+        - 1
 App\Domain\Shared\ValueObject\DetailInfo:
   info_empty:
-    __factory: 
-      'App\Domain\Shared\ValueObject\DetailInfo::fromArray': [[]]
-    
-  # info_with_nested_category:
-  #   __factory: 
-  #     'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
-  #       - category: 
-  #           id: 1
-  #           name: 'Sony'
-  #         brand: 'Sony'
-  #         specs:
-  #           color: 'Black'
-  #           warranty: '1 Year'
-
-# 2. ENTITIES (Sesuaikan dengan signature method create)
+    __factory:
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - {  }
 App\Domain\WorkPatternRule\Entity\WorkPatternRule:
-  work_pattern_rules_{1..5}:
-    __factory: 
+  work_pattern_rule_1:
+    __factory:
       'App\Domain\WorkPatternRule\Entity\WorkPatternRule::create':
-        # Sesuaikan urutan: name, status, detailInfo, syncMdb
-        - '<company()>'   # $name
-        - '@status_draft' # $status
-        - '@info_empty'   # $detailInfo
-        - null            # $syncMdb
-
-  work_pattern_rules_{6..10}:
-    __factory: 
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\WorkPatternRuleType::from("REQUIRED_WEEKDAY"))>'
+        - null
+        - 0
+        - {  }
+        - 0
+        - '<(App\Domain\Shared\Enums\ExcessTreatment::from("COUNT_AS_OVERTIME"))>'
+        - '<(App\Domain\Shared\Enums\DeficitTreatment::from("MANUAL_REVIEW"))>'
+        - null
+        - '@status_active'
+        - '@info_empty'
+        - null
+  work_pattern_rule_2:
+    __factory:
       'App\Domain\WorkPatternRule\Entity\WorkPatternRule::create':
-        - '<company()> <sentence()>'  # $name
-        - '@status_active'                       # $status
-        - '@info_empty'                          # $detailInfo
-        - 123                                    # $syncMdb
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\WorkPatternRuleType::from("REQUIRED_WEEKDAY"))>'
+        - null
+        - 0
+        - {  }
+        - 0
+        - '<(App\Domain\Shared\Enums\ExcessTreatment::from("COUNT_AS_OVERTIME"))>'
+        - '<(App\Domain\Shared\Enums\DeficitTreatment::from("MANUAL_REVIEW"))>'
+        - null
+        - '@status_active'
+        - '@info_empty'
+        - null
+  work_pattern_rule_3:
+    __factory:
+      'App\Domain\WorkPatternRule\Entity\WorkPatternRule::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\WorkPatternRuleType::from("REQUIRED_WEEKDAY"))>'
+        - null
+        - 0
+        - {  }
+        - 0
+        - '<(App\Domain\Shared\Enums\ExcessTreatment::from("COUNT_AS_OVERTIME"))>'
+        - '<(App\Domain\Shared\Enums\DeficitTreatment::from("MANUAL_REVIEW"))>'
+        - null
+        - '@status_active'
+        - '@info_empty'
+        - null
+  work_pattern_rule_4:
+    __factory:
+      'App\Domain\WorkPatternRule\Entity\WorkPatternRule::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\WorkPatternRuleType::from("REQUIRED_WEEKDAY"))>'
+        - null
+        - 0
+        - {  }
+        - 0
+        - '<(App\Domain\Shared\Enums\ExcessTreatment::from("COUNT_AS_OVERTIME"))>'
+        - '<(App\Domain\Shared\Enums\DeficitTreatment::from("MANUAL_REVIEW"))>'
+        - null
+        - '@status_active'
+        - '@info_empty'
+        - null
+  work_pattern_rule_5:
+    __factory:
+      'App\Domain\WorkPatternRule\Entity\WorkPatternRule::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\WorkPatternRuleType::from("REQUIRED_WEEKDAY"))>'
+        - null
+        - 0
+        - {  }
+        - 0
+        - '<(App\Domain\Shared\Enums\ExcessTreatment::from("COUNT_AS_OVERTIME"))>'
+        - '<(App\Domain\Shared\Enums\DeficitTreatment::from("MANUAL_REVIEW"))>'
+        - null
+        - '@status_active'
+        - '@info_empty'
+        - null
+  work_pattern_rule_6:
+    __factory:
+      'App\Domain\WorkPatternRule\Entity\WorkPatternRule::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\WorkPatternRuleType::from("REQUIRED_WEEKDAY"))>'
+        - null
+        - 0
+        - {  }
+        - 0
+        - '<(App\Domain\Shared\Enums\ExcessTreatment::from("COUNT_AS_OVERTIME"))>'
+        - '<(App\Domain\Shared\Enums\DeficitTreatment::from("MANUAL_REVIEW"))>'
+        - null
+        - '@status_active'
+        - '@info_empty'
+        - null
+  work_pattern_rule_7:
+    __factory:
+      'App\Domain\WorkPatternRule\Entity\WorkPatternRule::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\WorkPatternRuleType::from("REQUIRED_WEEKDAY"))>'
+        - null
+        - 0
+        - {  }
+        - 0
+        - '<(App\Domain\Shared\Enums\ExcessTreatment::from("COUNT_AS_OVERTIME"))>'
+        - '<(App\Domain\Shared\Enums\DeficitTreatment::from("MANUAL_REVIEW"))>'
+        - null
+        - '@status_active'
+        - '@info_empty'
+        - null
+  work_pattern_rule_8:
+    __factory:
+      'App\Domain\WorkPatternRule\Entity\WorkPatternRule::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\WorkPatternRuleType::from("REQUIRED_WEEKDAY"))>'
+        - null
+        - 0
+        - {  }
+        - 0
+        - '<(App\Domain\Shared\Enums\ExcessTreatment::from("COUNT_AS_OVERTIME"))>'
+        - '<(App\Domain\Shared\Enums\DeficitTreatment::from("MANUAL_REVIEW"))>'
+        - null
+        - '@status_active'
+        - '@info_empty'
+        - null
+  work_pattern_rule_9:
+    __factory:
+      'App\Domain\WorkPatternRule\Entity\WorkPatternRule::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\WorkPatternRuleType::from("REQUIRED_WEEKDAY"))>'
+        - null
+        - 0
+        - {  }
+        - 0
+        - '<(App\Domain\Shared\Enums\ExcessTreatment::from("COUNT_AS_OVERTIME"))>'
+        - '<(App\Domain\Shared\Enums\DeficitTreatment::from("MANUAL_REVIEW"))>'
+        - null
+        - '@status_active'
+        - '@info_empty'
+        - null
+  work_pattern_rule_10:
+    __factory:
+      'App\Domain\WorkPatternRule\Entity\WorkPatternRule::create':
+        - '<company()>'
+        - '<(App\Domain\Shared\Enums\WorkPatternRuleType::from("REQUIRED_WEEKDAY"))>'
+        - null
+        - 0
+        - {  }
+        - 0
+        - '<(App\Domain\Shared\Enums\ExcessTreatment::from("COUNT_AS_OVERTIME"))>'
+        - '<(App\Domain\Shared\Enums\DeficitTreatment::from("MANUAL_REVIEW"))>'
+        - null
+        - '@status_active'
+        - '@info_empty'
+        - null
