@@ -106,7 +106,7 @@ final class EmployeeTypeRepository implements EmployeeTypeRepositoryInterface, C
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        )->updateSyncMdb(SyncMdb::fromInt($row[SyncMdb::field()] ?? null));
     }
 
     public function existsByName(string $name, ?int $status = null): bool

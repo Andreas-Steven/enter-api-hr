@@ -121,7 +121,7 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
             note: $row['note'] ?? null,
             dayOff: (int) $row['day_off'],
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        )->updateSyncMdb(SyncMdb::fromInt($row[SyncMdb::field()] ?? null));
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -157,7 +157,7 @@ final class AttendanceCalendarRepository implements AttendanceCalendarRepository
                 note: $row['note'] ?? null,
                 dayOff: (int) $row['day_off'],
             );
-            $calendar->updateSyncMdb($row[SyncMdb::field()] ?? null);
+            $calendar->updateSyncMdb(SyncMdb::fromInt($row[SyncMdb::field()] ?? null));
             $calendars[] = $calendar;
         }
 

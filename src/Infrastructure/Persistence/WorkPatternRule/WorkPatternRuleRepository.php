@@ -99,7 +99,7 @@ final class WorkPatternRuleRepository implements WorkPatternRuleRepositoryInterf
             return null;
         }
 
-        return $this->hydrateEntity($row)->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        return $this->hydrateEntity($row)->updateSyncMdb(SyncMdb::fromInt($row[SyncMdb::field()] ?? null));
     }
 
     public function existsByName(string $name, ?int $status = null): bool
