@@ -86,7 +86,7 @@ final class WorkPatternRepository implements WorkPatternRepositoryInterface, Cur
             workingDays: WorkingDays::fromJson($row['working_days'], $this->attendanceShiftRepository, $this->workPatternRuleRepository),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: $row[SyncMdb::field()] ?? null,
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()])
         );
     }
@@ -111,9 +111,9 @@ final class WorkPatternRepository implements WorkPatternRepositoryInterface, Cur
             workingDays: WorkingDays::fromJson($row['working_days'], $this->attendanceShiftRepository, $this->workPatternRuleRepository),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: $row[SyncMdb::field()] ?? null,
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        );
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -300,7 +300,7 @@ final class WorkPatternRepository implements WorkPatternRepositoryInterface, Cur
             workingDays: WorkingDays::fromJson($row['working_days'], $this->attendanceShiftRepository, $this->workPatternRuleRepository),
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: $row[SyncMdb::field()] ?? null,
+            syncMdb: SyncMdb::fromInt($row[SyncMdb::field()] ?? null),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()])
         );
 
