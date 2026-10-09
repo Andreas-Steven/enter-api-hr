@@ -27,6 +27,7 @@ use Yiisoft\Router\CurrentRoute;
 /**
  * Employee Update API Action
  */
+
 final class EmployeeUpdateAction
 {
     private const ALLOWED_KEYS = [
@@ -41,6 +42,7 @@ final class EmployeeUpdateAction
         'email', 
         'birth_date', 
         'date_start',
+        'date_resign',
         'contact', 
         'image',
         'status',
@@ -105,6 +107,7 @@ final class EmployeeUpdateAction
             email: $params->get('email'),
             birthDate: $params->get('birth_date'),
             dateStart: $params->get('date_start'),
+            dateResign: $params->get('date_resign'),
             contact: $params->get('contact'),
             image: $params->get('image'),
             status: $params->has('status') ? (int) $params->get('status') : null,

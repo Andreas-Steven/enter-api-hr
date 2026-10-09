@@ -225,6 +225,12 @@ final class EmployeeApplicationService
             );
         }
 
+        if (!empty($command->dateResign)) {
+            $data->updateDateResign(
+                date: DateFormat::fromString($command->dateResign)
+            );
+        }
+
         if ($command->contact !== null) {
             $data->updateContact(
                 contact: Contact::fromArray($command->contact)

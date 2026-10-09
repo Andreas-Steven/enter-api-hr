@@ -29,6 +29,8 @@ use App\Shared\ValueObject\Message;
 
 // Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
+use Yiisoft\Db\Expression\Expression;
+use Yiisoft\Db\Expression\Value\JsonValue;
 use Yiisoft\Db\Query\Query;
 
 // use MongoDB\Collection;
@@ -45,6 +47,17 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
     public const TABLE_NAME = 'general_affair';
     public const SEQUENCE_ID = 'general_affair_id_seq';
     private const LIKE_OPERATOR = 'ilike';
+    private const ASSET_ITEM_FILTER_FIELDS = [
+        'code' => ['string', 'non-empty'],
+        'price' => ['numeric', 'provided'],
+        'condition' => ['integer', 'provided'],
+        'description' => ['contains', 'non-empty'],
+        'buying_date' => ['raw', 'non-empty'],
+        'tax_date' => ['raw', 'non-empty'],
+        'inspection_date' => ['raw', 'non-empty'],
+        'employee.id' => ['integer', 'provided'],
+        'division.id' => ['integer', 'provided'],
+    ];
 
     public function __construct(
         private ConnectionInterface $db,
@@ -146,6 +159,55 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
             ->where($this->scopeWhereNotDeleted());
 
         $filter = $criteria->filter;
+        $assetItemFilters = $filter['asset']['items'] ?? [];
+        $effectiveAssetItemFilters = [];
+
+        if (is_array($assetItemFilters)) {
+            $assetItemSource = new Expression(<<<'SQL'
+                LATERAL (
+                    SELECT object_item.value AS value
+                    FROM jsonb_each(
+                        CASE
+                            WHEN jsonb_typeof((asset::jsonb)->'items') = 'object' THEN (asset::jsonb)->'items'
+                            ELSE '{}'::jsonb
+                        END
+                    ) AS object_item(item_key, value)
+                    UNION ALL
+                    SELECT array_item.value AS value
+                    FROM jsonb_array_elements(
+                        CASE
+                            WHEN jsonb_typeof((asset::jsonb)->'items') = 'array' THEN (asset::jsonb)->'items'
+                            ELSE '[]'::jsonb
+                        END
+                    ) AS array_item(value)
+                ) AS asset_item(value)
+                SQL);
+
+            foreach ($assetItemFilters as $assetItemFilter) {
+                if (!is_array($assetItemFilter)) {
+                    continue;
+                }
+
+                $conditions = $this->buildAssetItemFilterConditions($assetItemFilter);
+                if ($conditions === []) {
+                    continue;
+                }
+
+                $assetItemQuery = (new Query($this->db))
+                    ->select(new Expression('1'))
+                    ->from($assetItemSource);
+                $assetItemQuery->andWhere(new Expression(
+                    "NULLIF(asset_item.value #>> '{items_change_log,deleted_at}', '') IS NULL"
+                ));
+
+                foreach ($conditions as $condition) {
+                    $assetItemQuery->andWhere($condition['sql']);
+                }
+
+                $query->andWhere(['EXISTS', $assetItemQuery]);
+                $effectiveAssetItemFilters[] = $conditions;
+            }
+        }
 
         $this->queryConditionApplier->filterByExactMatch(
             query: $query,
@@ -178,6 +240,41 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
             )
         );
 
+        foreach ($rows as $index => $row) {
+            $asset = $row['asset'] ?? null;
+            if (!is_array($asset)) {
+                continue;
+            }
+
+            $asset = Asset::fromJson($asset)
+                ->withoutDeletedItems()
+                ->toArray();
+
+            if ($effectiveAssetItemFilters !== []) {
+                unset($asset['quantity'], $asset['total_price']);
+                $items = $asset['items'] ?? null;
+
+                if (is_array($items)) {
+                    $matchedItems = [];
+                    foreach ($items as $key => $item) {
+                        foreach ($effectiveAssetItemFilters as $conditions) {
+                            if ($this->matchesAssetItemFilter($item, $conditions)) {
+                                $matchedItems[$key] = $item;
+                                break;
+                            }
+                        }
+                    }
+
+                    $asset['items'] = array_is_list($items)
+                        ? array_values($matchedItems)
+                        : $matchedItems;
+                }
+            }
+
+            $row['asset'] = $asset;
+            $rows[$index] = $row;
+        }
+
         return new PaginatedResult(
             data: $rows,
             total: $total,
@@ -189,6 +286,115 @@ final class GeneralAffairRepository implements GeneralAffairRepositoryInterface,
                 'dir' => $criteria->sortDir
             ]
         );
+    }
+
+    private function buildAssetItemFilterConditions(array $filter): array
+    {
+        $conditions = [];
+
+        foreach (self::ASSET_ITEM_FILTER_FIELDS as $field => [$type, $presence]) {
+            $path = explode('.', $field);
+            $value = $filter;
+
+            foreach ($path as $key) {
+                if (!is_array($value) || !array_key_exists($key, $value)) {
+                    $value = null;
+                    break;
+                }
+                $value = $value[$key];
+            }
+
+            $hasValue = $presence === 'non-empty'
+                ? !empty($value)
+                : $value !== null && $value !== '';
+            if (!$hasValue) {
+                continue;
+            }
+
+            $expected = match ($type) {
+                'string', 'contains' => (string) $value,
+                'numeric' => (float) $value,
+                'integer' => (int) $value,
+                default => $value,
+            };
+            $expression = 'asset_item.value';
+
+            foreach ($path as $index => $key) {
+                $expression .= $index === array_key_last($path)
+                    ? "->>'$key'"
+                    : "->'$key'";
+            }
+
+            $expression = match ($type) {
+                'numeric' => "($expression)::numeric",
+                'integer' => "($expression)::integer",
+                default => $expression,
+            };
+            $conditions[] = [
+                'sql' => [
+                    $type === 'contains' ? 'ilike' : '=',
+                    new Expression($expression),
+                    $type === 'contains' ? '%' . $expected . '%' : $expected,
+                ],
+                'path' => $path,
+                'type' => $type,
+                'value' => $expected,
+            ];
+        }
+
+        $images = is_array($filter['image'] ?? null)
+            ? array_values(array_filter(
+                $filter['image'],
+                static fn ($image): bool => is_string($image) && $image !== '',
+            ))
+            : [];
+
+        if ($images !== []) {
+            $conditions[] = [
+                'sql' => [
+                    '@>',
+                    new Expression("asset_item.value->'image'"),
+                    new JsonValue($images, 'jsonb'),
+                ],
+                'path' => ['image'],
+                'type' => 'array',
+                'value' => $images,
+            ];
+        }
+
+        return $conditions;
+    }
+
+    private function matchesAssetItemFilter(mixed $item, array $conditions): bool
+    {
+        if (!is_array($item)) {
+            return false;
+        }
+
+        foreach ($conditions as $condition) {
+            $value = $item;
+            foreach ($condition['path'] as $key) {
+                if (!is_array($value) || !array_key_exists($key, $value)) {
+                    $value = null;
+                    break;
+                }
+                $value = $value[$key];
+            }
+
+            $matches = match ($condition['type']) {
+                'numeric' => isset($value) && (float) $value === $condition['value'],
+                'integer' => isset($value) && (int) $value === $condition['value'],
+                'contains' => mb_stripos((string) ($value ?? ''), $condition['value']) !== false,
+                'array' => is_array($value) && array_diff($condition['value'], $value) === [],
+                default => (string) ($value ?? '') === (string) $condition['value'],
+            };
+
+            if (!$matches) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function insert(GeneralAffair $entity): GeneralAffair 

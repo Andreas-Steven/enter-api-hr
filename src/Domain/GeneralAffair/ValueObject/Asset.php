@@ -34,13 +34,28 @@ final readonly class Asset
         return new self($items);
     }
 
+    public function withoutDeletedItems(): self
+    {
+        return new self(array_values(array_filter(
+            $this->items,
+            static fn (AssetItem $item): bool => empty($item->changeLog['deleted_at']),
+        )));
+    }
+
     public function toArray(): array
     {
         $result = [];
+        $totalPrice = 0;
+
         foreach ($this->items as $item) {
             $result[$item->code] = $item->toArray();
+            $totalPrice += $item->price;
         }
 
-        return ['items' => $result];
+        return [
+            'items' => $result,
+            'quantity' => count($result),
+            'total_price' => $totalPrice == (int) $totalPrice ? (int) $totalPrice : $totalPrice,
+        ];
     }
 }

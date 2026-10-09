@@ -18,12 +18,20 @@ use Yiisoft\Validator\Rule\StringValue;
 use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
 use Yiisoft\Validator\Rule\StopOnError;
+use Yiisoft\Validator\Rule\Each;
+use Yiisoft\Validator\Rule\Nested;
+use Yiisoft\Validator\Rule\Number;
 
 /**
  * GeneralAffair Input Validator
  * 
  * Menggunakan pattern AbstractValidator dengan ValidationContext
  * untuk validasi input yang berbeda per operation
+ */
+
+/**
+ * TODO:
+ * [ ] Asset rule for CREATE 
  */
 final class GeneralAffairInputValidator extends AbstractValidator
 {
@@ -221,6 +229,76 @@ final class GeneralAffairInputValidator extends AbstractValidator
                     new Integer(
                         skipOnEmpty: true,
                     ),
+                ],
+                'asset' => [
+                    new Nested([
+                        'items' => [
+                            new Each([
+                                new Nested([
+                                    'code' => [
+                                        new StringValue(
+                                            skipOnEmpty: true,
+                                        ),
+                                    ],
+                                    'price' => [
+                                        new Number(
+                                            skipOnEmpty: true,
+                                        ),
+                                    ],
+                                    'condition' => [
+                                        new Integer(
+                                            skipOnEmpty: true,
+                                        ),
+                                    ],
+                                    'description' => [
+                                        new StringValue(
+                                            skipOnEmpty: true,
+                                        ),
+                                    ],
+                                    'buying_date' => [
+                                        new StringValue(
+                                            skipOnEmpty: true,
+                                        ),
+                                    ],
+                                    'tax_date' => [
+                                        new StringValue(
+                                            skipOnEmpty: true,
+                                        ),
+                                    ],
+                                    'inspection_date' => [
+                                        new StringValue(
+                                            skipOnEmpty: true,
+                                        ),
+                                    ],
+                                    'employee' => [
+                                        new Nested([
+                                            'id' => [
+                                                new Integer(
+                                                    skipOnEmpty: true,
+                                                ),
+                                            ],
+                                        ], skipOnEmpty: true),
+                                    ],
+                                    'division' => [
+                                        new Nested([
+                                            'id' => [
+                                                new Integer(
+                                                    skipOnEmpty: true,
+                                                ),
+                                            ],
+                                        ], skipOnEmpty: true),
+                                    ],
+                                    'image' => [
+                                        new Each([
+                                            new StringValue(
+                                                skipOnEmpty: true,
+                                            ),
+                                        ], skipOnEmpty: true),
+                                    ],
+                                ], skipOnEmpty: true),
+                            ], skipOnEmpty: true),
+                        ],
+                    ], skipOnEmpty: true),
                 ],
                 /* 'name' => [
                     new StringValue(

@@ -17,6 +17,7 @@ use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
+use App\Domain\Employee\ValueObject\DateFormat;
 use App\Domain\Employee\ValueObject\DateResign;
 use App\Domain\Employee\ValueObject\DateStart;
 use App\Domain\Employee\ValueObject\BirthDate;
@@ -397,17 +398,17 @@ final class Employee
         $this->email = $email;
     }
 
-    public function updateBirthDate(\App\Domain\Employee\ValueObject\DateFormat $date): void
+    public function updateBirthDate(DateFormat $date): void
     {
         $this->birthDate = $date->toString();
     }
 
-    public function updateDateStart(\App\Domain\Employee\ValueObject\DateFormat $date): void
+    public function updateDateStart(DateFormat $date): void
     {
         $this->dateStart = $date->toString();
     }
 
-    public function updateDateResign(\App\Domain\Employee\ValueObject\DateFormat $date): void
+    public function updateDateResign(DateFormat $date): void
     {
         $this->dateResign = $date->toString();
     }
