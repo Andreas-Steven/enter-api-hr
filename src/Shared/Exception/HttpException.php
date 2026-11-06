@@ -24,7 +24,7 @@ use App\Shared\ValueObject\Message;
  * // Creating a custom HTTP exception
  * final class PaymentRequiredException extends HttpException
  * {
- *     public function __construct(Message|string $message = null, ?array $data = null, ?\Throwable $previous = null)
+ *     public function __construct(Message|string|null $message = null, ?array $data = null, ?\Throwable $previous = null)
  *     {
  *         $messageObj = $message instanceof Message 
  *             ? $message 

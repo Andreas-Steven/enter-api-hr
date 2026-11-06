@@ -227,6 +227,11 @@ final class EmployeeInputValidator extends AbstractValidator
                 ],
                 'contact' => [
                 ],
+                'contract_end_date' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
                 'date_resign' => [
                     new StringValue(
                         skipOnEmpty: true,
@@ -304,6 +309,11 @@ final class EmployeeInputValidator extends AbstractValidator
                     ),
                 ],
                 'date_start' => [
+                    new StringValue(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'contract_end_date' => [
                     new StringValue(
                         skipOnEmpty: true,
                     ),

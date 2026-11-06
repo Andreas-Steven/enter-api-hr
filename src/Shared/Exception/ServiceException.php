@@ -135,7 +135,7 @@ final class ServiceException extends HttpException
      *     );
      * }
      */
-    public function __construct(Message|string $translate = null, ?array $data = null, ?int $code = Status::OK, ?\Throwable $previous = null)
+    public function __construct(Message|string|null $translate = null, ?array $data = null, ?int $code = Status::OK, ?\Throwable $previous = null)
     {
         $message = $translate instanceof Message 
             ? $translate 

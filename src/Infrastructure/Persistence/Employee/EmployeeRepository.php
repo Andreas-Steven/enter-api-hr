@@ -89,6 +89,7 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             contact: Contact::fromArray($this->castToArray($row['contact'])),
             birthDate: $row['birth_date'],
             dateStart: $row['date_start'],
+            contractEndDate: $row['contract_end_date'],
             dateResign: $row['date_resign'],
             ssoId: (int) $row['sso_id'],
             divisionId: (int) $row['division_id'],
@@ -131,6 +132,7 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
                 contact: Contact::fromArray($this->castToArray($row['contact'])),
                 birthDate: $row['birth_date'],
                 dateStart: $row['date_start'],
+                contractEndDate: $row['contract_end_date'],
                 dateResign: $row['date_resign'],
                 ssoId: (int) $row['sso_id'],
                 divisionId: (int) $row['division_id'],
@@ -174,6 +176,7 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             contact: Contact::fromArray($this->castToArray($row['contact'])),
             birthDate: $row['birth_date'],
             dateStart: $row['date_start'],
+            contractEndDate: $row['contract_end_date'],
             dateResign: $row['date_resign'],
             ssoId: (int) $row['sso_id'],
             divisionId: (int) $row['division_id'],
@@ -307,6 +310,7 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             contact: Contact::fromArray($this->castToArray($row['contact'])),
             birthDate: $row['birth_date'],
             dateStart: $row['date_start'],
+            contractEndDate: $row['contract_end_date'],
             dateResign: $row['date_resign'],
             ssoId: (int) $row['sso_id'],
             divisionId: (int) $row['division_id'],
@@ -334,6 +338,7 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
                 'contact',
                 'birth_date',
                 'date_start',
+                'contract_end_date',
                 'date_resign',
                 'sso_id',
                 'division_id',
@@ -413,6 +418,12 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
                   ->andWhere(['<=', 'date_start', $range->endDate]);
         }
 
+        if (!empty($filter['contract_end_date'])) {
+            $range = DateRange::fromFilterString($filter['contract_end_date']);
+            $query->andWhere(['>=', 'contract_end_date', $range->startDate])
+                  ->andWhere(['<=', 'contract_end_date', $range->endDate]);
+        }
+
         if (!empty($filter['date_resign'])) {
             $range = DateRange::fromFilterString($filter['date_resign']);
             $query->andWhere(['>=', 'date_resign', $range->startDate])
@@ -472,6 +483,7 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
                 contact: $entity->getContact(),
                 birthDate: $entity->getBirthDate(),
                 dateStart: $entity->getDateStart(),
+                contractEndDate: $entity->getContractEndDate(),
                 dateResign: $entity->getDateResign(),
                 divisionId: $entity->getDivisionId(),
                 positionId: $entity->getPositionId(),
@@ -576,6 +588,7 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             contact: Contact::fromArray($this->castToArray($row['contact'])),
             birthDate: $row['birth_date'],
             dateStart: $row['date_start'],
+            contractEndDate: $row['contract_end_date'],
             dateResign: $row['date_resign'],
             divisionId: (int) $row['division_id'],
             positionId: (int) $row['position_id'],
@@ -606,6 +619,7 @@ final class EmployeeRepository implements EmployeeRepositoryInterface, CurrentUs
             'contact' => $entity->getContact()->toArray(),
             'birth_date' => $entity->getBirthDate(),
             'date_start' => $entity->getDateStart(),
+            'contract_end_date' => $entity->getContractEndDate(),
             'date_resign' => $entity->getDateResign(),
             'sso_id' => $entity->getSsoId(),
             'division_id' => $entity->getDivisionId(),

@@ -115,6 +115,13 @@ final class EmployeeTypeInputValidator extends AbstractValidator
                         RecordStatus::draftOnlyStates(),
                     ),
                 ],
+                'is_contract' => [
+                    new Integer(
+                        min: 0,
+                        max: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
             ],
             ValidationContext::UPDATE => [
                 'id' => [
@@ -146,6 +153,13 @@ final class EmployeeTypeInputValidator extends AbstractValidator
                     ),
                     new In(
                         RecordStatus::searchableStates(),
+                    ),
+                ],
+                'is_contract' => [
+                    new Integer(
+                        min: 0,
+                        max: 1,
+                        skipOnEmpty: true,
                     ),
                 ],
                 'lock_version' => [

@@ -125,4 +125,19 @@ final class EmployeeDomainService
     {
         return $value === null || $value === '' || (is_array($value) && $value === []);
     }
+
+    /**
+     * Validate that contract employee always has contract_end_date
+     */
+    public function ensureContractEndDate(Employee $employee): void
+    {
+        if ($employee->isContractType() && $this->isEmptyActivationValue($employee->getContractEndDate())) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'employee.contract_end_date_required',
+                    domain: 'app'
+                )
+            );
+        }
+    }
 }

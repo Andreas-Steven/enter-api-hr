@@ -89,7 +89,10 @@ final class EmployeeTypeApplicationService
     {
         $detailInfo = $this->detailInfoFactory
             ->create(
-                detailInfo: []
+                detailInfo: array_merge(
+                    $command->detailInfo ?? [],
+                    ['is_contract' => (bool) $command->isContract]
+                )
             )
             ->build();
 
@@ -138,10 +141,15 @@ final class EmployeeTypeApplicationService
             newStatus: $newStatus
         );
 
+        $detailInfoPayload = $command->detailInfo ?? [];
+        if ($command->isContract !== null) {
+            $detailInfoPayload['is_contract'] = (bool) $command->isContract;
+        }
+
         $detailInfo = $this->detailInfoFactory
             ->update(
                 detailInfo: $data->getDetailInfo(),
-                payload: $command->detailInfo ?? [],
+                payload: $detailInfoPayload,
             )
             ->build();
 

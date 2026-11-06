@@ -27,6 +27,7 @@ App\Domain\Employee\Entity\Employee:
         - "<date('Y-m-d')>"
         - "<date('Y-m-d')>"
         - null
+        - null
         - "<numerify('################')>"
         - '<email()>'
         - '<numberBetween(1,100)>'
@@ -47,6 +48,7 @@ App\Domain\Employee\Entity\Employee:
         - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
         - "<date('Y-m-d')>"
         - "<date('Y-m-d')>"
+        - null
         - null
         - "<numerify('################')>"
         - '<email()>'
@@ -69,6 +71,7 @@ App\Domain\Employee\Entity\Employee:
         - "<date('Y-m-d')>"
         - "<date('Y-m-d')>"
         - null
+        - null
         - "<numerify('################')>"
         - '<email()>'
         - '<numberBetween(1,100)>'
@@ -89,6 +92,7 @@ App\Domain\Employee\Entity\Employee:
         - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
         - "<date('Y-m-d')>"
         - "<date('Y-m-d')>"
+        - null
         - null
         - "<numerify('################')>"
         - '<email()>'
@@ -111,6 +115,7 @@ App\Domain\Employee\Entity\Employee:
         - "<date('Y-m-d')>"
         - "<date('Y-m-d')>"
         - null
+        - null
         - "<numerify('################')>"
         - '<email()>'
         - '<numberBetween(1,100)>'
@@ -131,6 +136,7 @@ App\Domain\Employee\Entity\Employee:
         - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
         - "<date('Y-m-d')>"
         - "<date('Y-m-d')>"
+        - null
         - null
         - "<numerify('################')>"
         - '<email()>'
@@ -153,6 +159,7 @@ App\Domain\Employee\Entity\Employee:
         - "<date('Y-m-d')>"
         - "<date('Y-m-d')>"
         - null
+        - null
         - "<numerify('################')>"
         - '<email()>'
         - '<numberBetween(1,100)>'
@@ -173,6 +180,7 @@ App\Domain\Employee\Entity\Employee:
         - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
         - "<date('Y-m-d')>"
         - "<date('Y-m-d')>"
+        - null
         - null
         - "<numerify('################')>"
         - '<email()>'
@@ -195,6 +203,7 @@ App\Domain\Employee\Entity\Employee:
         - "<date('Y-m-d')>"
         - "<date('Y-m-d')>"
         - null
+        - null
         - "<numerify('################')>"
         - '<email()>'
         - '<numberBetween(1,100)>'
@@ -215,6 +224,7 @@ App\Domain\Employee\Entity\Employee:
         - '<(App\Domain\Employee\ValueObject\Contact::fromArray([]))>'
         - "<date('Y-m-d')>"
         - "<date('Y-m-d')>"
+        - null
         - null
         - "<numerify('################')>"
         - '<email()>'

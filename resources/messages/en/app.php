@@ -66,6 +66,7 @@ return [
      * Employee
      */
     'employee.invalid_phone' => 'Phone Number is required, must start with 62, minimum 9 digits, and maximum 15 digits.',
+    'employee.contract_end_date_required' => 'contract_end_date is required for contract employee types.',
 
     /**
      * Work Pattern

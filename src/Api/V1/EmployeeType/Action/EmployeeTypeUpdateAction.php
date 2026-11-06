@@ -29,7 +29,7 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class EmployeeTypeUpdateAction
 {
-    private const ALLOWED_KEYS = ['name', 'status', 'lock_version'];
+    private const ALLOWED_KEYS = ['name', 'status', 'lock_version', 'is_contract'];
 
     public function __construct(
         private EmployeeTypeInputValidator $inputValidator,
@@ -80,6 +80,7 @@ final class EmployeeTypeUpdateAction
             id: (int) $id,
             name: $params->get('name'),
             status: (int) $params->get('status'),
+            isContract: $params->has('is_contract') ? (int) $params->get('is_contract') : null,
             detailInfo: $params->get('detail_info'),
             lockVersion: (int) $params->get('lock_version'),
         );

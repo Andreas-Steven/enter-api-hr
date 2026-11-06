@@ -21,6 +21,7 @@ final class MdbEmployeeSchema
             'contact' => $entity->getContact()->toArray(),
             'birth_date' => $entity->getBirthDate(),
             'date_start' => $entity->getDateStart(),
+            'contract_end_date' => $entity->getContractEndDate(),
             'date_resign' => $entity->getDateResign(),
             'sso_id' => $entity->getSsoId(),
             'division_id' => $entity->getDivisionId(),

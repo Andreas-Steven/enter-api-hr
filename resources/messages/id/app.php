@@ -65,6 +65,7 @@ return [
      * Employee
      */
     'employee.invalid_phone' => 'Nomor Telepon wajib diisi, harus diawali dengan 62, minimal 9 digit, dan maksimal 15 digit.',
+    'employee.contract_end_date_required' => 'contract_end_date wajib diisi untuk tipe karyawan kontrak.',
 
     /**
      * Work Pattern

@@ -146,7 +146,7 @@ final class ConflictException extends HttpException
      *     );
      * }
      */
-    public function __construct(Message|string $translate = null, ?array $errors = null, ?\Throwable $previous = null)
+    public function __construct(Message|string|null $translate = null, ?array $errors = null, ?\Throwable $previous = null)
     {
         $message = $translate instanceof Message 
             ? $translate 

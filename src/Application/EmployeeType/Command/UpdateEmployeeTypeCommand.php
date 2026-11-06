@@ -10,6 +10,7 @@ final readonly class UpdateEmployeeTypeCommand
         public int $id,
         public ?string $name,
         public ?int $status,
+        public ?int $isContract,
         public ?array $detailInfo,
         public ?int $lockVersion,
     ) {}
@@ -18,6 +19,7 @@ final readonly class UpdateEmployeeTypeCommand
         int $id,
         ?string $name = null,
         ?int $status = null,
+        ?int $isContract = null,
         ?array $detailInfo = null,
         ?int $lockVersion = null,
     ): self {
@@ -25,6 +27,7 @@ final readonly class UpdateEmployeeTypeCommand
             id: $id,
             name: $name,
             status: $status,
+            isContract: $isContract,
             detailInfo: $detailInfo,
             lockVersion: $lockVersion,
         );

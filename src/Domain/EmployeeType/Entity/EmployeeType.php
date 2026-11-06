@@ -100,7 +100,13 @@ final class EmployeeType
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'is_contract' => $this->isContract(),
         ];
+    }
+
+    public function isContract(): bool
+    {
+        return $this->detailInfo->get('is_contract') === true;
     }
     
     public function restore(): void

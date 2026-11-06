@@ -46,6 +46,7 @@ final class Employee
         private ?int $gradeId,
         private ?string $birthDate,
         private ?string $dateStart,
+        private ?string $contractEndDate,
         private ?string $dateResign,
         private ?Contact $contact,
         private ?Image $image,
@@ -73,6 +74,7 @@ final class Employee
         ?Contact $contact = null,
         ?string $birthDate = null,
         ?string $dateStart = null,
+        ?string $contractEndDate = null,
         ?string $dateResign = null,
         ?string $nik = null,
         ?string $email = null,
@@ -98,6 +100,7 @@ final class Employee
             contact: $contact,
             birthDate: $birthDate,
             dateStart: $dateStart,
+            contractEndDate: $contractEndDate,
             dateResign: $dateResign,
             divisionId: $divisionId,
             positionId: $positionId,
@@ -126,6 +129,7 @@ final class Employee
         ?int $gradeId,
         ?string $birthDate,
         ?string $dateStart,
+        ?string $contractEndDate,
         ?string $dateResign,
         ResourceStatus $status,
         DetailInfo $detailInfo,
@@ -151,6 +155,7 @@ final class Employee
             image: $image,
             birthDate: $birthDate,
             dateStart: $dateStart,
+            contractEndDate: $contractEndDate,
             dateResign: $dateResign,
             status: $status,
             detailInfo: $detailInfo,
@@ -171,6 +176,7 @@ final class Employee
             'contact' => $this->contact?->toArray(),
             'birth_date' => $this->birthDate,
             'date_start' => $this->dateStart,
+            'contract_end_date' => $this->contractEndDate,
             'date_resign' => $this->dateResign,
             'division_id' => $this->divisionId,
             'position_id' => $this->positionId,
@@ -244,6 +250,16 @@ final class Employee
     public function getDateStart(): ?string
     {
         return $this->dateStart;
+    }
+
+    public function getContractEndDate(): ?string
+    {
+        return $this->contractEndDate;
+    }
+
+    public function isContractType(): bool
+    {
+        return $this->detailInfo->get('employee_type.is_contract') === true;
     }
 
     public function getDateResign(): ?string
@@ -406,6 +422,11 @@ final class Employee
     public function updateDateStart(DateFormat $date): void
     {
         $this->dateStart = $date->toString();
+    }
+
+    public function updateContractEndDate(DateFormat $date): void
+    {
+        $this->contractEndDate = $date->toString();
     }
 
     public function updateDateResign(DateFormat $date): void

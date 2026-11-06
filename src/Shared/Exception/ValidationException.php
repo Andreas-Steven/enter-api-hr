@@ -150,7 +150,7 @@ final class ValidationException extends HttpException
      *     previous: $originalException
      * );
      */
-    public function __construct(?array $errors = null, Message|string $translate = null, ?\Throwable $previous = null)
+    public function __construct(?array $errors = null, Message|string|null $translate = null, ?\Throwable $previous = null)
     {
         $message = $translate instanceof Message 
             ? $translate 

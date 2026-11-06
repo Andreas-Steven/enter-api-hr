@@ -19,6 +19,12 @@ use Yiisoft\Db\Migration\RevertibleMigrationInterface;
 use Yiisoft\Db\Connection\Connection;
 
 /**
+ * TODO:
+ * [x] Tambahkan field end_date untuk karyawan kontrak
+ */
+
+
+/**
  * Creates employee table with status tracking and JSON detail_info.
  */
 final class M20260224131059CreateEmployeeTable implements RevertibleMigrationInterface
@@ -42,6 +48,7 @@ final class M20260224131059CreateEmployeeTable implements RevertibleMigrationInt
             'contact' => $cb::json()->defaultValue([]),
             'birth_date' => $cb::date(),
             'date_start' => $cb::date(),
+            'contract_end_date' => $cb::date(),
             'date_resign' => $cb::date(),
             'sso_id' => $cb::integer()->notNull(),
             'branch_id' => $cb::integer()->defaultValue(1),

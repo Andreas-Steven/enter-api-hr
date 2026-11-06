@@ -126,6 +126,7 @@ final class EmployeeApplicationService
             gradeId: $command->gradeId,
             birthDate: null,
             dateStart: null,
+            contractEndDate: null,
             dateResign: null,
             contact: Contact::fromArray([]),
             image: Image::fromArray([]),
@@ -225,6 +226,12 @@ final class EmployeeApplicationService
             );
         }
 
+        if (!empty($command->contractEndDate)) {
+            $data->updateContractEndDate(
+                date: DateFormat::fromString($command->contractEndDate)
+            );
+        }
+
         if (!empty($command->dateResign)) {
             $data->updateDateResign(
                 date: DateFormat::fromString($command->dateResign)
@@ -267,6 +274,8 @@ final class EmployeeApplicationService
         $data->updateDetailInfo(
             detailInfo: $detailInfo
         );
+
+        $this->domainService->ensureContractEndDate($data);
 
         return EmployeeResponse::fromEntity(
             entity: $this->repository->update(

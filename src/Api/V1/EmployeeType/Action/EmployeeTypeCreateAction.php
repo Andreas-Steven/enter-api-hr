@@ -25,7 +25,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class EmployeeTypeCreateAction 
 {
-    private const ALLOWED_KEYS = ['name', 'status', 'sync_mdb'];
+    private const ALLOWED_KEYS = ['name', 'status', 'sync_mdb', 'is_contract'];
 
     public function __construct(
         private EmployeeTypeInputValidator $inputValidator,
@@ -53,6 +53,7 @@ final class EmployeeTypeCreateAction
         $command = CreateEmployeeTypeCommand::create(
             name: (string) $params->get('name'),
             status: (int) $params->get('status'),
+            isContract: (int) ($params->get('is_contract') ?? 0),
             detailInfo: $params->get('detail_info')
         );
 

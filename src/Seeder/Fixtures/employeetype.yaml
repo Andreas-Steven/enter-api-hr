@@ -13,6 +13,10 @@ App\Domain\Shared\ValueObject\DetailInfo:
     __factory:
       'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
         - {  }
+  info_contract:
+    __factory:
+      'App\Domain\Shared\ValueObject\DetailInfo::fromArray':
+        - { is_contract: true }
 App\Domain\EmployeeType\Entity\EmployeeType:
   employee_type_1:
     __factory:
@@ -33,7 +37,7 @@ App\Domain\EmployeeType\Entity\EmployeeType:
       'App\Domain\EmployeeType\Entity\EmployeeType::create':
         - '<company()>'
         - '@status_active'
-        - '@info_empty'
+        - '@info_contract'
         - null
   employee_type_4:
     __factory:
